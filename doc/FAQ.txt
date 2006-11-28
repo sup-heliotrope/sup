@@ -1,0 +1,38 @@
+Sup FAQ
+-------
+
+Q: How is Sup even possible?
+A: Sup is only possible through the hard work of Dave Balmain, the
+   author of ferret.
+
+   I started using Ferret when it was still slightly buggy, and it
+   seemed like every week Dave released a bugfix or a speed
+   improvement that directly affected sup.  Ferret has become a
+   first-class piece of software, and it's almost entirely due to him.
+   It amazes me just how much time and effort he has put into it.
+
+Q: Why the console?
+A: As the millions (ok, hundreds) of mutt users will tell you, there are
+   many advantages to the console:
+   - You don't need a bulky web browser.
+   - You can ssh and check your mail on another machine.
+   - Instantaneous interaction.
+   - A few keystrokes are worth a hundred mouse clicks.
+
+Q: If you love GMail so much, why not just use it?
+A: I hate using a mouse, and I hate ads, and I hate non-programmability.
+
+Q: How does Sup deal with spam?
+A: You can manually mark messages as spam, which prevents them from
+   showing up in future searches, but that's all that Sup does. Spam
+   filtering should be done by a dedicated tool like SpamAssassin.
+
+Q: What are all these "Redwood" references I see in the code?
+A: That was Sup's original name. (Think pine, elm. Although I am a
+   Mutt user, I couldn't think of a good progression there.) But it was
+   taken by another project on RubyForge, and wasn't that original,
+   and was too long to type anyways.
+
+   Maybe one day I'll do a huge search-and-replace on the code, but it
+   doesn't seem that important at this point.
+

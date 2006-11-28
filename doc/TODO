@@ -1,0 +1,31 @@
+forward attachments
+tab completion on labels, contacts
+within-buffer search
+contact selector in edit-message-mode
+undo
+maybe: filters
+maybe: rangefilter on the initial inbox to only consider the most recent 1000 messages
+select all, starred, to me, etc
+editing of arbitrary messages
+annotations on messages
+
+x word wrap
+x background indexing
+x auto-insertion of draft messages
+x drafts
+x sent messages loader
+x search: from
+x contacts
+x tagging for group operations
+x view: starred, to me, etc
+x pull in messages by subject as well in load_thread_for_
+x reply+compose+forward
+x resize
+x buffer respawns
+x readline
+x "loading" message
+x search: body, to/from, tags (requires: readline)
+x highlighting/different color stuff
+x config: your email, sendmail, etc
+x status: to/from_you, cc_you_others
+x status: new/not, important

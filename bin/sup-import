@@ -1,0 +1,162 @@
+#!/bin/env ruby
+
+require "sup"
+
+class Float
+  def to_s; sprintf '%.2f', self; end
+end
+
+class Numeric
+  def to_time_s
+    i = to_i
+    sprintf "%d:%02d:%02d", i / 3600, (i / 60) % 60, i % 60
+  end
+end
+
+def time
+  startt = Time.now
+  yield
+  Time.now - startt
+end
+
+def educate_user
+  $stderr.puts <<EOS
+Loads messages into the Sup index, adding sources as needed to the
+source list.
+
+Usage:
+  sup-import [options] <source>*
+where <source>* is zero or more source descriptions (e.g., mbox
+filenames on disk). 
+
+If the sources listed are not already in the Sup source list,
+they will be added to it, as parameterized by the following options:
+  --archive: messages from these sources will not appear in the inbox
+  --unusual: these sources will not be polled when the flag --the-usual
+             is called
+
+Regardless of whether the sources are new or not, they will be polled,
+and any new messages will be added to the index, as parameterized by
+the following options:
+  --force-archive: regardless of the source "archive" flag, any new
+                   messages found will not appear in the inbox.
+  --force-read:    any messages found will not be marked as new.
+
+The following options can also be specified:
+  --the-usual:     import new messages from all usual sources
+  --rebuild:       rebuild the index for the specified sources rather than
+                   just adding new messages. Useful if the sources
+                   have changed in any way *other* than new messages
+                   being added.
+  --force-rebuild: force a rebuild of all messages in the inbox, not just
+                   ones that have changed. You probably won't need this
+                   unless William changes the index format.
+  --optimize:      optimize the index after adding any new messages.
+  --help:          don't do anything, just show this message.
+EOS
+#' stupid ruby-mode
+  exit
+end
+
+educate_user if ARGV.member? '--help'
+
+archive = ARGV.delete "--archive"
+unusual = ARGV.delete "--unusual"
+force_archive = ARGV.delete "--force-archive"
+force_read = ARGV.delete "--force-read"
+the_usual = ARGV.delete "--the-usual"
+rebuild = ARGV.delete "--rebuild"
+force_rebuild = ARGV.delete "--force-rebuild"
+optimize = ARGV.delete "--optimize"
+
+if(o = ARGV.find { |x| x =~ /^--/ })
+  $stderr.puts "error: unknown option #{o}"
+  educate_user
+end
+
+puts "loading index..."
+index = Redwood::Index.new
+index.load
+pre_nm = index.size
+puts "loaded index of #{index.size} messages"
+
+sources = ARGV.map do |fn|
+  source = index.source_for fn
+  unless source
+    source = Redwood::MBox::Loader.new(fn, 0, !unusual, !!archive)
+    index.add_source source
+  end
+  source
+end
+sources = (sources + index.usual_sources).uniq if the_usual
+sources.each { |s| s.reset! } if rebuild || force_rebuild
+
+found = {}
+start = Time.now
+begin
+  sources.each do |source|
+    next if source.done?
+    puts "loading from #{source}... "
+    num = 0
+    start_offset = nil
+    source.each do |offset, labels|
+      start_offset ||= offset
+      labels -= [:inbox] if force_archive
+      labels -= [:unread] if force_read
+      begin
+        m = Redwood::Message.new source, offset, labels
+        if found[m.id]
+          puts "skipping duplicate message #{m.id}"
+          next
+        else
+          found[m.id] = true
+        end
+
+        m.remove_label :unread if m.mbox_status == "RO" unless force_read
+        if (rebuild || force_rebuild) && 
+            (docid, entry = index.load_entry_for_id(m.id)) && entry
+          if force_rebuild || entry[:source_info].to_i != offset
+            puts "replacing message #{m.id} labels #{entry[:label].inspect} (offset #{entry[:source_info]} => #{offset})"
+            m.labels = entry[:label].split.map { |l| l.intern }
+            num += 1 if index.update_message m, source, offset
+          end
+        else
+          num += 1 if index.add_message m
+        end
+      rescue Redwood::MessageFormatError => e
+        $stderr.puts "ignoring erroneous message at #{source}##{offset}: #{e.message}"
+      end
+      if num % 1000 == 0 && num > 0
+        elapsed = Time.now - start
+        pctdone = (offset.to_f - start_offset) / (source.total.to_f - start_offset)
+        remaining = (source.total.to_f - offset.to_f) * (elapsed.to_f / (offset.to_f - start_offset))
+        puts "## #{num} (#{(pctdone * 100.0)}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
+      end
+    end
+    puts "loaded #{num} messages" unless num == 0
+  end
+ensure
+  index.save
+end
+
+if rebuild || force_rebuild
+  puts "deleting missing messages from the index..."
+  numdel = 0
+  sources.each do |source|
+    raise "no source id for #{source}" unless source.id
+    index.index.search_each("source_id:#{source.id}", :limit => :all) do |docid, score|
+      mid = index.index[docid][:message_id]
+      next if found[mid]
+      puts "deleting #{mid}"
+      index.index.delete docid
+      numdel += 1
+    end
+  end
+  puts "deleted #{numdel} messages"
+end
+
+if optimize
+  puts "optimizing index..."
+  optt = time { index.index.optimize }
+  puts "optimized index of size #{index.size} in #{optt}s."
+end

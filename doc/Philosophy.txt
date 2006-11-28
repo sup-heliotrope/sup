@@ -1,0 +1,59 @@
+Must an email client have a philosophy? I think so. For many people,
+it is our primary means of communication. Something so important
+should warrant a little thought.
+
+So here's Sup's philosophy.
+
+Using "traditional" email clients today is increasingly problematic.
+Anyone who's on a high-traffic mailing list knows this.  My ruby-talk
+folder is 350 megs and Mutt sits there for 60 seconds while it opens
+it. Keeping up with the all the new traffic is painful, even with
+Mutt's excellent threading features, just because there's so much of
+it. A single thread can span several pages.  And Mutt is probably the
+best email client out there in terms of threading and mailing list
+support.
+
+The principle problem with traditional clients is that they place a
+high mental cost on the user for each incoming email, by forcing them
+to ask:
+ - Should I keep this email, or delete it?
+ - If I keep it, where should I file it?
+
+For example, I've spent the last 10 years of my life laboriously
+hand-filing every email message I received and feeling a mild sense of
+panic every time an email was both "from Mom" and "about school". The
+massive amounts of email that many people receive, and the cheap cost
+of storage, have made these questions both more costly and less useful
+to answer.
+
+As a long-time Mutt user, when I watched people use GMail, I saw them
+use email differently from how I had ever used it. I saw that making
+certain operations quantitatively easier (namely, search) resulted in
+a qualitative difference in usage (and for the better!). I saw that
+thread-centrism had many advantages over message-centrism.
+
+So, in many ways, I believe GMail has taken the right approach to
+handle both of the factors above, and much of the inspiration for Sup
+was based on using GMail. Of course, I don't ultimately like using
+GMail, which is why I created Sup in the first place.
+
+Sup is based on the following principles, which I learned from GMail:
+
+- An immediately accessible and fast search capability over the
+  entire email archive eliminates most of the need for folders,
+  and eliminates the necessity of having to ever delete email.
+
+- Labels eliminate the remaining need for folders.
+
+- A thread-centric approach to the UI is much more in line with how
+  people operate than dealing with individual messages is. A message
+  and its content deserve the same treatment in the vast majority
+  of cases.
+
+Sup is also based on many ideas from mutt (and Emacs and vi!), having
+to do with the fantastic productivity of a console- and key-based
+application, and the usefulness of multiple buffers, etc., and the
+necessity of handling multiple email accounts, but these features form
+less of the philosophy and more of the general usefulness of Sup.
+
+

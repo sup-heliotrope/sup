@@ -1,0 +1,5 @@
+== 0.0.1 / 2006-11-28
+
+* Initial release. Unix-centrism, support for mbox only, no i18n.
+  Untested on anything other than 1.8.5. Other than that, works great!
+

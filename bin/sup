@@ -1,0 +1,229 @@
+#!/bin/env ruby
+
+require 'rubygems'
+require 'ncurses'
+require "sup"
+
+module Redwood
+
+$exception = nil
+
+global_keymap = Keymap.new do |k|
+  k.add :quit, "Quit Redwood", 'q'
+  k.add :help, "Show help", 'H', '?'
+  k.add :roll_buffers, "Switch to next buffer", 'b'
+  k.add :roll_buffers_backwards, "Switch to previous buffer", 'B'
+  k.add :kill_buffer, "Kill the current buffer", 'x'
+  k.add :list_buffers, "List all buffers", 'A'
+  k.add :list_contacts, "List contacts", 'C'
+  k.add :redraw, "Redraw screen", :ctrl_l
+  k.add :search, "Search messages", '/'
+  k.add :list_labels, "List labels", 'L'
+  k.add :poll, "Poll for new messages", 'P'
+  k.add :compose, "Compose new message", 'm'
+end
+
+def start_cursing
+  Ncurses.initscr
+  Ncurses.noecho
+  Ncurses.cbreak
+  Ncurses.stdscr.keypad 1
+  Ncurses.curs_set 0
+  Ncurses.start_color
+end
+
+def stop_cursing
+  Ncurses.curs_set 1
+  Ncurses.echo
+  Ncurses.endwin
+end
+module_function :start_cursing, :stop_cursing
+
+Redwood::SentManager.new Redwood::SENT_FN
+Redwood::ContactManager.new Redwood::CONTACT_FN
+Redwood::LabelManager.new Redwood::LABEL_FN
+Redwood::AccountManager.new $config[:accounts]
+Redwood::DraftManager.new Redwood::DRAFT_DIR
+Redwood::UpdateManager.new
+Redwood::PollManager.new
+
+Index.new.load
+log "loaded #{Index.size} messages from index"
+
+if(s = Index.source_for DraftManager.source_name)
+  DraftManager.source = s
+else
+  Index.add_source DraftManager.new_source
+end
+
+if(s = Index.source_for SentManager.source_name)
+  SentManager.source = s
+else
+  Index.add_source SentManager.new_source
+end
+  
+begin
+  log "starting curses"
+  start_cursing
+
+  log "initializing colormap"
+  Colormap.new do |c|
+    c.add :status_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLUE, Ncurses::A_BOLD
+    c.add :index_old_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
+    c.add :index_new_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK, 
+           Ncurses::A_BOLD
+    c.add :labellist_old_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
+    c.add :labellist_new_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK, 
+           Ncurses::A_BOLD
+    c.add :twiddle_color, Ncurses::COLOR_BLUE, Ncurses::COLOR_BLACK
+    c.add :label_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
+    c.add :message_patina_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_GREEN
+    c.add :mime_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
+    c.add :quote_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
+    c.add :sig_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
+    c.add :quote_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
+    c.add :sig_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
+    c.add :to_me_color, Ncurses::COLOR_GREEN, Ncurses::COLOR_BLACK
+    c.add :starred_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK,
+          Ncurses::A_BOLD
+    c.add :starred_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_GREEN,
+          Ncurses::A_BOLD
+    c.add :snippet_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
+    c.add :option_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
+    c.add :tagged_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK,
+          Ncurses::A_BOLD
+    c.add :draft_notification_color, Ncurses::COLOR_RED, Ncurses::COLOR_BLACK,
+          Ncurses::A_BOLD
+  end
+
+  log "initializing buffer manager"
+  bm = BufferManager.new
+
+  if Index.usual_sources.any? { |s| !s.done? }
+    log "polling for new mail"
+    pmode = PollMode.new
+    pbuf = bm.spawn "load new messages", pmode
+    pmode.poll
+#    sleep 1
+#    bm.kill_buffer pbuf
+  end
+
+  log "initializing mail index buffer"
+  imode = InboxMode.new
+  ibuf = bm.spawn "inbox", imode
+
+  log "ready for (inter)action!"
+  Logger.make_buf
+
+  bm.draw_screen
+  imode.load_more_threads ibuf.content_height
+
+  until $exception
+    bm.draw_screen
+    c = Ncurses.nonblocking_getch
+    bm.erase_flash
+
+    if c == Ncurses::KEY_RESIZE
+      bm.handle_resize
+    elsif c
+      unless bm.handle_input(c)
+        x = global_keymap.action_for c
+        case x
+        when :quit
+          break
+        when :help
+          curmode = bm.focus_buf.mode
+          bm.spawn_unless_exists("<help for #{curmode.name}>") { HelpMode.new curmode, global_keymap }
+        when :roll_buffers
+          bm.roll_buffers
+        when :roll_buffers_backwards
+          bm.roll_buffers_backwards
+        when :kill_buffer
+          bm.kill_buffer bm.focus_buf unless bm.focus_buf.mode.is_a? InboxMode
+        when :list_buffers
+          bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
+        when :list_contacts
+          mode = ContactListMode.new 
+          bm.spawn "compose to contacts", mode
+        when :search
+          text = bm.ask :search, "query: "
+          next unless text && text !~ /^\s*$/
+          mode = SearchResultsMode.new text
+          short_text = 
+            if text.length < 20
+              text
+            else
+              text[0 ... 20] + "..."
+            end
+          bm.spawn "search: \"#{short_text}\"", mode
+          bm.draw_screen
+          mode.load_more_threads mode.buffer.content_height
+        when :list_labels
+          b = BufferManager.spawn_unless_exists("all labels") do
+            LabelListMode.new
+          end
+          b.mode.load_in_background
+        when :compose
+          mode = ComposeMode.new
+          bm.spawn "new message", mode
+          mode.edit
+        when :poll
+          b = BufferManager.spawn_unless_exists("load new messages") do
+            PollMode.new
+          end
+          b.mode.poll
+        when :nothing
+        when :redraw
+          bm.completely_redraw_screen
+        else
+          BufferManager.flash "Unknown key press '#{c.to_character}' for #{bm.focus_buf.mode.name}."
+        end
+      end
+    end
+  end
+  bm.kill_all_buffers
+  Redwood::LabelManager.save
+  Redwood::ContactManager.save
+rescue Exception => e
+  $exception ||= e
+ensure
+  stop_cursing
+end
+
+Index.save unless $exception # TODO: think about this
+
+if $exception 
+  if $exception.is_a? IndexError
+    $stderr.puts <<EOS
+An error occurred while loading a message from source "#{$exception.source}".
+Typically, this means that the source has been modified in some
+way which has rendered the messages invalid.
+
+You must rebuild the index for this source. Please run:
+  sup-import --rebuild #{$exception.source}
+to correct this error.
+EOS
+  raise $exception                             
+  else
+    $stderr.puts <<EOS
+-----------------------------------------------------------------
+I'm very sorry, but it seems that an error occurred in Redwood. 
+Please accept my sincere apologies. If you don't mind, please
+send the backtrace below and a brief report of the circumstances
+to user wmorgan-sup at site masanjin dot net so that I might
+address this problem. Thank you!
+
+Sincerely,
+William
+-----------------------------------------------------------------
+
+The problem was: #{$exception.message} (error type #{$exception.class.name})
+A backtrace follows:
+EOS
+    raise $exception
+  end
+end
+
+
+end
+
