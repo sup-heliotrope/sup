@@ -112,12 +112,11 @@ protected
         AccountManager.default_account.email
       end
 
-    sendmail = AccountManager.account_for(from_email).sendmail
-    raise "nil sendmail" unless sendmail
+    acct = AccountManager.account_for(from_email) || AccountManager.default_account
     SentManager.write_sent_message(date, from_email) { |f| write_message f, true, date }
     BufferManager.flash "sending..."
 
-    IO.popen(sendmail, "w") { |p| write_message p, true, date }
+    IO.popen(acct.sendmail, "w") { |p| write_message p, true, date }
 
     BufferManager.kill_buffer buffer
     BufferManager.flash "Message sent!"
