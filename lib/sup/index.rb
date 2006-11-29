@@ -238,7 +238,7 @@ class Index
       :from => m.from ? m.from.email : "",
       :to => (m.to + m.cc + m.bcc).map { |x| x.email }.join(" "),
       :subject => wrap_subj(Message.normalize_subj(m.subj)),
-      :refs => (m.refs + m.replytos).join(" "),
+      :refs => (m.refs + m.replytos).uniq.join(" "),
     }
 
     @index.add_document d

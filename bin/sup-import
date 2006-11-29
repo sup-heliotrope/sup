@@ -54,7 +54,6 @@ The following options can also be specified:
   --optimize:      optimize the index after adding any new messages.
   --help:          don't do anything, just show this message.
 EOS
-#' stupid ruby-mode
   exit
 end
 

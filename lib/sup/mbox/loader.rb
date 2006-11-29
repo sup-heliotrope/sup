@@ -85,7 +85,7 @@ class Loader
       next_end_offset = @f.tell
       while(line = @f.gets)
         break if line =~ BREAK_RE
-        next_end_offset = @f.tell + 1
+        next_end_offset = @f.tell
       end
     end
 
