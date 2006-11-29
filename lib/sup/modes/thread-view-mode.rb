@@ -178,7 +178,7 @@ class ThreadViewMode < LineCursorMode
   ## not sure if this is really necessary but we might as well...
   def cleanup
     @thread.each do |m, d, p|
-      if m.has_label? :unread
+      if m && m.has_label?(:unread)
         m.remove_label :unread 
         UpdateManager.relay :read, m
       end
