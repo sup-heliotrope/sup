@@ -62,7 +62,7 @@ class ThreadViewMode < LineCursorMode
   def show_header
     return unless(m = @message_lines[curpos])
     BufferManager.spawn_unless_exists("Full header") do
-      TextMode.new m.content #m.header_text
+      TextMode.new m.header_text
     end
   end
 
