@@ -1,5 +1,7 @@
 Sup FAQ
 -------
+Q: What does Sup stand for?
+A: "What's up?".
 
 Q: How is Sup even possible?
 A: Sup is only possible through the hard work of Dave Balmain, the
