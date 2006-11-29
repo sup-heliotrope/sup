@@ -31,16 +31,15 @@ Features:
   message level. Entire threads are manipulated and viewed (with
   redundancies removed) at a time.
 
-- Labels over folders. Drop that tired old metaphor and you'll see how
-  much easier it is to organize email.
+- Labels instead of folders. Drop that tired old metaphor and you'll
+  see how much easier it is to organize email.
 
 - GMail-style thread management.  Archive a thread, and it will
   disappear from your inbox until someone replies. Kill a thread, and
   it will never come back to your inbox. (But it will still show up in
   searches, of course.)
 
-- Console based, so instantaneous response to interaction. No mouse
-  clicking required!
+- Console based interface. No mouse clicking required!
 
 - Programmability. It's in Ruby. The code is good. It's easy to
   extend.
@@ -48,23 +47,23 @@ Features:
 - Multiple buffer support. Why be limited to viewing one thread at a
   time?
 
-- Automatic context-sensitive help.
-
-- Message tagging and multi-message tagged operations.
-
-- Mutt-style MIME attachment viewing.
+- Tons of other little features, like automatic context-sensitive
+  help, multi-message operations, MIME attachment viewing, recent
+  contact list generation, etc.
 
 Current limitations which will be fixed:
 
-- Support for mbox ONLY at this point. No support for POP, IMAP, and
-  GMail accounts.
+- Support for mbox only at this point. No support for POP, IMAP, mh,
+  GMail mailstores.
 
 - No internationalization support. No wide characters, no subject
   demangling. 
 
-- No GMail-style filters.
+- Unix-centrism in MIME attachment handling and in sendmail
+  invocation.
 
-- Unix-centrism in MIME attachment handling.
+- Several obvious missing features, like undo, filters / saved
+  searches, message annotations, etc.
 
 == SYNOPSYS:
 
@@ -76,11 +75,12 @@ Current limitations which will be fixed:
   messages from particular mailboxes not to be added to the inbox,
   or not to be marked as new, so run it with -h for help.
 
-  Note that Sup *never* changes the contents of any mailboxes. So it
-  shouldn't ever corrupt your mail. The flip side is that if you
-  change a mailbox (e.g. delete or read messages) then Sup may crash,
+  Note that Sup never changes the contents of any mailboxes; it only
+  indexes in to them. So it shouldn't ever corrupt your mail. The flip
+  side is that if you change a mailbox (e.g. delete messages, or, in
+  the case of mbox files, read an unread message) then Sup may crash,
   and will tell you to run sup-import --rebuild to recalculate the
-  offsets within the mailbox have changed.
+  offsets within the mailbox.
 
 == REQUIREMENTS:
 
@@ -95,8 +95,7 @@ Current limitations which will be fixed:
     chunk = chunk[0..start]
   (Sorry. it's an unsupported package.) You might be able to get away
   without doing this but if you get frozen string exceptions when
-  reading in multipart email messages, this is what you need to
-  change.
+  reading in multipart messages, this is what you need to change.
 
 == LICENSE:
 
