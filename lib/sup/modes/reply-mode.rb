@@ -40,7 +40,6 @@ class ReplyMode < EditMessageMode
 
     @headers[:user] = {
       "From" => "#{from.name} <#{from_email}>",
-      "To" => "",
     }
 
     @headers[:all] = {
@@ -57,12 +56,15 @@ class ReplyMode < EditMessageMode
     refs = gen_references
     mid = gen_message_id
     @headers.each do |k, v|
-      @headers[k] = v.merge({
+      @headers[k] = {
+               "To" => "",
+               "Cc" => "",
+               "Bcc" => "",
                "In-Reply-To" => "<#{@m.id}>",
                "Subject" => Message.reify_subj(@m.subj),
                "Message-Id" => mid,
                "References" => refs,
-             })
+             }.merge v
     end
 
     @type_labels = REPLY_TYPES.select { |t| @headers.member?(t) }
@@ -107,6 +109,7 @@ protected
 
     if new_header.size != header.size ||
         header.any? { |k, v| new_header[k] != v }
+      #raise "nhs: #{new_header.size} hs: #{header.size} new: #{new_header.inspect} old: #{header.inspect}"
       @selected_type = :user
       @headers[:user] = new_header
     end
