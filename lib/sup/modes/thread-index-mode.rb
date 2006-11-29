@@ -359,7 +359,7 @@ protected
     [ 
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
       [:none, sprintf("%#{@date_width}s ", date)],
-      [base_color, sprintf("%-#{@from_width}s ", from)],
+      [base_color, sprintf("%-#{@from_width}s", from)],
       [:starred_color, starred ? "*" : " "],
       [:none, t.size == 1 ? " " * (@size_width + 2) : sprintf("(%#{@size_width}d)", t.size)],
       [:to_me_color, dp ? " >" : (p ? ' -' : "  ")],

@@ -216,10 +216,10 @@ class Time
     end  
   end
 
-  TO_NICE_S_MAX_LEN = 11 # e.g. "Jul 31 2005"
+  TO_NICE_S_MAX_LEN = 9 # e.g. "Yest.10am"
   def to_nice_s from=Time.now
     if year != from.year
-      strftime "%b %e %Y"
+      strftime "%b %Y"
     elsif month != from.month
       strftime "%b %e"
     else
