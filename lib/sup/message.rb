@@ -210,7 +210,7 @@ private
           m.body
         body = m.decode or raise MessageFormatError, "no message body"
         text_to_chunks body.gsub(/\t/, "    ").gsub(/\r/, "").split("\n")
-      when "multipart/alternative", "multipart/mixed"
+      when /^multipart\//
         nil
       else
         disp = m.header["Content-Disposition"] || ""
