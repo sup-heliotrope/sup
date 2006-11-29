@@ -9,17 +9,17 @@ A: Sup is only possible through the hard work of Dave Balmain, the
 
    I started using Ferret when it was still slightly buggy, and it
    seemed like every week Dave released a bugfix or a speed
-   improvement that directly affected sup.  Ferret has become a
-   first-class piece of software, and it's almost entirely due to him.
-   It amazes me just how much time and effort he has put into it.
+   improvement that directly affected sup. Ferret has become a
+   first-class piece of software, and it's due to the tremendous
+   amount of time and effort he's put in to it.
 
 Q: Why the console?
 A: As the millions (ok, hundreds) of mutt users will tell you, there are
    many advantages to the console:
-   - You don't need a bulky web browser.
-   - You can ssh and check your mail on another machine.
+   - You don't need web browser.
    - Instantaneous interaction.
-   - A few keystrokes are worth a hundred mouse clicks.
+   - A few keystrokes can accomplish the work of a hundred mouse
+     clicks.
 
 Q: If you love GMail so much, why not just use it?
 A: I hate using a mouse, and I hate ads, and I hate non-programmability.
