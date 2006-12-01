@@ -1,4 +1,4 @@
-#!/bin/env ruby
+#!/usr/bin/env ruby
 
 require "sup"
 
@@ -67,6 +67,12 @@ the_usual = ARGV.delete "--the-usual"
 rebuild = ARGV.delete "--rebuild"
 force_rebuild = ARGV.delete "--force-rebuild"
 optimize = ARGV.delete "--optimize"
+start_at = # ok really need to use optparse or something now
+  if(i = ARGV.index("--start-at"))
+    raise "start-at requires a numeric argument: #{ARGV[i + 1].inspect}" unless ARGV.length > (i + 1) && ARGV[i + 1] =~ /\d/
+    ARGV.delete_at i
+    ARGV.delete_at(i).to_i # whoa!
+  end
 
 if(o = ARGV.find { |x| x =~ /^--/ })
   $stderr.puts "error: unknown option #{o}"
@@ -88,7 +94,13 @@ sources = ARGV.map do |fn|
   source
 end
 sources = (sources + index.usual_sources).uniq if the_usual
-sources.each { |s| s.reset! } if rebuild || force_rebuild
+if rebuild || force_rebuild
+  if start_at
+    sources.each { |s| s.seek_to! start_at }
+  else
+    sources.each { |s| s.reset! }
+  end
+end
 
 found = {}
 start = Time.now
@@ -140,18 +152,26 @@ end
 
 if rebuild || force_rebuild
   puts "deleting missing messages from the index..."
-  numdel = 0
+  if start_at
+    $stderr.puts "deleting currently don't work with --start-at. sorry!"
+    break
+  end
+  numdel = num = 0
   sources.each do |source|
     raise "no source id for #{source}" unless source.id
-    index.index.search_each("source_id:#{source.id}", :limit => :all) do |docid, score|
+    q = "+source_id:#{source.id}"
+    q += " +source_info: >= #{start_at}" if start_at
+    p q
+    num += index.index.search_each(q, :limit => :all) do |docid, score|
       mid = index.index[docid][:message_id]
       next if found[mid]
       puts "deleting #{mid}"
       index.index.delete docid
       numdel += 1
     end
+    p num
   end
-  puts "deleted #{numdel} messages"
+  puts "deleted #{numdel} / #{num} messages"
 end
 
 if optimize
