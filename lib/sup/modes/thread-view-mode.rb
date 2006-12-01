@@ -358,6 +358,7 @@ private
     BufferManager.flash "viewing #{a.content_type} attachment..."
     a.view!
     BufferManager.erase_flash
+    BufferManager.completely_redraw_screen
   end
 
 end
