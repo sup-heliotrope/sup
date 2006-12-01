@@ -2,8 +2,8 @@ module Redwood
 
 class BufferListMode < LineCursorMode
   register_keymap do |k|
-    k.add :jump_to_buffer, "Jump to that buffer", :enter
-    k.add :reload, "Reload", "R"
+    k.add :jump_to_buffer, "Jump to selected buffer", :enter
+    k.add :reload, "Reload buffer list", "R"
   end
 
   def initialize
@@ -23,9 +23,9 @@ protected
 
   def regen_text
     @bufs = BufferManager.buffers.sort_by { |name, buf| name }
-    width = @bufs.map { |name, buf| name.length }.max
+    width = @bufs.map { |name, buf| buf.mode.name.length }.max
     @text = @bufs.map do |name, buf|
-      sprintf "%#{width}s  %s", name, buf.mode.name
+      sprintf "%#{width}s  %s", buf.mode.name, name
     end
   end
 
