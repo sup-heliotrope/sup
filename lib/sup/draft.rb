@@ -77,13 +77,20 @@ class DraftLoader
     end
   end
 
-  ## load the full header text
-  def load_header_text offset
+  def raw_header offset
     ret = ""
     File.open fn_for_offset(offset) do |f|
       until f.eof? || (l = f.gets) =~ /^$/
         ret += l
       end
+    end
+    ret
+  end
+
+  def raw_full_message offset
+    ret = ""
+    File.open fn_for_offset(offset) do |f|
+      ret += l until f.eof?
     end
     ret
   end

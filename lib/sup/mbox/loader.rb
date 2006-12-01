@@ -34,7 +34,11 @@ class Loader
       end).compact
   end
 
-  def reset!; @end_offset = 0; @dirty = true; end
+  def seek_to! offset
+    @end_offset = [offset, File.size(@f) - 1].min;
+    @dirty = true
+  end
+  def reset!; seek_to! 0; end
   def == o; o.is_a?(Loader) && o.filename == filename; end
   def to_s; "mbox://#{@filename}"; end
 
@@ -61,12 +65,23 @@ class Loader
     end
   end
 
-  ## load the full header text
-  def load_header_text offset
+  def raw_header offset
     ret = ""
     @mutex.synchronize do
       @f.seek offset
       until @f.eof? || (l = @f.gets) =~ /^$/
+        ret += l
+      end
+    end
+    ret
+  end
+
+  def raw_full_message offset
+    ret = ""
+    @mutex.synchronize do
+      @f.seek offset
+      @f.gets # skip mbox header
+      until @f.eof? || (l = @f.gets) =~ BREAK_RE
         ret += l
       end
     end

@@ -27,24 +27,27 @@ class Message
   end
 
   class Attachment
-    attr_reader :content_type, :desc
+    attr_reader :content_type, :desc, :filename
     def initialize content_type, desc, part
       @content_type = content_type
       @desc = desc
       @part = part
       @file = nil
+      desc =~ /filename="(.*?)"/ && @filename = $1
     end
 
     def view!
       unless @file
         @file = Tempfile.new "redwood.attachment"
-        @file.print @part.decode
+        @file.print self
         @file.close
       end
 
       ## TODO: handle unknown mime-types
       system "/usr/bin/run-mailcap --action=view #{@content_type}:#{@file.path}"
     end
+
+    def to_s; @part.decode; end
   end
 
   class Text
@@ -171,8 +174,12 @@ class Message
     message_to_chunks m
   end
 
-  def header_text
-    @source.load_header_text @source_info
+  def raw_header
+    @source.raw_header @source_info
+  end
+
+  def raw_full_message
+    @source.raw_full_message @source_info
   end
 
   def content

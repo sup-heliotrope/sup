@@ -352,7 +352,7 @@ class BufferManager
     id ||= @minibuf_stack.length
     @minibuf_stack[id] = s
     unless @freeze
-      draw_minibuf
+      draw_screen
       Ncurses.refresh
     end
     id
@@ -363,7 +363,7 @@ class BufferManager
   def flash s
     @flash = s
     unless @freeze
-      draw_minibuf
+      draw_screen
       Ncurses.refresh
     end
   end
@@ -377,7 +377,7 @@ class BufferManager
       end
     end
     unless @freeze
-      draw_minibuf
+      draw_screen
       Ncurses.refresh
     end
   end

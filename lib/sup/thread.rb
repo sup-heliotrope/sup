@@ -321,6 +321,7 @@ class ThreadSet
       else
         ## to disable subject grouping, use the next line instead
         ## (and the same for below)
+        Redwood::log "[1] normalized subject for #{id} is #{Message.normalize_subj(root.subj)}"
         thread = (@subj_thread[Message.normalize_subj(root.subj)] ||= Thread.new)
         #thread = (@subj_thread[root.id] ||= Thread.new)
 
@@ -341,6 +342,7 @@ class ThreadSet
       else
         ## to disable subject grouping, use the next line instead
         ## (and the same above)
+        Redwood::log "[2] normalized subject for #{id} is #{Message.normalize_subj(root.subj)}"
         thread = (@subj_thread[Message.normalize_subj(root.subj)] ||= Thread.new)
         #thread = (@subj_thread[root.id] ||= Thread.new)
 

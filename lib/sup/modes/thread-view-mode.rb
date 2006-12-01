@@ -16,6 +16,7 @@ class ThreadViewMode < LineCursorMode
     k.add :collapse_non_new_messages, "Collapse all but new messages", 'N'
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message", 'f'
+    k.add :save_to_disk, "Save message/attachment to disk", 's'
   end
 
   def initialize thread, hidden_labels=[]
@@ -62,7 +63,7 @@ class ThreadViewMode < LineCursorMode
   def show_header
     return unless(m = @message_lines[curpos])
     BufferManager.spawn_unless_exists("Full header") do
-      TextMode.new m.header_text
+      TextMode.new m.raw_header
     end
   end
 
@@ -107,6 +108,32 @@ class ThreadViewMode < LineCursorMode
       view_attachment chunk
     end
     update
+  end
+
+  def save fn
+    if File.exists? fn
+      return unless BufferManager.ask_yes_or_no "File exists. Overwrite?"
+    end
+    begin
+      File.open(fn, "w") { |f| yield f }
+      BufferManager.flash "Successfully wrote #{fn}."
+    rescue SystemCallError => e
+      BufferManager.flash "Error writing to file: #{e.message}"
+    end
+  end
+  private :save
+
+  def save_to_disk
+    return unless(chunk = @chunk_lines[curpos])
+    case chunk
+    when Message::Attachment
+      fn = BufferManager.ask :filename, "save attachment to file: ", chunk.filename
+      save(fn) { |f| f.print chunk } if fn
+    else
+      m = @message_lines[curpos]
+      fn = BufferManager.ask :filename, "save message to file: "
+      save(fn) { |f| f.print m.raw_full_message } if fn
+    end
   end
 
   def edit_message
