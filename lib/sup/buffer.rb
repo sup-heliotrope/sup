@@ -132,7 +132,7 @@ class BufferManager
     @minibuf_stack = []
     @textfields = {}
     @flash = nil
-    @shelled_out = false
+    @freeze = false
 
     self.class.i_am_the_instance self
   end
@@ -178,14 +178,14 @@ class BufferManager
   end
 
   def completely_redraw_screen
-    return if @shelled_out
+    return if @freeze
     Ncurses.clear
     @dirty = true
     draw_screen
   end
 
   def handle_resize
-    return if @shelled_out
+    return if @freeze
     rows, cols = Ncurses.rows, Ncurses.cols
     @buffers.each { |b| b.resize rows - 1, cols }
     completely_redraw_screen
@@ -193,7 +193,7 @@ class BufferManager
   end
 
   def draw_screen skip_minibuf=false
-    return if @shelled_out
+    return if @freeze
 
     ## disabling this for the time being, to help with debugging
     ## (currently we only have one buffer visible at a time).
@@ -291,11 +291,13 @@ class BufferManager
     tf.activate question, default
     @dirty = true
     draw_screen true
-    tf.position_cursor
-    Ncurses.refresh
 
     ret = nil
+    @freeze = true
+    tf.position_cursor
+    Ncurses.refresh
     while tf.handle_input(Ncurses.nonblocking_getch); end
+    @freeze = false
 
     ret = tf.value
     tf.deactivate
@@ -315,6 +317,7 @@ class BufferManager
 
     ret = nil
     done = false
+    @freeze = true
     until done
       key = Ncurses.nonblocking_getch
       if key == Ncurses::KEY_CANCEL
@@ -324,7 +327,7 @@ class BufferManager
         done = true
       end
     end
-
+    @freeze = false
     Ncurses.curs_set 0
     erase_flash
     draw_screen
@@ -348,7 +351,7 @@ class BufferManager
   def say s, id=nil
     id ||= @minibuf_stack.length
     @minibuf_stack[id] = s
-    unless @shelled_out
+    unless @freeze
       draw_minibuf
       Ncurses.refresh
     end
@@ -359,7 +362,7 @@ class BufferManager
 
   def flash s
     @flash = s
-    unless @shelled_out
+    unless @freeze
       draw_minibuf
       Ncurses.refresh
     end
@@ -373,19 +376,19 @@ class BufferManager
         @minibuf_stack.delete_at i
       end
     end
-    unless @shelled_out
+    unless @freeze
       draw_minibuf
       Ncurses.refresh
     end
   end
 
   def shell_out command
-    @shelled_out = true
+    @freeze = true
     Ncurses.endwin
     system command
     Ncurses.refresh
     Ncurses.curs_set 0
-    @shelled_out = false
+    @freeze = false
   end
 end
 end
