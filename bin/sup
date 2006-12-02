@@ -99,15 +99,6 @@ begin
   log "initializing buffer manager"
   bm = BufferManager.new
 
-  if Index.usual_sources.any? { |s| !s.done? }
-    log "polling for new mail"
-    pmode = PollMode.new
-    pbuf = bm.spawn "load new messages", pmode
-    pmode.poll
-#    sleep 1
-#    bm.kill_buffer pbuf
-  end
-
   log "initializing mail index buffer"
   imode = InboxMode.new
   ibuf = bm.spawn "inbox", imode
@@ -117,6 +108,8 @@ begin
 
   bm.draw_screen
   imode.load_more_threads ibuf.content_height
+
+  ::Thread.new { sleep 5; PollManager.poll }
 
   until $exception
     bm.draw_screen
@@ -168,10 +161,8 @@ begin
           bm.spawn "new message", mode
           mode.edit
         when :poll
-          b = BufferManager.spawn_unless_exists("load new messages") do
-            PollMode.new
-          end
-          b.mode.poll
+          BufferManager.raise_to_front PollManager.buffer
+          PollManager.poll
         when :nothing
         when :redraw
           bm.completely_redraw_screen
@@ -193,21 +184,23 @@ end
 Index.save unless $exception # TODO: think about this
 
 if $exception 
-  if $exception.is_a? IndexError
+  case $exception
+  when IndexError
     $stderr.puts <<EOS
-An error occurred while loading a message from source "#{$exception.source}".
+An error occurred while parsing a message from source "#{$exception.source}".
 Typically, this means that the source has been modified in some
-way which has rendered the messages invalid.
+way which has rendered the messages invalid. For example, if it's an mbox
+file, you may have read or deleted messages using another client.
 
 You must rebuild the index for this source. Please run:
   sup-import --rebuild #{$exception.source}
 to correct this error.
 EOS
-  raise $exception                             
+#' stupid ruby-mode
   else
     $stderr.puts <<EOS
------------------------------------------------------------------
-I'm very sorry, but it seems that an error occurred in Redwood. 
+----------------------------------------------------------------
+I'm very sorry, but it seems that an error occurred in Sup. 
 Please accept my sincere apologies. If you don't mind, please
 send the backtrace below and a brief report of the circumstances
 to user wmorgan-sup at site masanjin dot net so that I might
@@ -215,13 +208,13 @@ address this problem. Thank you!
 
 Sincerely,
 William
------------------------------------------------------------------
+----------------------------------------------------------------
 
 The problem was: #{$exception.message} (error type #{$exception.class.name})
 A backtrace follows:
 EOS
-    raise $exception
   end
+  raise $exception
 end
 
 

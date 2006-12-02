@@ -16,8 +16,8 @@ class PollMode < LogMode
   def poll
     puts unless @new
     @new = false
-    puts "poll started at #{Time.now}"
-    PollManager.poll { |s| puts s }
+    puts "Poll started at #{Time.now}"
+    PollManager.do_poll { |s| puts s }
   end
 end
 

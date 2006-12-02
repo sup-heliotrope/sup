@@ -17,16 +17,30 @@ class PollManager
       while true
         sleep DELAY / 2
         if @last_poll.nil? || (Time.now - @last_poll) >= DELAY
-          mbid = BufferManager.say "Polling for new messages..."
-          num, numi = poll { |s| BufferManager.say s, mbid }
-          BufferManager.clear mbid
-          BufferManager.flash "Loaded #{num} new messages, #{numi} to inbox." if num > 0
+          poll
         end
       end
     end
   end
 
+  def buffer
+    BufferManager.spawn_unless_exists("<poll for new messages>", :hidden => true) do
+      PollMode.new
+    end
+  end
+
   def poll
+    BufferManager.flash "Polling for new messages..."
+    num, numi = buffer.mode.poll
+    if num > 0
+      BufferManager.flash "Loaded #{num} new messages, #{numi} to inbox." 
+    else
+      BufferManager.flash "No new messages."
+    end
+    [num, numi]
+  end
+
+  def do_poll
     return [0, 0] if @polling
     @polling = true
     found = {}
@@ -41,7 +55,7 @@ class PollManager
       num_inbox = 0
       source.each do |offset, labels|
         start_offset ||= offset
-
+        yield " Found message at #{offset} with labels #{labels * ', '}"
         begin
           m = Redwood::Message.new source, offset, labels
           if found[m.id]
