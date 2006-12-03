@@ -18,17 +18,11 @@ end
 class Index
   include Singleton
 
-  LOAD_THREAD_PETIT_DELAY = 0.1
-  LOAD_THREAD_GRAND_DELAY = 5
-
-  MESSAGES_AT_A_TIME = 10
-
   attr_reader :index # debugging only
   
   def initialize dir=BASE_DIR
     @dir = dir
     @mutex = Mutex.new
-    @load_thread = nil # loads new messages
     @sources = {}
     @sources_dirty = false
 
@@ -71,7 +65,7 @@ class Index
       field_infos = Ferret::Index::FieldInfos.new :store => :yes
       field_infos.add_field :message_id
       field_infos.add_field :source_id
-      field_infos.add_field :source_info, :index => :no, :term_vector => :no
+      field_infos.add_field :source_info
       field_infos.add_field :date, :index => :untokenized
       field_infos.add_field :body, :store => :no
       field_infos.add_field :label
@@ -190,30 +184,24 @@ class Index
     source = @sources[doc[:source_id].to_i]
     #puts "building message #{doc[:message_id]} (#{source}##{doc[:source_info]})"
     raise "invalid source #{doc[:source_id]}" unless source
+    raise "no snippet" unless doc[:snippet]
+
     begin
-      raise "no snippet" unless doc[:snippet]
       Message.new source, doc[:source_info].to_i, 
                   doc[:label].split(" ").map { |s| s.intern },
                   doc[:snippet]
     rescue MessageFormatError => e
       raise IndexError.new(source, "error building message #{doc[:message_id]} at #{source}/#{doc[:source_info]}: #{e.message}")
-      nil
+#     rescue StandardError => e
+#       Message.new_from_index doc, <<EOS
+# An error occurred while loading this message. It is possible that the source
+# has changed, or (in the case of remote sources) is down. The error was:
+# #{e.message}
+# EOS
     end
   end
 
-  def start_load_thread
-    return if @load_thread
-    @load_thread = true
-    @load_thread = ::Thread.new do
-      while @load_thread
-        load_some_entries ENTRIES_AT_A_TIME, LOAD_THREAD_PETIT_DELAY, LOAD_THREAD_GRAND_DELAY
-      end
-    end
-  end
-
-  def end_load_thread; @load_thread = nil; end
   def fresh_thread_id; @next_thread_id += 1; end
-
   def wrap_subj subj; "__START_SUBJECT__ #{subj} __END_SUBJECT__"; end
 
   def add_message m
@@ -320,33 +308,6 @@ protected
       Redwood::save_yaml_obj @sources.values, fn 
     end
     @sources_dirty = false
-  end
-
-  def load_some_entries max=ENTRIES_AT_A_TIME, delay1=nil, delay2=nil
-    num = 0
-    begin
-      @sources.each_with_index do |source, source_id|
-        next if source.done? || num >= max
-        source.each do |source_info, label|
-          begin
-            m = Message.new(source, source_info, label + [:inbox])
-            add_message m unless contains_id? m.id
-            puts m.content.inspect
-            num += 1
-          rescue MessageFormatError => e
-            $stderr.puts "ignoring erroneous message at #{source}##{source_info}: #{e.message}"
-          end
-          break if num >= max
-          sleep delay1 if delay1
-        end
-        Redwood::log "loaded #{num} entries from #{source}"
-        sleep delay2 if delay2
-      end
-    ensure
-      save_sources
-      save_index
-    end
-    num
   end
 end
 

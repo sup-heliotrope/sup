@@ -88,11 +88,22 @@ puts "loaded index of #{index.size} messages"
 sources = ARGV.map do |fn|
   source = index.source_for fn
   unless source
-    source = Redwood::MBox::Loader.new(fn, 0, !unusual, !!archive)
+    source = 
+      case fn
+      when %r!^imaps?://!
+        print "Username for #{fn}: "
+        username = $stdin.gets.chomp
+        print "Password for #{fn} (warning: cleartext): "
+        password = $stdin.gets.chomp
+        Redwood::IMAP.new(fn, username, password, nil, !unusual, !!archive)
+      else
+        Redwood::MBox::Loader.new(fn, nil, !unusual, !!archive)
+      end
     index.add_source source
   end
   source
 end
+
 sources = (sources + index.usual_sources).uniq if the_usual
 if rebuild || force_rebuild
   if start_at
@@ -122,8 +133,8 @@ begin
         else
           found[m.id] = true
         end
-
-        m.remove_label :unread if m.mbox_status == "RO" unless force_read
+        m.remove_label :unread if m.status == "RO" unless force_read
+        puts "# message at #{offset} labels #{labels.inspect}"
         if (rebuild || force_rebuild) && 
             (docid, entry = index.load_entry_for_id(m.id)) && entry
           if force_rebuild || entry[:source_info].to_i != offset
@@ -152,16 +163,12 @@ end
 
 if rebuild || force_rebuild
   puts "deleting missing messages from the index..."
-  if start_at
-    $stderr.puts "deleting currently don't work with --start-at. sorry!"
-    break
-  end
   numdel = num = 0
   sources.each do |source|
     raise "no source id for #{source}" unless source.id
     q = "+source_id:#{source.id}"
     q += " +source_info: >= #{start_at}" if start_at
-    p q
+    #p q
     num += index.index.search_each(q, :limit => :all) do |docid, score|
       mid = index.index[docid][:message_id]
       next if found[mid]
