@@ -14,6 +14,7 @@ class ScrollMode < Mode
     k.add :page_up, "Up one page", :page_up, 'p', :backspace
     k.add :jump_to_home, "Jump to top", :home, '^', '1'
     k.add :jump_to_end, "Jump to bottom", :end, '$', '0'
+    k.add :jump_to_left, "Jump to the left", '['
   end
 
   def initialize opts={}
@@ -48,6 +49,11 @@ class ScrollMode < Mode
     buffer.mark_dirty
   end
 
+  def jump_to_left
+    buffer.mark_dirty unless @leftcol == 0
+    @leftcol = 0
+  end
+
   ## set top line to l
   def jump_to_line l
     l = l.clamp 0, lines - 1
@@ -63,6 +69,7 @@ class ScrollMode < Mode
   def page_up; jump_to_line @topline - buffer.content_height + @slip_rows; end
   def jump_to_home; jump_to_line 0; end
   def jump_to_end; jump_to_line lines - buffer.content_height; end
+
 
   def ensure_mode_validity
     @topline = @topline.clamp 0, lines - 1
