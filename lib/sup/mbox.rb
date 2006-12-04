@@ -4,14 +4,14 @@ module Redwood
 
 ## some utility functions
 module MBox
-  BREAK_RE = /^From \S+@\S+/
+  BREAK_RE = /^From \S+/
 
   def read_header f
     header = {}
     last = nil
 
     ## i do it in this weird way because i am trying to speed things up
-    ## at load-message time.
+    ## when scanning over large mbox files.
     while(line = f.gets)
       case line
       when /^From:\s+(.*)$/i: header[last = "From"] = $1
