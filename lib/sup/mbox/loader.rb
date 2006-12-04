@@ -14,9 +14,9 @@ class Loader
   ## end_offset is the last offsets within the file which we've read.
   ## everything after that is considered new messages that haven't
   ## been indexed.
-  def initialize filename, end_offset=0, usual=true, archived=false, id=nil
+  def initialize filename, end_offset=nil, usual=true, archived=false, id=nil
     @filename = filename.gsub(%r(^mbox://), "")
-    @end_offset = end_offset
+    @end_offset = end_offset || 0
     @dirty = false
     @usual = usual
     @archived = archived
@@ -50,6 +50,8 @@ class Loader
     header = nil
     @mutex.synchronize do
       @f.seek offset if offset
+      l = @f.gets
+      raise Error, "offset mismatch in mbox file: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." unless l =~ BREAK_RE
       header = MBox::read_header @f
     end
     header
@@ -91,22 +93,30 @@ class Loader
   def next
     return nil if done?
     @dirty = true
+    start_offset = nil
     next_end_offset = @end_offset
 
+    ## @end_offset could be at one of two places here: before a \n and
+    ## a mbox separator, if it was previously at EOF and a new message
+    ## was added; or, at the beginning of an mbox separator (in all
+    ## other cases).
     @mutex.synchronize do
       @f.seek @end_offset
+      l = @f.gets or return nil
+      if l =~ /^\s*$/
+        start_offset = @f.tell
+        @f.gets
+      else
+        start_offset = @end_offset
+      end
 
-      @f.gets # skip the From separator
-      next_end_offset = @f.tell
       while(line = @f.gets)
         break if line =~ BREAK_RE
         next_end_offset = @f.tell
       end
     end
 
-    start_offset = @end_offset
     @end_offset = next_end_offset
-
     start_offset
   end
 
@@ -115,10 +125,6 @@ class Loader
       n = self.next
       yield(n, labels) if n
     end
-  end
-
-  def each_header
-    each { |offset, labels| yield offset, labels, load_header(offset) }
   end
 
   def done?; @end_offset >= File.size(@f); end 
