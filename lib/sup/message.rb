@@ -76,25 +76,32 @@ class Message
   BLOCK_QUOTE_PATTERN = /^-----\s*Original Message\s*----+$/
   QUOTE_START_PATTERN = /(^\s*Excerpts from)|(^\s*In message )|(^\s*In article )|(^\s*Quoting )|((wrote|writes|said|says)\s*:\s*$)/
   SIG_PATTERN = /(^-- ?$)|(^\s*----------+\s*$)|(^\s*_________+\s*$)/
-  SIG_DISTANCE = 15 # lines from the end
+  MAX_SIG_DISTANCE = 15 # lines from the end
   DEFAULT_SUBJECT = "(missing subject)"
   DEFAULT_SENDER = "(missing sender)"
 
   attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :source,
               :cc, :bcc, :labels, :list_address, :recipient_email, :replyto,
-              :source_info, :mbox_status
+              :source_info, :status
 
   bool_reader :dirty
 
-  def initialize source, source_info, labels, snippet=nil
-    @source = source
-    @source_info = source_info
+  ## if index_entry is specified, will fill in values from that,
+  def initialize opts
+    @source = opts[:source]
+    @source_info = opts[:source_info]
+    @snippet = opts[:snippet] || ""
+    @labels = opts[:labels] || []
     @dirty = false
-    @snippet = snippet
-    @labels = labels
 
-    header = @source.load_header @source_info
-    header.each { |k, v| header[k.downcase] = v }
+    header = 
+      if opts[:header]
+        opts[:header]
+      else
+        header = @source.load_header @source_info
+        header.each { |k, v| header[k.downcase] = v }
+        header
+      end
 
     %w(message-id date).each do |f|
       raise MessageFormatError, "no #{f} field in header #{header.inspect} (source #@source offset #@source_info)" unless header.include? f
@@ -128,14 +135,10 @@ class Message
       end
 
     @recipient_email = header["delivered-to"]
-    @mbox_status = header["status"]
+    @status = header["status"]
   end
 
-  def snippet
-    to_chunks unless @snippet
-    @snippet
-  end
-
+  def snippet; @snippet || to_chunks && @snippet; end
   def is_list_message?; !@list_address.nil?; end
   def is_draft?; DraftLoader === @source; end
   def draft_filename
@@ -244,7 +247,7 @@ private
         newstate = nil
         if line =~ QUOTE_PATTERN || (line =~ QUOTE_START_PATTERN && (nextline =~ QUOTE_PATTERN || nextline =~ QUOTE_START_PATTERN))
           newstate = :quote
-        elsif line =~ SIG_PATTERN && (lines.length - i) < SIG_DISTANCE
+        elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE
           newstate = :sig
         elsif line =~ BLOCK_QUOTE_PATTERN
           newstate = :block_quote
@@ -260,7 +263,7 @@ private
         newstate = nil
         if line =~ QUOTE_PATTERN || line =~ QUOTE_START_PATTERN || line =~ /^\s*$/
           chunk_lines << line
-        elsif line =~ SIG_PATTERN && (lines.length - i) < SIG_DISTANCE
+        elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE
           newstate = :sig
         else
           newstate = :text

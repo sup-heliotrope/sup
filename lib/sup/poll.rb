@@ -57,9 +57,10 @@ class PollManager
         start_offset ||= offset
         yield " Found message at #{offset} with labels #{labels * ', '}"
         begin
-          m = Redwood::Message.new source, offset, labels
+          m = Redwood::Message.new :source => source, :source_info => offset,
+                                   :labels => labels
           if found[m.id]
-            yield "Skipping duplicate message #{m.id}"
+            yield "Skipping duplicate message #{m.id} (source total #{source.total})"
             next
           else
             found[m.id] = true

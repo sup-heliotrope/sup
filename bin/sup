@@ -109,7 +109,7 @@ begin
   bm.draw_screen
   imode.load_more_threads ibuf.content_height
 
-  ::Thread.new { sleep 5; PollManager.poll }
+  ::Thread.new { sleep 3; PollManager.poll }
 
   until $exception
     bm.draw_screen
@@ -217,6 +217,4 @@ EOS
   raise $exception
 end
 
-
 end
-

@@ -46,12 +46,13 @@ class Loader
     @filename == s || self.to_s == s
   end
 
-  def load_header offset=nil
+  def load_header offset
+    raise ArgumentError, "nil offset" unless offset
     header = nil
     @mutex.synchronize do
       @f.seek offset if offset
       l = @f.gets
-      raise Error, "offset mismatch in mbox file: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." unless l =~ BREAK_RE
+      raise Error, "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." unless l =~ BREAK_RE
       header = MBox::read_header @f
     end
     header

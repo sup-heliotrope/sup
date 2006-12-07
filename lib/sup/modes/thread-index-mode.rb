@@ -180,8 +180,10 @@ class ThreadIndexMode < LineCursorMode
     threads = @threads + @hidden_threads.keys
     mbid = BufferManager.say "Saving threads..."
     threads.each_with_index do |t, i|
-      BufferManager.say "Saving thread #{i + 1} of #{threads.length}...",
-                        mbid
+      if i % 5 == 0
+        BufferManager.say "Saving thread #{i + 1} of #{threads.length}...",
+                          mbid
+      end
       t.save Index
     end
     BufferManager.clear mbid

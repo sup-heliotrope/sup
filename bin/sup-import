@@ -82,7 +82,6 @@ end
 puts "loading index..."
 index = Redwood::Index.new
 index.load
-pre_nm = index.size
 puts "loaded index of #{index.size} messages"
 
 sources = ARGV.map do |fn|
@@ -126,7 +125,7 @@ begin
       labels -= [:inbox] if force_archive
       labels -= [:unread] if force_read
       begin
-        m = Redwood::Message.new source, offset, labels
+        m = Redwood::Message.new :source => source, :source_info => offset, :labels => labels
         if found[m.id]
           puts "skipping duplicate message #{m.id}"
           next
@@ -145,7 +144,7 @@ begin
         else
           num += 1 if index.add_message m
         end
-      rescue Redwood::MessageFormatError => e
+      rescue Redwood::MessageFormatError, Redwood::MBox::Error => e
         $stderr.puts "ignoring erroneous message at #{source}##{offset}: #{e.message}"
       end
       if num % 1000 == 0 && num > 0

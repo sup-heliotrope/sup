@@ -17,15 +17,12 @@ class SentManager
   def write_sent_message date, from_email
     need_blank = File.exists?(@fn) && !File.zero?(@fn)
     File.open(@fn, "a") do |f|
-      if need_blank
-        @source.increment_offset if @source.offset == f.tell
-        f.puts
-      end
+      f.puts if need_blank
       f.puts "From #{from_email} #{date}"
       yield f
     end
     @source.each do |offset, labels|
-      m = Message.new @source, offset, labels
+      m = Message.new :source => @source, :source_info => offset, :labels => labels
       Index.add_message m
       UpdateManager.relay :add, m
     end
@@ -38,8 +35,6 @@ class SentLoader < MBox::Loader
     super filename, end_offset, true, true
   end
 
-  def increment_offset; @end_offset += 1; end
-  def offset; @end_offset; end
   def id; SentManager.source_id; end
   def to_s; SentManager.source_name; end
 

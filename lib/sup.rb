@@ -28,7 +28,6 @@ module Redwood
   YAML_DATE = "2006-10-01"
 
 ## one-stop shop for yamliciousness
-
   def register_yaml klass, props
     vars = props.map { |p| "@#{p}" }
     path = klass.name.gsub(/::/, "/")
@@ -65,7 +64,6 @@ module Redwood
 end
 
 ## set up default configuration file
-
 if File.exists? Redwood::CONFIG_FN
   $config = Redwood::load_yaml_obj Redwood::CONFIG_FN
 else
@@ -93,6 +91,7 @@ require "sup/util"
 require "sup/update"
 require "sup/message"
 require "sup/mbox"
+require "sup/imap"
 require "sup/person"
 require "sup/account"
 require "sup/thread"

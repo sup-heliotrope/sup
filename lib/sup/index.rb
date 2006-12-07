@@ -44,7 +44,8 @@ class Index
     raise "duplicate source!" if @sources.include? source
     @sources_dirty = true
     source.id ||= @sources.size
-    source.id += 1 while @sources.member? source.id
+    ##TODO: why was this necessary?
+    ##source.id += 1 while @sources.member? source.id
     @sources[source.id] = source
   end
 
@@ -187,12 +188,12 @@ class Index
     raise "no snippet" unless doc[:snippet]
 
     begin
-      Message.new source, doc[:source_info].to_i, 
-                  doc[:label].split(" ").map { |s| s.intern },
-                  doc[:snippet]
+      Message.new :source => source, :source_info => doc[:source_info].to_i, 
+                  :labels => doc[:label].split(" ").map { |s| s.intern },
+                  :snippet => doc[:snippet]
     rescue MessageFormatError => e
       raise IndexError.new(source, "error building message #{doc[:message_id]} at #{source}/#{doc[:source_info]}: #{e.message}")
-#     rescue StandardError => e
+#    rescue StandardError => e
 #       Message.new_from_index doc, <<EOS
 # An error occurred while loading this message. It is possible that the source
 # has changed, or (in the case of remote sources) is down. The error was:
@@ -304,8 +305,13 @@ protected
 
   def save_sources fn=Redwood::SOURCE_FN
     if @sources_dirty || @sources.any? { |id, s| s.dirty? }
-      FileUtils.mv fn, fn + ".bak", :force => true if File.exists? fn
+      bakfn = fn + ".bak"
+      if File.exists? fn
+        File.chmod 0600, fn
+        FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(bakfn) > File.size(fn)
+      end
       Redwood::save_yaml_obj @sources.values, fn 
+      File.chmod 0600, fn
     end
     @sources_dirty = false
   end

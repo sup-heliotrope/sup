@@ -1,0 +1,100 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+
+$opts = {
+  :unusual => false,
+  :archive => false,
+  :scan_num => 10,
+}
+
+
+OPTIONPARSERSUCKS = "\n" + " " * 38
+OptionParser.new do |opts|
+  opts.banner = <<EOS
+Usage: sup-recover-sources [options] <source>+
+
+Rebuilds a lost sources.yaml file by reading messages from a list of
+sources and determining, for each source, the most prevalent
+'source_id' field of messages from that source in the index.
+
+The only non-deterministic component to this is that if the same
+message appears in multiple sources, those sources may be
+mis-diagnosed by this program.
+
+If the first N messages (--scan-num below) all have the same source_id
+in the index, the source will be added to sources.yaml. Otherwise, the
+distribution will be printed, and you will have to add it by hand.
+
+The offset pointer into the sources will be set to the end of the source,
+so you will have to run sup-import --rebuild for each new source after
+doing this.
+
+Options include:
+EOS
+
+  opts.on("--unusual", "Mark sources as 'unusual'. Only usual#{OPTIONPARSERSUCKS}sources will be polled by hand. Default:#{OPTIONPARSERSUCKS}#{$opts[:unusual]}.") { $opts[:unusual] = true }
+
+  opts.on("--archive", "Mark sources as 'archive'. New messages#{OPTIONPARSERSUCKS}from these sources will not appear in#{OPTIONPARSERSUCKS}the inbox. Default: #{$opts[:archive]}.") { $opts[:archive] = true }
+
+  opts.on("--scan-num N", Integer, "Number of messages to scan per source.#{OPTIONPARSERSUCKS}Default: #{$opts[:scan_num]}.") do |n|
+    $opts[:scan_num] = n
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+end.parse(ARGV)
+
+require "sup"
+puts "loading index..."
+index = Redwood::Index.new
+index.load
+puts "loaded index of #{index.size} messages"
+
+ARGV.each do |fn|
+  next if index.source_for fn
+
+  ## TODO: merge this code with the same snippet in import
+  source = 
+    case fn
+    when %r!^imaps?://!
+      print "Username for #{fn}: "
+      username = $stdin.gets.chomp
+      print "Password for #{fn} (warning: cleartext): "
+      password = $stdin.gets.chomp
+      Redwood::IMAP.new(fn, username, password, nil, !$opts[:unusual], $opts[:archive])
+    else
+      Redwood::MBox::Loader.new(fn, nil, !$opts[:unusual], $opts[:archive])
+    end
+
+  source_ids = {}
+  count = 0
+  source.each do |offset, labels|
+    begin
+      m = Redwood::Message.new :source => source, :source_info => offset
+      docid, entry = index.load_entry_for_id m.id
+      next unless entry
+      #puts "# #{source} #{offset} #{entry[:source_id]}"
+
+      source_ids[entry[:source_id]] = (source_ids[entry[:source_id]] || 0) + 1
+      count += 1
+      break if count == $opts[:scan_num]
+    rescue Redwood::MessageFormatError => e
+      puts "# #{e.message}"
+    end
+  end
+
+  if source_ids.size == 1
+    id = source_ids.keys.first.to_i
+    puts "assigned #{source} to #{source_ids.keys.first}"
+    source.id = id
+    source.seek_to! source.total
+    index.add_source source
+  else
+    puts ">> unable to determine #{source}: #{source_ids.inspect}"
+  end
+end
+
+index.save
