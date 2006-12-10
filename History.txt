@@ -1,9 +1,7 @@
 == 0.0.2 / 2006-12-10
 
 * IMAP support
-
 * Better handling of broken sources. (Everything won't just die.)
-
 * You will need to rebuild both your index, and sources.yaml.
   Sorry!
 
