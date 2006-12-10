@@ -9,7 +9,12 @@ maybe: rangefilter on the initial inbox to only consider the most recent 1000 me
 select all, starred, to me, etc
 editing of arbitrary messages
 annotations on messages
+gmail
+pop
+move sup-import argument handling to getopt or something
 
+x handle broken sources better
+x imap
 x word wrap
 x background indexing
 x auto-insertion of draft messages

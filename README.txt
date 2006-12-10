@@ -53,8 +53,8 @@ Features:
 
 Current limitations which will be fixed:
 
-- Support for mbox only at this point. No support for POP, IMAP, mh,
-  GMail mailstores.
+- Support for mbox and IMAP only at this point. No support for POP, mh,
+  or GMail mailstores.
 
 - No internationalization support. No wide characters, no subject
   demangling. 
@@ -67,9 +67,14 @@ Current limitations which will be fixed:
 
 == SYNOPSYS:
 
-  1. sup-import <mbox filename>+
+  1. sup-import <source>+
   2. sup
   3. edit ~/.sup/config.yaml for the (very few) settings sup has
+
+  Where <source> is a filename (for mbox files), or an imap or imaps
+  url. In the case of imap, don't put the username and password in
+  the URI (which is a terrible, terrible idea). You will be prompted
+  for them.
 
   sup-import has several options which control whether you want
   messages from particular mailboxes not to be added to the inbox,
@@ -93,7 +98,7 @@ Current limitations which will be fixed:
 * gem install sup -y
 * Then, in rmail, change line 159 of multipart.rb to:
     chunk = chunk[0..start]
-  (Sorry. it's an unsupported package.) You might be able to get away
+  (Sorry; it's an unsupported package.) You might be able to get away
   without doing this but if you get frozen string exceptions when
   reading in multipart messages, this is what you need to change.
 
