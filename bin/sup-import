@@ -27,7 +27,7 @@ source list.
 Usage:
   sup-import [options] <source>*
 where <source>* is zero or more source descriptions (e.g., mbox
-filenames on disk). 
+filenames on disk, or imap/imaps URIs). 
 
 If the sources listed are not already in the Sup source list,
 they will be added to it, as parameterized by the following options:
