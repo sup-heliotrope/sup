@@ -7,7 +7,7 @@ class LogMode < TextMode
 
   def initialize
     @follow = true
-    super ""
+    super
   end
 
   def toggle_follow

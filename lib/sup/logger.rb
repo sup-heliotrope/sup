@@ -18,14 +18,13 @@ class Logger
   def make_buf
     return if @mode.buffer || !BufferManager.instantiated? || !@respawn || @spawning
     @spawning = true
-    @mode.text = ""
     @mode.buffer = BufferManager.instance.spawn "<log>", @mode, :hidden => true
     @spawning = false
   end
 
   def log s
 #    $stderr.puts s
-    @mode << "#{Time.now}: #{s}\n"
+    @mode << "#{Time.now}: #{s.chomp}\n"
     make_buf
   end
   
