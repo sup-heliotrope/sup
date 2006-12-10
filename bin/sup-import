@@ -117,6 +117,10 @@ found = {}
 start = Time.now
 begin
   sources.each do |source|
+    if source.broken?
+      puts "error loading messages from #{source}: #{source.broken_msg}"
+      next
+    end
     next if source.done?
     puts "loading from #{source}... "
     num = 0

@@ -29,8 +29,8 @@ class Loader < Source
       @f.seek offset
       l = @f.gets
       unless l =~ BREAK_RE
-        self.broken = "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." 
-        raise SourceError, self.broken
+        self.broken_msg = "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." 
+        raise SourceError, self.broken_msg
       end
       header = MBox::read_header @f
     end

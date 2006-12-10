@@ -48,9 +48,9 @@ class IMAP < Source
         @imap.examine mailbox
         Redwood::log "successfully connected to #{@parsed_uri}, mailbox #{mailbox}"
       rescue Exception => e
-        self.broken = e.message.chomp # fucking chomp! fuck!!!
+        self.broken_msg = e.message.chomp # fucking chomp! fuck!!!
         @imap = nil
-        Redwood::log "error connecting to IMAP server: #{self.broken}"
+        Redwood::log "error connecting to IMAP server: #{self.broken_msg}"
       end
     end.join
 
@@ -71,8 +71,9 @@ class IMAP < Source
 
   ## load the full header text
   def raw_header uid
+    connect or return broken_msg
     begin
-      connect or return broken
+      connect or return broken_msg
     rescue Exception => e
       raise "wtf: #{e.inspect}"
     end
@@ -80,12 +81,12 @@ class IMAP < Source
   end
 
   def raw_full_message uid
-    connect or return broken
+    connect or return broken_msg
     @imap.uid_fetch(uid, 'RFC822')[0].attr['RFC822'].gsub(/\r\n/, "\n")
   end
   
   def each
-    connect or return broken
+    connect or return broken_msg
     uids = @imap.uid_search ['UID', "#{cur_offset}:#{end_offset}"]
     uids.each do |uid|
       @last_uid = uid
