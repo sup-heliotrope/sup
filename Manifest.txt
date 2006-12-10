@@ -49,4 +49,5 @@ lib/sup/buffer.rb
 lib/sup/sent.rb
 lib/sup/tagger.rb
 lib/sup/colormap.rb
+lib/sup/source.rb
 lib/sup.rb
