@@ -23,6 +23,7 @@ class Mode
     end
   end
 
+  def killable?; true; end
   def draw; end
   def focus; end
   def blur; end

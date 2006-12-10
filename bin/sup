@@ -132,7 +132,7 @@ begin
         when :roll_buffers_backwards
           bm.roll_buffers_backwards
         when :kill_buffer
-          bm.kill_buffer bm.focus_buf unless bm.focus_buf.mode.is_a? InboxMode
+          bm.kill_buffer bm.focus_buf if bm.focus_buf.mode.killable?
         when :list_buffers
           bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
         when :list_contacts
@@ -187,10 +187,12 @@ if $exception
   case $exception
   when IndexError
     $stderr.puts <<EOS
-An error occurred while parsing a message from source "#{$exception.source}".
+An error occurred while parsing a message from source:
+   #{$exception.source}.
 Typically, this means that the source has been modified in some
-way which has rendered the messages invalid. For example, if it's an mbox
-file, you may have read or deleted messages using another client.
+way which has rendered the messages invalid. For example, if it's
+an mbox file, you may have read or deleted messages using another
+mail client.
 
 You must rebuild the index for this source. Please run:
   sup-import --rebuild #{$exception.source}

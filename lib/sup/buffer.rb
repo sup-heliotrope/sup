@@ -337,7 +337,15 @@ class BufferManager
   end
 
   def ask_yes_or_no question
-    [?y, ?Y].member? ask_getch(question, "ynYN")
+    r = ask_getch(question, "ynYN")
+    case r
+    when ?y, ?Y
+      true
+    when nil
+      nil
+    else
+      false
+    end
   end
 
   def draw_minibuf

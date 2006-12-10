@@ -101,7 +101,7 @@ protected
   end
 
   def send_message
-    return false unless @edited || BufferManager.ask_yes_or_no("message unedited---really send?")
+    return false unless @edited || BufferManager.ask_yes_or_no("Message unedited. Really send?")
 
     raise "no message id!" unless header["Message-Id"]
     date = Time.now
@@ -127,6 +127,7 @@ protected
     DraftManager.write_draft { |f| write_message f, false }
     BufferManager.kill_buffer buffer
     BufferManager.flash "Saved for later editing."
+    true
   end
 
   def sig_lines
