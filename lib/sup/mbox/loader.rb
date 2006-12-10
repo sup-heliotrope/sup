@@ -16,7 +16,7 @@ class Loader < Source
     @f = File.open @filename
     ## heuristic: use the filename as a label, unless the file
     ## has a path that probably represents an inbox.
-    @labels = []
+    @labels = [:unread]
     @labels << File.basename(@filename).intern unless File.dirname(@filename) =~ /\b(var|usr|spool)\b/
   end
 

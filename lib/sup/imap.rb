@@ -16,7 +16,7 @@ class IMAP < Source
     @username = username
     @password = password
     @imap = nil
-    @labels = []
+    @labels = [:unread]
     @labels << mailbox.intern unless mailbox =~ /inbox/i || mailbox.empty?
     @labels << :inbox unless archived?
 
