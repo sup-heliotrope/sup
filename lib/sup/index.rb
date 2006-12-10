@@ -185,25 +185,50 @@ class Index
     source = @sources[doc[:source_id].to_i]
     #puts "building message #{doc[:message_id]} (#{source}##{doc[:source_info]})"
     raise "invalid source #{doc[:source_id]}" unless source
-    raise "no snippet" unless doc[:snippet]
 
-    begin
-      Message.new :source => source, :source_info => doc[:source_info].to_i, 
-                  :labels => doc[:label].split(" ").map { |s| s.intern },
-                  :snippet => doc[:snippet]
-    rescue MessageFormatError => e
-      raise IndexError.new(source, "error building message #{doc[:message_id]} at #{source}/#{doc[:source_info]}: #{e.message}")
-#    rescue StandardError => e
-#       Message.new_from_index doc, <<EOS
-# An error occurred while loading this message. It is possible that the source
-# has changed, or (in the case of remote sources) is down. The error was:
-# #{e.message}
-# EOS
+    m = 
+      if source.broken?
+        nil
+      else
+        begin
+          Message.new :source => source, :source_info => doc[:source_info].to_i, 
+                      :labels => doc[:label].split(" ").map { |s| s.intern },
+                      :snippet => doc[:snippet]
+        rescue MessageFormatError => e
+          raise IndexError.new(source, "error building message #{doc[:message_id]} at #{source}/#{doc[:source_info]}: #{e.message}")
+        rescue SourceError => e
+          nil
+        end
+      end
+
+    unless m
+      fake_header = {
+        "date" => Time.at(doc[:date].to_i),
+        "subject" => unwrap_subj(doc[:subject]),
+        "from" => doc[:from],
+        "to" => doc[:to],
+        "message-id" => doc[:message_id],
+        "references" => doc[:refs],
+      }
+
+      m = Message.new :labels => doc[:label].split(" ").map { |s| s.intern },
+                      :snippet => doc[:snippet], :header => fake_header, 
+                      :body => <<EOS
+#{doc[:snippet]}...
+
+An error occurred while loading this message. It is possible that the source
+has changed, or (in the case of remote sources) is down.
+
+The error message was:
+  #{source.broken_msg}
+EOS
     end
+    m
   end
 
   def fresh_thread_id; @next_thread_id += 1; end
   def wrap_subj subj; "__START_SUBJECT__ #{subj} __END_SUBJECT__"; end
+  def unwrap_subj subj; subj =~ /__START_SUBJECT__ (.*?) __END_SUBJECT__/ && $1; end
 
   def add_message m
     return false if contains? m

@@ -10,9 +10,9 @@ class DraftManager
     self.class.i_am_the_instance self
   end
 
-  def self.source_name; "drafts"; end
+  def self.source_name; "drafts://"; end
   def self.source_id; 9999; end
-  def new_source; @source = DraftLoader.new @dir; end
+  def new_source; @source = DraftLoader.new; end
 
   def write_draft
     offset = @source.gen_offset
@@ -36,25 +36,30 @@ class DraftManager
   end
 end
 
-class DraftLoader
-  attr_accessor :dir, :end_offset
-  bool_reader :dirty
+class DraftLoader < Source
+  attr_accessor :dir
 
-  def initialize dir, end_offset=0
+  def initialize cur_offset=0
+    dir = Redwood::DRAFT_DIR
     Dir.mkdir dir unless File.exists? dir
+    super "draft://#{dir}", cur_offset, true, false
     @dir = dir
-    @end_offset = end_offset
-    @dirty = false
   end
 
-  def done?; !File.exists? fn_for_offset(@end_offset); end
-  def usual?; true; end
   def id; DraftManager.source_id; end
   def to_s; DraftManager.source_name; end
-  def is_source_for? x; x == DraftManager.source_name; end
+
+  def next
+    ret = nil
+    begin
+      ret = cur_offset
+      self.cur_offset = cur_offset + 1
+    end until File.exists? fn_for_offset(ret)
+    [ret, [:draft]]
+  end
 
   def gen_offset
-    i = @end_offset
+    i = cur_offset
     while File.exists? fn_for_offset(i)
       i += 1
     end
@@ -95,18 +100,10 @@ class DraftLoader
     ret
   end
 
-  def each
-    while File.exists?(fn = File.join(@dir, @end_offset.to_s))
-      yield @end_offset, [:draft, :inbox]
-      @end_offset += 1
-      @dirty = true
-    end
-  end
-
-  def total; Dir[File.join(@dir, "*")].sort.last.to_i; end
-  def reset!; @end_offset = 0; @dirty = true; end
+  def start_offset; 0; end
+  def end_offset; Dir.new(@dir).entries.sort.last.to_i + 1; end
 end
 
-Redwood::register_yaml(DraftLoader, %w(dir end_offset))
+Redwood::register_yaml(DraftLoader, %w(cur_offset))
 
 end

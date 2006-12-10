@@ -10,9 +10,9 @@ class SentManager
     self.class.i_am_the_instance self
   end
 
-  def self.source_name; "sent"; end
+  def self.source_name; "sent://"; end
   def self.source_id; 9998; end
-  def new_source; @source = SentLoader.new @fn; end
+  def new_source; @source = SentLoader.new; end
 
   def write_sent_message date, from_email
     need_blank = File.exists?(@fn) && !File.zero?(@fn)
@@ -30,17 +30,17 @@ class SentManager
 end
 
 class SentLoader < MBox::Loader
-  def initialize filename, end_offset=0
+  def initialize cur_offset=0
+    filename = Redwood::SENT_FN
     File.open(filename, "w") { } unless File.exists? filename
-    super filename, end_offset, true, true
+    super "mbox://" + filename, cur_offset, true, true
   end
 
-  def id; SentManager.source_id; end
   def to_s; SentManager.source_name; end
-
+  def id; SentManager.source_id; end
   def labels; [:sent, :inbox]; end
 end
 
-Redwood::register_yaml(SentLoader, %w(filename end_offset))
+Redwood::register_yaml(SentLoader, %w(cur_offset))
 
 end

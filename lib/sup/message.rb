@@ -88,8 +88,14 @@ class Message
 
   ## if index_entry is specified, will fill in values from that,
   def initialize opts
-    @source = opts[:source]
-    @source_info = opts[:source_info]
+    if opts[:source]
+      @source = opts[:source]
+      @source_info = opts[:source_info] or raise ArgumentError, ":source but no :source_info"
+      @body = nil
+    else
+      @source = @source_info = nil
+      @body = opts[:body] or raise ArgumentError, "one of :body or :source must be specified"
+    end
     @snippet = opts[:snippet] || ""
     @labels = opts[:labels] || []
     @dirty = false
@@ -109,7 +115,8 @@ class Message
     end
 
     begin
-      @date = Time.parse header["date"]
+      date = header["date"]
+      @date = (Time === date ? date : Time.parse(header["date"]))
     rescue ArgumentError => e
       raise MessageFormatError, "unparsable date #{header['date']}: #{e.message}"
     end
@@ -173,8 +180,11 @@ class Message
   end
 
   def to_chunks
-    m = @source.load_message @source_info
-    message_to_chunks m
+    if @body
+      [Text.new(@body.split("\n"))]
+    else
+      message_to_chunks @source.load_message(@source_info)
+    end
   end
 
   def raw_header

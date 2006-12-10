@@ -85,6 +85,7 @@ index.load
 puts "loaded index of #{index.size} messages"
 
 sources = ARGV.map do |fn|
+  fn = "mbox://#{fn}" unless fn =~ %r!://!
   source = index.source_for fn
   unless source
     source = 
@@ -133,7 +134,7 @@ begin
           found[m.id] = true
         end
         m.remove_label :unread if m.status == "RO" unless force_read
-        puts "# message at #{offset} labels #{labels.inspect}" unless rebuild || force_rebuild
+        puts "# message at #{offset}, labels: #{labels * ', '}" unless rebuild || force_rebuild
         if (rebuild || force_rebuild) && 
             (docid, entry = index.load_entry_for_id(m.id)) && entry
           if force_rebuild || entry[:source_info].to_i != offset
@@ -144,7 +145,7 @@ begin
         else
           num += 1 if index.add_message m
         end
-      rescue Redwood::MessageFormatError, Redwood::MBox::Error => e
+      rescue Redwood::MessageFormatError, Redwood::SourceError => e
         $stderr.puts "ignoring erroneous message at #{source}##{offset}: #{e.message}"
       end
       if num % 1000 == 0 && num > 0

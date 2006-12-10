@@ -4,66 +4,45 @@ require 'rmail'
 module Redwood
 module MBox
 
-class Error < StandardError; end
+class Loader < Source
+  attr_reader :labels
 
-class Loader
-  attr_reader :filename
-  bool_reader :usual, :archived, :read, :dirty
-  attr_accessor :id, :labels
+  def initialize uri, start_offset=nil, usual=true, archived=false, id=nil
+    raise ArgumentError, "not an mbox uri" unless uri =~ %r!mbox://!
+    super
 
-  ## end_offset is the last offsets within the file which we've read.
-  ## everything after that is considered new messages that haven't
-  ## been indexed.
-  def initialize filename, end_offset=nil, usual=true, archived=false, id=nil
-    @filename = filename.gsub(%r(^mbox://), "")
-    @end_offset = end_offset || 0
-    @dirty = false
-    @usual = usual
-    @archived = archived
-    @id = id
     @mutex = Mutex.new
+    @filename = uri.sub(%r!^mbox://!, "")
     @f = File.open @filename
-    @labels = ([
-      :unread,
-      archived ? nil : :inbox,
-    ] +
-      if File.dirname(filename) =~ /\b(var|usr|spool)\b/
-        []
-      else
-        [File.basename(filename).intern] 
-      end).compact
+    ## heuristic: use the filename as a label, unless the file
+    ## has a path that probably represents an inbox.
+    @labels = []
+    @labels << File.basename(@filename).intern unless File.dirname(@filename) =~ /\b(var|usr|spool)\b/
   end
 
-  def seek_to! offset
-    @end_offset = [offset, File.size(@f) - 1].min;
-    @dirty = true
-  end
-  def reset!; seek_to! 0; end
-  def == o; o.is_a?(Loader) && o.filename == filename; end
-  def to_s; "mbox://#{@filename}"; end
-
-  def is_source_for? s
-    @filename == s || self.to_s == s
-  end
+  def start_offset; 0; end
+  def end_offset; File.size @f; end
 
   def load_header offset
-    raise ArgumentError, "nil offset" unless offset
     header = nil
     @mutex.synchronize do
-      @f.seek offset if offset
+      @f.seek offset
       l = @f.gets
-      raise Error, "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." unless l =~ BREAK_RE
+      raise SourceError, "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." unless l =~ BREAK_RE
       header = MBox::read_header @f
     end
     header
   end
 
   def load_message offset
-    ret = nil
     @mutex.synchronize do
       @f.seek offset
-      RMail::Mailbox::MBoxReader.new(@f).each_message do |input|
-        return RMail::Parser.read(input)
+      begin
+        RMail::Mailbox::MBoxReader.new(@f).each_message do |input|
+          return RMail::Parser.read(input)
+        end
+      rescue RMail::Parser::Error => e
+        raise SourceError, "error parsing message with rmail: #{e.message}"
       end
     end
   end
@@ -92,47 +71,40 @@ class Loader
   end
 
   def next
-    return nil if done?
-    @dirty = true
-    start_offset = nil
-    next_end_offset = @end_offset
+    returned_offset = nil
+    next_offset = cur_offset
 
-    ## @end_offset could be at one of two places here: before a \n and
-    ## a mbox separator, if it was previously at EOF and a new message
-    ## was added; or, at the beginning of an mbox separator (in all
-    ## other cases).
     @mutex.synchronize do
-      @f.seek @end_offset
-      l = @f.gets or return nil
-      if l =~ /^\s*$/
-        start_offset = @f.tell
-        @f.gets
-      else
-        start_offset = @end_offset
+      @f.seek cur_offset
+
+      ## cur_offset could be at one of two places here:
+
+      ## 1. before a \n and a mbox separator, if it was previously at
+      ##    EOF and a new message was added; or,
+      ## 2. at the beginning of an mbox separator (in all other
+      ##    cases).
+
+      l = @f.gets or raise "next while at EOF"
+      if l =~ /^\s*$/ # case 1
+        returned_offset = @f.tell
+        @f.gets # now we're at a BREAK_RE, so skip past it
+      else # case 2
+        returned_offset = cur_offset
+        ## we've already skipped past the BREAK_RE, to just go
       end
 
       while(line = @f.gets)
         break if line =~ BREAK_RE
-        next_end_offset = @f.tell
+        next_offset = @f.tell
       end
     end
 
-    @end_offset = next_end_offset
-    start_offset
+    self.cur_offset = next_offset
+    [returned_offset, labels]
   end
-
-  def each
-    until @end_offset >= File.size(@f)
-      n = self.next
-      yield(n, labels) if n
-    end
-  end
-
-  def done?; @end_offset >= File.size(@f); end 
-  def total; File.size @f; end
 end
 
-Redwood::register_yaml(Loader, %w(filename end_offset usual archived id))
+Redwood::register_yaml(Loader, %w(uri cur_offset usual archived id))
 
 end
 end
