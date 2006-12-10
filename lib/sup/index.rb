@@ -220,7 +220,7 @@ An error occurred while loading this message. It is possible that the source
 has changed, or (in the case of remote sources) is down.
 
 The error message was:
-  #{source.broken_msg}
+  #{source.broken}
 EOS
     end
     m

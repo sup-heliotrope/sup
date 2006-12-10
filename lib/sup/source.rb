@@ -8,8 +8,8 @@ class Source
   ##
   ## broken? means no message can be loaded (e.g. IMAP server is
   ## down), so don't even bother.
-  bool_reader :usual, :archived, :dirty, :broken
-  attr_reader :cur_offset
+  bool_reader :usual, :archived, :dirty
+  attr_reader :cur_offset, :broken
   attr_accessor :id
 
   ## You should implement:
@@ -29,9 +29,10 @@ class Source
     @archived = archived
     @id = id
     @dirty = false
-    @broken = false
+    @broken = nil
   end
 
+  def broken?; !@broken.nil?; end
   def to_s; @uri; end
   def seek_to! o; self.cur_offset = o; end
   def reset!; seek_to! start_offset; end

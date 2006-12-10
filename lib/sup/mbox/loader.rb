@@ -28,7 +28,10 @@ class Loader < Source
     @mutex.synchronize do
       @f.seek offset
       l = @f.gets
-      raise SourceError, "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." unless l =~ BREAK_RE
+      unless l =~ BREAK_RE
+        self.broken = "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." 
+        raise SourceError, self.broken
+      end
       header = MBox::read_header @f
     end
     header

@@ -5,7 +5,7 @@ require 'stringio'
 module Redwood
 
 class IMAP < Source
-  attr_reader :labels, :broken_msg
+  attr_reader :labels
   
   def initialize uri, username, password, last_uid=nil, usual=true, archived=false, id=nil
     raise ArgumentError, "username and password must be specified" unless username && password
@@ -48,10 +48,9 @@ class IMAP < Source
         @imap.examine mailbox
         Redwood::log "successfully connected to #{@parsed_uri}, mailbox #{mailbox}"
       rescue Exception => e
-        self.broken = true
+        self.broken = e.message.chomp # fucking chomp! fuck!!!
         @imap = nil
-        @broken_msg = e.message.chomp # fucking chomp! fuck!!!
-        Redwood::log "error connecting to IMAP server: #{@broken_msg}"
+        Redwood::log "error connecting to IMAP server: #{self.broken}"
       end
     end.join
 
@@ -73,7 +72,7 @@ class IMAP < Source
   ## load the full header text
   def raw_header uid
     begin
-      connect or return broken_msg
+      connect or return broken
     rescue Exception => e
       raise "wtf: #{e.inspect}"
     end
@@ -81,12 +80,12 @@ class IMAP < Source
   end
 
   def raw_full_message uid
-    connect or return broken_msg
+    connect or return broken
     @imap.uid_fetch(uid, 'RFC822')[0].attr['RFC822'].gsub(/\r\n/, "\n")
   end
   
   def each
-    connect or return broken_msg
+    connect or return broken
     uids = @imap.uid_search ['UID', "#{cur_offset}:#{end_offset}"]
     uids.each do |uid|
       @last_uid = uid
