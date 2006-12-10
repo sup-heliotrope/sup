@@ -18,7 +18,7 @@ class LabelListMode < LineCursorMode
   def load; regen_text; end
 
   def load_in_background
-    ::Thread.new do
+    Redwood::reporting_thread do
       regen_text do |i|
         if i % 10 == 0
           buffer.mark_dirty

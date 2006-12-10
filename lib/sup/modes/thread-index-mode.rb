@@ -265,14 +265,9 @@ class ThreadIndexMode < LineCursorMode
 
   def load_n_threads_background n=LOAD_MORE_THREAD_NUM, opts={}
     return if @load_thread
-    @load_thread = ::Thread.new do 
-      begin
-        num = load_n_threads n, opts
-        opts[:when_done].call(num) if opts[:when_done]
-      rescue Exception => e
-        $exception ||= e
-        raise
-      end
+    @load_thread = Redwood::reporting_thread do 
+      num = load_n_threads n, opts
+      opts[:when_done].call(num) if opts[:when_done]
       @load_thread = nil
     end
   end

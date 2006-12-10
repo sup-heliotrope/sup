@@ -13,12 +13,10 @@ class PollManager
     
     self.class.i_am_the_instance self
 
-    ::Thread.new do
+    Redwood::reporting_thread do
       while true
         sleep DELAY / 2
-        if @last_poll.nil? || (Time.now - @last_poll) >= DELAY
-          poll
-        end
+        poll if @last_poll.nil? || (Time.now - @last_poll) >= DELAY
       end
     end
   end
@@ -46,6 +44,7 @@ class PollManager
     found = {}
     total_num = 0
     total_numi = 0
+
     Index.usual_sources.each do |source|
       next if source.done?
       yield "Loading from #{source}... "
@@ -60,7 +59,7 @@ class PollManager
           m = Redwood::Message.new :source => source, :source_info => offset,
                                    :labels => labels
           if found[m.id]
-            yield "Skipping duplicate message #{m.id} (source total #{source.total})"
+            yield "Skipping duplicate message #{m.id}"
             next
           else
             found[m.id] = true
@@ -79,7 +78,7 @@ class PollManager
         if num % 1000 == 0 && num > 0
           elapsed = Time.now - start
           pctdone = (offset.to_f - start_offset) / (source.total.to_f - start_offset)
-          remaining = (source.total.to_f - offset.to_f) * (elapsed.to_f / (offset.to_f - start_offset))
+          remaining = (source.end_offset.to_f - offset.to_f) * (elapsed.to_f / (offset.to_f - start_offset))
           yield "## #{num} (#{(pctdone * 100.0)}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
         end
       end

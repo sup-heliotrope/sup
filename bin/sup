@@ -7,6 +7,17 @@ require "sup"
 module Redwood
 
 $exception = nil
+def reporting_thread
+  ::Thread.new do
+    begin
+      yield
+    rescue Exception => e
+      $exception ||= e
+      raise
+    end
+  end
+end
+module_function :reporting_thread
 
 global_keymap = Keymap.new do |k|
   k.add :quit, "Quit Redwood", 'q'
@@ -109,7 +120,7 @@ begin
   bm.draw_screen
   imode.load_more_threads ibuf.content_height
 
-  ::Thread.new { sleep 3; PollManager.poll }
+  reporting_thread { sleep 3; PollManager.poll }
 
   until $exception
     bm.draw_screen
