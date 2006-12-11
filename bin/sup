@@ -4,6 +4,8 @@ require 'rubygems'
 require 'ncurses'
 require "sup"
 
+Thread.abort_on_exception = true # make debugging possible
+
 module Redwood
 
 $exception = nil
@@ -147,38 +149,29 @@ begin
         when :list_buffers
           bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
         when :list_contacts
-          mode = ContactListMode.new 
-          bm.spawn "compose to contacts", mode
+          bm.spawn_unless_exists("Contact List") { ContactListMode.new }
         when :search
           text = bm.ask :search, "query: "
           next unless text && text !~ /^\s*$/
+          short_text = text.length < 20 ? text : text[0 ... 20] + "..."
           mode = SearchResultsMode.new text
-          short_text = 
-            if text.length < 20
-              text
-            else
-              text[0 ... 20] + "..."
-            end
           bm.spawn "search: \"#{short_text}\"", mode
-          bm.draw_screen
           mode.load_more_threads mode.buffer.content_height
         when :list_labels
-          b = BufferManager.spawn_unless_exists("all labels") do
-            LabelListMode.new
-          end
+          b = bm.spawn_unless_exists("Label List") { LabelListMode.new }
           b.mode.load_in_background
         when :compose
           mode = ComposeMode.new
-          bm.spawn "new message", mode
+          bm.spawn "New Message", mode
           mode.edit
         when :poll
-          BufferManager.raise_to_front PollManager.buffer
+          bm.raise_to_front PollManager.buffer
           PollManager.poll
         when :nothing
         when :redraw
           bm.completely_redraw_screen
         else
-          BufferManager.flash "Unknown key press '#{c.to_character}' for #{bm.focus_buf.mode.name}."
+          bm.flash "Unknown key press '#{c.to_character}' for #{bm.focus_buf.mode.name}."
         end
       end
     end
