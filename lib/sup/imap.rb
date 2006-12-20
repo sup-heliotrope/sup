@@ -17,7 +17,7 @@ class IMAP < Source
     @password = password
     @imap = nil
     @labels = [:unread]
-    @labels << mailbox.intern unless mailbox =~ /inbox/i || mailbox.empty?
+    @labels << mailbox.intern unless mailbox =~ /inbox/i || mailbox.nil?
     @labels << :inbox unless archived?
 
     connect
@@ -72,18 +72,20 @@ class IMAP < Source
   ## load the full header text
   def raw_header uid
     connect or return broken_msg
-    begin
-      connect or return broken_msg
-    rescue Exception => e
-      raise "wtf: #{e.inspect}"
-    end
-    @imap.uid_fetch(uid, 'RFC822.HEADER')[0].attr['RFC822.HEADER'].gsub(/\r\n/, "\n")
+    get_imap_field(uid, 'RFC822.HEADER').gsub(/\r\n/, "\n")
   end
 
   def raw_full_message uid
     connect or return broken_msg
-    @imap.uid_fetch(uid, 'RFC822')[0].attr['RFC822'].gsub(/\r\n/, "\n")
+    get_imap_field(uid, 'RFC822').gsub(/\r\n/, "\n")
   end
+
+  def get_imap_field uid, field
+    f = @imap.uid_fetch uid, field
+    raise SourceError, "null IMAP field '#{field}' for message with uid #{uid}" if f.nil?
+    f[0].attr[field]
+  end
+  private :get_imap_field
   
   def each
     connect or return broken_msg
@@ -91,6 +93,7 @@ class IMAP < Source
     uids.each do |uid|
       @last_uid = uid
       @dirty = true
+      self.cur_offset = uid
       yield uid, labels
     end
   end
@@ -102,6 +105,6 @@ class IMAP < Source
   end
 end
 
-Redwood::register_yaml(IMAP, %w(uri username password offset usual archived id))
+Redwood::register_yaml(IMAP, %w(uri username password cur_offset usual archived id))
 
 end
