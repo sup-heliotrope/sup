@@ -87,12 +87,11 @@ protected
     when Array
       xpos = 0
       s.each do |color, text|
-        raise "nil text for color '#{color}'" if text.nil?
+        raise "nil text for color '#{color}'" if text.nil? # good for debugging
         if xpos + text.length < @leftcol
           buffer.write ln - @topline, 0, "", :color => color,
                        :highlight => opts[:highlight]
           xpos += text.length
-          ## nothing
         elsif xpos < @leftcol
           ## partial
           buffer.write ln - @topline, 0, text[(@leftcol - xpos) .. -1],
