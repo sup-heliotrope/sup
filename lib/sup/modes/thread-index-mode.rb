@@ -360,10 +360,10 @@ protected
       [:starred_color, starred ? "*" : " "],
       [:none, t.size == 1 ? " " * (@size_width + 2) : sprintf("(%#{@size_width}d)", t.size)],
       [:to_me_color, dp ? " >" : (p ? ' -' : "  ")],
-      [base_color, t.subj]
+      [base_color, t.subj + (t.subj.empty? ? "" : " ")],
     ] +
-      (t.labels - @hidden_labels).map { |label| [:label_color, " +#{label}"] } +
-      [[:snippet_color, " " + t.snippet]
+      (t.labels - @hidden_labels).map { |label| [:label_color, "+#{label} "] } +
+      [[:snippet_color, t.snippet]
     ]
   end
 

@@ -297,13 +297,10 @@ private
  
       if state == :text && (@snippet.nil? || @snippet.length < SNIPPET_LEN) &&
           line !~ /[=\*#_-]{3,}/ && line !~ /^\s*$/
-        @snippet = (@snippet ? @snippet + " " : "") + line.gsub(/^\s+/, "").gsub(/[\r\n]/, "").gsub(/\s+/, " ")
+        @snippet += " " unless @snippet.empty?
+        @snippet += line.gsub(/^\s+/, "").gsub(/[\r\n]/, "").gsub(/\s+/, " ")
         @snippet = @snippet[0 ... SNIPPET_LEN]
       end
-#      if @snippet.nil? && state == :text && (line.length > 40 ||
-#                                             line =~ /\S+.*[^,!:]\s*$/)
-#        @snippet = line.gsub(/^\s+/, "").gsub(/[\r\n]/, "")[0 .. 80]
-#      end
     end
 
     ## final object

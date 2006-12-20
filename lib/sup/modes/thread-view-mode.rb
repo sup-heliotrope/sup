@@ -281,7 +281,7 @@ private
     when :open
       [[prefix_widget, widget, imp_widget,
         [:message_patina_color, 
-            "#{m.from ? m.from.mediumname : '?'} to #{m.to.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
+            "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
 #        (m.to.empty? ? [] : [[[:message_patina_color, prefix + "    To: " + m.recipients.map { |x| x.mediumname }.join(", ")]]]) +
     when :closed
       [[prefix_widget, widget, imp_widget,
