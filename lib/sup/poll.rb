@@ -71,7 +71,7 @@ class PollManager
             total_num += 1
             total_numi += 1 if m.labels.include? :inbox
           end
-        rescue Redwood::MessageFormatError => e
+        rescue SourceError, MessageFormatError => e
           yield "Ignoring erroneous message at #{source}##{offset}: #{e.message}"
         end
 
