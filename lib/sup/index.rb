@@ -307,19 +307,17 @@ protected
 
   ## TODO: convert this to query objects rather than strings
   def build_query opts
+    labels = ([opts[:label]] + (opts[:labels] || [])).compact
     query = ""
-    query += opts[:labels].map { |t| "+label:#{t}" }.join(" ") if opts[:labels]
-    query += " +label:#{opts[:label]}" if opts[:label]
+    query += labels.map { |t| "+label:#{t}" }.join(" ")
     query += " #{opts[:content]}" if opts[:content]
     if opts[:participants]
       query += "+(" + 
         opts[:participants].map { |p| "from:#{p.email} OR to:#{p.email}" }.join(" OR ") + ")"
     end
         
-    query += " -label:spam" unless opts[:load_spam] || opts[:labels] == :spam || 
-      (opts[:labels] && opts[:labels].include?(:spam))
-    query += " -label:killed" unless opts[:load_killed] || opts[:labels] == :killed || 
-      (opts[:labels] && opts[:labels].include?(:killed))
+    query += " -label:spam" unless opts[:load_spam] || labels.include?(:spam)
+    query += " -label:killed" unless opts[:load_killed] || labels.include?(:killed)
     query
   end
 
@@ -335,7 +333,7 @@ protected
         File.chmod 0600, fn
         FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(bakfn) > File.size(fn)
       end
-      Redwood::save_yaml_obj @sources.values, fn 
+      Redwood::save_yaml_obj @sources.values, fn
       File.chmod 0600, fn
     end
     @sources_dirty = false
