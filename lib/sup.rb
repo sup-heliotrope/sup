@@ -4,8 +4,6 @@ require 'zlib'
 require 'thread'
 require 'fileutils'
 
-Thread.abort_on_exception = true # make debugging possible
-
 class Object
   ## this is for debugging purposes because i keep calling #id on the
   ## wrong object and i want it to throw an exception
