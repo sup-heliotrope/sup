@@ -2,7 +2,8 @@
 
 require 'thread'
 require 'fileutils'
-require_gem 'ferret', ">= 0.10.13"
+require 'ferret'
+#require_gem 'ferret', ">= 0.10.13"
 
 module Redwood
 
@@ -87,6 +88,8 @@ class Index
       source ||= entry[:source_id].to_i
       source_info ||= entry[:source_info].to_i
     end
+
+    ## this happens sometimes. i'm not sure why. ferret bug?
     raise "no entry and no source info for message #{m.id}" unless source && source_info
 
     raise "deleting non-corresponding entry #{docid}" unless @index[docid][:message_id] == m.id

@@ -145,6 +145,7 @@ class Message
     @status = header["status"]
   end
 
+  def broken?; @source.nil?; end
   def snippet; @snippet || to_chunks && @snippet; end
   def is_list_message?; !@list_address.nil?; end
   def is_draft?; DraftLoader === @source; end
@@ -154,6 +155,7 @@ class Message
   end
 
   def save index
+    return if broken?
     index.update_message self if @dirty
     @dirty = false
   end

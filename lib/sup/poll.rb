@@ -54,7 +54,7 @@ class PollManager
       num_inbox = 0
       source.each do |offset, labels|
         start_offset ||= offset
-        yield " Found message at #{offset} with labels #{labels * ', '}"
+        yield "Found message at #{offset} with labels #{labels * ', '}"
         begin
           m = Redwood::Message.new :source => source, :source_info => offset,
                                    :labels => labels

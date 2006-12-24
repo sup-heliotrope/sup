@@ -320,6 +320,7 @@ protected
   end
 
   def update_text_for_line l
+    return unless l # not sure why this happens, but it does, occasionally
     @text[l] = text_for_thread @threads[l]
     buffer.mark_dirty if buffer
   end
