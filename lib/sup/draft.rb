@@ -49,13 +49,8 @@ class DraftLoader < Source
   def id; DraftManager.source_id; end
   def to_s; DraftManager.source_name; end
 
-  def next
-    ret = nil
-    begin
-      ret = cur_offset
-      self.cur_offset = cur_offset + 1
-    end until File.exists? fn_for_offset(ret)
-    [ret, [:draft]]
+  def each
+    Dir.entries(@dir).select { |x| x =~ /^\d+$/ }.sort_by { |x| x.to_i }.each { |id| yield [id, [:draft]] }
   end
 
   def gen_offset
