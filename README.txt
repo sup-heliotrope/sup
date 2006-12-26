@@ -4,13 +4,30 @@ sup
 
 == DESCRIPTION:
 
-Sup is an attempt to take the UI innovations of web-based email
-readers (ok, really just GMail) and to combine them with the
-traditional wholesome goodness of a console-based email client.
+Sup is a console-based email client that combines the best
+features of GMail, mutt, and emacs. Sup matches the power of GMail
+with the speed and simplicity of a console interface.
 
-Sup is designed to work with massive amounts of email, potentially
-spread out across different mbox files, IMAP folders, and GMail
-accounts, and to pull them all together into a single interface.
+Sup makes it easy to:
+- Handle massive amounts of email.
+
+- Mix email from different sources: mbox files (even across
+  different machines), IMAP folders, POP accounts, and GMail
+  accounts.
+
+- Instantaneously search over your entire email collection. Search
+  over body text, or use a query language to combine search
+  predicates in any way.
+
+- Handle multiple accounts. Replying to email sent to a particular
+  account will use the correct SMTP server, signature, and from
+  address.
+
+- Add custom code to handle certain types of messages or to handle
+  certain types of text within messages.
+
+- Organize email with user-defined labels, automatically track
+  recent contacts, and much more!
 
 The goal of Sup is to become the email client of choice for nerds
 everywhere.
