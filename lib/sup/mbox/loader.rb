@@ -1,4 +1,3 @@
-require 'thread'
 require 'rmail'
 
 module Redwood
@@ -7,17 +6,25 @@ module MBox
 class Loader < Source
   attr_reader :labels
 
-  def initialize uri, start_offset=nil, usual=true, archived=false, id=nil
-    raise ArgumentError, "not an mbox uri" unless uri =~ %r!mbox://!
+  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil
     super
 
     @mutex = Mutex.new
-    @filename = uri.sub(%r!^mbox://!, "")
-    @f = File.open @filename
-    ## heuristic: use the filename as a label, unless the file
-    ## has a path that probably represents an inbox.
     @labels = [:unread]
-    @labels << File.basename(@filename).intern unless File.dirname(@filename) =~ /\b(var|usr|spool)\b/
+    @labels << :inbox unless archived?
+
+    case uri_or_fp
+    when String
+      raise ArgumentError, "not an mbox uri" unless uri_or_fp =~ %r!mbox://!
+
+      fn = uri_or_fp.sub(%r!^mbox://!, "")
+      ## heuristic: use the filename as a label, unless the file
+      ## has a path that probably represents an inbox.
+      @labels << File.basename(fn).intern unless File.dirname(fn) =~ /\b(var|usr|spool)\b/
+      @f = File.open fn
+    else
+      @f = uri_or_fp
+    end
   end
 
   def start_offset; 0; end

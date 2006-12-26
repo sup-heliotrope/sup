@@ -9,6 +9,7 @@ class IMAP < Source
   
   def initialize uri, username, password, last_uid=nil, usual=true, archived=false, id=nil
     raise ArgumentError, "username and password must be specified" unless username && password
+    raise ArgumentError, "not an imap uri" unless uri =~ %r!imaps?://!
 
     super uri, last_uid, usual, archived, id
 
@@ -17,8 +18,8 @@ class IMAP < Source
     @password = password
     @imap = nil
     @labels = [:unread]
-    @labels << mailbox.intern unless mailbox =~ /inbox/i || mailbox.nil?
     @labels << :inbox unless archived?
+    @labels << mailbox.intern unless mailbox =~ /inbox/i || mailbox.nil?
 
     connect
   end
@@ -43,7 +44,7 @@ class IMAP < Source
     ::Thread.new do
       begin
         #raise Net::IMAP::ByeResponseError, "simulated imap failure"
-        @imap = Net::IMAP.new @parsed_uri.host, ssl? ? 993 : 143, ssl?
+        @imap = Net::IMAP.new host, ssl? ? 993 : 143, ssl?
         @imap.authenticate 'LOGIN', @username, @password
         @imap.examine mailbox
         Redwood::log "successfully connected to #{@parsed_uri}, mailbox #{mailbox}"
@@ -58,6 +59,7 @@ class IMAP < Source
   end
   private :connect
 
+  def host; @parsed_uri.host; end
   def mailbox; @parsed_uri.path[1..-1] end ##XXXX TODO handle nil
   def ssl?; @parsed_uri.scheme == 'imaps' end
 

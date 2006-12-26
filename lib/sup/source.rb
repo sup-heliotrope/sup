@@ -44,7 +44,6 @@ class Source
     until done?
       n, labels = self.next
       raise "no message" unless n
-      labels += [:inbox] unless archived?
       yield n, labels
     end
   end
