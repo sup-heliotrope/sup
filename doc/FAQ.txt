@@ -1,28 +1,23 @@
 Sup FAQ
 -------
 Q: What does Sup stand for?
-A: "What's up?".
 
-Q: How is Sup even possible?
-A: Sup is only possible through the hard work of Dave Balmain, the
-   author of ferret.
-
-   I started using Ferret when it was still slightly buggy, and it
-   seemed like every week Dave released a bugfix or a speed
-   improvement that directly affected sup. Ferret has become a
-   first-class piece of software, and it's due to the tremendous
-   amount of time and effort he's put in to it.
-
-Q: Why the console?
-A: As the millions (ok, hundreds) of mutt users will tell you, there are
-   many advantages to the console:
-   - You don't need web browser.
-   - Instantaneous interaction.
-   - A few keystrokes can accomplish the work of a hundred mouse
-     clicks.
+A: It stands for "what's up?", which is more or less the question I'm
+   asking when I read my mail.
 
 Q: If you love GMail so much, why not just use it?
-A: I hate using a mouse, and I hate ads, and I hate non-programmability.
+
+A: I hate using a mouse, and I hate ads, and I hate non-programmability
+   and non-extensibility.
+
+Q: Why the console?
+A: There are many advantages to the console. As any Unix user knows, a
+   few keystrokes can accomplish the work of a hundred mouse clicks.
+   Also, you don't need web browser, and you get instantaneous response
+   and a simple interface.
+
+   That said, a good Ajax programmer could probably replicate GMail
+   pretty easily using Sup as the backend.
 
 Q: How does Sup deal with spam?
 A: You can manually mark messages as spam, which prevents them from
@@ -37,4 +32,10 @@ A: That was Sup's original name. (Think pine, elm. Although I am a
 
    Maybe one day I'll do a huge search-and-replace on the code, but it
    doesn't seem that important at this point.
+
+Q: How is Sup possible?
+A: Sup is only possible through the hard work of Dave Balmain, the
+   author of ferret, which is the search engine behind Sup. Ferret is
+   really a first-class piece of software, and it's due to the
+   tremendous amount of time and effort he's put in to it.
 

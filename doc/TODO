@@ -1,3 +1,6 @@
+use Net::SMTP
+'R' to quick-resume most recent draft
+support different smtp servers per user account
 search for other messages from author in thread-view-mode
 forward attachments
 tab completion on labels, contacts
@@ -12,7 +15,11 @@ annotations on messages
 gmail
 pop
 move sup-import argument handling to getopt or something
+move sup-import username/password prompts to highline
+mark individual messages as spam in thread-view-mode
+support for message-content modules such as ruby-talk:XXXXX detection
 
+x mbox+ssh
 x handle broken sources better
 x imap
 x word wrap

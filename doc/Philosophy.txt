@@ -11,31 +11,36 @@ it. Keeping up with the all the new traffic is painful, even with
 Mutt's excellent threading features, simply because there's so much of
 it---a single thread can span several pages, and God help you if you
 lag behind. And Mutt is probably the best email client out there in
-terms of threading and mailing list support.
+terms of threading and mailing list support. God help me if I try and
+throw Thunderbird at that.
 
-The principle problem with traditional clients is that they place a
-high mental cost on the user for each incoming email, by forcing them
-to ask:
- - Should I keep this email, or delete it?
- - If I keep it, where should I file it?
+The principle problem with traditional clients is that they deal with
+individual pieces of email, and place a high mental cost on the user
+for each incoming email, by forcing them to ask: Should I keep this
+email, or delete it?  If I keep it, where should I file it?
 
-For example, I've spent the last 10 years of my life laboriously
-hand-filing every email message I received and feeling a mild sense of
-panic every time an email was both "from Mom" and "about school". The
-massive amounts of email that many people receive, and the cheap cost
-of storage, have made these questions both more costly and less useful
-to answer.
+I've spent the last 10 years of my life laboriously hand-filing every
+email message I received and feeling a mild sense of panic every time
+an email was both "from Mom" and "about school". The massive amounts
+of email that many people receive, and the cheap cost of storage, have
+made these questions both more costly and less useful to answer.
 
-As a long-time Mutt user, when I watched people use GMail, I saw them
-use email differently from how I had ever used it. I saw that making
-certain operations quantitatively easier (namely, search) resulted in
-a qualitative difference in usage. And I saw that thread-centrism had
-many advantages over message-centrism, especially when volume was high.
+As a long-time Mutt user, when I first watched people use GMail, I saw
+them use email differently from how I had ever used it. I saw that
+making certain operations quantitatively easier (namely, search)
+resulted in a qualitative difference in usage: you don't have to worry
+about filing correctly, because you can always find things later by
+search. And I saw that thread-centrism had many advantages over
+message-centrism when message volume was high.
 
 So, in many ways, I believe GMail has taken the right approach to
 handle both of the factors above, and much of the inspiration for Sup
-was based on GMail. Ultimately, GMail wasn't right for me, which is
-why the idea for Sup was born.
+was based on GMail. I think it's to the GMail designers' credit that
+they started with a somewhat ad-hoc idea (hey, we're really good at
+search engines, so can we build an email client on top of one?) and
+managed to build something that was actually better than everything
+else out there. But ultimately, GMail wasn't right for me (see FAQ),
+which is why the idea for Sup was born.
 
 Sup is based on the following principles, which I more or less stole
 directly from GMail:
@@ -44,15 +49,17 @@ directly from GMail:
   entire email archive eliminates most of the need for folders,
   and eliminates the necessity of having to ever delete email.
 
-- Labels eliminate the remaining need for folders.
+- Labels eliminate what little need for folders that search doesn't
+  eliminate.
 
 - A thread-centric approach to the UI is much more in line with how
-  people operate than dealing with individual messages is. A message
-  and its content deserve the same treatment in the vast majority
-  of cases.
+  people operate than dealing with individual messages is. In the vast
+  majority of cases, a message and its context should be subject to
+  the same treatment.
 
 Sup is also based on many ideas from mutt and Emacs and vi, having to
 do with the fantastic productivity of a console- and keyboard-based
 application, the usefulness of multiple buffers, the necessity of
 handling multiple email accounts, etc.
 
+Give it a go and let me know what you think.
