@@ -2,8 +2,8 @@
 
 require 'thread'
 require 'fileutils'
-require 'ferret'
-#require_gem 'ferret', ">= 0.10.13"
+#require 'ferret'
+require_gem 'ferret', ">= 0.10.13"
 
 module Redwood
 
@@ -23,9 +23,9 @@ class Index
   
   def initialize dir=BASE_DIR
     @dir = dir
-    @mutex = Mutex.new
     @sources = {}
     @sources_dirty = false
+    @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => Ferret::Analysis::WhiteSpaceAnalyzer.new
 
     self.class.i_am_the_instance self
   end
@@ -112,7 +112,7 @@ class Index
   ## in scotland, frikkin' huuuge.
   EACH_BY_DATE_NUM = 100
   def each_id_by_date opts={}
-    return if @index.size == 0 # otherwise ferret barfs
+    return if @index.size == 0 # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
     query = build_query opts
     offset = 0
     while true
@@ -308,19 +308,24 @@ EOS
 
 protected
 
-  ## TODO: convert this to query objects rather than strings
+  def parse_user_query_string str; @qparser.parse str; end
   def build_query opts
+
+    query = Ferret::Search::BooleanQuery.new
+    query.add_query opts[:qobj], :must if opts[:qobj]
     labels = ([opts[:label]] + (opts[:labels] || [])).compact
-    query = ""
-    query += labels.map { |t| "+label:#{t}" }.join(" ")
-    query += " #{opts[:content]}" if opts[:content]
+    labels.each { |t| query.add_query Ferret::Search::TermQuery.new("label", t.to_s), :must }
     if opts[:participants]
-      query += "+(" + 
-        opts[:participants].map { |p| "from:#{p.email} OR to:#{p.email}" }.join(" OR ") + ")"
+      q2 = Ferret::Search::BooleanQuery.new
+      opts[:participants].each do |p|
+        q2.add_query Ferret::Search::TermQuery.new("from", p.email), :should
+        q2.add_query Ferret::Search::TermQuery.new("to", p.email), :should
+      end
+      query.add_query q2, :must
     end
         
-    query += " -label:spam" unless opts[:load_spam] || labels.include?(:spam)
-    query += " -label:killed" unless opts[:load_killed] || labels.include?(:killed)
+    query.add_query Ferret::Search::TermQuery.new("label", "spam"), :must_not unless opts[:load_spam] || labels.include?(:spam)
+    query.add_query Ferret::Search::TermQuery.new("label", "killed"), :must_not unless opts[:load_killed] || labels.include?(:killed)
     query
   end
 

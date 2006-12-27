@@ -153,10 +153,18 @@ begin
         when :search
           text = bm.ask :search, "query: "
           next unless text && text !~ /^\s*$/
-          short_text = text.length < 20 ? text : text[0 ... 20] + "..."
-          mode = SearchResultsMode.new text
-          bm.spawn "search: \"#{short_text}\"", mode
-          mode.load_more_threads mode.buffer.content_height
+
+          begin
+            qobj = Index.parse_user_query_string text
+            short_text = text.length < 20 ? text : text[0 ... 20] + "..."
+            log "built query from #{text.inspect}: #{qobj}"
+            mode = SearchResultsMode.new qobj
+            bm.spawn "search: \"#{short_text}\"", mode
+            mode.load_more_threads mode.buffer.content_height
+          rescue Ferret::QueryParser::QueryParseException => e
+            bm.flash "Couldn't parse query."
+          end
+
         when :list_labels
           b = bm.spawn_unless_exists("Label List") { LabelListMode.new }
           b.mode.load_in_background
