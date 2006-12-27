@@ -199,10 +199,10 @@ class Message
 
   def content
     [
-      from && (from.name + " " + from.email),
-      to.map { |p| p.name + " " + p.email },
-      cc.map { |p| p.name + " " + p.email },
-      bcc.map { |p| p.name + " " + p.email },
+      from && "#{from.name} #{from.email}",
+      to.map { |p| "#{p.name} #{p.email}" },
+      cc.map { |p| "#{p.name} #{p.email}" },
+      bcc.map { |p| "#{p.name} #{p.email}" },
       to_chunks.select { |c| c.is_a? Text }.map { |c| c.lines },
       Message.normalize_subj(subj),
     ].flatten.compact.join " "
