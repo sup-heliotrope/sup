@@ -25,7 +25,7 @@ class Index
     @dir = dir
     @sources = {}
     @sources_dirty = false
-    @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => Ferret::Analysis::WhiteSpaceAnalyzer.new
+    @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => Ferret::Analysis::WhiteSpaceAnalyzer.new(true)
 
     self.class.i_am_the_instance self
   end
