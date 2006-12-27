@@ -5,9 +5,8 @@ class SearchResultsMode < ThreadIndexMode
     k.add :load_more_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
   end
 
-  def initialize content
-    raise ArgumentError, "no content" if content =~ /^\s*$/
-    @content = content.gsub(/[\(\)]/) { |x| "\\" + x }
+  def initialize qobj
+    @qobj = qobj
     super
   end
 
@@ -15,7 +14,7 @@ class SearchResultsMode < ThreadIndexMode
   def is_relevant? m; super; end
 
   def load_more_threads n=ThreadIndexMode::LOAD_MORE_THREAD_NUM
-    load_n_threads_background n, :content => @content,
+    load_n_threads_background n, :qobj => @qobj,
                                  :load_killed => true,
                                  :load_spam => false,
                                  :when_done =>(lambda do |num|
