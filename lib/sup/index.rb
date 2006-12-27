@@ -25,7 +25,12 @@ class Index
     @dir = dir
     @sources = {}
     @sources_dirty = false
-    @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => Ferret::Analysis::WhiteSpaceAnalyzer.new(true)
+
+    wsa = Ferret::Analysis::WhiteSpaceAnalyzer.new true
+    sa = Ferret::Analysis::StandardAnalyzer.new Ferret::Analysis::FULL_ENGLISH_STOP_WORDS, true
+    @analyzer = Ferret::Analysis::PerFieldAnalyzer.new wsa
+    @analyzer[:body] = sa
+    @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => @analyzer
 
     self.class.i_am_the_instance self
   end
@@ -54,14 +59,9 @@ class Index
   def usual_sources; @sources.values.find_all { |s| s.usual? }; end
 
   def load_index dir=File.join(@dir, "ferret")
-    wsa = Ferret::Analysis::WhiteSpaceAnalyzer.new false
-    sa = Ferret::Analysis::StandardAnalyzer.new
-    analyzer = Ferret::Analysis::PerFieldAnalyzer.new wsa
-    analyzer[:body] = sa
-
     if File.exists? dir
       Redwood::log "loading index"
-      @index = Ferret::Index::Index.new(:path => dir, :analyzer => analyzer)
+      @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer)
     else
       Redwood::log "creating index"
       field_infos = Ferret::Index::FieldInfos.new :store => :yes
@@ -77,7 +77,7 @@ class Index
       field_infos.add_field :refs
       field_infos.add_field :snippet, :index => :no, :term_vector => :no
       field_infos.create_index dir
-      @index = Ferret::Index::Index.new(:path => dir, :analyzer => analyzer)
+      @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer)
     end
   end
 

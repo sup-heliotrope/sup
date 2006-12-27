@@ -287,9 +287,7 @@ class ThreadIndexMode < LineCursorMode
     update
     BufferManager.clear @mbid
     @mbid = nil
-
     BufferManager.draw_screen
-
     @ts.size - orig_size
   end
 
