@@ -12,13 +12,6 @@ class PollManager
     @last_poll = nil
     
     self.class.i_am_the_instance self
-
-    Redwood::reporting_thread do
-      while true
-        sleep DELAY / 2
-        poll if @last_poll.nil? || (Time.now - @last_poll) >= DELAY
-      end
-    end
   end
 
   def buffer
@@ -36,6 +29,15 @@ class PollManager
       BufferManager.flash "No new messages."
     end
     [num, numi]
+  end
+
+  def start_thread
+    Redwood::reporting_thread do
+      while true
+        sleep DELAY / 2
+        poll if @last_poll.nil? || (Time.now - @last_poll) >= DELAY
+      end
+    end
   end
 
   def do_poll

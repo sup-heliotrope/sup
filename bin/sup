@@ -52,13 +52,7 @@ def stop_cursing
 end
 module_function :start_cursing, :stop_cursing
 
-Redwood::SentManager.new Redwood::SENT_FN
-Redwood::ContactManager.new Redwood::CONTACT_FN
-Redwood::LabelManager.new Redwood::LABEL_FN
-Redwood::AccountManager.new $config[:accounts]
-Redwood::DraftManager.new Redwood::DRAFT_DIR
-Redwood::UpdateManager.new
-Redwood::PollManager.new
+Redwood::start
 
 Index.new.load
 log "loaded #{Index.size} messages from index"
@@ -74,7 +68,7 @@ if(s = Index.source_for SentManager.source_name)
 else
   Index.add_source SentManager.new_source
 end
-  
+
 begin
   log "starting curses"
   start_cursing
@@ -123,6 +117,7 @@ begin
   imode.load_more_threads ibuf.content_height
 
   reporting_thread { sleep 3; PollManager.poll }
+  PollManager.start_thread
 
   until $exception
     bm.draw_screen
@@ -185,11 +180,10 @@ begin
     end
   end
   bm.kill_all_buffers
-  Redwood::LabelManager.save
-  Redwood::ContactManager.save
 rescue Exception => e
   $exception ||= e
 ensure
+  Redwood::finish
   stop_cursing
 end
 

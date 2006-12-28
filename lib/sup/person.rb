@@ -1,5 +1,30 @@
 module Redwood
 
+class PersonManager
+  include Singleton
+
+  def initialize fn
+    @fn = fn
+    @names = {}
+    IO.readlines(fn).map { |l| l =~ /^(.*)?:\s+(.*)$/ && @names[$1] = $2 } if File.exists? fn
+    self.class.i_am_the_instance self
+  end
+
+  def name_for email; @names[email]; end
+  def register email, name
+    return unless name
+
+    name = name.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ")
+
+    ## all else being equal, prefer longer names, unless the prior name
+    ## doesn't contain any capitalization
+    oldname = @names[email]
+    @names[email] = name if oldname.nil? || oldname.length < name.length || (oldname !~ /[A-Z]/ && name =~ /[A-Z]/)
+  end
+
+  def save; File.open(@fn, "w") { |f| @names.each { |email, name| f.puts "#{email}: #{name}" } }; end
+end
+
 class Person
   @@email_map = {}
 
@@ -7,22 +32,14 @@ class Person
 
   def initialize name, email
     raise ArgumentError, "email can't be nil" unless email
-    @name = 
-      if name
-        name.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ")
-      else
-        nil
-      end
     @email = email.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ").downcase
-    @@email_map[@email] = self
+    PersonManager.register @email, name
+    @name = PersonManager.name_for @email
   end
 
   def == o; o && o.email == email; end
   alias :eql? :==
-
-  def hash
-    [name, email].hash
-  end
+  def hash; [name, email].hash; end
 
   def shortname
     case @name
@@ -31,9 +48,9 @@ class Person
     when /(\S+) \S+/
       $1
     when nil
-      @email #[0 ... 10]
+      @email
     else
-      @name #[0 ... 10]
+      @name
     end
   end
 
@@ -45,18 +62,12 @@ class Person
     end
   end
 
-  def mediumname
-    if @name
-      name
-    else
-      @email
-    end
-  end
+  def mediumname; @name || @email; end
 
   def full_address
     if @name && @email
       if @name =~ /"/
-        "#{@name.inspect} <#@email>"
+        "#{@name.inspect} <#@email>" # escape quotes
       else
         "#@name <#@email>"
       end
@@ -65,6 +76,7 @@ class Person
     end
   end
 
+  ## when sorting addresses, sort by this 
   def sort_by_me
     case @name
     when /^(\S+), \S+/
@@ -80,18 +92,10 @@ class Person
     end.downcase
   end
 
-  def self.for_several s
-    return [] if s.nil?
-
-    begin
-      s.split_on_commas.map { |ss| self.for ss }
-    rescue StandardError => e
-      raise "#{e.message}: for #{s.inspect}"
-    end
-  end
-
   def self.for s
     return nil if s.nil?
+
+    ## try and parse an email address and name
     name, email =
       case s
       when /["'](.*?)["'] <(.*?)>/, /([^,]+) <(.*?)>/
@@ -105,14 +109,16 @@ class Person
         [nil, s]
       end
 
-    if name && (p = @@email_map[email])
-      ## all else being equal, prefer longer names, unless the prior name
-      ## doesn't contain any capitalization
-      p.name = name if (p.name.nil? || p.name.length < name.length) unless
-        p.name =~ /[A-Z]/ || (AccountManager.instantiated? && AccountManager.is_account?(p))
-      p 
-    else
-      Person.new name, email
+    @@email_map[email] ||= Person.new name, email
+  end
+
+  def self.for_several s
+    return [] if s.nil?
+
+    begin
+      s.split_on_commas.map { |ss| self.for ss }
+    rescue StandardError => e
+      raise "#{e.message}: for #{s.inspect}"
     end
   end
 end

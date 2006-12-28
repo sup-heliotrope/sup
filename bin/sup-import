@@ -81,6 +81,8 @@ if(o = ARGV.find { |x| x =~ /^--/ })
   educate_user
 end
 
+Redwood::start
+
 puts "loading index..."
 index = Redwood::Index.new
 index.load
@@ -171,6 +173,7 @@ begin
   end
 ensure
   index.save
+  Redwood::finish
 end
 
 if rebuild || force_rebuild

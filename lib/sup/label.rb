@@ -3,7 +3,7 @@ module Redwood
 class LabelManager
   include Singleton
 
-  ## all labels that have special meaning. user will be unable to
+  ## labels that have special semantics. user will be unable to
   ## add/remove these via normal label mechanisms.
   RESERVED_LABELS = [ :starred, :spam, :draft, :unread, :killed, :sent ]
 

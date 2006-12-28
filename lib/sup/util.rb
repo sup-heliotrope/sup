@@ -43,7 +43,8 @@ class String
     self[0 .. 0].upcase + self[1 .. -1]
   end
 
-  ## found on teh internets
+  ## a very complicated regex found on teh internets to split on
+  ## commas, unless they occurr within double quotes.
   def split_on_commas
     split(/,\s*(?=(?:[^"]*"[^"]*")*(?![^"]*"))/)
   end

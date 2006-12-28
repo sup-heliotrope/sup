@@ -19,6 +19,7 @@ module Redwood
   CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
   SOURCE_FN  = File.join(BASE_DIR, "sources.yaml")
   LABEL_FN   = File.join(BASE_DIR, "labels.txt")
+  PERSON_FN   = File.join(BASE_DIR, "people.txt")
   CONTACT_FN = File.join(BASE_DIR, "contacts.txt")
   DRAFT_DIR  = File.join(BASE_DIR, "drafts")
   SENT_FN    = File.join(BASE_DIR, "sent.mbox")
@@ -59,7 +60,24 @@ module Redwood
     end
   end
 
-  module_function :register_yaml, :save_yaml_obj, :load_yaml_obj
+  def start
+    Redwood::PersonManager.new Redwood::PERSON_FN
+    Redwood::SentManager.new Redwood::SENT_FN
+    Redwood::ContactManager.new Redwood::CONTACT_FN
+    Redwood::LabelManager.new Redwood::LABEL_FN
+    Redwood::AccountManager.new $config[:accounts]
+    Redwood::DraftManager.new Redwood::DRAFT_DIR
+    Redwood::UpdateManager.new
+    Redwood::PollManager.new
+  end
+
+  def finish
+    Redwood::LabelManager.save
+    Redwood::ContactManager.save
+    Redwood::PersonManager.save
+  end
+
+  module_function :register_yaml, :save_yaml_obj, :load_yaml_obj, :start, :finish
 end
 
 ## set up default configuration file
