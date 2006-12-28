@@ -182,11 +182,12 @@ class Message
   end
 
   def to_chunks
-    if @body
-      [Text.new(@body.split("\n"))]
-    else
-      message_to_chunks @source.load_message(@source_info)
-    end
+    @chunks ||=
+      if @body
+        [Text.new(@body.split("\n"))]
+      else
+        message_to_chunks @source.load_message(@source_info)
+      end
   end
 
   def raw_header

@@ -46,7 +46,7 @@ class ThreadViewMode < LineCursorMode
     end
     @state[latest] = :open if @state[latest] == :closed
 
-    BufferManager.say "Loading message..." do
+    BufferManager.say "Loading message bodies..." do
       regen_chunks
       regen_text
     end
