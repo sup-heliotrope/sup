@@ -46,8 +46,10 @@ class ThreadViewMode < LineCursorMode
     end
     @state[latest] = :open if @state[latest] == :closed
 
-    regen_chunks
-    regen_text
+    BufferManager.say "Loading message..." do
+      regen_chunks
+      regen_text
+    end
   end
 
   def draw_line ln, opts={}
