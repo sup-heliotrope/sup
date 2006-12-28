@@ -2,8 +2,8 @@
 
 require 'thread'
 require 'fileutils'
-#require 'ferret'
-require_gem 'ferret', ">= 0.10.13"
+require 'ferret'
+#require_gem 'ferret', ">= 0.10.13"
 
 module Redwood
 
@@ -26,7 +26,7 @@ class Index
     @sources = {}
     @sources_dirty = false
 
-    wsa = Ferret::Analysis::WhiteSpaceAnalyzer.new true
+    wsa = Ferret::Analysis::WhiteSpaceAnalyzer.new false
     sa = Ferret::Analysis::StandardAnalyzer.new Ferret::Analysis::FULL_ENGLISH_STOP_WORDS, true
     @analyzer = Ferret::Analysis::PerFieldAnalyzer.new wsa
     @analyzer[:body] = sa
@@ -90,7 +90,7 @@ class Index
     end
 
     ## this happens sometimes. i'm not sure why. ferret bug?
-    raise "no entry and no source info for message #{m.id}" unless source && source_info
+    raise "no entry and no source info for message #{m.id}: source #{source.inspect}, info #{source_info.inspect}, entry #{entry.inspect}, query #{Ferret::Search::TermQuery.new(:message_id, m.id)}, results #{@index.search(Ferret::Search::TermQuery.new(:message_id, m.id)).inspect}" unless source && source_info
 
     raise "deleting non-corresponding entry #{docid}" unless @index[docid][:message_id] == m.id
     @index.delete docid
