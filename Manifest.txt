@@ -9,6 +9,8 @@ doc/TODO
 bin/sup
 bin/sup-import
 lib/sup/mbox/loader.rb
+lib/sup/mbox/ssh-file.rb
+lib/sup/mbox/ssh-loader.rb
 lib/sup/modes/line-cursor-mode.rb
 lib/sup/modes/reply-mode.rb
 lib/sup/modes/scroll-mode.rb

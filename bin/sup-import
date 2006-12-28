@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'highline'
 require "sup"
 
 class Float
@@ -84,17 +86,23 @@ index = Redwood::Index.new
 index.load
 puts "loaded index of #{index.size} messages"
 
+h = HighLine.new
+
 sources = ARGV.map do |fn|
   fn = "mbox://#{fn}" unless fn =~ %r!://!
   source = index.source_for fn
   unless source
     source = 
       case fn
+      when %r!^mbox\+ssh://!
+        username = h.ask("Username for #{fn}: ");
+        password = h.ask("Password for #{fn}: ") { |q| q.echo = false }
+        puts # why?
+        Redwood::MBox::SSHLoader.new(fn, username, password, nil, !unusual, !!archive)
       when %r!^imaps?://!
-        print "Username for #{fn}: "
-        username = $stdin.gets.chomp
-        print "Password for #{fn} (warning: cleartext): "
-        password = $stdin.gets.chomp
+        username = h.ask("Username for #{fn}: ");
+        password = h.ask("Password for #{fn}: ") { |q| q.echo = false }
+        puts # why?
         Redwood::IMAP.new(fn, username, password, nil, !unusual, !!archive)
       else
         Redwood::MBox::Loader.new(fn, nil, !unusual, !!archive)
@@ -138,7 +146,7 @@ begin
           found[m.id] = true
         end
         m.remove_label :unread if m.status == "RO" unless force_read
-        #puts "# message at #{offset}, labels: #{labels * ', '}" unless rebuild || force_rebuild
+        puts "# message at #{offset}, labels: #{labels * ', '}" unless rebuild || force_rebuild
         if (rebuild || force_rebuild) && 
             (docid, entry = index.load_entry_for_id(m.id)) && entry
           if force_rebuild || entry[:source_info].to_i != offset
