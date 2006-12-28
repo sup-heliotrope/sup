@@ -10,15 +10,16 @@ class SSHFileError < StandardError; end
 ## to simulate (buffered) random access.
 
 ## it doesn't work very well, because while on a fast connection ssh
-## can have a nice bandwidth, the latency is pretty terrible. and
-## since reading mbox files involves jumping around a lot (they are
-## very verbose), it is tragically slow to do anything. i've tried to
-## compensate by caching massive amounts of data, but that doesn't
-## really help. your best bet for remote file access remains IMAP.
-## i'm going to include this in the codebase for the time begin,
-## because maybe someone very motivated can put some energy into a
-## better approach (probably one that doesn't involve the synchronous
-## shell.)
+## can have a nice bandwidth, the latency is pretty terrible: about 1
+## second (!) per request. and since reading mbox files involves
+## jumping around a lot all over the file, it is tragically slow to do
+## anything with this. i've tried to compensate by caching massive
+## amounts of data, but that doesn't really help.
+##
+## so, your best bet for remote file access remains IMAP.  i'm going
+## to include this in the codebase for the time begin, because maybe
+## someone very motivated can put some energy into a better approach
+## (probably one that doesn't involve the synchronous shell.)
 
 ## there are two kinds of file access that are typical in sup: the
 ## first is an import, which starts at some point in the file and
@@ -28,13 +29,13 @@ class SSHFileError < StandardError; end
 ## first, and typically later message are later in the mbox file).  so
 ## we have to be careful that whatever caching we do supports both.
 
-$f = File.open("asdf.txt", "w")
+# debugging
+# $f = File.open("asdf.txt", "w")
 def debuggg s
-  $f.puts s
-  $f.flush
+  # $f.puts s
+  # $f.flush
 end
 module_function :debuggg
-
 
 class Buffer
   def initialize
@@ -91,8 +92,8 @@ end
 
 class SSHFile
   MAX_BUF_SIZE = 1024 * 1024 * 3
-  MAX_TRANSFER_SIZE = 1024 * 256 # bytes
-  REASONABLE_TRANSFER_SIZE = 1024 * 128 # bytes
+  MAX_TRANSFER_SIZE = 1024 * 64 # bytes
+  REASONABLE_TRANSFER_SIZE = 1024 * 4 # bytes
   SIZE_CHECK_INTERVAL = 60 * 1 # seconds
 
   def initialize host, fn, ssh_opts={}
@@ -108,11 +109,12 @@ class SSHFile
     # MBox::debuggg "starting session..."
     @session = Net::SSH.start @host, @ssh_opts
     # MBox::debuggg "starting shell..."
-    @shell = @session.shell.sync
-    # MBox::debuggg "ready for heck!"
-    raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0
-  end
+    # @shell = @session.shell.sync
+    @input, @output, @error = @session.process.popen3("/bin/sh")
 
+    # MBox::debuggg "ready for heck!"
+    raise Errno::ENOENT, @fn unless do_remote("if [ -e #@fn ]; then echo y; else echo n; fi").chomp == "y"
+  end
 
   def eof?; @offset >= size; end
   def eof; eof?; end # lame but IO does this and rmail depends on it
@@ -153,25 +155,32 @@ class SSHFile
 
 private
 
-  def do_remote cmd
+  def do_remote cmd, expected_size=0
     retries = 0
     connect
     MBox::debuggg "sending command: #{cmd.inspect}"
     begin
-      result = @shell.send_command cmd
-      raise SSHFileError, "Unable to perform remote command #{cmd.inspect}: #{result.stderr[0 .. 100]}" unless result.status == 0
+      @input.puts cmd
+      result = ""
+      begin
+        result += @output.read 
+      end while result.length < expected_size
+      # result = @shell.send_command cmd
+      
+      #raise SSHFileError, "Unable to perform remote command #{cmd.inspect}: #{result.stderr[0 .. 100]}" unless result.status == 0
     rescue Net::SSH::Exception
       retry if (retries += 1) < 3
       raise
     end
-    result.stdout
+    result
+    #result.stdout
   end
 
   def get_bytes offset, size
     MBox::debuggg "get_bytes(#{offset}, #{size})"
     MBox::debuggg "! request for [#{offset}, #{offset + size}); buf is #@buf"
     raise "wtf: offset #{offset} size #{size}" if size == 0 || offset < 0
-    do_remote("tail -c +#{offset + 1} #@fn | head -c #{size}")
+    do_remote "tail -c +#{offset + 1} #@fn | head -c #{size}", size
   end
 
   def expand_buf_forward n=REASONABLE_TRANSFER_SIZE
