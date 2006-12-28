@@ -363,6 +363,11 @@ class BufferManager
       draw_screen
       Ncurses.refresh
     end
+    if block_given?
+      yield
+      clear id
+      return
+    end
     id
   end
 
