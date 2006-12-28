@@ -86,7 +86,7 @@ class Message
 
   bool_reader :dirty
 
-  ## if index_entry is specified, will fill in values from that,
+  ## if index_entry is specified, will fill in values from that
   def initialize opts
     if opts[:source]
       @source = opts[:source]

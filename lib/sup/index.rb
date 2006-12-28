@@ -189,6 +189,15 @@ class Index
     #puts "building message #{doc[:message_id]} (#{source}##{doc[:source_info]})"
     raise "invalid source #{doc[:source_id]}" unless source
 
+    fake_header = {
+      "date" => Time.at(doc[:date].to_i),
+      "subject" => unwrap_subj(doc[:subject]),
+      "from" => doc[:from],
+      "to" => doc[:to],
+      "message-id" => doc[:message_id],
+      "references" => doc[:refs],
+    }
+
     m = 
       if source.broken?
         nil
@@ -196,7 +205,7 @@ class Index
         begin
           Message.new :source => source, :source_info => doc[:source_info].to_i, 
                       :labels => doc[:label].split(" ").map { |s| s.intern },
-                      :snippet => doc[:snippet]
+                      :snippet => doc[:snippet], :header => fake_header
         rescue MessageFormatError => e
           raise IndexError.new(source, "error building message #{doc[:message_id]} at #{source}/#{doc[:source_info]}: #{e.message}")
         rescue SourceError => e
@@ -205,15 +214,6 @@ class Index
       end
 
     unless m
-      fake_header = {
-        "date" => Time.at(doc[:date].to_i),
-        "subject" => unwrap_subj(doc[:subject]),
-        "from" => doc[:from],
-        "to" => doc[:to],
-        "message-id" => doc[:message_id],
-        "references" => doc[:refs],
-      }
-
       m = Message.new :labels => doc[:label].split(" ").map { |s| s.intern },
                       :snippet => doc[:snippet], :header => fake_header, 
                       :body => <<EOS
