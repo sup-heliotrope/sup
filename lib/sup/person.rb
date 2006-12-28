@@ -6,11 +6,11 @@ class PersonManager
   def initialize fn
     @fn = fn
     @names = {}
-    IO.readlines(fn).map { |l| l =~ /^(.*)?:\s+(.*)$/ && @names[$1] = $2 } if File.exists? fn
+    IO.readlines(fn).map { |l| l =~ /^(.*)?:\s+(\d+)\s+(.*)$/ && @names[$1] = [$2.to_i, $3] } if File.exists? fn
     self.class.i_am_the_instance self
   end
 
-  def name_for email; @names[email]; end
+  def name_for email; @names[email][1]; end
   def register email, name
     return unless name
 
@@ -18,11 +18,12 @@ class PersonManager
 
     ## all else being equal, prefer longer names, unless the prior name
     ## doesn't contain any capitalization
-    oldname = @names[email]
-    @names[email] = name if oldname.nil? || oldname.length < name.length || (oldname !~ /[A-Z]/ && name =~ /[A-Z]/)
+    oldcount, oldname = @names[email]
+    @names[email] = [0, name] if oldname.nil? || oldname.length < name.length || (oldname !~ /[A-Z]/ && name =~ /[A-Z]/)
+    @names[email][0] = Time.now.to_i
   end
 
-  def save; File.open(@fn, "w") { |f| @names.each { |email, name| f.puts "#{email}: #{name}" } }; end
+  def save; File.open(@fn, "w") { |f| @names.each { |email, (time, name)| f.puts "#{email}: #{time} #{name}" } }; end
 end
 
 class Person
