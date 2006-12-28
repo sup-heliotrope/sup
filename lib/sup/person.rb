@@ -10,7 +10,7 @@ class PersonManager
     self.class.i_am_the_instance self
   end
 
-  def name_for email; @names[email][1]; end
+  def name_for email; @names.member?(email) && @names[email][1]; end
   def register email, name
     return unless name
 
@@ -116,11 +116,7 @@ class Person
   def self.for_several s
     return [] if s.nil?
 
-    begin
-      s.split_on_commas.map { |ss| self.for ss }
-    rescue StandardError => e
-      raise "#{e.message}: for #{s.inspect}"
-    end
+    s.split_on_commas.map { |ss| self.for ss }
   end
 end
 
