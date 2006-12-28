@@ -96,7 +96,7 @@ class DraftLoader < Source
   end
 
   def start_offset; 0; end
-  def end_offset; Dir.new(@dir).entries.sort.last.to_i + 1; end
+  def end_offset; Dir.new(@dir).entries.sort.last.to_i; end
 end
 
 Redwood::register_yaml(DraftLoader, %w(cur_offset))
