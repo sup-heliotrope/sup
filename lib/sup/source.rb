@@ -6,8 +6,8 @@ class Source
   ## dirty? described whether cur_offset has changed, which means the
   ## source needs to be re-saved to disk.
   ##
-  ## broken? means no message can be loaded (e.g. IMAP server is
-  ## down), so don't even bother.
+  ## broken? means no message can be loaded, e.g. IMAP server is
+  ## down, mbox file is corrupt and needs to be rescanned.
   bool_reader :usual, :archived, :dirty
   attr_reader :cur_offset, :broken_msg
   attr_accessor :id

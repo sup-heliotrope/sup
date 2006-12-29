@@ -125,12 +125,13 @@ class Index
   end
 
   def num_results_for opts={}
-    query = build_query opts
-    x = @index.search(query).total_hits
-    Redwood::log "num_results_for: have #{x} for query #{query}"
-    x
+    with(@index.search(build_query(opts)).total_hits) { Redwood::log "num_results_for: have #{x} for query #{query}" }
   end
 
+  ## yield all messages in the thread containing 'm' by repeatedly
+  ## querying the index.  yields pairs of message ids and
+  ## message-building lambdas, so that building an unwanted message
+  ## can be skipped in the block if desired.
   SAME_SUBJECT_DATE_LIMIT = 7
   def each_message_in_thread_for m, opts={}
     messages = {}
@@ -198,35 +199,9 @@ class Index
       "references" => doc[:refs],
     }
 
-    m = 
-      if source.broken?
-        nil
-      else
-        begin
-          Message.new :source => source, :source_info => doc[:source_info].to_i, 
-                      :labels => doc[:label].split(" ").map { |s| s.intern },
-                      :snippet => doc[:snippet], :header => fake_header
-        rescue MessageFormatError => e
-          raise IndexError.new(source, "error building message #{doc[:message_id]} at #{source}/#{doc[:source_info]}: #{e.message}")
-        rescue SourceError => e
-          nil
-        end
-      end
-
-    unless m
-      m = Message.new :labels => doc[:label].split(" ").map { |s| s.intern },
-                      :snippet => doc[:snippet], :header => fake_header, 
-                      :body => <<EOS
-#{doc[:snippet]}...
-
-An error occurred while loading this message. It is possible that the source
-has changed, or (in the case of remote sources) is down.
-
-The error message was:
-  #{source.broken_msg}
-EOS
-    end
-    m
+    Message.new :source => source, :source_info => doc[:source_info].to_i, 
+                :labels => doc[:label].split(" ").map { |s| s.intern },
+                :snippet => doc[:snippet], :header => fake_header
   end
 
   def fresh_thread_id; @next_thread_id += 1; end

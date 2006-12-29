@@ -7,7 +7,7 @@ module Redwood
 class IMAP < Source
   attr_reader :labels
   
-  def initialize uri, username, password, last_uid=nil, usual=true, archived=false, id=nil
+  def initialize uri, username, password, uid_validity=nil, last_uid=nil, usual=true, archived=false, id=nil
     raise ArgumentError, "username and password must be specified" unless username && password
     raise ArgumentError, "not an imap uri" unless uri =~ %r!imaps?://!
 
@@ -16,12 +16,11 @@ class IMAP < Source
     @parsed_uri = URI(uri)
     @username = username
     @password = password
+    @uid_validity = uid_validity
     @imap = nil
     @labels = [:unread]
     @labels << :inbox unless archived?
     @labels << mailbox.intern unless mailbox =~ /inbox/i || mailbox.nil?
-
-    connect
   end
 
   def connect
@@ -41,19 +40,24 @@ class IMAP < Source
     ## problem.
     ##
     ## FUCK!!!!!!!!!
-    ::Thread.new do
-      begin
-        #raise Net::IMAP::ByeResponseError, "simulated imap failure"
-        @imap = Net::IMAP.new host, ssl? ? 993 : 143, ssl?
-        @imap.authenticate 'LOGIN', @username, @password
-        @imap.examine mailbox
-        Redwood::log "successfully connected to #{@parsed_uri}, mailbox #{mailbox}"
-      rescue Exception => e
-        self.broken_msg = e.message.chomp # fucking chomp! fuck!!!
-        @imap = nil
-        Redwood::log "error connecting to IMAP server: #{self.broken_msg}"
-      end
-    end.join
+
+    BufferManager.say "Connecting to IMAP server #{host}..." do 
+      ::Thread.new do
+        begin
+          raise Net::IMAP::ByeResponseError, "simulated imap failure"
+          @imap = Net::IMAP.new host, ssl? ? 993 : 143, ssl?
+          @imap.authenticate 'LOGIN', @username, @password
+          @imap.examine mailbox
+          Redwood::log "successfully connected to #{@parsed_uri}, mailbox #{mailbox}"
+          @uid_validity ||= @imap.responses["UIDVALIDITY"][-1]
+          raise SourceError, "Your shitty IMAP server has kindly invalidated all 'unique' ids for the folder '#{mailbox}'. You will have to rescan this folder manually." if @imap.responses["UIDVALIDITY"][-1] != @uid_validity
+        rescue Exception => e
+          self.broken_msg = e.message.chomp # fucking chomp! fuck!!!
+          @imap = nil
+          Redwood::log "error connecting to IMAP server: #{self.broken_msg}"
+        end
+      end.join
+    end
 
     !!@imap
   end
@@ -73,12 +77,12 @@ class IMAP < Source
 
   ## load the full header text
   def raw_header uid
-    connect or return broken_msg
+    connect or raise SourceError, broken_msg
     get_imap_field(uid, 'RFC822.HEADER').gsub(/\r\n/, "\n")
   end
 
   def raw_full_message uid
-    connect or return broken_msg
+    connect or raise SourceError, broken_msg
     get_imap_field(uid, 'RFC822').gsub(/\r\n/, "\n")
   end
 
@@ -90,7 +94,7 @@ class IMAP < Source
   private :get_imap_field
   
   def each
-    connect or return broken_msg
+    connect or raise SourceError, broken_msg
     uids = @imap.uid_search ['UID', "#{cur_offset}:#{end_offset}"]
     uids.each do |uid|
       @last_uid = uid
@@ -107,6 +111,6 @@ class IMAP < Source
   end
 end
 
-Redwood::register_yaml(IMAP, %w(uri username password cur_offset usual archived id))
+Redwood::register_yaml(IMAP, %w(uri username password uid_validity cur_offset usual archived id))
 
 end

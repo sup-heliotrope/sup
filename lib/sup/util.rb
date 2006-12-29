@@ -20,6 +20,21 @@ class Object
     end
     ret
   end
+
+  ## takes a value which it yields and then returns, so that code
+  ## like:
+  ##
+  ## x = expensive_operation
+  ## log "got #{x}"
+  ## x
+  ##
+  ## now becomes:
+  ##
+  ## with(expensive_operation) { |x| log "got #{x}" }
+  ##
+  ## i'm sure there's pithy comment i could make here about the
+  ## superiority of lisp, but fuck lisp.
+  def with x; yield x; x; end
 end
 
 class String

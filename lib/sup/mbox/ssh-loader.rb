@@ -7,18 +7,25 @@ class SSHLoader < Loader
   def initialize uri, username=nil, password=nil, start_offset=nil, usual=true, archived=false, id=nil
     raise ArgumentError, "not an mbox+ssh uri" unless uri =~ %r!^mbox\+ssh://!
 
+    super nil, start_offset, usual, archived, id
+
     @parsed_uri = URI(uri)
     @username = username
     @password = password
     @f = nil
+    @uri = uri
 
     opts = {}
     opts[:username] = @username if @username
     opts[:password] = @password if @password
     
-    @f = SSHFile.new host, filename, opts
-    super @f, start_offset, usual, archived, id
-    @uri = uri
+    begin
+      @f = SSHFile.new host, filename, opts
+      self.f = @f
+    rescue SSHFileError => e
+      self.broken_msg = e.message
+    end      
+
     ## heuristic: use the filename as a label, unless the file
     ## has a path that probably represents an inbox.
     @labels << File.basename(filename).intern unless File.dirname(filename) =~ /\b(var|usr|spool)\b/

@@ -4,8 +4,6 @@ module Redwood
 module MBox
 
 class Loader < Source
-  attr_reader :labels
-
   def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil
     super
 
@@ -27,6 +25,9 @@ class Loader < Source
     end
   end
 
+  attr_writer :f
+  protected :f=
+
   def start_offset; 0; end
   def end_offset; File.size @f; end
   def total; end_offset; end
@@ -46,6 +47,7 @@ class Loader < Source
   end
 
   def load_message offset
+    raise SourceError, self.broken_msg if broken?
     @mutex.synchronize do
       @f.seek offset
       begin
@@ -59,6 +61,7 @@ class Loader < Source
   end
 
   def raw_header offset
+    raise SourceError, self.broken_msg if broken?
     ret = ""
     @mutex.synchronize do
       @f.seek offset
@@ -70,6 +73,7 @@ class Loader < Source
   end
 
   def raw_full_message offset
+    raise SourceError, self.broken_msg if broken?
     ret = ""
     @mutex.synchronize do
       @f.seek offset
@@ -82,6 +86,7 @@ class Loader < Source
   end
 
   def next
+    raise SourceError, self.broken_msg if broken?
     returned_offset = nil
     next_offset = cur_offset
 
@@ -111,7 +116,7 @@ class Loader < Source
     end
 
     self.cur_offset = next_offset
-    [returned_offset, labels]
+    [returned_offset, @labels]
   end
 end
 

@@ -293,13 +293,14 @@ private
       labels = m.labels# - @hidden_labels
       x = [[prefix_widget, widget, imp_widget, [:message_patina_color, "From: #{m.from ? m.from.longname : '?'}"]]] +
         ((m.to.empty? ? [] : break_into_lines("  To: ", m.to.map { |x| x.longname })) +
-              (m.cc.empty? ? [] : break_into_lines("  Cc: ", m.cc.map { |x| x.longname })) +
-              (m.bcc.empty? ? [] : break_into_lines("  Bcc: ", m.bcc.map { |x| x.longname })) +
-              ["  Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})"] +
-              ["  Subject: #{m.subj}"] +
-              [(parent ? "  In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil)] +
-              [labels.empty? ? nil : "  Labels: #{labels.join(', ')}"]
-            ).flatten.compact.map { |l| [[:message_patina_color, prefix + "  " + l]] }
+           (m.cc.empty? ? [] : break_into_lines("  Cc: ", m.cc.map { |x| x.longname })) +
+           (m.bcc.empty? ? [] : break_into_lines("  Bcc: ", m.bcc.map { |x| x.longname })) +
+           ["  Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})"] +
+           ["  Subject: #{m.subj}"] +
+           [(parent ? "  In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil)] +
+           [labels.empty? ? nil : "  Labels: #{labels.join(', ')}"] +
+           ["  Refs: #{m.refs.inspect}"]
+        ).flatten.compact.map { |l| [[:message_patina_color, prefix + "  " + l]] }
       #raise x.inspect
       x
     end

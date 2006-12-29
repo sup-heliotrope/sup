@@ -169,7 +169,7 @@ begin
           mode.edit
         when :poll
           bm.raise_to_front PollManager.buffer
-          PollManager.poll
+          reporting_thread { PollManager.poll }
         when :nothing
         when :redraw
           bm.completely_redraw_screen

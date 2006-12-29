@@ -47,8 +47,12 @@ class ThreadIndexMode < LineCursorMode
     t = @threads[this_curpos]
 
     ## TODO: don't regen text completely
-    mode = ThreadViewMode.new t, @hidden_labels
-    BufferManager.spawn t.subj, mode
+    Redwood::reporting_thread do
+      Redwood::log "loading messages for thread"
+      mode = ThreadViewMode.new t, @hidden_labels
+      BufferManager.spawn t.subj, mode
+      BufferManager.draw_screen
+    end
   end
   
   def handle_starred_update m

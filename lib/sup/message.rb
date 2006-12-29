@@ -54,7 +54,7 @@ class Message
     attr_reader :lines
     def initialize lines
       ## do some wrapping
-      @lines = lines.map { |l| l.wrap 80 }.flatten
+      @lines = lines.map { |l| l.chomp.wrap 80 }.flatten
     end
   end
 
@@ -88,26 +88,14 @@ class Message
 
   ## if index_entry is specified, will fill in values from that
   def initialize opts
-    if opts[:source]
-      @source = opts[:source]
-      @source_info = opts[:source_info] or raise ArgumentError, ":source but no :source_info"
-      @body = nil
-    else
-      @source = @source_info = nil
-      @body = opts[:body] or raise ArgumentError, "one of :body or :source must be specified"
-    end
+    @source = opts[:source] or raise ArgumentError, "source can't be nil"
+    @source_info = opts[:source_info] or raise ArgumentError, "source_info can't be nil"
     @snippet = opts[:snippet] || ""
     @labels = opts[:labels] || []
     @dirty = false
 
-    header = 
-      if opts[:header]
-        opts[:header]
-      else
-        header = @source.load_header @source_info
-        header.each { |k, v| header[k.downcase] = v }
-        header
-      end
+    header = opts[:header] || @source.load_header(@source_info)
+    header.each { |k, v| header[k.downcase] = v }
 
     %w(message-id date).each do |f|
       raise MessageFormatError, "no #{f} field in header #{header.inspect} (source #@source offset #@source_info)" unless header.include? f
@@ -116,22 +104,19 @@ class Message
 
     begin
       date = header["date"]
-      @date = (Time === date ? date : Time.parse(header["date"]))
+      @date = Time === date ? date : Time.parse(header["date"])
     rescue ArgumentError => e
       raise MessageFormatError, "unparsable date #{header['date']}: #{e.message}"
     end
 
-    if(@subj = header["subject"])
-      @subj = @subj.gsub(/\s+/, " ").gsub(/\s+$/, "")
-    else
-      @subj = DEFAULT_SUBJECT
-    end
+    @subj = header.member?("subject") ? header["subject"].gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
     @from = Person.for header["from"]
     @to = Person.for_several header["to"]
     @cc = Person.for_several header["cc"]
     @bcc = Person.for_several header["bcc"]
     @id = header["message-id"]
-    @refs = (header["references"] || "").scan(/<(.*?)>/).flatten
+    @refs = (header["references"] || "").gsub(/[<>]/, "").split(/\s+/).flatten
+    Redwood::log "got refs #{@refs.inspect} for #@id" unless @refs.empty?
     @replytos = (header["in-reply-to"] || "").scan(/<(.*?)>/).flatten
     @replyto = Person.for header["reply-to"]
     @list_address =
@@ -145,7 +130,7 @@ class Message
     @status = header["status"]
   end
 
-  def broken?; @source.nil?; end
+  def broken?; @source.broken?; end
   def snippet; @snippet || to_chunks && @snippet; end
   def is_list_message?; !@list_address.nil?; end
   def is_draft?; DraftLoader === @source; end
@@ -183,11 +168,27 @@ class Message
 
   def to_chunks
     @chunks ||=
-      if @body
-        [Text.new(@body.split("\n"))]
+      if @source.broken?
+        [Text.new(error_message(@source.broken_msg.split("\n")))]
       else
-        message_to_chunks @source.load_message(@source_info)
+        begin
+          message_to_chunks @source.load_message(@source_info)
+        rescue SourceError => e
+          [Text.new(error_message(e.message))]
+        end
       end
+  end
+
+  def error_message msg
+    <<EOS
+#@snippet...
+
+An error occurred while loading this message. It is possible that the source
+has changed, or (in the case of remote sources) is down.
+
+The error message was:
+  #{msg}
+EOS
   end
 
   def raw_header
@@ -229,7 +230,7 @@ private
     ret = [] <<
       case m.header.content_type
       when "text/plain", nil
-        raise MessageFormatError, "no message body before decode" unless
+        raise MessageFormatError, "no message body before decode (source #@source info #@source_info)" unless
           m.body
         body = m.decode or raise MessageFormatError, "no message body"
         text_to_chunks body.gsub(/\t/, "    ").gsub(/\r/, "").split("\n")
@@ -302,7 +303,7 @@ private
           line !~ /[=\*#_-]{3,}/ && line !~ /^\s*$/
         @snippet += " " unless @snippet.empty?
         @snippet += line.gsub(/^\s+/, "").gsub(/[\r\n]/, "").gsub(/\s+/, " ")
-        @snippet = @snippet[0 ... SNIPPET_LEN]
+        @snippet = @snippet[0 ... SNIPPET_LEN].chomp
       end
     end
 
