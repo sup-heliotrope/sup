@@ -205,7 +205,7 @@ EOS
     begin
       @source.raw_header @source_info
     rescue SourceError => e
-      [Text.new(error_message(e.message))]
+      error_message e.message
     end
   end
 
@@ -213,7 +213,7 @@ EOS
     begin
       @source.raw_full_message @source_info
     rescue SourceError => e
-      [Text.new(error_message(e.message))]
+      error_message(e.message)
     end
   end
 
