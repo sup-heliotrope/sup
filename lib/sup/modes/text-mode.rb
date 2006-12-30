@@ -4,7 +4,7 @@ class TextMode < ScrollMode
   attr_reader :text
 
   def initialize text=""
-    @text = text
+    @text = text.normalize_whitespace
     update_lines
     buffer.mark_dirty if buffer
     super()
