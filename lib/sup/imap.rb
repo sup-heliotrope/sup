@@ -50,8 +50,8 @@ class IMAP < Source
           @imap.examine mailbox
           Redwood::log "successfully connected to #{@parsed_uri}, mailbox #{mailbox}"
           @uid_validity ||= @imap.responses["UIDVALIDITY"][-1]
-          raise SourceError, "Your shitty IMAP server has kindly invalidated all 'unique' ids for the folder '#{mailbox}'. You will have to rescan this folder manually." if @imap.responses["UIDVALIDITY"][-1] != @uid_validity
-        rescue Exception => e
+          raise SourceError, "Your shitty IMAP server has taken advantage of the shitty IMAP spec and invalidated all supposedly 'unique' ids for the folder '#{mailbox}'. You will have to rescan this folder manually by running sup-import --rebuild #{self}" if @imap.responses["UIDVALIDITY"][-1] != @uid_validity
+        rescue Net::IMAP::Error, SourceError => e
           self.broken_msg = e.message.chomp # fucking chomp! fuck!!!
           @imap = nil
           Redwood::log "error connecting to IMAP server: #{self.broken_msg}"
@@ -87,7 +87,12 @@ class IMAP < Source
   end
 
   def get_imap_field uid, field
-    f = @imap.uid_fetch uid, field
+    f = 
+      begin
+        @imap.uid_fetch uid, field
+      rescue Net::IMAP::Error => e
+        raise SourceError, e.message
+      end
     raise SourceError, "null IMAP field '#{field}' for message with uid #{uid}" if f.nil?
     f[0].attr[field]
   end
@@ -95,7 +100,13 @@ class IMAP < Source
   
   def each
     connect or raise SourceError, broken_msg
-    uids = @imap.uid_search ['UID', "#{cur_offset}:#{end_offset}"]
+    uids = 
+      begin
+        @imap.uid_search ['UID', "#{cur_offset}:#{end_offset}"]
+      rescue Net::IMAP::Error => e
+        raise SourceError, e.message
+      end
+
     uids.each do |uid|
       @last_uid = uid
       @dirty = true
@@ -107,7 +118,11 @@ class IMAP < Source
   def start_offset; 1; end
   def end_offset
     connect or return start_offset
-    @imap.uid_search(['ALL']).last
+    begin
+      @imap.uid_search(['ALL']).last
+    rescue Net::IMAP::Error => e
+      raise SourceError, e.message
+    end
   end
 end
 
