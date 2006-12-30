@@ -143,6 +143,7 @@ class ThreadViewMode < LineCursorMode
     if m.is_draft?
       mode = ResumeMode.new m
       BufferManager.spawn "Edit message", mode
+      mode.edit
     else
       BufferManager.flash "Not a draft message!"
     end
