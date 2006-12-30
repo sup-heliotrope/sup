@@ -86,7 +86,8 @@ class Message
 
   bool_reader :dirty
 
-  ## if index_entry is specified, will fill in values from that
+  ## if you specify a :header, will use values from that. otherwise, will try and
+  ## load the header from the source.
   def initialize opts
     @source = opts[:source] or raise ArgumentError, "source can't be nil"
     @source_info = opts[:source_info] or raise ArgumentError, "source_info can't be nil"
@@ -94,7 +95,10 @@ class Message
     @labels = opts[:labels] || []
     @dirty = false
 
-    header = opts[:header] || @source.load_header(@source_info)
+    read_header(opts[:header] || @source.load_header(@source_info))
+  end
+
+  def read_header header
     header.each { |k, v| header[k.downcase] = v }
 
     %w(message-id date).each do |f|
@@ -116,7 +120,6 @@ class Message
     @bcc = Person.for_several header["bcc"]
     @id = header["message-id"]
     @refs = (header["references"] || "").gsub(/[<>]/, "").split(/\s+/).flatten
-    Redwood::log "got refs #{@refs.inspect} for #@id" unless @refs.empty?
     @replytos = (header["in-reply-to"] || "").scan(/<(.*?)>/).flatten
     @replyto = Person.for header["reply-to"]
     @list_address =
@@ -129,6 +132,7 @@ class Message
     @recipient_email = header["delivered-to"]
     @status = header["status"]
   end
+  private :read_header
 
   def broken?; @source.broken?; end
   def snippet; @snippet || to_chunks && @snippet; end
@@ -166,12 +170,14 @@ class Message
     @dirty = true
   end
 
+  ## this is called when the message body needs to actually be loaded.
   def to_chunks
     @chunks ||=
       if @source.broken?
         [Text.new(error_message(@source.broken_msg.split("\n")))]
       else
         begin
+          read_header @source.load_header(@source_info)
           message_to_chunks @source.load_message(@source_info)
         rescue SourceError => e
           [Text.new(error_message(e.message))]
@@ -183,6 +189,10 @@ class Message
     <<EOS
 #@snippet...
 
+***********
+** ERROR **
+***********
+
 An error occurred while loading this message. It is possible that the source
 has changed, or (in the case of remote sources) is down.
 
@@ -192,11 +202,19 @@ EOS
   end
 
   def raw_header
-    @source.raw_header @source_info
+    begin
+      @source.raw_header @source_info
+    rescue SourceError => e
+      [Text.new(error_message(e.message))]
+    end
   end
 
   def raw_full_message
-    @source.raw_full_message @source_info
+    begin
+      @source.raw_full_message @source_info
+    rescue SourceError => e
+      [Text.new(error_message(e.message))]
+    end
   end
 
   def content
@@ -233,7 +251,7 @@ private
         raise MessageFormatError, "no message body before decode (source #@source info #@source_info)" unless
           m.body
         body = m.decode or raise MessageFormatError, "no message body"
-        text_to_chunks body.gsub(/\t/, "    ").gsub(/\r/, "").split("\n")
+        text_to_chunks body.normalize_whitespace.split("\n")
       when /^multipart\//
         nil
       else
