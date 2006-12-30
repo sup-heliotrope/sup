@@ -70,14 +70,18 @@ class String
     while s.length > len
       cut = s[0 ... len].rindex(/\s/)
       if cut
-        ret << s[0 ... cut] + "\n"
+        ret << s[0 ... cut]
         s = s[(cut + 1) .. -1]
       else
-        ret << s[0 ... len] + "\n"
+        ret << s[0 ... len]
         s = s[len .. -1]
       end
     end
     ret << s
+  end
+
+  def normalize_whitespace
+    gsub(/\t/, "    ").gsub(/\r/, "")
   end
 end
 
