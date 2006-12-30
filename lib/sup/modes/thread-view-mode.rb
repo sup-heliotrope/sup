@@ -298,8 +298,7 @@ private
            ["  Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})"] +
            ["  Subject: #{m.subj}"] +
            [(parent ? "  In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil)] +
-           [labels.empty? ? nil : "  Labels: #{labels.join(', ')}"] +
-           ["  Refs: #{m.refs.inspect}"]
+           [labels.empty? ? nil : "  Labels: #{labels.join(', ')}"]
         ).flatten.compact.map { |l| [[:message_patina_color, prefix + "  " + l]] }
       #raise x.inspect
       x
