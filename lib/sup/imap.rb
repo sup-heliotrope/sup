@@ -44,7 +44,7 @@ class IMAP < Source
     BufferManager.say "Connecting to IMAP server #{host}..." do 
       ::Thread.new do
         begin
-          raise Net::IMAP::ByeResponseError, "simulated imap failure"
+          #raise Net::IMAP::ByeResponseError, "simulated imap failure"
           @imap = Net::IMAP.new host, ssl? ? 993 : 143, ssl?
           @imap.authenticate 'LOGIN', @username, @password
           @imap.examine mailbox

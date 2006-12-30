@@ -125,7 +125,7 @@ class Index
   end
 
   def num_results_for opts={}
-    with(@index.search(build_query(opts)).total_hits) { |x| Redwood::log "num_results_for: have #{x} for query #{query}" }
+    with(build_query(opts)) { |query| with(@index.search(query).total_hits) { |x| Redwood::log "num_results_for: have #{x} for query #{query}" } }
   end
 
   ## yield all messages in the thread containing 'm' by repeatedly
