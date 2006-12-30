@@ -125,7 +125,9 @@ class Index
   end
 
   def num_results_for opts={}
-    with(build_query(opts)) { |query| with(@index.search(query).total_hits) { |x| Redwood::log "num_results_for: have #{x} for query #{query}" } }
+    return 0 if @index.size == 0 # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
+    q = build_query opts
+    index.search(q).total_hits
   end
 
   ## yield all messages in the thread containing 'm' by repeatedly
