@@ -4,6 +4,8 @@ module Redwood
 module MBox
 
 class Loader < Source
+  attr_reader :labels
+
   def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil
     super
 
@@ -116,7 +118,7 @@ class Loader < Source
     end
 
     self.cur_offset = next_offset
-    [returned_offset, @labels]
+    [returned_offset, labels]
   end
 end
 
