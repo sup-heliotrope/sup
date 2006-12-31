@@ -266,7 +266,6 @@ private
   ## parse the lines of text into chunk objects.  the heuristics here
   ## need tweaking in some nice manner. TODO: move these heuristics
   ## into the classes themselves.
-
   def text_to_chunks lines
     state = :text # one of :text, :quote, or :sig
     chunks = []
@@ -274,9 +273,11 @@ private
 
     lines.each_with_index do |line, i|
       nextline = lines[(i + 1) ... lines.length].find { |l| l !~ /^\s*$/ } # skip blank lines
+
       case state
       when :text
         newstate = nil
+
         if line =~ QUOTE_PATTERN || (line =~ QUOTE_START_PATTERN && (nextline =~ QUOTE_PATTERN || nextline =~ QUOTE_START_PATTERN))
           newstate = :quote
         elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE
@@ -284,6 +285,7 @@ private
         elsif line =~ BLOCK_QUOTE_PATTERN
           newstate = :block_quote
         end
+
         if newstate
           chunks << Text.new(chunk_lines) unless chunk_lines.empty?
           chunk_lines = [line]
@@ -291,8 +293,10 @@ private
         else
           chunk_lines << line
         end
+
       when :quote
         newstate = nil
+
         if line =~ QUOTE_PATTERN || line =~ QUOTE_START_PATTERN || line =~ /^\s*$/
           chunk_lines << line
         elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE
@@ -300,6 +304,7 @@ private
         else
           newstate = :text
         end
+
         if newstate
           if chunk_lines.empty?
             # nothing
@@ -311,8 +316,10 @@ private
           chunk_lines = [line]
           state = newstate
         end
+
       when :block_quote
         chunk_lines << line
+
       when :sig
         chunk_lines << line
       end
