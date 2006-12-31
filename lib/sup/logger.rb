@@ -24,8 +24,9 @@ class Logger
 
   def log s
 #    $stderr.puts s
-    @mode << "#{Time.now}: #{s.chomp}\n"
     make_buf
+    @mode << "#{Time.now}: #{s.chomp}\n"
+    $stderr.puts "[#{Time.now}] #{s.chomp}" unless @mode.buffer
   end
   
   def self.method_missing m, *a
