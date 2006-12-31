@@ -4,6 +4,8 @@ require 'rubygems'
 require 'highline'
 require "sup"
 
+Thread.abort_on_exception = true # make debugging possible
+
 class Float
   def to_s; sprintf '%.2f', self; end
 end
@@ -145,8 +147,9 @@ begin
         else
           found[m.id] = true
         end
+
         m.remove_label :unread if m.status == "RO" unless force_read
-        puts "# message at #{offset}, labels: #{labels * ', '}" unless rebuild || force_rebuild
+        puts "# message at #{offset}, labels: #{labels * ', '}"
         if (rebuild || force_rebuild) && 
             (docid, entry = index.load_entry_for_id(m.id)) && entry
           if force_rebuild || entry[:source_info].to_i != offset
@@ -170,6 +173,7 @@ begin
     puts "loaded #{num} messages" unless num == 0
   end
 ensure
+  $stderr.puts "saving index and sources..."
   index.save
   Redwood::finish
 end

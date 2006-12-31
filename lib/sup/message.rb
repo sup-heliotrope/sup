@@ -179,7 +179,7 @@ class Message
         begin
           read_header @source.load_header(@source_info)
           message_to_chunks @source.load_message(@source_info)
-        rescue SourceError => e
+        rescue SourceError, SocketError => e
           [Text.new(error_message(e.message))]
         end
       end

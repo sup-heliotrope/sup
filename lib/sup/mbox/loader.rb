@@ -27,9 +27,6 @@ class Loader < Source
     end
   end
 
-  attr_writer :f
-  protected :f=
-
   def start_offset; 0; end
   def end_offset; File.size @f; end
   def total; end_offset; end

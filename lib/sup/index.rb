@@ -218,7 +218,7 @@ class Index
       if m.source.is_a? Integer
         m.source
       else
-        m.source.id or raise "unregistered source #{m.source}"
+        m.source.id or raise "unregistered source #{m.source} (id #{m.source.id.inspect})"
       end
 
     to = (m.to + m.cc + m.bcc).map { |x| x.email }.join(" ")
@@ -288,7 +288,6 @@ protected
 
   def parse_user_query_string str; @qparser.parse str; end
   def build_query opts
-
     query = Ferret::Search::BooleanQuery.new
     query.add_query opts[:qobj], :must if opts[:qobj]
     labels = ([opts[:label]] + (opts[:labels] || [])).compact

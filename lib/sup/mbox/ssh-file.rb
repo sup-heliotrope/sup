@@ -7,18 +7,25 @@ class SSHFileError < StandardError; end
 
 ## this is a file-like interface to a file that actually lives on the
 ## other end of an ssh connection. it works by using wc, head and tail
-## to simulate (buffered) random access.  ## on a fast connection,
-## this can have a good bandwidth, but the latency is pretty terrible:
+## to simulate (buffered) random access. on a fast connection, this
+## can have a good bandwidth, but the latency is pretty terrible:
 ## about 1 second (!) per request.  luckily, we're either just reading
 ## straight through the mbox (an import) or we're reading a few
-## messages at a time (viewing messages)
+## messages at a time (viewing messages) so the latency is not a problem.
 
-# debugging
+## all of the methods here catch SSHFileErrors, SocketErrors, and
+## Net::SSH::Exceptions and reraise them as SourceErrors. due to this
+## and to the logging, this class is somewhat tied to Sup, but it
+## wouldn't be too difficult to remove those bits and make it more
+## general-purpose.
+
+## debugging TODO: remove me
 def debug s
   Redwood::log s
 end
 module_function :debug
 
+## a simple buffer of contiguous data
 class Buffer
   def initialize
     clear!
@@ -34,7 +41,7 @@ class Buffer
   def endd; @start + @buf.length; end
 
   def add data, offset=endd
-    MBox::debug "+ adding #{data.length} bytes; size will be #{size + data.length}; limit #{SSHFile::MAX_BUF_SIZE}"
+    #MBox::debug "+ adding #{data.length} bytes; size will be #{size + data.length}; limit #{SSHFile::MAX_BUF_SIZE}"
 
     if start.nil?
       @buf = data
@@ -71,10 +78,11 @@ class Buffer
   def to_s; empty? ? "<empty>" : "[#{start}, #{endd})"; end # for debugging
 end
 
+## the file-like interface to a remote file
 class SSHFile
   MAX_BUF_SIZE = 1024 * 1024 # bytes
   MAX_TRANSFER_SIZE = 1024 * 64
-  REASONABLE_TRANSFER_SIZE = 1024 * 16
+  REASONABLE_TRANSFER_SIZE = 1024 * 32
   SIZE_CHECK_INTERVAL = 60 * 1 # seconds
 
   def initialize host, fn, ssh_opts={}
@@ -83,21 +91,31 @@ class SSHFile
     @fn = fn
     @ssh_opts = ssh_opts
     @file_size = nil
+    @offset = 0
   end
 
   def connect
     return if @session
-    MBox::debug "starting SSH session to #@host for #@fn..."
-    @session = Net::SSH.start @host, @ssh_opts
-    MBox::debug "starting SSH shell..."
-    @shell = @session.shell.sync
-    MBox::debug "SSH is ready"
-    raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0
+
+    Redwood::log "starting SSH session to #@host for #@fn..."
+    sid = BufferManager.say "Connecting to SSH host #{@host}..." if BufferManager.instantiated?
+
+    begin
+      @session = Net::SSH.start @host, @ssh_opts
+      MBox::debug "starting SSH shell..."
+      BufferManager.say "Starting SSH shell...", sid if BufferManager.instantiated?
+      @shell = @session.shell.sync
+      MBox::debug "checking for file existence..."
+      raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0
+      MBox::debug "SSH is ready"
+    ensure 
+      BufferManager.clear sid if BufferManager.instantiated?
+    end
   end
 
-  def eof?; @offset >= size; end
+  def eof?; raise "offset #@offset size #{size}" unless @offset && size; @offset >= size; end
   def eof; eof?; end # lame but IO does this and rmail depends on it
-  def seek loc; @offset = loc; end
+  def seek loc; raise "nil" unless loc; @offset = loc; end
   def tell; @offset; end
   def total; size; end
 
@@ -127,21 +145,28 @@ class SSHFile
 private
 
   def do_remote cmd, expected_size=0
-    retries = 0
-    connect
-    MBox::debug "sending command: #{cmd.inspect}"
     begin
-      result = @shell.send_command cmd
-      raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{result.stderr[0 .. 100]}" unless result.status == 0
-    rescue Net::SSH::Exception
-      retry if (retries += 1) < 3
-      raise
+      retries = 0
+      connect
+      MBox::debug "sending command: #{cmd.inspect}"
+      begin
+        result = @shell.send_command cmd
+        raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{result.stderr[0 .. 100]}" unless result.status == 0
+
+      rescue Net::SSH::Exception # these happen occasionally for no apparent reason. gotta love that nondeterminism!
+        retry if (retries += 1) < 3
+        raise
+      end
+      result.stdout
+    rescue Net::SSH::Exception, SocketError, Errno::ENOENT => e
+      @session = nil
+      Redwood::log "error connecting to SSH server: #{e.message}"
+      raise SourceError, "error connecting to SSH server: #{e.message}"
     end
-    result.stdout
   end
 
   def get_bytes offset, size
-    MBox::debug "! request for [#{offset}, #{offset + size}); buf is #@buf"
+    #MBox::debug "! request for [#{offset}, #{offset + size}); buf is #@buf"
     raise "wtf: offset #{offset} size #{size}" if size == 0 || offset < 0
     do_remote "tail -c +#{offset + 1} #@fn | head -c #{size}", size
   end
@@ -165,7 +190,7 @@ private
         elsif @buf.start - offset < MAX_TRANSFER_SIZE
           [offset, @buf.start - offset]
         else
-          MBox::debug "clearing buffer because buf.start #{@buf.start} - offset #{offset} >= #{MAX_TRANSFER_SIZE}"
+          MBox::debug "clearing SSH buffer because buf.start #{@buf.start} - offset #{offset} >= #{MAX_TRANSFER_SIZE}"
           @buf.clear!
           [offset, good_size]
         end
@@ -176,7 +201,7 @@ private
         elsif offset - @buf.endd < MAX_TRANSFER_SIZE
           [@buf.endd, offset - @buf.endd]
         else
-          MBox::debug "clearing buffer because offset #{offset} - buf.end #{@buf.endd} >= #{MAX_TRANSFER_SIZE}"
+          MBox::debug "clearing SSH buffer because offset #{offset} - buf.end #{@buf.endd} >= #{MAX_TRANSFER_SIZE}"
           @buf.clear!
           [offset, good_size]
         end
