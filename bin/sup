@@ -34,6 +34,7 @@ global_keymap = Keymap.new do |k|
   k.add :list_labels, "List labels", 'L'
   k.add :poll, "Poll for new messages", 'P'
   k.add :compose, "Compose new message", 'm'
+  k.add :recall_draft, "Edit most recent draft message", 'R'
 end
 
 def start_cursing
@@ -170,6 +171,20 @@ begin
         when :poll
           bm.raise_to_front PollManager.buffer
           reporting_thread { PollManager.poll }
+        when :recall_draft
+          case Index.num_results_for :label => :draft
+          when 0
+            bm.flash "No draft messages."
+          when 1
+            m = nil
+            Index.each_id_by_date(:label => :draft) { |mid, builder| m = builder.call }
+            BufferManager.spawn "Edit message", ResumeMode.new(m)
+          else
+            b = BufferManager.spawn_unless_exists(:draft) do
+              mode = LabelSearchResultsMode.new [:draft]
+            end
+            b.mode.load_more_threads b.content_height
+          end
         when :nothing
         when :redraw
           bm.completely_redraw_screen

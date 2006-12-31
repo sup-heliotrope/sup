@@ -3,7 +3,7 @@ module Redwood
 class LabelListMode < LineCursorMode
   register_keymap do |k|
     k.add :view_results, "View messages with the selected label", :enter
-    k.add :reload, "Reload", "R"
+    k.add :reload, "Discard results and reload", 'D'
   end
 
   def initialize

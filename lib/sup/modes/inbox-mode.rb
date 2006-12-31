@@ -7,7 +7,7 @@ class InboxMode < ThreadIndexMode
     ## overwrite toggle_archived with archive
     k.add :archive, "Archive thread (remove from inbox)", 'a'
     k.add :load_more_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
-    k.add :reload, "Discard threads and reload", 'R'
+    k.add :reload, "Discard threads and reload", 'D'
   end
 
   def initialize
