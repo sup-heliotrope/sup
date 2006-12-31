@@ -15,6 +15,7 @@ class SSHLoader < Source
     @username = username
     @password = password
     @uri = uri
+    @cur_offset = start_offset
 
     opts = {}
     opts[:username] = @username if @username
@@ -33,7 +34,12 @@ class SSHLoader < Source
   def host; @parsed_uri.host; end
   def filename; @parsed_uri.path[1..-1] end ##XXXX TODO handle nil
 
-  def next; with(@loader.next) { @cur_offset = @loader.cur_offset }; end # only necessary because YAML is a PITA
+  def next
+    offset, labels = @loader.next
+    self.cur_offset = @loader.cur_offset  # only necessary because YAML is a PITA
+    [offset, (labels + @labels).uniq]
+  end
+
   def end_offset; @f.size; end
   def cur_offset= o; @cur_offset = @loader.cur_offset = o; @dirty = true; end
   def id; @loader.id; end

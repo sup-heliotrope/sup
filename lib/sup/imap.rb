@@ -86,7 +86,7 @@ class IMAP < Source
 
         values.each do |v|
           msize, mdate = v.attr['RFC822.SIZE'], Time.parse(v.attr["INTERNALDATE"])
-          id = sprintf("%d.%08d", mdate.to_i, msize)
+          id = sprintf("%d.%07d", mdate.to_i, msize).to_i
           @ids << id
           @imap_ids[id] = v.seqno
         end

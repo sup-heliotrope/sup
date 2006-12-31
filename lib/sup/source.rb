@@ -51,7 +51,7 @@ class Source
   def done?;
     return true if broken? 
     begin
-      (cur_offset ||= start_offset) >= end_offset
+      (self.cur_offset ||= start_offset) >= end_offset
     rescue SourceError => e
       true
     end
@@ -71,6 +71,8 @@ class Source
     end
   end
 
+protected
+  
   def cur_offset= o
     @cur_offset = o
     @dirty = true

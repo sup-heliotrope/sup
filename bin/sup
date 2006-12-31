@@ -115,8 +115,8 @@ begin
   bm.draw_screen
   imode.load_more_threads ibuf.content_height
 
-  reporting_thread { sleep 3; PollManager.poll }
-  PollManager.start_thread
+  # reporting_thread { sleep 3; PollManager.poll }
+  #PollManager.start_thread
 
   until $exception
     bm.draw_screen
