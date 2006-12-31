@@ -83,10 +83,8 @@ end
 
 Redwood::start
 
-puts "loading index..."
 index = Redwood::Index.new
 index.load
-puts "loaded index of #{index.size} messages"
 
 h = HighLine.new
 

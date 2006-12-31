@@ -4,7 +4,7 @@ module Redwood
 module MBox
 
 class Loader < Source
-  attr_reader :labels
+  attr_reader_cloned :labels
 
   def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil
     super

@@ -7,6 +7,10 @@ class Module
     bool_reader(*args)
     bool_writer(*args)
   end
+
+  def attr_reader_cloned *args
+    args.each { |sym| class_eval %{ def #{sym}; @#{sym}.clone; end } }
+  end
 end
 
 class Object

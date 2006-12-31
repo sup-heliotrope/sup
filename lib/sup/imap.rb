@@ -5,7 +5,7 @@ require 'stringio'
 module Redwood
 
 class IMAP < Source
-  attr_reader :labels
+  attr_reader_cloned :labels
   
   def initialize uri, username, password, uid_validity=nil, last_uid=nil, usual=true, archived=false, id=nil
     raise ArgumentError, "username and password must be specified" unless username && password

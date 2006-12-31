@@ -54,9 +54,7 @@ end
 module_function :start_cursing, :stop_cursing
 
 Redwood::start
-
 Index.new.load
-log "loaded #{Index.size} messages from index"
 
 if(s = Index.source_for DraftManager.source_name)
   DraftManager.source = s

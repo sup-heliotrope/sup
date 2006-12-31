@@ -60,10 +60,11 @@ class Index
 
   def load_index dir=File.join(@dir, "ferret")
     if File.exists? dir
-      Redwood::log "loading index"
+      Redwood::log "loading index..."
       @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer)
+      Redwood::log "loaded index of #{@index.size} messages"
     else
-      Redwood::log "creating index"
+      Redwood::log "creating index..."
       field_infos = Ferret::Index::FieldInfos.new :store => :yes
       field_infos.add_field :message_id
       field_infos.add_field :source_id
