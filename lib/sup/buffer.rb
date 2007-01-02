@@ -345,10 +345,10 @@ class BufferManager
     @shelled = false
 
     Ncurses.sync do
-      SafeNcurses.curs_set 0
+      Ncurses.curs_set 0
       erase_flash
       draw_screen :sync => false
-      SafeNcurses.curs_set 0
+      Ncurses.curs_set 0
     end
 
     ret
