@@ -15,7 +15,7 @@ end
 module Redwood
   VERSION = "0.0.2"
 
-  BASE_DIR   = File.join(ENV["HOME"], ".sup")
+  BASE_DIR   = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
   CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
   SOURCE_FN  = File.join(BASE_DIR, "sources.yaml")
   LABEL_FN   = File.join(BASE_DIR, "labels.txt")
@@ -26,6 +26,20 @@ module Redwood
 
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
+
+## record exceptions thrown in threads nicely
+  $exception = nil
+  def reporting_thread
+    ::Thread.new do
+      begin
+        yield
+      rescue Exception => e
+        $exception ||= e
+        raise
+      end
+    end
+  end
+  module_function :reporting_thread
 
 ## one-stop shop for yamliciousness
   def register_yaml klass, props

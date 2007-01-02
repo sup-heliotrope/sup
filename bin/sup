@@ -8,19 +8,6 @@ Thread.abort_on_exception = true # make debugging possible
 
 module Redwood
 
-$exception = nil
-def reporting_thread
-  ::Thread.new do
-    begin
-      yield
-    rescue Exception => e
-      $exception ||= e
-      raise
-    end
-  end
-end
-module_function :reporting_thread
-
 global_keymap = Keymap.new do |k|
   k.add :quit, "Quit Redwood", 'q'
   k.add :help, "Show help", 'H', '?'
@@ -115,8 +102,8 @@ begin
   bm.draw_screen
   imode.load_more_threads ibuf.content_height
 
-  # reporting_thread { sleep 3; PollManager.poll }
-  #PollManager.start_thread
+  reporting_thread { sleep 5; PollManager.poll }
+  PollManager.start_thread
 
   until $exception
     bm.draw_screen
@@ -203,23 +190,7 @@ end
 Index.save unless $exception # TODO: think about this
 
 if $exception 
-  case $exception
-  when IndexError
-    $stderr.puts <<EOS
-An error occurred while parsing a message from source:
-   #{$exception.source}.
-Typically, this means that the source has been modified in some
-way which has rendered the messages invalid. For example, if it's
-an mbox file, you may have read or deleted messages using another
-mail client.
-
-You must rebuild the index for this source. Please run:
-  sup-import --rebuild #{$exception.source}
-to correct this error.
-EOS
-#' stupid ruby-mode
-  else
-    $stderr.puts <<EOS
+  $stderr.puts <<EOS
 ----------------------------------------------------------------
 I'm very sorry, but it seems that an error occurred in Sup. 
 Please accept my sincere apologies. If you don't mind, please
@@ -234,7 +205,6 @@ William
 The problem was: #{$exception.message} (error type #{$exception.class.name})
 A backtrace follows:
 EOS
-  end
   raise $exception
 end
 

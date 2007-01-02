@@ -7,15 +7,6 @@ require 'ferret'
 
 module Redwood
 
-class IndexError < StandardError
-  attr_reader :source
-
-  def initialize source, s
-    super s
-    @source = source
-  end
-end
-
 class Index
   include Singleton
 

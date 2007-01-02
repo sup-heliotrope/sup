@@ -13,6 +13,9 @@ module Ncurses
     lamer.first
   end
 
+  def mutex; @mutex ||= Mutex.new; end
+  def sync &b; mutex.synchronize &b; end
+
   ## aaahhh, user input. who would have though that such a simple
   ## idea would be SO FUCKING COMPLICATED?! because apparently
   ## Ncurses.getch (and Curses.getch), even in cbreak mode, BLOCKS
@@ -37,22 +40,12 @@ module Ncurses
     end
   end
 
-  module_function :rows, :cols, :nonblocking_getch
+  module_function :rows, :cols, :nonblocking_getch, :mutex, :sync
 
   KEY_CANCEL = "\a"[0] # ctrl-g
 end
 
 module Redwood
-
-## could be a bottleneck, but doesn't seem to significantly slow
-## things down.
-
-class SafeNcurses
-  def self.method_missing meth, *a, &b
-    @mutex ||= Mutex.new
-    @mutex.synchronize { Ncurses.send meth, *a, &b }
-  end
-end
 
 class Buffer
   attr_reader :mode, :x, :y, :width, :height, :title
@@ -71,9 +64,10 @@ class Buffer
   def content_width; @width; end
 
   def resize rows, cols 
-    return if rows == @width && cols == @height
+    return if cols == @width && rows == @height
     @width = cols
     @height = rows
+    @dirty = true
     mode.resize rows, cols
   end
 
@@ -82,6 +76,7 @@ class Buffer
     draw_status
     commit
   end
+
   def mark_dirty; @dirty = true; end
 
   def commit
@@ -143,7 +138,7 @@ class BufferManager
     @minibuf_stack = []
     @textfields = {}
     @flash = nil
-    @freeze = false
+    @shelled = false
 
     self.class.i_am_the_instance self
   end
@@ -151,8 +146,7 @@ class BufferManager
   def buffers; @name_map.to_a; end
 
   def focus_on buf
-    raise ArgumentError, "buffer not on stack: #{buf.inspect}" unless
-      @buffers.member? buf
+    raise ArgumentError, "buffer not on stack: #{buf.inspect}" unless @buffers.member? buf
     return if buf == @focus_buf 
     @focus_buf.blur if @focus_buf
     @focus_buf = buf
@@ -160,8 +154,7 @@ class BufferManager
   end
 
   def raise_to_front buf
-    raise ArgumentError, "buffer not on stack: #{buf.inspect}" unless
-      @buffers.member? buf
+    raise ArgumentError, "buffer not on stack: #{buf.inspect}" unless @buffers.member? buf
     @buffers.delete buf
     @buffers.push buf
     focus_on buf
@@ -189,40 +182,49 @@ class BufferManager
   end
 
   def completely_redraw_screen
-    return if @freeze
-    SafeNcurses.clear
-    @dirty = true
-    draw_screen
+    return if @shelled
+
+    Ncurses.sync do
+      @dirty = true
+      Ncurses.clear
+      draw_screen :sync => false
+    end
   end
 
   def handle_resize
-    return if @freeze
-    rows, cols = SafeNcurses.rows, SafeNcurses.cols
+    return if @shelled
+    rows, cols = Ncurses.rows, Ncurses.cols
     @buffers.each { |b| b.resize rows - minibuf_lines, cols }
     completely_redraw_screen
-    flash "resized to #{rows}x#{cols}"
+    flash "Resized to #{rows}x#{cols}"
   end
 
-  def draw_screen skip_minibuf=false
-    return if @freeze
+  def draw_screen opts={}
+    return if @shelled
+
+    Ncurses.mutex.lock unless opts[:sync] == false
 
     ## disabling this for the time being, to help with debugging
     ## (currently we only have one buffer visible at a time).
     ## TODO: reenable this if we allow multiple buffers
     false && @buffers.inject(@dirty) do |dirty, buf|
-      buf.resize SafeNcurses.rows - minibuf_lines, SafeNcurses.cols
-      @dirty ? buf.draw : buf.redraw
-    end
-    ## quick hack
-    if true
-      buf = @buffers.last
-      buf.resize SafeNcurses.rows - minibuf_lines, SafeNcurses.cols
+      buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
       @dirty ? buf.draw : buf.redraw
     end
 
-    draw_minibuf unless skip_minibuf
+    ## quick hack
+    if true
+      buf = @buffers.last
+      buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
+      File.open("asdf.txt", "a") { |f| f.puts "dirty #@dirty, (re)drawing #{buf.mode.name}" }
+      @dirty ? buf.draw : buf.redraw
+    end
+
+    draw_minibuf :sync => false unless opts[:skip_minibuf]
     @dirty = false
-    SafeNcurses.doupdate
+    Ncurses.doupdate
+    Ncurses.refresh if opts[:refresh]
+    Ncurses.mutex.unlock unless opts[:sync] == false
   end
 
   ## gets the mode from the block, which is only called if the buffer
@@ -247,9 +249,8 @@ class BufferManager
       num += 1
     end
 
-    Redwood::log "spawning buffer \"#{realtitle}\""
-    width = opts[:width] || SafeNcurses.cols
-    height = opts[:height] || SafeNcurses.rows - 1
+    width = opts[:width] || Ncurses.cols
+    height = opts[:height] || Ncurses.rows - 1
 
     ## since we are currently only doing multiple full-screen modes,
     ## use stdscr for each window. once we become more sophisticated,
@@ -257,7 +258,7 @@ class BufferManager
     ##
     ## w = Ncurses::WINDOW.new(height, width, (opts[:top] || 0),
     ## (opts[:left] || 0))
-    w = SafeNcurses.stdscr
+    w = Ncurses.stdscr
     b = Buffer.new w, mode, width, height, :title => realtitle
     mode.buffer = b
     @name_map[realtitle] = b
@@ -277,7 +278,6 @@ class BufferManager
 
   def kill_buffer buf
     raise ArgumentError, "buffer not on stack: #{buf.inspect}" unless @buffers.member? buf
-    Redwood::log "killing buffer \"#{buf.title}\""
 
     buf.mode.cleanup
     @buffers.delete buf
@@ -292,8 +292,7 @@ class BufferManager
   end
 
   def ask domain, question, default=nil
-    @textfields[domain] ||= TextField.new SafeNcurses.stdscr, SafeNcurses.rows - 1, 0,
-                            SafeNcurses.cols
+    @textfields[domain] ||= TextField.new Ncurses.stdscr, Ncurses.rows - 1, 0, Ncurses.cols
     tf = @textfields[domain]
 
     ## this goddamn ncurses form shit is a fucking 1970's
@@ -301,19 +300,19 @@ class BufferManager
     ## that needs to happen in order to display a form and have the
     ## entire screen not disappear and have the cursor in the right
     ## place is TOO FUCKING COMPLICATED.
-    tf.activate question, default
-    @dirty = true
-    draw_screen true
+    Ncurses.sync do
+      tf.activate question, default
+      @dirty = true
+      draw_screen :skip_minibuf => true, :sync => false
+    end
 
     ret = nil
-    @freeze = true
     tf.position_cursor
-    SafeNcurses.refresh
-    while tf.handle_input(SafeNcurses.nonblocking_getch); end
-    @freeze = false
+    Ncurses.sync { Ncurses.refresh }
+    while tf.handle_input(Ncurses.nonblocking_getch); end
 
     ret = tf.value
-    tf.deactivate
+    Ncurses.sync { tf.deactivate }
     @dirty = true
 
     ret
@@ -324,15 +323,17 @@ class BufferManager
     accept = accept.split(//).map { |x| x[0] } if accept
 
     flash question
-    SafeNcurses.curs_set 1
-    SafeNcurses.move SafeNcurses.rows - 1, question.length + 1
-    SafeNcurses.refresh
+    Ncurses.sync do
+      Ncurses.curs_set 1
+      Ncurses.move Ncurses.rows - 1, question.length + 1
+      Ncurses.refresh
+    end
 
     ret = nil
     done = false
-    @freeze = true
+    @shelled = true
     until done
-      key = SafeNcurses.nonblocking_getch
+      key = Ncurses.nonblocking_getch
       if key == Ncurses::KEY_CANCEL
         done = true
       elsif (accept && accept.member?(key)) || !accept
@@ -340,11 +341,15 @@ class BufferManager
         done = true
       end
     end
-    @freeze = false
-    SafeNcurses.curs_set 0
-    erase_flash
-    draw_screen
-    SafeNcurses.curs_set 0
+
+    @shelled = false
+
+    Ncurses.sync do
+      SafeNcurses.curs_set 0
+      erase_flash
+      draw_screen :sync => false
+      SafeNcurses.curs_set 0
+    end
 
     ret
   end
@@ -363,23 +368,30 @@ class BufferManager
 
   def minibuf_lines; [(@flash ? 1 : 0) + @minibuf_stack.compact.size, 1].max; end
   
-  def draw_minibuf
-    SafeNcurses.attrset Colormap.color_for(:none)
+  def draw_minibuf opts={}
     m = @minibuf_stack.compact
     m << @flash if @flash
     m << "" if m.empty?
+
+    Ncurses.mutex.lock unless opts[:sync] == false
+    Ncurses.attrset Colormap.color_for(:none)
     m.each_with_index do |s, i|
-      SafeNcurses.mvaddstr SafeNcurses.rows - i - 1, 0, s + (" " * [SafeNcurses.cols - s.length, 0].max)
+      Ncurses.mvaddstr Ncurses.rows - i - 1, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
     end
+    Ncurses.refresh if opts[:refresh]
+    Ncurses.mutex.unlock unless opts[:sync] == false
   end
 
   def say s, id=nil
+    new_id = id.nil?
     id ||= @minibuf_stack.length
     @minibuf_stack[id] = s
-    unless @freeze
-      draw_screen
-      SafeNcurses.refresh
+    if new_id
+      draw_screen :refresh => true
+    else
+      draw_minibuf :refresh => true
     end
+
     if block_given?
       begin
         yield
@@ -394,10 +406,7 @@ class BufferManager
 
   def flash s
     @flash = s
-    unless @freeze
-      draw_screen
-      SafeNcurses.refresh
-    end
+    draw_screen :refresh => true
   end
 
   ## a little tricky because we can't just delete_at id because ids
@@ -406,24 +415,23 @@ class BufferManager
     @minibuf_stack[id] = nil
     if id == @minibuf_stack.length - 1
       id.downto(0) do |i|
-        break unless @minibuf_stack[i].nil?
+        break if @minibuf_stack[i]
         @minibuf_stack.delete_at i
       end
     end
 
-    unless @freeze
-      draw_screen
-      SafeNcurses.refresh
-    end
+    draw_screen :refresh => true
   end
 
   def shell_out command
-    @freeze = true
-    SafeNcurses.endwin
-    system command
-    SafeNcurses.refresh
-    SafeNcurses.curs_set 0
-    @freeze = false
+    @shelled = true
+    Ncurses.sync do
+      Ncurses.endwin
+      system command
+      Ncurses.refresh
+      Ncurses.curs_set 0
+    end
+    @shelled = false
   end
 end
 end

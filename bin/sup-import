@@ -88,6 +88,7 @@ def get_login_info uri, sources
   unless username && password
     username = ask("Username for #{uri.host}: ");
     password = ask("Password for #{uri.host}: ") { |q| q.echo = false }
+    puts # why?
   end
 
   [username, password]
@@ -133,7 +134,7 @@ sources = ARGV.map do |uri|
         username, password = get_login_info uri, index.sources
         Redwood::MBox::SSHLoader.new(uri, username, password, nil, !unusual, !!archive)
       when %r!^imaps?://!
-        username, password = get_login_info uri, sources
+        username, password = get_login_info uri, index.sources
         Redwood::IMAP.new(uri, username, password, nil, !unusual, !!archive)
       else
         Redwood::MBox::Loader.new(uri, nil, !unusual, !!archive)

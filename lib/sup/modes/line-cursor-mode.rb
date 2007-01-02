@@ -79,7 +79,6 @@ protected
     if @curpos == topline
       page_up
       set_cursor_pos [botline - 2, topline].max
-#      raise "cursor position now #@curpos, topline #{topline} botline #{botline}"
     else
       @curpos -= 1
       unless buffer.dirty?

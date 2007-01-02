@@ -91,6 +91,12 @@ protected
                    :highlight => opts[:highlight]
     when Array
       xpos = 0
+
+      ## speed test
+      # str = s.map { |color, text| text }.join
+      # buffer.write ln - @topline, 0, str, :color => :none, :highlight => opts[:highlight]
+      # return
+
       s.each do |color, text|
         raise "nil text for color '#{color}'" if text.nil? # good for debugging
         if xpos + text.length < @leftcol

@@ -52,6 +52,16 @@ class IMAP < Source
     @mutex = Mutex.new
   end
 
+  def say s
+    @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
+    Redwood::log s
+  end
+  def shutup
+    BufferManager.clear @say_id if BufferManager.instantiated?
+    @say_id = nil
+  end
+  private :say, :shutup
+
   def connect
     return false if broken?
     return true if @imap
@@ -69,28 +79,22 @@ class IMAP < Source
     ##
     ## FUCK!!!!!!!!!
 
-    Redwood::log "connecting to #{@parsed_uri.host} port #{ssl? ? 993 : 143}, ssl=#{ssl?} ..."
-    sid = BufferManager.say "Connecting to IMAP server #{host}..." if BufferManager.instantiated?
+    say "Connecting to IMAP server #{host}:#{port}..."
 
     Redwood::reporting_thread do
       begin
         #raise Net::IMAP::ByeResponseError, "simulated imap failure"
-        # @imap = Net::IMAP.new host, ssl? ? 993 : 143, ssl?
-        sleep 3
-        BufferManager.say "Logging in...", sid if BufferManager.instantiated?
-        # @imap.authenticate 'LOGIN', @username, @password
-        sleep 3
-        BufferManager.say "Sizing mailbox...", sid if BufferManager.instantiated?
-        # @imap.examine mailbox
-        # last_id = @imap.responses["EXISTS"][-1]
-        sleep 1
+        @imap = Net::IMAP.new host, ssl? ? 993 : 143, ssl?
+        say "Logging in..."
+        @imap.authenticate 'LOGIN', @username, @password
+        say "Sizing mailbox..."
+        @imap.examine mailbox
+        last_id = @imap.responses["EXISTS"][-1]
         
-        BufferManager.say "Reading headers (because IMAP sucks)...", sid if BufferManager.instantiated?
-        # values = @imap.fetch(1 .. last_id, ['RFC822.SIZE', 'INTERNALDATE'])
-        sleep 3
+        say "Reading headers (because IMAP sucks)..."
+        values = @imap.fetch(1 .. last_id, ['RFC822.SIZE', 'INTERNALDATE'])
         
-        raise Net::IMAP::ByeResponseError, "simulated imap failure"
-        Redwood::log "successfully connected to #{@parsed_uri}"
+        say "Successfully connected to #{@parsed_uri}"
         
         values.each do |v|
           id = make_id v
@@ -101,24 +105,24 @@ class IMAP < Source
         self.broken_msg = e.message.chomp # fucking chomp! fuck!!!
         @imap = nil
         Redwood::log "error connecting to IMAP server: #{self.broken_msg}"
-      ensure 
-        BufferManager.clear sid if BufferManager.instantiated?
+      ensure
+        shutup
       end
     end.join
 
-    @mutex.unlock
     !!@imap
   end
   private :connect
 
   def make_id imap_stuff
     msize, mdate = imap_stuff.attr['RFC822.SIZE'], Time.parse(imap_stuff.attr["INTERNALDATE"])
-    sprintf("%d.%07d", mdate.to_i, msize).to_i
+    sprintf("%d%07d", mdate.to_i, msize).to_i
   end
   private :make_id
 
   def host; @parsed_uri.host; end
-  def mailbox; @parsed_uri.path[1..-1] end ##XXXX TODO handle nil
+  def port; @parsed_uri.port || (ssl? ? 993 : 143); end
+  def mailbox; @parsed_uri.path[1..-1] || 'INBOX'; end
   def ssl?; @parsed_uri.scheme == 'imaps' end
 
   def load_header id
@@ -146,17 +150,16 @@ class IMAP < Source
 
   def get_imap_field id, field
     f = nil
-    @mutex.synchronize do
-      imap_id = @imap_ids[id] or raise SourceError, "Unknown message id #{id}. It is likely that messages have been deleted from this IMAP mailbox."
-      begin
-        f = @imap.fetch imap_id, [field, 'RFC822.SIZE', 'INTERNALDATE']
-        got_id = make_id f
-        raise SourceError, "IMAP message mismatch: requested #{id}, got #{got_id}. It is likely the IMAP mailbox has been modified." unless got_id == id
-      rescue Net::IMAP::Error => e
-        raise SourceError, e.message
-      end
-      raise SourceError, "null IMAP field '#{field}' for message with id #{id} imap id #{imap_id}" if f.nil?
+    imap_id = @imap_ids[id] or raise SourceError, "Unknown message id #{id}. It is likely that messages have been deleted from this IMAP mailbox."
+    begin
+      f = @imap.fetch imap_id, [field, 'RFC822.SIZE', 'INTERNALDATE']
+      got_id = make_id f[0]
+      raise SourceError, "IMAP message mismatch: requested #{id}, got #{got_id}. It is likely the IMAP mailbox has been modified." unless got_id == id
+    rescue Net::IMAP::Error => e
+      raise SourceError, e.message
     end
+    raise SourceError, "null IMAP field '#{field}' for message with id #{id} imap id #{imap_id}" if f.nil?
+
     f[0].attr[field]
   end
   private :get_imap_field
@@ -176,6 +179,7 @@ class IMAP < Source
     @mutex.synchronize { connect or raise SourceError, broken_msg }
     @ids.first
   end
+
   def end_offset
     @mutex.synchronize { connect or raise SourceError, broken_msg }
     @ids.last

@@ -78,7 +78,7 @@ end
 ## the file-like interface to a remote file
 class SSHFile
   MAX_BUF_SIZE = 1024 * 1024 # bytes
-  MAX_TRANSFER_SIZE = 1024 * 64
+  MAX_TRANSFER_SIZE = 1024 * 128
   REASONABLE_TRANSFER_SIZE = 1024 * 32
   SIZE_CHECK_INTERVAL = 60 * 1 # seconds
 
@@ -99,12 +99,11 @@ class SSHFile
     @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
     Redwood::log s
   end
-  private :say
-
   def shutup
     BufferManager.clear @say_id if BufferManager.instantiated?
     @say_id = nil
   end
+  private :say, :shutup
 
   def connect
     return if @session
@@ -114,14 +113,10 @@ class SSHFile
 
     begin
       #raise SSHFileError, "simulated SSH file error"
-      #@session = Net::SSH.start @host, @ssh_opts
-      sleep 3
+      @session = Net::SSH.start @host, @ssh_opts
       say "Starting SSH shell..."
-      # @shell = @session.shell.sync
-      sleep 3
+      @shell = @session.shell.sync
       say "Checking for #@fn..."
-      sleep 1
-      raise Errno::ENOENT, @fn
       raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0
     ensure
       shutup
@@ -161,7 +156,7 @@ private
     begin
       retries = 0
       connect
-      MBox::debug "sending command: #{cmd.inspect}"
+      # MBox::debug "sending command: #{cmd.inspect}"
       begin
         result = @shell.send_command cmd
         raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{result.stderr[0 .. 100]}" unless result.status == 0
