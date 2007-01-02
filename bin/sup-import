@@ -82,6 +82,7 @@ def get_login_info uri, sources
         menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
       end
       menu.choice("Use a new account") { }
+      menu.prompt = "Account selection? "
     end
   end
 
