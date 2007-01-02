@@ -1,3 +1,14 @@
+== 0.0.3 / 2007-01-02
+
+* Major speed increase for index views (inbox, search results), which
+  are now loaded completely from the IR index. The only time the
+  original sources need to be touched is when viewing a thread. This
+  is important for slow sources like IMAP and mbox+ssh.
+* Remote mbox support with mbox+ssh URIs.
+* IMAP now actually works.
+* sup-import uses HighLine and is generally much improved.
+* Multitudinous minor bug fixes and improvements.
+
 == 0.0.2 / 2006-12-10
 
 * IMAP support

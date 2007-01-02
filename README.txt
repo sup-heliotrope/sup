@@ -38,11 +38,10 @@ Features:
 
 - Scalability to massive amounts of email. Immediate startup and
   operability, regardless of how much amount of email you have.
-  (At least, once everything's been indexed.)
 
-- Immediate full-text search of your entire email archive, using
-  the full Ferret query langauge. Search over message bodies, labels,
-  from: and to: fields, or any combination thereof.
+- Immediate full-text search of your entire email archive, using the
+  Ferret query langauge. Search over message bodies, labels, from: and
+  to: fields, or any combination thereof.
 
 - Thread-centrism. Operations are performed at the thread, not the
   message level. Entire threads are manipulated and viewed (with
@@ -51,10 +50,11 @@ Features:
 - Labels instead of folders. Drop that tired old metaphor and you'll
   see how much easier it is to organize email.
 
-- GMail-style thread management.  Archive a thread, and it will
-  disappear from your inbox until someone replies. Kill a thread, and
-  it will never come back to your inbox. (But it will still show up in
-  searches, of course.)
+- GMail-style thread management (but better!). Archive a thread, and
+  it will disappear from your inbox until someone replies. Kill a
+  thread, and it will never come back to your inbox (but will still
+  show up in searches.) Mark a thread as spam and you'll never again
+  see it unless explicitly searching for spam.
 
 - Console based interface. No mouse clicking required!
 
@@ -70,8 +70,8 @@ Features:
 
 Current limitations which will be fixed:
 
-- Support for mbox and IMAP only at this point. No support for POP, mh,
-  or GMail mailstores.
+- Support for mbox, remote mbox, and IMAP only at this point. No
+  support for POP, mh, or GMail mailstores.
 
 - No internationalization support. No wide characters, no subject
   demangling. 
@@ -88,40 +88,47 @@ Current limitations which will be fixed:
   2. sup
   3. edit ~/.sup/config.yaml for the (very few) settings sup has
 
-  Where <source> is a filename (for mbox files), or an imap or imaps
-  url. In the case of imap, don't put the username and password in
-  the URI (which is a terrible, terrible idea). You will be prompted
-  for them.
+  Where <source> is a filename (for mbox files), an imap or imaps URI,
+  or a mbox+ssh URI (for remote mbox files). You will be prompted for
+  a username and password if required.
 
   sup-import has several options which control whether you want
-  messages from particular mailboxes not to be added to the inbox,
-  or not to be marked as new, so run it with -h for help.
+  messages from particular mailboxes not to be added to the inbox, or
+  not to be marked as new, so run it with -h for help.
 
   Note that Sup never changes the contents of any mailboxes; it only
   indexes in to them. So it shouldn't ever corrupt your mail. The flip
   side is that if you change a mailbox (e.g. delete messages, or, in
-  the case of mbox files, read an unread message) then Sup may crash,
-  and will tell you to run sup-import --rebuild to recalculate the
-  offsets within the mailbox.
+  the case of mbox files, read an unread message) then Sup will be
+  unable to load messages from that source and will ask you to run
+  sup-import --rebuild.
 
 == REQUIREMENTS:
 
 * ferret >= 0.10.13
-* ncurses >= 0.9.1
-* rmail >= 0.17
+* ncurses
+* rmail
+* highline
 
 == INSTALL:
 
 * gem install sup -y
-* Then, in rmail, change line 159 of multipart.rb to:
+
+== KNOWN BUGS IN OTHER PACKAGES:
+* If you get an error about frozen strings in RubyMail when importing
+  certain messages with attachments, in rmail, change line 159 of
+  multipart.rb to:
     chunk = chunk[0..start]
-  (Sorry; it's an unsupported package.) You might be able to get away
-  without doing this but if you get frozen string exceptions when
-  reading in multipart messages, this is what you need to change.
+* Occasionally Ferret produces something the Ruby GC doesn't like
+  (particularly when importing messages from very large sources).
+  No worries, just re-run sup-import. (This is unresolved atm.)
+* There are a couple other Ferret issues with outstanding patches but
+  they are pretty rare.
+
 
 == LICENSE:
 
-Copyright (c) 2006 William Morgan.
+Copyright (c) 2006, 2007 William Morgan.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
