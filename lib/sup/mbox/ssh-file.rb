@@ -82,6 +82,9 @@ class SSHFile
   REASONABLE_TRANSFER_SIZE = 1024 * 32
   SIZE_CHECK_INTERVAL = 60 * 1 # seconds
 
+  @@shells = {}
+  @@shells_mutex = Mutex.new
+
   def initialize host, fn, ssh_opts={}
     @buf = Buffer.new
     @host = host
@@ -95,6 +98,7 @@ class SSHFile
 
   def broken?; !@broken_msg.nil?; end
 
+  ## TODO: share this code with imap
   def say s
     @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
     Redwood::log s
@@ -106,20 +110,35 @@ class SSHFile
   private :say, :shutup
 
   def connect
-    return if @session
     raise SSHFileError, @broken_msg if broken?
+    return if @shell
 
-    say "Opening SSH connection to #{@host}..."
-
-    begin
-      #raise SSHFileError, "simulated SSH file error"
-      @session = Net::SSH.start @host, @ssh_opts
-      say "Starting SSH shell..."
-      @shell = @session.shell.sync
-      say "Checking for #@fn..."
-      raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0
-    ensure
-      shutup
+    key = [@host, @ssh_opts[:username]]
+    @shell = 
+      @@shells_mutex.synchronize do
+      if @@shells.member? key
+        returning(@@shells[key]) do |shell|
+          say "Checking for #@fn..."
+          begin
+            raise Errno::ENOENT, @fn unless shell.test("-e #@fn").status == 0
+          ensure
+            shutup
+          end
+        end
+      else
+        say "Opening SSH connection to #{@host}..."
+        begin
+          #raise SSHFileError, "simulated SSH file error"
+          session = Net::SSH.start @host, @ssh_opts
+          say "Starting SSH shell..."
+          shell = session.shell.sync
+          say "Checking for #@fn..."
+          raise Errno::ENOENT, @fn unless shell.test("-e #@fn").status == 0
+          @@shells[key] = shell
+        ensure
+          shutup
+        end
+      end
     end
   end
 
