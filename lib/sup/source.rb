@@ -24,7 +24,7 @@ class Source
   ## reraise them as source errors.
 
   bool_reader :usual, :archived, :dirty
-  attr_reader :cur_offset, :broken_msg
+  attr_reader :uri, :cur_offset, :broken_msg
   attr_accessor :id
 
   def initialize uri, initial_offset=nil, usual=true, archived=false, id=nil
@@ -59,6 +59,7 @@ class Source
   def is_source_for? s; to_s == s; end
 
   def each
+    return if broken?
     begin
       self.cur_offset ||= start_offset
       until done? || broken? # just like life!
@@ -66,8 +67,8 @@ class Source
         raise "no message" unless n
         yield n, labels
       end
-    rescue SourceError
-      # just die
+    rescue SourceError => e
+      self.broken_msg = e.message
     end
   end
 
@@ -80,7 +81,7 @@ protected
 
   def broken_msg= m
     @broken_msg = m
-    Redwood::log "#{to_s}: #{m}"
+#    Redwood::log "#{to_s}: #{m}"
   end
 end
 

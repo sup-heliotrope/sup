@@ -77,6 +77,11 @@ class ScrollMode < Mode
     @botline = [@topline + buffer.content_height, lines].min
   end
 
+  def resize *a
+    super *a
+    ensure_mode_validity
+  end
+
 protected
 
   def draw_line ln, opts={}

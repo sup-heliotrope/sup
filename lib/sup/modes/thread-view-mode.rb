@@ -213,8 +213,6 @@ class ThreadViewMode < LineCursorMode
         UpdateManager.relay :read, m
       end
     end
-
-    Redwood::log "releasing chunks and text from \"#{buffer.title}\""
     @messages = @chunks = @text = nil
   end
 

@@ -13,11 +13,8 @@ class SSHFileError < StandardError; end
 ## straight through the mbox (an import) or we're reading a few
 ## messages at a time (viewing messages) so the latency is not a problem.
 
-## all of the methods here catch SSHFileErrors, SocketErrors, and
-## Net::SSH::Exceptions and reraise them as SourceErrors. due to this
-## and to the logging, this class is somewhat tied to Sup, but it
-## wouldn't be too difficult to remove those bits and make it more
-## general-purpose.
+## all of the methods here can throw SSHFileErrors, SocketErrors,
+## Net::SSH::Exceptions and Errno::ENOENTs.
 
 ## debugging TODO: remove me
 def debug s
@@ -92,30 +89,48 @@ class SSHFile
     @ssh_opts = ssh_opts
     @file_size = nil
     @offset = 0
+    @say_id = nil
+    @broken_msg = nil
+  end
+
+  def broken?; !@broken_msg.nil?; end
+
+  def say s
+    @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
+    Redwood::log s
+  end
+  private :say
+
+  def shutup
+    BufferManager.clear @say_id if BufferManager.instantiated?
+    @say_id = nil
   end
 
   def connect
     return if @session
+    raise SSHFileError, @broken_msg if broken?
 
-    Redwood::log "starting SSH session to #@host for #@fn..."
-    sid = BufferManager.say "Connecting to SSH host #{@host}..." if BufferManager.instantiated?
+    say "Opening SSH connection to #{@host}..."
 
     begin
-      @session = Net::SSH.start @host, @ssh_opts
-      MBox::debug "starting SSH shell..."
-      BufferManager.say "Starting SSH shell...", sid if BufferManager.instantiated?
-      @shell = @session.shell.sync
-      MBox::debug "checking for file existence..."
+      #raise SSHFileError, "simulated SSH file error"
+      #@session = Net::SSH.start @host, @ssh_opts
+      sleep 3
+      say "Starting SSH shell..."
+      # @shell = @session.shell.sync
+      sleep 3
+      say "Checking for #@fn..."
+      sleep 1
+      raise Errno::ENOENT, @fn
       raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0
-      MBox::debug "SSH is ready"
-    ensure 
-      BufferManager.clear sid if BufferManager.instantiated?
+    ensure
+      shutup
     end
   end
 
-  def eof?; raise "offset #@offset size #{size}" unless @offset && size; @offset >= size; end
-  def eof; eof?; end # lame but IO does this and rmail depends on it
-  def seek loc; raise "nil" unless loc; @offset = loc; end
+  def eof?; @offset >= size; end
+  def eof; eof?; end # lame but IO's method is named this and rmail calls that
+  def seek loc; @offset = loc; end
   def tell; @offset; end
   def total; size; end
 
@@ -129,11 +144,9 @@ class SSHFile
 
   def gets
     return nil if eof?
-
     make_buf_include @offset
     expand_buf_forward while @buf.index("\n", @offset).nil? && @buf.endd < size
-
-    with(@buf[@offset .. (@buf.index("\n", @offset) || -1)]) { |line| @offset += line.length }
+    returning(@buf[@offset .. (@buf.index("\n", @offset) || -1)]) { |line| @offset += line.length }
   end
 
   def read n
@@ -152,22 +165,18 @@ private
       begin
         result = @shell.send_command cmd
         raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{result.stderr[0 .. 100]}" unless result.status == 0
-
       rescue Net::SSH::Exception # these happen occasionally for no apparent reason. gotta love that nondeterminism!
         retry if (retries += 1) < 3
         raise
       end
-      result.stdout
-    rescue Net::SSH::Exception, SocketError, Errno::ENOENT => e
-      @session = nil
-      Redwood::log "error connecting to SSH server: #{e.message}"
-      raise SourceError, "error connecting to SSH server: #{e.message}"
+    rescue Net::SSH::Exception, SSHFileError, Errno::ENOENT => e
+      @broken_msg = e.message
+      raise
     end
+    result.stdout
   end
 
   def get_bytes offset, size
-    #MBox::debug "! request for [#{offset}, #{offset + size}); buf is #@buf"
-    raise "wtf: offset #{offset} size #{size}" if size == 0 || offset < 0
     do_remote "tail -c +#{offset + 1} #@fn | head -c #{size}", size
   end
 

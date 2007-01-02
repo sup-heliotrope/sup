@@ -19,8 +19,7 @@ end
 class Index
   include Singleton
 
-  attr_reader :index # debugging only
-  
+  attr_reader :index
   def initialize dir=BASE_DIR
     @dir = dir
     @sources = {}
@@ -57,6 +56,7 @@ class Index
 
   def source_for name; @sources.values.find { |s| s.is_source_for? name }; end
   def usual_sources; @sources.values.find_all { |s| s.usual? }; end
+  def sources; @sources.values; end
 
   def load_index dir=File.join(@dir, "ferret")
     if File.exists? dir

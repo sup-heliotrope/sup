@@ -189,12 +189,10 @@ class Message
     <<EOS
 #@snippet...
 
-***********
-** ERROR **
-***********
-
-An error occurred while loading this message. It is possible that the source
-has changed, or (in the case of remote sources) is down.
+***********************************************************************
+* An error occurred while loading this message. It is possible that   *
+* the source has changed, or (in the case of remote sources) is down. *
+***********************************************************************
 
 The error message was:
   #{msg}

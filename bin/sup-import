@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
 
+require 'uri'
 require 'rubygems'
-require 'highline'
+require 'highline/import'
 require "sup"
+
 
 Thread.abort_on_exception = true # make debugging possible
 
@@ -61,6 +63,37 @@ EOS
   exit
 end
 
+## for sources that require login information, prompt the user for
+## that. also provide a list of previously-defined login info to
+## choose from, if any.
+def get_login_info uri, sources
+  uri = URI(uri)
+  accounts = sources.map do |s|
+    next unless s.respond_to?(:username)
+    suri = URI(s.uri)
+    [suri.host, s.username, s.password]
+  end.compact.uniq.sort_by { |h, u, p| h == uri.host ? 0 : 1 }
+
+  username, password = nil, nil
+  unless accounts.empty?
+    say "Would you like to use the same account as for a previous source?"
+    choose do |menu|
+      accounts.each do |host, olduser, oldpw|
+        menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
+      end
+      menu.choice("Use a new account") { }
+    end
+  end
+
+  unless username && password
+    username = ask("Username for #{uri.host}: ");
+    password = ask("Password for #{uri.host}: ") { |q| q.echo = false }
+  end
+
+  [username, password]
+end
+
+
 educate_user if ARGV.member? '--help'
 
 archive = ARGV.delete "--archive"
@@ -83,31 +116,27 @@ if(o = ARGV.find { |x| x =~ /^--/ })
   educate_user
 end
 
+$terminal.wrap_at = :auto
 Redwood::start
-
 index = Redwood::Index.new
 index.load
 
-h = HighLine.new
-
-sources = ARGV.map do |fn|
-  fn = "mbox://#{fn}" unless fn =~ %r!://!
-  source = index.source_for fn
+sources = ARGV.map do |uri|
+  uri = "mbox://#{uri}" unless uri =~ %r!://!
+  source = index.source_for uri
   unless source
     source = 
-      case fn
+      case uri
       when %r!^mbox\+ssh://!
-        username = h.ask("Username for #{fn}: ");
-        password = h.ask("Password for #{fn}: ") { |q| q.echo = false }
-        puts # why?
-        Redwood::MBox::SSHLoader.new(fn, username, password, nil, !unusual, !!archive)
+        say "For SSH connections, if you will use public key authentication, you may leave the username and password blank."
+        say "\n"
+        username, password = get_login_info uri, index.sources
+        Redwood::MBox::SSHLoader.new(uri, username, password, nil, !unusual, !!archive)
       when %r!^imaps?://!
-        username = h.ask("Username for #{fn}: ");
-        password = h.ask("Password for #{fn}: ") { |q| q.echo = false }
-        puts # why?
-        Redwood::IMAP.new(fn, username, password, nil, !unusual, !!archive)
+        username, password = get_login_info uri, sources
+        Redwood::IMAP.new(uri, username, password, nil, !unusual, !!archive)
       else
-        Redwood::MBox::Loader.new(fn, nil, !unusual, !!archive)
+        Redwood::MBox::Loader.new(uri, nil, !unusual, !!archive)
       end
     index.add_source source
   end
@@ -128,7 +157,7 @@ start = Time.now
 begin
   sources.each do |source|
     if source.broken?
-      puts "error loading messages from #{source}: #{source.broken_msg}"
+      $stderr.puts "error loading messages from #{source}: #{source.broken_msg}"
       next
     end
     next if source.done?

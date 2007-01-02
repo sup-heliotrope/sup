@@ -42,7 +42,7 @@ class Object
   ##
   ## i'm sure there's pithy comment i could make here about the
   ## superiority of lisp, but fuck lisp.
-  def with x; yield x; x; end
+  def returning x; yield x; x; end
 end
 
 class String

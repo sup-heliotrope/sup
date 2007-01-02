@@ -28,11 +28,8 @@ class LabelManager
   end
 
   def user_labels; @labels.keys; end
-
   def << t; @labels[t] = true unless @labels.member?(t) || RESERVED_LABELS.member?(t); end
-
   def delete t; @labels.delete t; end
-
   def save
     File.open(@fn, "w") { |f| f.puts @labels.keys }
   end

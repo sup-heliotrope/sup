@@ -44,6 +44,16 @@ end
 
 module Redwood
 
+## could be a bottleneck, but doesn't seem to significantly slow
+## things down.
+
+class SafeNcurses
+  def self.method_missing meth, *a, &b
+    @mutex ||= Mutex.new
+    @mutex.synchronize { Ncurses.send meth, *a, &b }
+  end
+end
+
 class Buffer
   attr_reader :mode, :x, :y, :width, :height, :title
   bool_reader :dirty
@@ -60,7 +70,8 @@ class Buffer
   def content_height; @height - 1; end
   def content_width; @width; end
 
-  def resize rows, cols
+  def resize rows, cols 
+    return if rows == @width && cols == @height
     @width = cols
     @height = rows
     mode.resize rows, cols
@@ -179,15 +190,15 @@ class BufferManager
 
   def completely_redraw_screen
     return if @freeze
-    Ncurses.clear
+    SafeNcurses.clear
     @dirty = true
     draw_screen
   end
 
   def handle_resize
     return if @freeze
-    rows, cols = Ncurses.rows, Ncurses.cols
-    @buffers.each { |b| b.resize rows - 1, cols }
+    rows, cols = SafeNcurses.rows, SafeNcurses.cols
+    @buffers.each { |b| b.resize rows - minibuf_lines, cols }
     completely_redraw_screen
     flash "resized to #{rows}x#{cols}"
   end
@@ -199,15 +210,19 @@ class BufferManager
     ## (currently we only have one buffer visible at a time).
     ## TODO: reenable this if we allow multiple buffers
     false && @buffers.inject(@dirty) do |dirty, buf|
-      dirty ? buf.draw : buf.redraw
-      dirty || buf.dirty?
+      buf.resize SafeNcurses.rows - minibuf_lines, SafeNcurses.cols
+      @dirty ? buf.draw : buf.redraw
     end
     ## quick hack
-    true && (@dirty ? @buffers.last.draw : @buffers.last.redraw)
-    
+    if true
+      buf = @buffers.last
+      buf.resize SafeNcurses.rows - minibuf_lines, SafeNcurses.cols
+      @dirty ? buf.draw : buf.redraw
+    end
+
     draw_minibuf unless skip_minibuf
     @dirty = false
-    Ncurses.doupdate
+    SafeNcurses.doupdate
   end
 
   ## gets the mode from the block, which is only called if the buffer
@@ -228,13 +243,13 @@ class BufferManager
     realtitle = title
     num = 2
     while @name_map.member? realtitle
-      realtitle = "#{title} #{num}"
+      realtitle = "#{title} <#{num}>"
       num += 1
     end
 
     Redwood::log "spawning buffer \"#{realtitle}\""
-    width = opts[:width] || Ncurses.cols
-    height = opts[:height] || Ncurses.rows - 1
+    width = opts[:width] || SafeNcurses.cols
+    height = opts[:height] || SafeNcurses.rows - 1
 
     ## since we are currently only doing multiple full-screen modes,
     ## use stdscr for each window. once we become more sophisticated,
@@ -242,9 +257,7 @@ class BufferManager
     ##
     ## w = Ncurses::WINDOW.new(height, width, (opts[:top] || 0),
     ## (opts[:left] || 0))
-    w = Ncurses.stdscr
-    raise "nil window" unless w
-    
+    w = SafeNcurses.stdscr
     b = Buffer.new w, mode, width, height, :title => realtitle
     mode.buffer = b
     @name_map[realtitle] = b
@@ -279,8 +292,8 @@ class BufferManager
   end
 
   def ask domain, question, default=nil
-    @textfields[domain] ||= TextField.new Ncurses.stdscr, Ncurses.rows - 1, 0,
-                            Ncurses.cols
+    @textfields[domain] ||= TextField.new SafeNcurses.stdscr, SafeNcurses.rows - 1, 0,
+                            SafeNcurses.cols
     tf = @textfields[domain]
 
     ## this goddamn ncurses form shit is a fucking 1970's
@@ -295,8 +308,8 @@ class BufferManager
     ret = nil
     @freeze = true
     tf.position_cursor
-    Ncurses.refresh
-    while tf.handle_input(Ncurses.nonblocking_getch); end
+    SafeNcurses.refresh
+    while tf.handle_input(SafeNcurses.nonblocking_getch); end
     @freeze = false
 
     ret = tf.value
@@ -311,15 +324,15 @@ class BufferManager
     accept = accept.split(//).map { |x| x[0] } if accept
 
     flash question
-    Ncurses.curs_set 1
-    Ncurses.move Ncurses.rows - 1, question.length + 1
-    Ncurses.refresh
+    SafeNcurses.curs_set 1
+    SafeNcurses.move SafeNcurses.rows - 1, question.length + 1
+    SafeNcurses.refresh
 
     ret = nil
     done = false
     @freeze = true
     until done
-      key = Ncurses.nonblocking_getch
+      key = SafeNcurses.nonblocking_getch
       if key == Ncurses::KEY_CANCEL
         done = true
       elsif (accept && accept.member?(key)) || !accept
@@ -328,10 +341,10 @@ class BufferManager
       end
     end
     @freeze = false
-    Ncurses.curs_set 0
+    SafeNcurses.curs_set 0
     erase_flash
     draw_screen
-    Ncurses.curs_set 0
+    SafeNcurses.curs_set 0
 
     ret
   end
@@ -348,12 +361,16 @@ class BufferManager
     end
   end
 
+  def minibuf_lines; [(@flash ? 1 : 0) + @minibuf_stack.compact.size, 1].max; end
+  
   def draw_minibuf
-    s = @flash || @minibuf_stack.reverse.find { |x| x } || ""
-
-    Ncurses.attrset Colormap.color_for(:none)
-    Ncurses.mvaddstr Ncurses.rows - 1, 0, s + (" " * [Ncurses.cols - s.length,
-                                                      0].max)
+    SafeNcurses.attrset Colormap.color_for(:none)
+    m = @minibuf_stack.compact
+    m << @flash if @flash
+    m << "" if m.empty?
+    m.each_with_index do |s, i|
+      SafeNcurses.mvaddstr SafeNcurses.rows - i - 1, 0, s + (" " * [SafeNcurses.cols - s.length, 0].max)
+    end
   end
 
   def say s, id=nil
@@ -361,12 +378,14 @@ class BufferManager
     @minibuf_stack[id] = s
     unless @freeze
       draw_screen
-      Ncurses.refresh
+      SafeNcurses.refresh
     end
     if block_given?
-      yield
-      clear id
-      return
+      begin
+        yield
+      ensure
+        clear id
+      end
     end
     id
   end
@@ -377,10 +396,12 @@ class BufferManager
     @flash = s
     unless @freeze
       draw_screen
-      Ncurses.refresh
+      SafeNcurses.refresh
     end
   end
 
+  ## a little tricky because we can't just delete_at id because ids
+  ## are relative (they're positions into the array).
   def clear id
     @minibuf_stack[id] = nil
     if id == @minibuf_stack.length - 1
@@ -389,18 +410,19 @@ class BufferManager
         @minibuf_stack.delete_at i
       end
     end
+
     unless @freeze
       draw_screen
-      Ncurses.refresh
+      SafeNcurses.refresh
     end
   end
 
   def shell_out command
     @freeze = true
-    Ncurses.endwin
+    SafeNcurses.endwin
     system command
-    Ncurses.refresh
-    Ncurses.curs_set 0
+    SafeNcurses.refresh
+    SafeNcurses.curs_set 0
     @freeze = false
   end
 end
