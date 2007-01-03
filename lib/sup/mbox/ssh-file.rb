@@ -75,15 +75,21 @@ class Buffer
   def to_s; empty? ? "<empty>" : "[#{start}, #{endd})"; end # for debugging
 end
 
+## sharing a ssh connection to one machines between sources seems to
+## create lots of broken situations: commands returning bizarre (large
+## positive integer) return codes despite working; commands
+## occasionally not working, etc. i suspect this is because of the
+## fragile nature of the ssh syncshell. 
+##
+## at any rate, we now open up one ssh connection per file, which is
+## probably silly in the extreme case.
+
 ## the file-like interface to a remote file
 class SSHFile
   MAX_BUF_SIZE = 1024 * 1024 # bytes
   MAX_TRANSFER_SIZE = 1024 * 128
   REASONABLE_TRANSFER_SIZE = 1024 * 32
   SIZE_CHECK_INTERVAL = 60 * 1 # seconds
-
-  @@shells = {}
-  @@shells_mutex = Mutex.new
 
   def initialize host, fn, ssh_opts={}
     @buf = Buffer.new
@@ -94,8 +100,11 @@ class SSHFile
     @offset = 0
     @say_id = nil
     @broken_msg = nil
+    @shell = nil
+    @shell_mutex = Mutex.new
   end
 
+  def to_s; "mbox+ssh://#@host/#@fn"; end ## TODO: remove thisis EVILness
   def broken?; !@broken_msg.nil?; end
 
   ## TODO: share this code with imap
@@ -111,33 +120,20 @@ class SSHFile
 
   def connect
     raise SSHFileError, @broken_msg if broken?
-    return if @shell
 
-    key = [@host, @ssh_opts[:username]]
-    @shell = 
-      @@shells_mutex.synchronize do
-      if @@shells.member? key
-        returning(@@shells[key]) do |shell|
-          say "Checking for #@fn..."
-          begin
-            raise Errno::ENOENT, @fn unless shell.test("-e #@fn").status == 0
-          ensure
-            shutup
-          end
-        end
-      else
+    @shell_mutex.synchronize do
+      return if @shell
+
+      begin
         say "Opening SSH connection to #{@host}..."
-        begin
-          #raise SSHFileError, "simulated SSH file error"
-          session = Net::SSH.start @host, @ssh_opts
-          say "Starting SSH shell..."
-          shell = session.shell.sync
-          say "Checking for #@fn..."
-          raise Errno::ENOENT, @fn unless shell.test("-e #@fn").status == 0
-          @@shells[key] = shell
-        ensure
-          shutup
-        end
+        #raise SSHFileError, "simulated SSH file error"
+        session = Net::SSH.start @host, @ssh_opts
+        say "Starting SSH shell..."
+        @shell = session.shell.sync
+        say "Checking for #@fn..."
+        raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0
+      ensure
+        shutup
       end
     end
   end
@@ -178,10 +174,17 @@ private
       # MBox::debug "sending command: #{cmd.inspect}"
       begin
         result = @shell.send_command cmd
-        raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{result.stderr[0 .. 100]}" unless result.status == 0
+        result = @shell.sync { @shell.send_command cmd }
+        raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{(result.stderr || result.stdout || "")[0 .. 100]}" unless result.status == 0
       rescue Net::SSH::Exception # these happen occasionally for no apparent reason. gotta love that nondeterminism!
-        retry if (retries += 1) < 3
+        retry if (retries += 1) <= 3
         raise
+      rescue Errno::EPIPE
+        if (retries += 1) <= e
+          @shell = nil
+          connect
+          retry
+        end
       end
     rescue Net::SSH::Exception, SSHFileError, Errno::ENOENT => e
       @broken_msg = e.message
