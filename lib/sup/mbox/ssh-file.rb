@@ -66,6 +66,7 @@ class Buffer
     x = @buf.index(what, start - @start)
     x.nil? ? nil : x + @start
   end
+
   def rindex what, start=0
     x = @buf.rindex(what, start - @start)
     x.nil? ? nil : x + @start
@@ -91,6 +92,9 @@ class SSHFile
   REASONABLE_TRANSFER_SIZE = 1024 * 32
   SIZE_CHECK_INTERVAL = 60 * 1 # seconds
 
+  @@shells = {}
+  @@shells_mutex = Mutex.new
+
   def initialize host, fn, ssh_opts={}
     @buf = Buffer.new
     @host = host
@@ -102,6 +106,7 @@ class SSHFile
     @broken_msg = nil
     @shell = nil
     @shell_mutex = Mutex.new
+    @buf_mutex = Mutex.new
   end
 
   def to_s; "mbox+ssh://#@host/#@fn"; end ## TODO: remove thisis EVILness
@@ -113,28 +118,32 @@ class SSHFile
     Redwood::log s
   end
   def shutup
-    BufferManager.clear @say_id if BufferManager.instantiated?
+    BufferManager.clear @say_id if BufferManager.instantiated? && @say_id
     @say_id = nil
   end
   private :say, :shutup
 
   def connect
     raise SSHFileError, @broken_msg if broken?
+    return if @shell
 
-    @shell_mutex.synchronize do
-      return if @shell
-
-      begin
-        say "Opening SSH connection to #{@host}..."
-        #raise SSHFileError, "simulated SSH file error"
-        session = Net::SSH.start @host, @ssh_opts
-        say "Starting SSH shell..."
-        @shell = session.shell.sync
-        say "Checking for #@fn..."
-        raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0
-      ensure
-        shutup
+    @key = [@host, @ssh_opts[:username]]
+    begin
+      @shell = @@shells_mutex.synchronize do
+        unless @@shells.member? @key
+          say "Opening SSH connection to #{@host} for #@fn..."
+          #raise SSHFileError, "simulated SSH file error"
+          session = Net::SSH.start @host, @ssh_opts
+          say "Starting SSH shell..."
+          @@shells[@key] = session.shell.sync
+        end
+        @@shells[@key]
       end
+
+      say "Checking for #@fn..."
+      @shell_mutex.synchronize { raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0 }
+    ensure
+      shutup
     end
   end
 
@@ -154,15 +163,19 @@ class SSHFile
 
   def gets
     return nil if eof?
-    make_buf_include @offset
-    expand_buf_forward while @buf.index("\n", @offset).nil? && @buf.endd < size
-    returning(@buf[@offset .. (@buf.index("\n", @offset) || -1)]) { |line| @offset += line.length }
+    @buf_mutex.synchronize do
+      make_buf_include @offset
+      expand_buf_forward while @buf.index("\n", @offset).nil? && @buf.endd < size
+      returning(@buf[@offset .. (@buf.index("\n", @offset) || -1)]) { |line| @offset += line.length }
+    end
   end
 
   def read n
     return nil if eof?
-    make_buf_include @offset, n
-    @buf[@offset ... (@offset += n)]
+    @buf_mutex.synchronize do
+      make_buf_include @offset, n
+      @buf[@offset ... (@offset += n)]
+    end
   end
 
 private
@@ -173,14 +186,17 @@ private
       connect
       # MBox::debug "sending command: #{cmd.inspect}"
       begin
-        result = @shell.send_command cmd
+        result = @shell_mutex.synchronize { x = @shell.send_command cmd; sleep 0.25; x }
         raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{(result.stderr || result.stdout || "")[0 .. 100]}" unless result.status == 0
       rescue Net::SSH::Exception # these happen occasionally for no apparent reason. gotta love that nondeterminism!
         retry if (retries += 1) <= 3
         raise
       rescue Errno::EPIPE
         if (retries += 1) <= e
-          @shell = nil
+          @@shells_mutex.synchronize do
+            @shell = nil
+            @@shells[@key] = nil
+          end
           connect
           retry
         end
