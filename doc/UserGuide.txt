@@ -1,0 +1,54 @@
+Welcome to Sup! Here's how to actually use it.
+
+To get started, just run 'sup'. Assuming this is your first time,
+you'll be confronted with a mostly blank screen, and a little message
+at the bottom telling you that you have no messages. That's because
+Sup doesn't have any messages in its index. In order to add messages,
+Sup needs to have some "sources" from which to load messages.
+
+If you want to play around a little at this point, you can press 'b'
+to cycle between buffers and 'x' to kill a buffer. There's probably
+not too much interesting there, but there's a log buffer with some
+cryptic messages. You can also press '?' at any point to get a list of
+keyboard commands, but in the absense of any email, these will be
+pretty useless. When you're done, press 'q' to quit.
+
+Now let's add a source to Sup. Run sup-import with a URI pointing to
+an email source. The URI should be of the form:
+- mbox://path/to/a/filename, for an mbox file on disk. (You can also
+  just provide the filename).
+- imap://imap.server/folder or imaps://secure.imap.server/folder for
+  an IMAP server.
+- mbox+ssh://remote.machine/path/to/a/filename for a remote mbox file.
+
+Note: sup-import tries to be smart about setting the labels on
+      messages that it adds (including the special labels "unread" and
+      "inbox"). There are options that control this behavior, and it's
+      worth taking a look at the output of sup-import --help to make
+      sure that you don't end up with 1000 new messages that you've
+      actually already read.
+
+If sup-import requires a username and password for the source, it will
+prompt you for one. Either way, it will start loading messages from
+that source into the index. Depending on the size of the source, this
+may take some time. Don't worry! This is a one-time step, and all the
+computation done now makes operating on the index faster.
+
+Now, before we run 'sup' again, take a moment to edit your
+~/.sup/config.yaml file. Replace "Your Name Here" with your name,
+"your.email.here@domain.tld" with your email address, and fill in your
+.signature file if you choose. You can also set the default editor.
+
+Now run 'sup'. You should messages being loaded into your "inbox!"
+There are two things that are worth understanding at this point.
+First, Sup does not actually use folders. Instead, messages can have
+any number of labels applied to them. Rather than viewing a folder,
+you view the results of a search. So your inbox is simply the set of
+messages that have the 'inbox' label applied to them.
+
+Second, Sup groups together messages into threads. You rarely operate
+on an individual message in Sup.
+
+Press enter to view a thread. 
+
+To be continued...
