@@ -136,6 +136,7 @@ class BufferManager
     @focus_buf = nil
     @dirty = true
     @minibuf_stack = []
+    @minibuf_mutex = Mutex.new
     @textfields = {}
     @flash = nil
     @shelled = false
@@ -366,26 +367,37 @@ class BufferManager
     end
   end
 
-  def minibuf_lines; [(@flash ? 1 : 0) + @minibuf_stack.compact.size, 1].max; end
+  def minibuf_lines
+    @minibuf_mutex.synchronize do
+      [(@flash ? 1 : 0) + @minibuf_stack.compact.size, 1].max
+    end
+  end
   
   def draw_minibuf opts={}
-    m = @minibuf_stack.compact
-    m << @flash if @flash
-    m << "" if m.empty?
+    @minibuf_mutex.synchronize do
+      m = @minibuf_stack.compact
+      m << @flash if @flash
+      m << "" if m.empty?
 
-    Ncurses.mutex.lock unless opts[:sync] == false
-    Ncurses.attrset Colormap.color_for(:none)
-    m.each_with_index do |s, i|
-      Ncurses.mvaddstr Ncurses.rows - i - 1, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
+      Ncurses.mutex.lock unless opts[:sync] == false
+      Ncurses.attrset Colormap.color_for(:none)
+      m.each_with_index do |s, i|
+        Ncurses.mvaddstr Ncurses.rows - i - 1, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
+      end
     end
+
     Ncurses.refresh if opts[:refresh]
     Ncurses.mutex.unlock unless opts[:sync] == false
   end
 
   def say s, id=nil
-    new_id = id.nil?
-    id ||= @minibuf_stack.length
-    @minibuf_stack[id] = s
+    new_id = nil
+    @minibuf_mutex.synchronize do
+      new_id = id.nil?
+      id ||= @minibuf_stack.length
+      @minibuf_stack[id] = s
+    end
+
     if new_id
       draw_screen :refresh => true
     else
@@ -412,11 +424,13 @@ class BufferManager
   ## a little tricky because we can't just delete_at id because ids
   ## are relative (they're positions into the array).
   def clear id
-    @minibuf_stack[id] = nil
-    if id == @minibuf_stack.length - 1
-      id.downto(0) do |i|
-        break if @minibuf_stack[i]
-        @minibuf_stack.delete_at i
+    @minibuf_mutex.synchronize do
+      @minibuf_stack[id] = nil
+      if id == @minibuf_stack.length - 1
+        id.downto(0) do |i|
+          break if @minibuf_stack[i]
+          @minibuf_stack.delete_at i
+        end
       end
     end
 
