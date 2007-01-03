@@ -9,6 +9,7 @@ bin/sup-recover-sources
 doc/FAQ.txt
 doc/Philosophy.txt
 doc/TODO
+doc/UserGuide.txt
 lib/sup.rb
 lib/sup/account.rb
 lib/sup/buffer.rb
