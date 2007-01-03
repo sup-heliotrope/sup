@@ -42,9 +42,8 @@ class ThreadIndexMode < LineCursorMode
   def [] i; @text[i]; end
 
   ## open up a thread view window
-  def select
-    this_curpos = curpos
-    t = @threads[this_curpos]
+  def select t=nil
+    t ||= @threads[curpos]
 
     ## TODO: don't regen text completely
     Redwood::reporting_thread do
@@ -52,6 +51,10 @@ class ThreadIndexMode < LineCursorMode
       BufferManager.spawn t.subj, mode
       BufferManager.draw_screen
     end
+  end
+
+  def multi_select threads
+    threads.each { |t| select t }
   end
   
   def handle_starred_update m
