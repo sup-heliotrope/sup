@@ -149,6 +149,7 @@ class IMAP < Source
   end
 
   def get_imap_field id, field
+    retries = 0
     f = nil
     imap_id = @imap_ids[id] or raise SourceError, "Unknown message id #{id}. It is likely that messages have been deleted from this IMAP mailbox."
     begin
@@ -157,6 +158,12 @@ class IMAP < Source
       raise SourceError, "IMAP message mismatch: requested #{id}, got #{got_id}. It is likely the IMAP mailbox has been modified." unless got_id == id
     rescue Net::IMAP::Error => e
       raise SourceError, e.message
+    rescue Errno::EPIPE
+      if (retries += 1) <= 3
+        @imap = nil
+        connect
+        retry
+      end
     end
     raise SourceError, "null IMAP field '#{field}' for message with id #{id} imap id #{imap_id}" if f.nil?
 
