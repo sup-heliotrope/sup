@@ -76,7 +76,7 @@ def get_login_info uri, sources
 
   username, password = nil, nil
   unless accounts.empty?
-    say "Would you like to use the same account as for a previous source?"
+    say "Would you like to use the same account as for a previous source for #{uri}?"
     choose do |menu|
       accounts.each do |host, olduser, oldpw|
         menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
@@ -180,7 +180,7 @@ begin
         end
 
         m.remove_label :unread if m.status == "RO" unless force_read
-        puts "# message at #{offset}, labels: #{labels * ', '}"
+        puts "# message at #{offset}, labels: #{labels * ', '}" unless rebuild
         if (rebuild || force_rebuild) && 
             (docid, entry = index.load_entry_for_id(m.id)) && entry
           if force_rebuild || entry[:source_info].to_i != offset
