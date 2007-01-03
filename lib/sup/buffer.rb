@@ -374,18 +374,18 @@ class BufferManager
   end
   
   def draw_minibuf opts={}
+    m = nil
     @minibuf_mutex.synchronize do
       m = @minibuf_stack.compact
       m << @flash if @flash
       m << "" if m.empty?
-
-      Ncurses.mutex.lock unless opts[:sync] == false
-      Ncurses.attrset Colormap.color_for(:none)
-      m.each_with_index do |s, i|
-        Ncurses.mvaddstr Ncurses.rows - i - 1, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
-      end
     end
 
+    Ncurses.mutex.lock unless opts[:sync] == false
+    Ncurses.attrset Colormap.color_for(:none)
+    m.each_with_index do |s, i|
+      Ncurses.mvaddstr Ncurses.rows - i - 1, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
+    end
     Ncurses.refresh if opts[:refresh]
     Ncurses.mutex.unlock unless opts[:sync] == false
   end

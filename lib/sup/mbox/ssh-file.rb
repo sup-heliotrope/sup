@@ -171,7 +171,7 @@ private
     begin
       retries = 0
       connect
-      MBox::debug "sending command: #{cmd.inspect}"
+      # MBox::debug "sending command: #{cmd.inspect}"
       begin
         result = @shell.send_command cmd
         raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{(result.stderr || result.stdout || "")[0 .. 100]}" unless result.status == 0
