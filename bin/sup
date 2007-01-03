@@ -100,9 +100,8 @@ begin
   Logger.make_buf
 
   bm.draw_screen
-  imode.load_more_threads ibuf.content_height
+  imode.load_more_threads :num => ibuf.content_height, :when_done => lambda {   reporting_thread { sleep 1; PollManager.poll } }
 
-  reporting_thread { sleep 5; PollManager.poll }
   PollManager.start_thread
 
   until $exception
@@ -141,7 +140,7 @@ begin
             log "built query from #{text.inspect}: #{qobj}"
             mode = SearchResultsMode.new qobj
             bm.spawn "search: \"#{short_text}\"", mode
-            mode.load_more_threads mode.buffer.content_height
+            mode.load_more_threads :num => mode.buffer.content_height
           rescue Ferret::QueryParser::QueryParseException => e
             bm.flash "Couldn't parse query."
           end
@@ -168,7 +167,7 @@ begin
             b = BufferManager.spawn_unless_exists(:draft) do
               mode = LabelSearchResultsMode.new [:draft]
             end
-            b.mode.load_more_threads b.content_height
+            b.mode.load_more_threads :num => b.content_height
           end
         when :nothing
         when :redraw

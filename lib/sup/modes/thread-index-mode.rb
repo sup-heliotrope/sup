@@ -72,6 +72,7 @@ class ThreadIndexMode < LineCursorMode
   def handle_add_update m
     if is_relevant?(m) || @ts.is_relevant?(m)
       @ts.load_thread_for_message m
+      @new_cache.delete @ts.thread_for(m) # force recalculation of newness
       update
     end
   end
