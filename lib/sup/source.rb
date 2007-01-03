@@ -38,7 +38,7 @@ class Source
   end
 
   def broken?; !@broken_msg.nil?; end
-  def to_s; @uri; end
+  def to_s; @uri.to_s; end
   def seek_to! o; self.cur_offset = o; end
   def reset!
     return if broken?
