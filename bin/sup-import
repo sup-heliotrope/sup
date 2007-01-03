@@ -95,7 +95,6 @@ def get_login_info uri, sources
   [username, password]
 end
 
-
 educate_user if ARGV.member? '--help'
 
 archive = ARGV.delete "--archive"

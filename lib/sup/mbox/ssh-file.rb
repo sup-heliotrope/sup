@@ -171,10 +171,9 @@ private
     begin
       retries = 0
       connect
-      # MBox::debug "sending command: #{cmd.inspect}"
+      MBox::debug "sending command: #{cmd.inspect}"
       begin
         result = @shell.send_command cmd
-        result = @shell.sync { @shell.send_command cmd }
         raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{(result.stderr || result.stdout || "")[0 .. 100]}" unless result.status == 0
       rescue Net::SSH::Exception # these happen occasionally for no apparent reason. gotta love that nondeterminism!
         retry if (retries += 1) <= 3

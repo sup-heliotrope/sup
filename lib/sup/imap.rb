@@ -48,7 +48,7 @@ class IMAP < Source
     @ids = []
     @labels = [:unread]
     @labels << :inbox unless archived?
-    @labels << mailbox.intern unless mailbox =~ /inbox/i || mailbox.nil?
+    @labels << mailbox.intern unless mailbox =~ /inbox/i
     @mutex = Mutex.new
   end
 
@@ -122,7 +122,10 @@ class IMAP < Source
 
   def host; @parsed_uri.host; end
   def port; @parsed_uri.port || (ssl? ? 993 : 143); end
-  def mailbox; @parsed_uri.path[1..-1] || 'INBOX'; end
+  def mailbox
+    x = @parsed_uri.path[1..-1]
+    x.empty? ? 'INBOX' : x
+  end
   def ssl?; @parsed_uri.scheme == 'imaps' end
 
   def load_header id
