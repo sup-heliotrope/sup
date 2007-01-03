@@ -1,3 +1,7 @@
+== 0.0.4 / 2007-01-03
+ 
+* Bugfixes, primarily for threaded networking.
+
 == 0.0.3 / 2007-01-02
 
 * Major speed increase for index views (inbox, search results), which
