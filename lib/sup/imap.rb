@@ -50,6 +50,8 @@ class IMAP < Source
     @labels << :inbox unless archived?
     @labels << mailbox.intern unless mailbox =~ /inbox/i
     @mutex = Mutex.new
+
+    @recover_msg = "It is likely that messages have been deleted from this IMAP mailbox. Please run sup-import --rebuild #{to_s} to correct this problem."
   end
 
   def say s
@@ -93,8 +95,7 @@ class IMAP < Source
         
         say "Reading headers (because IMAP sucks)..."
         values = @imap.fetch(1 .. last_id, ['RFC822.SIZE', 'INTERNALDATE'])
-        
-        say "Successfully connected to #{@parsed_uri}"
+        say "Successfully connected to #{@parsed_uri}."
         
         values.each do |v|
           id = make_id v
@@ -104,7 +105,9 @@ class IMAP < Source
       rescue SocketError, Net::IMAP::Error, SourceError => e
         self.broken_msg = e.message.chomp # fucking chomp! fuck!!!
         @imap = nil
-        Redwood::log "error connecting to IMAP server: #{self.broken_msg}"
+        msg = "error connecting to IMAP server: #{self.broken_msg}"
+        Redwood::log msg
+        BufferManager.flash msg
       ensure
         shutup
       end
@@ -154,11 +157,11 @@ class IMAP < Source
   def get_imap_field id, field
     retries = 0
     f = nil
-    imap_id = @imap_ids[id] or raise SourceError, "Unknown message id #{id}. It is likely that messages have been deleted from this IMAP mailbox."
+    imap_id = @imap_ids[id] or raise SourceError, "Unknown message id #{id}. #@recover_msg"
     begin
       f = @imap.fetch imap_id, [field, 'RFC822.SIZE', 'INTERNALDATE']
       got_id = make_id f[0]
-      raise SourceError, "IMAP message mismatch: requested #{id}, got #{got_id}. It is likely the IMAP mailbox has been modified." unless got_id == id
+      raise SourceError, "IMAP message mismatch: requested #{id}, got #{got_id}. #@recover_msg" unless got_id == id
     rescue Net::IMAP::Error => e
       raise SourceError, e.message
     rescue Errno::EPIPE
@@ -178,7 +181,11 @@ class IMAP < Source
     @mutex.synchronize { connect or raise SourceError, broken_msg }
 
     start = @ids.index(cur_offset || start_offset)
-    start.upto(@ids.length - 1) do |i|
+    if start.nil? # couldn't find the most recent email
+      self.broken_msg = "Unknown message id #{cur_offset || start_offset}. #@recover_msg" 
+      raise SourceError, broken_msg
+    end
+    start.upto(@ids.length - 1) do |i|         
       id = @ids[i]
       self.cur_offset = id
       yield id, labels

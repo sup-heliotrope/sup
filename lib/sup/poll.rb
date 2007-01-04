@@ -54,10 +54,10 @@ class PollManager
       start_offset = nil
       num = 0
       num_inbox = 0
-      source.each do |offset, labels|
-        start_offset ||= offset
-        yield "Found message at #{offset} with labels #{labels * ', '}"
-        begin
+      begin
+        source.each do |offset, labels|
+          start_offset ||= offset
+          yield "Found message at #{offset} with labels #{labels * ', '}"
           m = Redwood::Message.new :source => source, :source_info => offset,
                                    :labels => labels
           if found[m.id]
@@ -73,17 +73,20 @@ class PollManager
             total_num += 1
             total_numi += 1 if m.labels.include? :inbox
           end
-        rescue SourceError, MessageFormatError => e
-          yield "Ignoring erroneous message at #{source}##{offset}: #{e.message}"
         end
-
+        
         if num % 1000 == 0 && num > 0
           elapsed = Time.now - start
           pctdone = (offset.to_f - start_offset) / (source.total.to_f - start_offset)
           remaining = (source.end_offset.to_f - offset.to_f) * (elapsed.to_f / (offset.to_f - start_offset))
           yield "## #{num} (#{(pctdone * 100.0)}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
         end
+      rescue SourceError, MessageFormatError => e
+        msg = "#{source.broken? ? 'Fatal' : 'Non-fatal'} error loading from #{source}: #{e.message}"
+        Redwood::log msg
+        yield msg
       end
+
       yield "Found #{num} messages" unless num == 0
     end
     yield "Done polling; loaded #{total_num} new messages total"
