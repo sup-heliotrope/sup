@@ -136,7 +136,7 @@ class Index
     ## significant slowdown.
     ##
     ## TODO: make this configurable, i guess
-    if false
+    if true
       date_min = m.date - (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
       date_max = m.date + (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
 
