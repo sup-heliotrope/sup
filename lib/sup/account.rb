@@ -6,7 +6,7 @@ class Account < Person
   def initialize h
     super h[:name], h[:email]
     @sendmail = h[:sendmail]
-    @sig_file = h[:signature]
+    @sig_file = h[:sig_file] or raise h.inspect
   end
 end
 
