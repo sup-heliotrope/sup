@@ -179,7 +179,7 @@ class Message
         begin
 #          read_header @source.load_header(@source_info) ##XXXX is this ok?
           message_to_chunks @source.load_message(@source_info)
-        rescue SourceError, SocketError => e
+        rescue SourceError, SocketError, MessageFormatError => e
           [Text.new(error_message(e.message))]
         end
       end
@@ -246,9 +246,7 @@ private
     ret = [] <<
       case m.header.content_type
       when "text/plain", nil
-        raise MessageFormatError, "no message body before decode (source #@source info #@source_info)" unless
-          m.body
-        body = m.decode or raise MessageFormatError, "no message body"
+        m.body && body = m.decode or raise MessageFormatError, "for some bizarre reason, RubyMail was unable to parse this message."
         text_to_chunks body.normalize_whitespace.split("\n")
       when /^multipart\//
         nil
