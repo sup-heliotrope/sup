@@ -5,7 +5,7 @@ require 'hoe'
 require './lib/sup.rb'
 
 Hoe.new('sup', Redwood::VERSION) do |p|
-  p.rubyforge_name = 'Sup'
+  p.rubyforge_name = 'sup'
   p.author = "William Morgan"
   p.summary = 'A console-based email client with the best features of GMail, mutt, and emacs. Features full text search, labels, tagged operations, multiple buffers, recent contacts, and more.'
   p.description = p.paragraphs_of('README.txt', 2..4).join("\n\n")
