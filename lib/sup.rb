@@ -105,7 +105,7 @@ else
         :email => "your.email.here@domain.tld",
         :alternates => [],
         :sendmail => "/usr/sbin/sendmail -oem -ti",
-        :sig_file => File.join(ENV["HOME"], ".signature")
+        :signature => File.join(ENV["HOME"], ".signature")
       }
     },
     :editor => ENV["EDITOR"] || "/usr/bin/vi",
