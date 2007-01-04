@@ -175,9 +175,10 @@ class ThreadViewMode < LineCursorMode
   end
 
   def jump_to_message m
-    top, bot, prevm, nextm = @messages[m]
+    top, bot, prevm, nextm, depth = @messages[m]
     jump_to_line top unless top >= topline &&
       top <= botline && bot >= topline && bot <= botline
+    jump_to_col depth * 2 # sorry!!!!
     set_cursor_pos top
   end
 
@@ -242,7 +243,9 @@ private
         @message_lines[@text.length + i] = m
       end
 
-      @messages[m] = [@text.length, @text.length + text.length, prev_m, nil]
+      ## sorry i store all this shit in an array. very, very sorry.
+      ## also sorry about the * 2. very, very sorry.
+      @messages[m] = [@text.length, @text.length + text.length, prev_m, nil, depth]
       @messages[prev_m][3] = m if prev_m
       prev_m = m
 

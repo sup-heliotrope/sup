@@ -49,10 +49,12 @@ class ScrollMode < Mode
     buffer.mark_dirty
   end
 
-  def jump_to_left
-    buffer.mark_dirty unless @leftcol == 0
-    @leftcol = 0
+  def jump_to_col col
+    buffer.mark_dirty unless @leftcol == col
+    @leftcol = col
   end
+
+  def jump_to_left; jump_to_col 0; end
 
   ## set top line to l
   def jump_to_line l
