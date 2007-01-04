@@ -178,7 +178,7 @@ begin
           found[m.id] = true
         end
 
-        m.remove_label :unread if m.status == "RO" unless force_read
+        m.remove_label :unread if m.source_marked_read? unless force_read
         puts "# message at #{offset}, labels: #{labels * ', '}" unless rebuild
         if (rebuild || force_rebuild) && 
             (docid, entry = index.load_entry_for_id(m.id)) && entry

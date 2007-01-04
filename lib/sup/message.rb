@@ -82,9 +82,9 @@ class Message
 
   attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :source,
               :cc, :bcc, :labels, :list_address, :recipient_email, :replyto,
-              :source_info, :status
+              :source_info
 
-  bool_reader :dirty
+  bool_reader :dirty, :source_marked_read
 
   ## if you specify a :header, will use values from that. otherwise, will try and
   ## load the header from the source.
@@ -130,7 +130,7 @@ class Message
       end
 
     @recipient_email = header["delivered-to"]
-    @status = header["status"]
+    @source_marked_read = header["status"] == "RO"
   end
   private :read_header
 
@@ -177,7 +177,7 @@ class Message
         [Text.new(error_message(@source.broken_msg.split("\n")))]
       else
         begin
-          read_header @source.load_header(@source_info)
+#          read_header @source.load_header(@source_info) ##XXXX is this ok?
           message_to_chunks @source.load_message(@source_info)
         rescue SourceError, SocketError => e
           [Text.new(error_message(e.message))]

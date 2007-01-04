@@ -86,7 +86,7 @@ class IMAP < Source
     Redwood::reporting_thread do
       begin
         #raise Net::IMAP::ByeResponseError, "simulated imap failure"
-        @imap = Net::IMAP.new host, ssl? ? 993 : 143, ssl?
+        @imap = Net::IMAP.new host, port, ssl?
         say "Logging in..."
         @imap.authenticate 'LOGIN', @username, @password
         say "Sizing mailbox..."
@@ -117,8 +117,10 @@ class IMAP < Source
   end
   private :connect
 
+  ## build a fake unique id
   def make_id imap_stuff
-    msize, mdate = imap_stuff.attr['RFC822.SIZE'], Time.parse(imap_stuff.attr["INTERNALDATE"])
+    # use 7 digits for the size. why 7? seems nice.
+    msize, mdate = imap_stuff.attr['RFC822.SIZE'] % 10000000, Time.parse(imap_stuff.attr["INTERNALDATE"])
     sprintf("%d%07d", mdate.to_i, msize).to_i
   end
   private :make_id
@@ -139,27 +141,28 @@ class IMAP < Source
     RMail::Parser.read raw_full_message(id)
   end
 
-  ## load the full header text
   def raw_header id
     @mutex.synchronize do
       connect or raise SourceError, broken_msg
-      get_imap_field(id, 'RFC822.HEADER').gsub(/\r\n/, "\n")
+      header, flags = get_imap_fields id, 'RFC822.HEADER', 'FLAGS'
+      header = "Status: RO\n" + header if flags.include? :Seen # fake an mbox-style read header
+      header.gsub(/\r\n/, "\n")
     end
   end
 
   def raw_full_message id
     @mutex.synchronize do
       connect or raise SourceError, broken_msg
-      get_imap_field(id, 'RFC822').gsub(/\r\n/, "\n")
+      get_imap_fields(id, 'RFC822').first.gsub(/\r\n/, "\n")
     end
   end
 
-  def get_imap_field id, field
+  def get_imap_fields id, *fields
     retries = 0
     f = nil
     imap_id = @imap_ids[id] or raise SourceError, "Unknown message id #{id}. #@recover_msg"
     begin
-      f = @imap.fetch imap_id, [field, 'RFC822.SIZE', 'INTERNALDATE']
+      f = @imap.fetch imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq
       got_id = make_id f[0]
       raise SourceError, "IMAP message mismatch: requested #{id}, got #{got_id}. #@recover_msg" unless got_id == id
     rescue Net::IMAP::Error => e
@@ -173,9 +176,9 @@ class IMAP < Source
     end
     raise SourceError, "null IMAP field '#{field}' for message with id #{id} imap id #{imap_id}" if f.nil?
 
-    f[0].attr[field]
+    fields.map { |field| f[0].attr[field] }
   end
-  private :get_imap_field
+  private :get_imap_fields
   
   def each
     @mutex.synchronize { connect or raise SourceError, broken_msg }
