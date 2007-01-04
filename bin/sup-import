@@ -198,9 +198,9 @@ begin
       end
       if num % 1000 == 0 && num > 0
         elapsed = Time.now - start
-        pctdone = (offset.to_f - start_offset) / (source.total.to_f - start_offset)
-        remaining = (source.total.to_f - offset.to_f) * (elapsed.to_f / (offset.to_f - start_offset))
-        puts "## #{num} (#{(pctdone * 100.0)}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
+        pctdone = source.pct_done
+        remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
+        puts "## #{num} (#{pctdone}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
       end
     end
     puts "loaded #{num} messages" unless num == 0
