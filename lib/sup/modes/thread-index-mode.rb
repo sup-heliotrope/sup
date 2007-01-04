@@ -12,7 +12,7 @@ class ThreadIndexMode < LineCursorMode
     k.add :edit_labels, "Edit or add labels for a thread", 'l'
     k.add :edit_message, "Edit message (drafts only)", 'e'
     k.add :mark_as_spam, "Mark thread as spam", 'S'
-    k.add :kill, "Kill thread (never to be seen in inbox again)", 'K'
+    k.add :kill, "Kill thread (never to be seen in inbox again)", '&'
     k.add :save, "Save changes now", '$'
     k.add :jump_to_next_new, "Jump to next new thread", :tab
     k.add :reply, "Reply to a thread", 'r'
