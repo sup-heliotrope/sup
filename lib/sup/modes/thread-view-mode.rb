@@ -106,6 +106,7 @@ class ThreadViewMode < LineCursorMode
     case chunk
     when Message, Message::Quote, Message::Signature
       @state[chunk] = (@state[chunk] != :closed ? :closed : :open)
+      cursor_down if @state[chunk] == :closed
     when Message::Attachment
       view_attachment chunk
     end
@@ -164,8 +165,8 @@ class ThreadViewMode < LineCursorMode
     ## otherwise, to the previous message
     top = @messages[m][0]
     if curpos == top
-      while prevm = @messages[m][2]
-        break if @state[prevm] == :open
+      while(prevm = @messages[m][2])
+        break if @state[prevm] != :closed
         m = prevm
       end
       jump_to_message prevm if prevm
