@@ -22,7 +22,7 @@ class ReplyMode < EditMessageMode
       if @m.recipient_email
         AccountManager.account_for(@m.recipient_email)
       else
-        (@m.to + @m.cc).argfind { |p| AccountManager.is_account? p }
+        (@m.to + @m.cc).find { |p| AccountManager.is_account? p }
       end || AccountManager.default_account
 
     from_email = @m.recipient_email || from.email
