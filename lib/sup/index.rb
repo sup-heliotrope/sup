@@ -146,6 +146,7 @@ class Index
         sq.add_term t
       end
       q.add_query sq, :must
+      q.add_query Ferret::Search::TermQuery.new(:label, "spam"), :must_not
       q.add_query Ferret::Search::RangeQuery.new(:date, :>= => date_min.to_indexable_s, :<= => date_max.to_indexable_s), :must
 
       pending = @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] }
