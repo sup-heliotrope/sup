@@ -29,7 +29,7 @@ class Loader < Source
 
   def start_offset; 0; end
   def end_offset; File.size @f; end
-  def total; end_offset; end
+  def pct_done; 100.0 * cur_offset.to_f / end_offset.to_f; end
 
   def load_header offset
     header = nil

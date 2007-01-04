@@ -204,6 +204,8 @@ class IMAP < Source
     @mutex.synchronize { connect or raise SourceError, broken_msg }
     @ids.last
   end
+
+  def pct_done; 100.0 * (@ids.index(cur_offset) || 0).to_f / (@ids.length - 1).to_f; end
 end
 
 Redwood::register_yaml(IMAP, %w(uri username password cur_offset usual archived id))

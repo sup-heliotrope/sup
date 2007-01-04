@@ -49,6 +49,7 @@ the following options:
   --force-read:    any messages found will not be marked as new.
 
 The following options can also be specified:
+  --verbose:       print message ids as they're processed
   --the-usual:     import new messages from all usual sources
   --rebuild:       rebuild the index for the specified sources rather than
                    just adding new messages. Useful if the sources
@@ -62,6 +63,7 @@ The following options can also be specified:
 EOS
   exit
 end
+#' stupid ruby-mode
 
 ## for sources that require login information, prompt the user for
 ## that. also provide a list of previously-defined login info to
@@ -105,6 +107,7 @@ the_usual = ARGV.delete "--the-usual"
 rebuild = ARGV.delete "--rebuild"
 force_rebuild = ARGV.delete "--force-rebuild"
 optimize = ARGV.delete "--optimize"
+verbose = ARGV.delete "--verbose"
 start_at = # ok really need to use optparse or something now
   if(i = ARGV.index("--start-at"))
     raise "start-at requires a numeric argument: #{ARGV[i + 1].inspect}" unless ARGV.length > (i + 1) && ARGV[i + 1] =~ /\d/
@@ -179,7 +182,7 @@ begin
         end
 
         m.remove_label :unread if m.source_marked_read? unless force_read
-        puts "# message at #{offset}, labels: #{labels * ', '}" unless rebuild
+        puts "# message at #{offset}, labels: #{labels * ', '}" if verbose unless rebuild
         if (rebuild || force_rebuild) && 
             (docid, entry = index.load_entry_for_id(m.id)) && entry
           if force_rebuild || entry[:source_info].to_i != offset
