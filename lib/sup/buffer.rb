@@ -291,7 +291,10 @@ class BufferManager
     end
   end
 
+  ## not really thread safe.
   def ask domain, question, default=nil
+    raise "impossible!" if @asking
+
     @textfields[domain] ||= TextField.new Ncurses.stdscr, Ncurses.rows - 1, 0, Ncurses.cols
     tf = @textfields[domain]
 
@@ -309,7 +312,10 @@ class BufferManager
     ret = nil
     tf.position_cursor
     Ncurses.sync { Ncurses.refresh }
+
+    @asking = true
     while tf.handle_input(Ncurses.nonblocking_getch); end
+    @asking = false
 
     ret = tf.value
     Ncurses.sync { tf.deactivate }
@@ -368,7 +374,9 @@ class BufferManager
 
   def minibuf_lines
     @minibuf_mutex.synchronize do
-      [(@flash ? 1 : 0) + @minibuf_stack.compact.size, 1].max
+      [(@flash ? 1 : 0) + 
+       (@asking ? 1 : 0) +
+       @minibuf_stack.compact.size, 1].max
     end
   end
   
@@ -382,8 +390,9 @@ class BufferManager
 
     Ncurses.mutex.lock unless opts[:sync] == false
     Ncurses.attrset Colormap.color_for(:none)
+    adj = @asking ? 2 : 1
     m.each_with_index do |s, i|
-      Ncurses.mvaddstr Ncurses.rows - i - 1, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
+      Ncurses.mvaddstr Ncurses.rows - i - adj, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
     end
     Ncurses.refresh if opts[:refresh]
     Ncurses.mutex.unlock unless opts[:sync] == false
@@ -405,7 +414,7 @@ class BufferManager
 
     if block_given?
       begin
-        yield
+        yield id
       ensure
         clear id
       end
