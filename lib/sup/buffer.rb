@@ -217,7 +217,6 @@ class BufferManager
     if true
       buf = @buffers.last
       buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
-      File.open("asdf.txt", "a") { |f| f.puts "dirty #@dirty, (re)drawing #{buf.mode.name}" }
       @dirty ? buf.draw : buf.redraw
     end
 
