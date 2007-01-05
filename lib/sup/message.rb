@@ -177,7 +177,13 @@ class Message
         [Text.new(error_message(@source.broken_msg.split("\n")))]
       else
         begin
-#          read_header @source.load_header(@source_info) ##XXXX is this ok?
+          ## we need to re-read the header because it contains information
+          ## that we don't store in the index. actually i think it's just
+          ## the mailing list address (if any), so this is kinda overkill.
+          ## i could just store that in the index, but i think there might
+          ## be other things like that in the future, and i'd rather not
+          ## bloat the index.
+          read_header @source.load_header(@source_info)
           message_to_chunks @source.load_message(@source_info)
         rescue SourceError, SocketError, MessageFormatError => e
           [Text.new(error_message(e.message))]
