@@ -1,10 +1,9 @@
 Welcome to Sup! Here's how to actually use it.
 
-To get started, just run 'sup'. Assuming this is your first time,
-you'll be confronted with a mostly blank screen, and a little message
-at the bottom telling you that you have no messages. That's because
-Sup doesn't have any messages in its index. In order to add messages,
-Sup needs to have some "sources" from which to load messages.
+First, try running 'sup'. Assuming this is your first time, you'll be
+confronted with a mostly blank screen, and a little message at the
+bottom telling you that you have no messages. That's because Sup
+doesn't have any messages in its index yet.
 
 If you want to play around a little at this point, you can press 'b'
 to cycle between buffers and 'x' to kill a buffer. There's probably
@@ -13,42 +12,126 @@ cryptic messages. You can also press '?' at any point to get a list of
 keyboard commands, but in the absense of any email, these will be
 pretty useless. When you're done, press 'q' to quit.
 
-Now let's add a source to Sup. Run sup-import with a URI pointing to
-an email source. The URI should be of the form:
+Let's add some messages. In order for Sup to know about an email, it
+must be in the index. In order for Sup to load them it the index, it
+must know the "source" which holds them. The way Sup works is that the
+index holds all the information that is necessary to search, and all
+the state we have about the message (labels, read/unread, etc.), but
+doesn't contain the message itself. When you search or show your
+inbox, Sup just talks to the index (stored locally on disk). When you
+view a message, Sup then goes back to the source and requests it in
+full. Sup also periodically polls the sources for new messages.
+
+So let's tell Sup about some sources. Run 'sup-import' with a URI
+pointing to an email source. The URI should be of the form:
 - mbox://path/to/a/filename, for an mbox file on disk. (You can also
   just provide the filename).
 - imap://imap.server/folder or imaps://secure.imap.server/folder for
-  an IMAP server.
+  an IMAP server. (The folder can be blank.)
 - mbox+ssh://remote.machine/path/to/a/filename for a remote mbox file.
 
-Note: sup-import tries to be smart about setting the labels on
-      messages that it adds (including the special labels "unread" and
-      "inbox"). There are options that control this behavior, and it's
-      worth taking a look at the output of sup-import --help to make
-      sure that you don't end up with 1000 new messages that you've
-      actually already read.
+There are a few important arguments to sup-import when adding a
+source. The first decision you need to make is whether you want
+messages to be marked as new or not. If you specify --force-read, all
+messages imported at this time will be marked as read. (New messages
+pulled from this source at a later date will be new, of course.) The
+default is to retain the read/unread status as it is in the source.
 
-If sup-import requires a username and password for the source, it will
-prompt you for one. Either way, it will start loading messages from
-that source into the index. Depending on the size of the source, this
-may take some time. Don't worry! This is a one-time step, and all the
-computation done now makes operating on the index faster.
+The second decision is whether you want messages from this source to
+be archived or not. An archived message is one that does not show up
+in your inbox. If you specify --force-archive, messages imported at
+this time will not appear in the inbox. If you specify --archive,
+messages imported at *any* time will not appear in the inbox. (This is
+useful for sources that contain high-traffic mailing lists that you
+don't want "polluting" your inbox.)
+
+Now run sup-import. (You can run it on multiple sources at once.) If
+it requires a username and password for the source, it will prompt you
+for one. Either way, it will add that source to Sup, and immediately
+start loading messages from that source into the index. Depending on
+the size of the source, this may take some time. Don't worry! This is
+a one-time process, and all the computation done now makes operating
+on the index faster.
 
 Now, before we run 'sup' again, take a moment to edit your
 ~/.sup/config.yaml file. Replace "Your Name Here" with your name,
 "your.email.here@domain.tld" with your email address, and fill in your
 .signature file if you choose. You can also set the default editor.
+(If you have multiple email addresses that correspond to this account,
+you can specify them under :alternates, and if you have multiple
+separate email-receiving accounts, you can add new items to :accounts,
+but that requires a little YAML knowledge and is beyond the scope of
+this introduction.)
 
-Now run 'sup'. You should messages being loaded into your "inbox!"
+Ok, we're finally ready to run Sup! Run 'sup'. You should see messages
+being loaded into your "inbox" from the index. Congratulations!
+
 There are two things that are worth understanding at this point.
-First, Sup does not actually use folders. Instead, messages can have
-any number of labels applied to them. Rather than viewing a folder,
-you view the results of a search. So your inbox is simply the set of
-messages that have the 'inbox' label applied to them.
+First, Sup does not use folders. Instead, messages can have any number
+of labels applied to them. Rather than viewing a folder, you view the
+results of a search. So your inbox is simply the set of messages that
+have the 'inbox' label applied to them.
 
 Second, Sup groups together messages into threads. You rarely operate
-on an individual message in Sup.
+on an individual message in Sup. Each line in the inbox is a thread,
+and the number in parentheses is the number of messages in that
+thread. (If there's no number, it means there's just one message.)
 
-Press enter to view a thread. 
+So use the up and down arrows to highlight a thread. ('j' and 'k' do
+the same thing, and 'J' and 'K' will scroll the whole window. Even the
+left and right arrow keys do something useful!) By default, Sup only
+loads as many threads as it takes to fill the window; if you'd like to
+load more, press 'M'. You can also hit tab to cycle between only new
+messages.
 
-To be continued...
+Press enter to view a thread once you've highlighted it. You'll notice
+that all messages in the thread are displayed together. By default,
+only the new messages in a thread are expanded; the others are
+hidden. Press 'E' to expand / collapse all messages, and 'N' to expand
+only the new messages. Use the arrow keys just as before to move
+around the message. You'll also notice that Sup hides quoted text and
+signatures. If you highlight a particular one, you can press enter to
+expand it. You can also press 'o' to open every hidden section in a
+particular message.
+
+A few other useful commands while viewing a thread: press 'd' to
+toggle a detailed header. If you've scrolled too far to the right,
+press '[' to jump all the way to the left. Finally, for threads that
+are very large, you can press 'n' and 'p' to jump forward and backward
+between open messages.
+
+Now press 'x' to kill that buffer. You should see the inbox again.  If
+you don't, you can cycle through the buffers by pressing 'b', or you
+can press 'A' to see a list of all buffers and simply select the
+inbox.
+
+There are many operations you can perform on threads beyond just
+viewing them. To archive a thread, press 'a'. The thread will
+disappear from your inbox, but will still appear in search results. If
+someone replies to the thread, it will reappear in your inbox (with
+the new message in its proper place).
+
+To kill a thread, press '&'. Killed threads will never come back to
+your inbox, even if people reply (but will still be searchable). Useful
+for those interminable threads that you really have no interest in.
+
+If a thread is spam, press 'S'. It will disappear and won't come
+back. It won't even appear in search results, unless you explicitly
+search for spam.
+
+You can also star a thread by pressing '*'. Starred threads are
+displayed with a little yellow asterix next to them, but otherwise
+have no functionality. (But you can also search for them
+easily---we'll see how in a moment).
+
+As I mentioned before, messages have labels. To edit the labels for
+(all the messages in) a thread, press 'l'. Type in the labels as a
+sequence of space-separated words. To cancel the input, press
+control-G.
+
+Many of these operations can be applied to a group of threads. Press
+'t' to tag a thread. Tag a couple, then press ';' to apply the next
+command to the set of threads. ';t', of course, will untag all tagged
+messages.
+
+Ok, let's talk about labels and searching. Press 'L' 
