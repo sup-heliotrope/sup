@@ -6,8 +6,6 @@ class InboxMode < ThreadIndexMode
   register_keymap do |k|
     ## overwrite toggle_archived with archive
     k.add :archive, "Archive thread (remove from inbox)", 'a'
-    k.add :load_more_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
-    k.add :reload, "Discard threads and reload", 'D'
   end
 
   def initialize
@@ -28,7 +26,7 @@ class InboxMode < ThreadIndexMode
 
   def is_relevant? m; m.has_label? :inbox; end
 
-  def load_more_threads opts={}
+  def load_threads opts={}
     n = opts[:num] || ThreadIndexMode::LOAD_MORE_THREAD_NUM
     load_n_threads_background n, :label => :inbox,
                                  :load_killed => false,
@@ -37,12 +35,6 @@ class InboxMode < ThreadIndexMode
       opts[:when_done].call if opts[:when_done]
       BufferManager.flash "Added #{num} threads."
     end)
-  end
-
-  def reload
-    drop_all_threads
-    BufferManager.draw_screen
-    load_more_threads :num => buffer.content_height
   end
 end
 

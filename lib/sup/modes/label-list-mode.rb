@@ -81,7 +81,7 @@ protected
       b = BufferManager.spawn_unless_exists(label) do
         mode = LabelSearchResultsMode.new [label]
       end
-      b.mode.load_more_threads :num => b.content_height
+      b.mode.load_threads :num => b.content_height
     end
   end
 end

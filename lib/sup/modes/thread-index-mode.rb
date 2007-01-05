@@ -1,11 +1,15 @@
 module Redwood
 
+## subclasses should implement load_threads
+
 class ThreadIndexMode < LineCursorMode
   DATE_WIDTH = Time::TO_NICE_S_MAX_LEN
   FROM_WIDTH = 15
   LOAD_MORE_THREAD_NUM = 20
 
   register_keymap do |k|
+    k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
+    k.add :reload, "Discard threads and reload", 'D'
     k.add :toggle_archived, "Toggle archived status", 'a'
     k.add :toggle_starred, "Star or unstar all messages in thread", '*'
     k.add :toggle_new, "Toggle new/read status of all messages in thread", 'N'
@@ -40,6 +44,12 @@ class ThreadIndexMode < LineCursorMode
 
   def lines; @text.length; end
   def [] i; @text[i]; end
+
+  def reload
+    drop_all_threads
+    BufferManager.draw_screen
+    load_threads :num => buffer.content_height
+  end
 
   ## open up a thread view window
   def select t=nil
@@ -185,15 +195,14 @@ class ThreadIndexMode < LineCursorMode
 
   def save
     threads = @threads + @hidden_threads.keys
-    mbid = BufferManager.say "Saving threads..."
-    threads.each_with_index do |t, i|
-      if i % 5 == 0
-        BufferManager.say "Saving thread #{i + 1} of #{threads.length}...",
-                          mbid
+
+    BufferManager.say("Saving threads...") do |say_id|
+      threads.each_with_index do |t, i|
+        next unless t.dirty?
+        BufferManager.say "Saving thread #{i +1} of #{threads.length}...", say_id
+        t.save Index
       end
-      t.save Index
     end
-    BufferManager.clear mbid
   end
 
   def cleanup

@@ -1,10 +1,6 @@
 module Redwood
 
 class LabelSearchResultsMode < ThreadIndexMode
-  register_keymap do |k|
-    k.add :load_more_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
-  end
-
   def initialize labels
     @labels = labels
     super
@@ -12,7 +8,7 @@ class LabelSearchResultsMode < ThreadIndexMode
 
   def is_relevant? m; @labels.all? { |l| m.has_label? l }; end
 
-  def load_more_threads opts={}
+  def load_threads opts={}
     n = opts[:num] || ThreadIndexMode::LOAD_MORE_THREAD_NUM
     load_n_threads_background n, :labels => @labels,
                                  :load_killed => true,

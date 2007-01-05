@@ -1,10 +1,6 @@
 module Redwood
 
 class PersonSearchResultsMode < ThreadIndexMode
-  register_keymap do |k|
-    k.add :load_more_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
-  end
-
   def initialize people
     @people = people
     super
@@ -12,7 +8,7 @@ class PersonSearchResultsMode < ThreadIndexMode
 
   def is_relevant? m; @people.any? { |p| m.from == p }; end
 
-  def load_more_threads opts={}
+  def load_threads opts={}
     n = opts[:num] || ThreadIndexMode::LOAD_MORE_THREAD_NUM
     load_n_threads_background n, :participants => @people,
                                  :load_killed => true,
