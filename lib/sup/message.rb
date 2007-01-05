@@ -92,6 +92,7 @@ class Message
     @source = opts[:source] or raise ArgumentError, "source can't be nil"
     @source_info = opts[:source_info] or raise ArgumentError, "source_info can't be nil"
     @snippet = opts[:snippet] || ""
+    @have_snippet = !opts[:snippet].nil?
     @labels = opts[:labels] || []
     @dirty = false
 
@@ -326,8 +327,7 @@ private
         chunk_lines << line
       end
  
-      if state == :text && (@snippet.nil? || @snippet.length < SNIPPET_LEN) &&
-          line !~ /[=\*#_-]{3,}/ && line !~ /^\s*$/
+      if !@have_snippet && state == :text && (@snippet.nil? || @snippet.length < SNIPPET_LEN) && line !~ /[=\*#_-]{3,}/ && line !~ /^\s*$/
         @snippet += " " unless @snippet.empty?
         @snippet += line.gsub(/^\s+/, "").gsub(/[\r\n]/, "").gsub(/\s+/, " ")
         @snippet = @snippet[0 ... SNIPPET_LEN].chomp
