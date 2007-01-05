@@ -174,7 +174,7 @@ class ThreadIndexMode < LineCursorMode
 
   def multi_mark_as_spam threads
     threads.each do |t|
-      t.apply_label :spam
+      t.toggle_label :spam
       hide_thread t
     end
     regen_text
