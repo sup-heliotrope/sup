@@ -25,26 +25,20 @@ class ThreadViewMode < LineCursorMode
     @state = {}
     @hidden_labels = hidden_labels
 
-    earliest = nil
-    latest = nil
+    earliest, latest = nil, nil
     latest_date = nil
     @thread.each do |m, d, p|
       next unless m
       earliest ||= m
-      @state[m] = 
-        if m.has_label?(:unread) && m == earliest
-          :detailed
-        elsif m.has_label?(:starred) || m.has_label?(:unread)
-          :open
-        else
-          :closed
-        end
+      @state[m] = initial_state_for m
       if latest_date.nil? || m.date > latest_date
         latest_date = m.date
         latest = m
       end
     end
+
     @state[latest] = :open if @state[latest] == :closed
+    @state[earliest] = :detailed if earliest.has_label?(:unread)
 
     BufferManager.say "Loading message bodies..." do
       regen_chunks
@@ -207,18 +201,28 @@ class ThreadViewMode < LineCursorMode
     end
   end
 
-  ## not sure if this is really necessary but we might as well...
+  ## kinda slow for large threads. TODO: make faster
   def cleanup
-    @thread.each do |m, d, p|
-      if m && m.has_label?(:unread)
-        m.remove_label :unread 
-        UpdateManager.relay :read, m
+    BufferManager.say "Marking messages as read..." do
+      @thread.each do |m, d, p|
+        if m && m.has_label?(:unread)
+          m.remove_label :unread 
+          UpdateManager.relay :read, m
+        end
       end
     end
     @messages = @chunks = @text = nil
   end
 
 private 
+
+  def initial_state_for m
+    if m.has_label?(:starred) || m.has_label?(:unread)
+      :open
+    else
+      :closed
+    end
+  end
 
   def update
     regen_text
@@ -238,6 +242,16 @@ private
 
     prev_m = nil
     @thread.each do |m, depth, parent|
+      ## we're occasionally called on @threads that have had messages
+      ## added to them since initialization. luckily we regen_text on
+      ## the entire thread every time the user does anything besides
+      ## scrolling (basically), so we can just slap this on here.
+      ##
+      ## to pick nits, the niceness that i do in the constructor with
+      ## 'latest' might not be valid, but i don't see that as a huge
+      ## issue.
+      @state[m] ||= initial_state_for m if m
+
       text = chunk_to_lines m, @state[m], @text.length, depth, parent
       (0 ... text.length).each do |i|
         @chunk_lines[@text.length + i] = m
@@ -327,7 +341,6 @@ private
     when Message
       message_patina_lines(chunk, state, parent, prefix) +
         (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. To edit, hit 'e'. <<<"]]] : [])
-
     when Message::Attachment
       [[[:mime_color, "#{prefix}+ MIME attachment #{chunk.content_type}#{chunk.desc ? ' (' + chunk.desc + ')': ''}"]]]
     when Message::Text

@@ -7,7 +7,9 @@ class Thread
 
   attr_reader :containers
   def initialize
-    raise "wrong thread, buddy!" if block_given?
+    ## ah, the joys of a multithreaded application with a class called
+    ## "Thread". i keep instantiating the wrong one...
+    raise "wrong Thread class, buddy!" if block_given?
     @containers = []
   end
 
@@ -28,7 +30,9 @@ class Thread
     puts "=== end thread ==="
   end
 
-  ## yields each message and some stuff
+  ## yields each message, its depth, and its parent
+  ## note that the message can be a Message object, or :fake_root,
+  ## or nil.
   def each fake_root=false
     adj = 0
     root = @containers.find_all { |c| !Message.subj_is_reply?(c) }.argmin { |c| c.date }
@@ -78,6 +82,7 @@ class Thread
   def set_labels l; each { |m, *o| m && m.labels = l }; end
   
   def has_label? t; any? { |m, *o| m && m.has_label?(t) }; end
+  def dirty?; any? { |m, *o| m && m.dirty? }; end
   def save index; each { |m, *o| m && m.save(index) }; end
 
   def direct_participants

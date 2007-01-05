@@ -232,7 +232,6 @@ class BufferManager
   ## the mode is expensive, as it often is.
   def spawn_unless_exists title, opts={}
     if @name_map.member? title
-      Redwood::log "buffer '#{title}' already exists, raising to front"
       raise_to_front @name_map[title] unless opts[:hidden]
     else
       mode = yield
