@@ -38,7 +38,7 @@ class ThreadViewMode < LineCursorMode
     end
 
     @state[latest] = :open if @state[latest] == :closed
-    @state[earliest] = :detailed if earliest.has_label?(:unread)
+    @state[earliest] = :detailed if earliest.has_label?(:unread) || @thread.size == 1
 
     BufferManager.say "Loading message bodies..." do
       regen_chunks
