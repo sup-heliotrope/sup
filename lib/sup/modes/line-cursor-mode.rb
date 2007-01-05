@@ -124,7 +124,8 @@ protected
 private
 
   def set_status
-    @status = "line #{@curpos + 1} of #{lines}"
+    l = lines
+    @status = l > 0 ? "line #{@curpos + 1} of #{l}" : ""
   end
 
 end
