@@ -169,20 +169,21 @@ private
   end
 
   def scan_mailbox
+    Redwood::log "#{SCAN_INTERVAL - (Time.now - @last_scan)} seconds to go before resizing mailbox" if @last_scan
     return if @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
 
     @imap.examine mailbox
-    last_id = @imap.responses["EXISTS"][-1]
-    return if last_id == @ids.length + 1
+    last_id = @imap.responses["EXISTS"].last
+    @last_scan = Time.now
+    Redwood::log "IMAP server reports last id as #{last_id}. I have a last id of #{@ids.length}"
+    return if last_id == @ids.length
     Redwood::log "fetching IMAP headers #{(@ids.length + 1) .. last_id}"
-    File.open("asdf.txt", "w") { |f| f.puts "fetching IMAP headers #{(@ids.length + 1) .. last_id}" }
     values = @imap.fetch((@ids.length + 1) .. last_id, ['RFC822.SIZE', 'INTERNALDATE'])
     values.each do |v|
       id = make_id v
       @ids << id
       @imap_ids[id] = v.seqno
     end
-    @last_scan = Time.now
   end
 
   def die_from e, opts={}
