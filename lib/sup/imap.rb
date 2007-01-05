@@ -201,7 +201,7 @@ private
 
     self.broken_msg = message
     Redwood::log message
-    BufferManager.flash message
+    BufferManager.flash "Error communicating with IMAP server. See log for details."
     raise SourceError, message
   end
   
