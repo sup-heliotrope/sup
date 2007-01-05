@@ -18,6 +18,11 @@ class ReplyMode < EditMessageMode
     super 2, :twiddles => false
     @m = message
 
+    ## it's important to put this early because it forces a read of
+    ## the full headers (most importantly the list-post header, if
+    ## any)
+    @body = reply_body_lines(message)
+
     from =
       if @m.recipient_email
         AccountManager.account_for(@m.recipient_email)
@@ -70,7 +75,7 @@ class ReplyMode < EditMessageMode
     @type_labels = REPLY_TYPES.select { |t| @headers.member?(t) }
     @selected_type = @m.is_list_message? ? :list : :sender
 
-    @body = reply_body_lines(message) + sig_lines
+    @body += sig_lines
     regen_text
   end
 
