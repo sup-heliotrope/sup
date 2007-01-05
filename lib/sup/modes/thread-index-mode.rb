@@ -308,7 +308,11 @@ class ThreadIndexMode < LineCursorMode
   end
 
   def status
-    "line #{curpos + 1} of #{lines} #{dirty? ? '*modified*' : ''}"
+    if (l = lines) == 0
+      ""
+    else
+      "line #{curpos + 1} of #{l} #{dirty? ? '*modified*' : ''}"
+    end
   end
 
 protected
