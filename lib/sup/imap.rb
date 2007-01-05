@@ -147,7 +147,7 @@ class IMAP < Source
       begin
         connect
         scan_mailbox
-      rescue SocketError, Net::IMAP::Error, SourceError => e
+      rescue SocketError, Net::IMAP::Error => e
         die_from e, :while => "scanning mailbox"
       end
     end
@@ -218,7 +218,7 @@ private
       f = @imap.fetch imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq
       got_id = make_id f[0]
       die_from "IMAP message mismatch: requested #{id}, got #{got_id}.", :suggest_rebuild => true unless id == got_id
-    rescue SocketError, Net::IMAP::Error
+    rescue SocketError, Net::IMAP::Error => e
       die_from e, :while => "communicating with IMAP server"
     rescue Errno::EPIPE
       if (retries += 1) <= 3
