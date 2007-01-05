@@ -31,6 +31,8 @@ require 'time'
 module Redwood
 
 class IMAP < Source
+  SCAN_INTERVAL = 60 # seconds
+
   attr_reader_cloned :labels
   attr_accessor :username, :password
 
@@ -46,84 +48,12 @@ class IMAP < Source
     @imap = nil
     @imap_ids = {}
     @ids = []
+    @last_scan = nil
     @labels = [:unread]
     @labels << :inbox unless archived?
     @labels << mailbox.intern unless mailbox =~ /inbox/i
     @mutex = Mutex.new
-
-    @recover_msg = "It is likely that messages have been deleted from this IMAP mailbox. Please run sup-import --rebuild #{to_s} to correct this problem."
   end
-
-  def say s
-    @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
-    Redwood::log s
-  end
-  def shutup
-    BufferManager.clear @say_id if BufferManager.instantiated?
-    @say_id = nil
-  end
-  private :say, :shutup
-
-  def connect
-    return false if broken?
-    return true if @imap
-
-    ## ok, this is FUCKING ANNOYING.
-    ##
-    ## what imap.rb likes to do is, if an exception occurs, catch it
-    ## and re-raise it on the calling thread. seems reasonable. but
-    ## what that REALLY means is that the only way to reasonably
-    ## initialize imap is in its own thread, because otherwise, you
-    ## will never be able to catch the exception it raises on the
-    ## calling thread, and the backtrace will not make any sense at
-    ## all, and you will waste HOURS of your life on this fucking
-    ## problem.
-    ##
-    ## FUCK!!!!!!!!!
-
-    say "Connecting to IMAP server #{host}:#{port}..."
-
-    Redwood::reporting_thread do
-      begin
-        #raise Net::IMAP::ByeResponseError, "simulated imap failure"
-        @imap = Net::IMAP.new host, port, ssl?
-        say "Logging in..."
-        @imap.authenticate 'LOGIN', @username, @password
-        say "Sizing mailbox..."
-        @imap.examine mailbox
-        last_id = @imap.responses["EXISTS"][-1]
-        
-        say "Reading headers (because IMAP sucks)..."
-        values = @imap.fetch(1 .. last_id, ['RFC822.SIZE', 'INTERNALDATE'])
-        say "Successfully connected to #{@parsed_uri}."
-        
-        values.each do |v|
-          id = make_id v
-          @ids << id
-          @imap_ids[id] = v.seqno
-        end
-      rescue SocketError, Net::IMAP::Error, SourceError => e
-        self.broken_msg = e.message.chomp # fucking chomp! fuck!!!
-        @imap = nil
-        msg = "error connecting to IMAP server: #{self.broken_msg}"
-        Redwood::log msg
-        BufferManager.flash msg
-      ensure
-        shutup
-      end
-    end.join
-
-    !!@imap
-  end
-  private :connect
-
-  ## build a fake unique id
-  def make_id imap_stuff
-    # use 7 digits for the size. why 7? seems nice.
-    msize, mdate = imap_stuff.attr['RFC822.SIZE'] % 10000000, Time.parse(imap_stuff.attr["INTERNALDATE"])
-    sprintf("%d%07d", mdate.to_i, msize).to_i
-  end
-  private :make_id
 
   def host; @parsed_uri.host; end
   def port; @parsed_uri.port || (ssl? ? 993 : 143); end
@@ -143,7 +73,7 @@ class IMAP < Source
 
   def raw_header id
     @mutex.synchronize do
-      connect or raise SourceError, broken_msg
+      connect
       header, flags = get_imap_fields id, 'RFC822.HEADER', 'FLAGS'
       header = "Status: RO\n" + header if flags.include? :Seen # fake an mbox-style read header
       header.gsub(/\r\n/, "\n")
@@ -152,42 +82,54 @@ class IMAP < Source
 
   def raw_full_message id
     @mutex.synchronize do
-      connect or raise SourceError, broken_msg
+      connect
       get_imap_fields(id, 'RFC822').first.gsub(/\r\n/, "\n")
     end
   end
 
-  def get_imap_fields id, *fields
-    retries = 0
-    f = nil
-    imap_id = @imap_ids[id] or raise SourceError, "Unknown message id #{id}. #@recover_msg"
-    begin
-      f = @imap.fetch imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq
-      got_id = make_id f[0]
-      raise SourceError, "IMAP message mismatch: requested #{id}, got #{got_id}. #@recover_msg" unless got_id == id
-    rescue Net::IMAP::Error => e
-      raise SourceError, e.message
-    rescue Errno::EPIPE
-      if (retries += 1) <= 3
-        @imap = nil
-        connect
-        retry
-      end
-    end
-    raise SourceError, "null IMAP field '#{field}' for message with id #{id} imap id #{imap_id}" if f.nil?
+  def connect
+    return false if broken?
+    return true if @imap
 
-    fields.map { |field| f[0].attr[field] }
+    say "Connecting to IMAP server #{host}:#{port}..."
+
+    ## ok, this is FUCKING ANNOYING.
+    ##
+    ## what imap.rb likes to do is, if an exception occurs, catch it
+    ## and re-raise it on the calling thread. seems reasonable. but
+    ## what that REALLY means is that the only way to reasonably
+    ## initialize imap is in its own thread, because otherwise, you
+    ## will never be able to catch the exception it raises on the
+    ## calling thread, and the backtrace will not make any sense at
+    ## all, and you will waste HOURS of your life on this fucking
+    ## problem.
+    ##
+    ## FUCK!!!!!!!!!
+
+    exception = nil
+    Redwood::reporting_thread do
+      begin
+        #raise Net::IMAP::ByeResponseError, "simulated imap failure"
+        @imap = Net::IMAP.new host, port, ssl?
+        say "Logging in..."
+        @imap.authenticate 'LOGIN', @username, @password
+        scan_mailbox
+        say "Successfully connected to #{@parsed_uri}."
+      rescue SocketError, Net::IMAP::Error, SourceError => e
+        exception = e
+      ensure
+        shutup
+      end
+    end.join
+
+    die_from exception, :while => "connecting" if exception
   end
-  private :get_imap_fields
-  
+
   def each
     @mutex.synchronize { connect or raise SourceError, broken_msg }
 
-    start = @ids.index(cur_offset || start_offset)
-    if start.nil? # couldn't find the most recent email
-      self.broken_msg = "Unknown message id #{cur_offset || start_offset}. #@recover_msg" 
-      raise SourceError, broken_msg
-    end
+    start = @ids.index(cur_offset || start_offset) or die_from "Unknown message id #{cur_offset || start_offset}.", :suggest_rebuild => true # couldn't find the most recent email
+
     start.upto(@ids.length - 1) do |i|         
       id = @ids[i]
       self.cur_offset = id
@@ -196,16 +138,100 @@ class IMAP < Source
   end
 
   def start_offset
-    @mutex.synchronize { connect or raise SourceError, broken_msg }
+    @mutex.synchronize { connect }
     @ids.first
   end
 
   def end_offset
-    @mutex.synchronize { connect or raise SourceError, broken_msg }
+    @mutex.synchronize do
+      begin
+        connect
+        scan_mailbox
+      rescue SocketError, Net::IMAP::Error, SourceError => e
+        die_from e, :while => "scanning mailbox"
+      end
+    end
     @ids.last
   end
 
   def pct_done; 100.0 * (@ids.index(cur_offset) || 0).to_f / (@ids.length - 1).to_f; end
+
+private
+
+  def say s
+    @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
+    Redwood::log s
+  end
+
+  def shutup
+    BufferManager.clear @say_id if BufferManager.instantiated?
+    @say_id = nil
+  end
+
+  def scan_mailbox
+    return if @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
+
+    @imap.examine mailbox
+    last_id = @imap.responses["EXISTS"][-1]
+    return if last_id == @ids.length + 1
+    Redwood::log "fetching IMAP headers #{(@ids.length + 1) .. last_id}"
+    File.open("asdf.txt", "w") { |f| f.puts "fetching IMAP headers #{(@ids.length + 1) .. last_id}" }
+    values = @imap.fetch((@ids.length + 1) .. last_id, ['RFC822.SIZE', 'INTERNALDATE'])
+    values.each do |v|
+      id = make_id v
+      @ids << id
+      @imap_ids[id] = v.seqno
+    end
+    @last_scan = Time.now
+  end
+
+  def die_from e, opts={}
+    @imap = nil
+
+    message =
+      case e
+      when Exception
+        "Error while #{opts[:while]}: #{e.message.chomp}."
+      when String
+        e
+      end
+
+    message += " It is likely that messages have been deleted from this IMAP mailbox. Please run sup-import --rebuild #{to_s} to correct this problem." if opts[:suggest_rebuild]
+
+    self.broken_msg = message
+    Redwood::log message
+    BufferManager.flash message
+    raise SourceError, message
+  end
+  
+  ## build a fake unique id
+  def make_id imap_stuff
+    # use 7 digits for the size. why 7? seems nice.
+    msize, mdate = imap_stuff.attr['RFC822.SIZE'] % 10000000, Time.parse(imap_stuff.attr["INTERNALDATE"])
+    sprintf("%d%07d", mdate.to_i, msize).to_i
+  end
+
+  def get_imap_fields id, *fields
+    retries = 0
+    f = nil
+    imap_id = @imap_ids[id] or die_from "Unknown message id #{id}.", :suggest_rebuild => true
+    begin
+      f = @imap.fetch imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq
+      got_id = make_id f[0]
+      die_from "IMAP message mismatch: requested #{id}, got #{got_id}.", :suggest_rebuild => true unless id == got_id
+    rescue SocketError, Net::IMAP::Error
+      die_from e, :while => "communicating with IMAP server"
+    rescue Errno::EPIPE
+      if (retries += 1) <= 3
+        @imap = nil
+        connect
+        retry
+      end
+    end
+    die_from "Null IMAP field '#{field}' for message with id #{id} imap id #{imap_id}." if f.nil?
+
+    fields.map { |field| f[0].attr[field] }
+  end
 end
 
 Redwood::register_yaml(IMAP, %w(uri username password cur_offset usual archived id))
