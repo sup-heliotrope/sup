@@ -15,7 +15,7 @@ class ContactListMode < LineCursorMode
   def initialize mode = :regular
     @mode = mode
     @tags = Tagger.new self
-    reload
+    @num = 0
     super()
   end
 
@@ -37,10 +37,10 @@ class ContactListMode < LineCursorMode
   def apply_to_tagged; @tags.apply_to_tagged; end
 
   def load; regen_text; end
-  def load_more
-    @num += LOAD_MORE_CONTACTS_NUM
+  def load_more num=LOAD_MORE_CONTACTS_NUM
+    @num += num
     regen_text
-    BufferManager.flash "Loaded #{LOAD_MORE_CONTACTS_NUM} more contacts."
+    BufferManager.flash "Added #{num} contacts."
   end
 
   def multi_select people
@@ -70,7 +70,6 @@ class ContactListMode < LineCursorMode
 
   def reload
     @tags.drop_all_tags
-    @num = LOAD_MORE_CONTACTS_NUM
     load
   end
 

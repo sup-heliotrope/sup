@@ -129,7 +129,8 @@ begin
         when :list_buffers
           bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
         when :list_contacts
-          bm.spawn_unless_exists("Contact List") { ContactListMode.new }
+          b = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
+          b.mode.load_more b.content_height
         when :search
           text = bm.ask :search, "query: "
           next unless text && text !~ /^\s*$/
@@ -162,7 +163,9 @@ begin
           when 1
             m = nil
             Index.each_id_by_date(:label => :draft) { |mid, builder| m = builder.call }
-            BufferManager.spawn "Edit message", ResumeMode.new(m)
+            r = ResumeMode.new(m)
+            BufferManager.spawn "Edit message", r
+            r.edit
           else
             b = BufferManager.spawn_unless_exists(:draft) do
               mode = LabelSearchResultsMode.new [:draft]
