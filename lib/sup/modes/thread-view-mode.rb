@@ -173,7 +173,7 @@ class ThreadViewMode < LineCursorMode
     top, bot, prevm, nextm, depth = @messages[m]
     jump_to_line top unless top >= topline &&
       top <= botline && bot >= topline && bot <= botline
-    jump_to_col depth * 2 # sorry!!!!
+    jump_to_col depth * 2 # sorry!!!! TODO: make this a constant
     set_cursor_pos top
   end
 
@@ -195,13 +195,12 @@ class ThreadViewMode < LineCursorMode
       quotes = @chunks[m].select { |c| c.is_a?(Message::Quote) || c.is_a?(Message::Signature) }
       open, closed = quotes.partition { |c| @state[c] == :open }
       newstate = open.length > closed.length ? :closed : :open
-      Redwood::log "#{open.length} opened, #{closed.length} closed, new state is thus #{newstate}"
       quotes.each { |c| @state[c] = newstate }
       update
     end
   end
 
-  ## kinda slow for large threads. TODO: make faster
+  ## kinda slow for large threads. TODO: fasterify
   def cleanup
     BufferManager.say "Marking messages as read..." do
       @thread.each do |m, d, p|
@@ -262,7 +261,7 @@ private
       ## also sorry about the * 2. very, very sorry.
       @messages[m] = [@text.length, @text.length + text.length, prev_m, nil, depth]
       @messages[prev_m][3] = m if prev_m
-      prev_m = m
+      prev_m = m if m.is_a? Message
 
       @text += text
       if @state[m] != :closed && @chunks.member?(m)
@@ -301,7 +300,6 @@ private
       [[prefix_widget, widget, imp_widget,
         [:message_patina_color, 
             "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
-#        (m.to.empty? ? [] : [[[:message_patina_color, prefix + "    To: " + m.recipients.map { |x| x.mediumname }.join(", ")]]]) +
     when :closed
       [[prefix_widget, widget, imp_widget,
         [:message_patina_color, 
@@ -345,8 +343,8 @@ private
       [[[:mime_color, "#{prefix}+ MIME attachment #{chunk.content_type}#{chunk.desc ? ' (' + chunk.desc + ')': ''}"]]]
     when Message::Text
       t = chunk.lines
-      if t.last =~ /^\s*$/
-        t.pop while t[t.length - 2] =~ /^\s*$/
+      if t.last =~ /^\s*$/ && t.length > 1
+        t.pop while t[-2] =~ /^\s*$/ # pop until only one file empty line
       end
       t.map { |line| [[:none, "#{prefix}#{line}"]] }
     when Message::Quote
