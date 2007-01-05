@@ -224,16 +224,16 @@ class Time
         ["minute", 60],
         ["hour", 24],
         ["day", 7],
-        ["week", 4], # heh heh
+        ["week", 4.345], # heh heh
         ["month", 12],
         ["year", nil],
       ].argfind do |unit, size|
         if diff <= 1
           "one #{unit}"
-        elsif size.nil? || diff < size
-          "#{diff} #{unit}s"
+        elsif size.nil? || diff.round < size
+          "#{diff.round} #{unit}s"
         else
-          diff = (diff / size.to_f).round
+          diff /= size.to_f
           false
         end
       end
