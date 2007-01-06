@@ -16,20 +16,26 @@ module MBox
     ## when scanning over large mbox files.
     while(line = f.gets)
       case line
-      when /^From:\s+(.*)$/i: header[last = "From"] = $1
-      when /^To:\s+(.*)$/i: header[last = "To"] = $1
-      when /^Cc:\s+(.*)$/i: header[last = "Cc"] = $1
-      when /^Bcc:\s+(.*)$/i: header[last = "Bcc"] = $1
-      when /^Subject:\s+(.*)$/i: header[last = "Subject"] = $1
-      when /^Date:\s+(.*)$/i: header[last = "Date"] = $1
-      when /^Message-Id:\s+<(.*)>$/i: header[last = "Message-Id"] = $1
-      when /^References:\s+(.*)$/i: header[last = "References"] = $1
-      when /^In-Reply-To:\s+(.*)$/i: header[last = "In-Reply-To"] = $1
-      when /^List-Post:\s+(.*)$/i: header[last = "List-Post"] = $1
-      when /^Reply-To:\s+(.*)$/i: header[last = "Reply-To"] = $1
-      when /^Status:\s+(.*)$/i: header[last = "Status"] = $1
-      when /^Delivered-To:\s+(.*)$/i
-        header[last = "Delivered-To"] = $1 unless header["Delivered-To"]
+      when /^(From):\s+(.*)$/i,
+        /^(To):\s+(.*)$/i,
+        /^(Cc):\s+(.*)$/i,
+        /^(Bcc):\s+(.*)$/i,
+        /^(Subject):\s+(.*)$/i,
+        /^(Date):\s+(.*)$/i,
+        /^(Message-Id):\s+<(.*)>$/i,
+        /^(References):\s+(.*)$/i,
+        /^(In-Reply-To):\s+(.*)$/i,
+        /^(Reply-To):\s+(.*)$/i,
+        /^(List-Post):\s+(.*)$/i,
+        /^(Status):\s+(.*)$/i: header[last = $1.downcase] = $2
+
+      ## these next three can occur multiple times, and we want the
+      ## first one
+        
+      when /^(Delivered-To):\s+(.*)$/i,
+        /^(X-Original-To):\s+(.*)$/i,
+        /^(Envelope-To):\s+(.*)$/i: header[last = $1.downcase] ||= $2
+
       when /^$/: break
       when /:/: last = nil
       else
