@@ -228,7 +228,7 @@ class Time
         ["month", 12],
         ["year", nil],
       ].argfind do |unit, size|
-        if diff <= 1
+        if diff.round <= 1
           "one #{unit}"
         elsif size.nil? || diff.round < size
           "#{diff.round} #{unit}s"
