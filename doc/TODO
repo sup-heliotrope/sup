@@ -1,3 +1,5 @@
+batch deletion
+on startup, multi-threadedly call #connect on all sources 
 support for message-content modules such as ruby-talk:XXXXX detection
 use Net::SMTP
 search for other messages from author in thread-view-mode
@@ -13,9 +15,11 @@ editing of arbitrary messages
 annotations on messages
 gmail
 pop
-move sup-import argument handling to getopt or something
-mark individual messages as spam in thread-view-mode
+move sup-import argument handling to getopt
+be able to mark individual messages as spam in thread-view-mode
 
+x fix snippet repetitions with small snippets
+x fix next and previous in thread-view-mode with <unreceived messages>
 x move sup-import username/password prompts to highline
 x support different remote servers per user account
 x 'R' to quick-resume most recent draft

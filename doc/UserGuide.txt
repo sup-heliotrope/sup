@@ -1,137 +1,193 @@
 Welcome to Sup! Here's how to actually use it.
 
 First, try running 'sup'. Assuming this is your first time, you'll be
-confronted with a mostly blank screen, and a little message at the
-bottom telling you that you have no messages. That's because Sup
-doesn't have any messages in its index yet.
+confronted with a mostly blank screen, and a notice at the bottom that
+you have no new messages. That's because Sup doesn't have any messages
+in its index yet.
 
 If you want to play around a little at this point, you can press 'b'
 to cycle between buffers and 'x' to kill a buffer. There's probably
 not too much interesting there, but there's a log buffer with some
 cryptic messages. You can also press '?' at any point to get a list of
 keyboard commands, but in the absense of any email, these will be
-pretty useless. When you're done, press 'q' to quit.
+mostly useless. When you're bored, press 'q' to quit.
 
-Let's add some messages. In order for Sup to know about an email, it
-must be in the index. In order for Sup to load them it the index, it
-must know the "source" which holds them. The way Sup works is that the
-index holds all the information that is necessary to search, and all
-the state we have about the message (labels, read/unread, etc.), but
-doesn't contain the message itself. When you search or show your
-inbox, Sup just talks to the index (stored locally on disk). When you
-view a message, Sup then goes back to the source and requests it in
-full. Sup also periodically polls the sources for new messages.
+Let's add some messages to Sup. In order for Sup to know about a
+message, it must be in the index. In order for Sup to load a message
+into the index, it must know about the "source" in which it
+resides. Sup works by storing all the information that is necessary to
+search, and all the state we have about the message (labels,
+read/unread, etc.) in the index, but not storing the actual contents
+of the message itself. So when you search or show your inbox, Sup just
+talks to the index (stored locally on disk), and when you view a
+message, Sup requests it in full from the to the source.
 
 So let's tell Sup about some sources. Run 'sup-import' with a URI
 pointing to an email source. The URI should be of the form:
 - mbox://path/to/a/filename, for an mbox file on disk. (You can also
   just provide the filename).
 - imap://imap.server/folder or imaps://secure.imap.server/folder for
-  an IMAP server. (The folder can be blank.)
+  an IMAP folder. (Leave the folder blank for INBOX.)
 - mbox+ssh://remote.machine/path/to/a/filename for a remote mbox file.
 
-There are a few important arguments to sup-import when adding a
-source. The first decision you need to make is whether you want
-messages to be marked as new or not. If you specify --force-read, all
-messages imported at this time will be marked as read. (New messages
-pulled from this source at a later date will be new, of course.) The
-default is to retain the read/unread status as it is in the source.
+Before you actually import message, you need to decide whether you
+want messages them to be archived or not. An archived message will not
+show up in your inbox. (Your inbox is, by definition, all non-archived
+messages). If you specify --force-archive, messages imported at *this*
+time will be archived, but new messages will go to your inbox. If you
+specify --archive, messages imported at *any* time will be
+automatically archived. (This is useful for sources that contain
+high-traffic mailing lists that you don't want "polluting" your
+inbox.)
 
-The second decision is whether you want messages from this source to
-be archived or not. An archived message is one that does not show up
-in your inbox. If you specify --force-archive, messages imported at
-this time will not appear in the inbox. If you specify --archive,
-messages imported at *any* time will not appear in the inbox. (This is
-useful for sources that contain high-traffic mailing lists that you
-don't want "polluting" your inbox.)
+Typically you'll want to specify --archive for every source you import
+except your actual inbox. You can also force all messages to be marked
+as read; run sup-import --help for details. (The default is to
+preserve the read/unread status from the source.)
 
-Now run sup-import. (You can run it on multiple sources at once.) If
-it requires a username and password for the source, it will prompt you
-for one. Either way, it will add that source to Sup, and immediately
-start loading messages from that source into the index. Depending on
-the size of the source, this may take some time. Don't worry! This is
-a one-time process, and all the computation done now makes operating
-on the index faster.
+Run sup-import to add the source. You can run it on multiple sources
+at once if you want to apply the same set of flags to all of them. If
+sup-import requires a username and password for the source, it will
+prompt you for one. Either way, it will add the sources to Sup, and
+immediately start loading messages from them into the index. Depending
+on the size of the source, this may take some time. Don't worry! This
+is a one-time process, and all the computation done now makes actually
+using the index faster.
 
 Now, before we run 'sup' again, take a moment to edit your
 ~/.sup/config.yaml file. Replace "Your Name Here" with your name,
 "your.email.here@domain.tld" with your email address, and fill in your
 .signature file if you choose. You can also set the default editor.
-(If you have multiple email addresses that correspond to this account,
-you can specify them under :alternates, and if you have multiple
-separate email-receiving accounts, you can add new items to :accounts,
-but that requires a little YAML knowledge and is beyond the scope of
-this introduction.)
 
-Ok, we're finally ready to run Sup! Run 'sup'. You should see messages
-being loaded into your "inbox" from the index. Congratulations!
+Ok, we're finally ready---run 'sup'. You should see messages being
+loaded into your inbox from the index. Congratulations!
 
-There are two things that are worth understanding at this point.
-First, Sup does not use folders. Instead, messages can have any number
-of labels applied to them. Rather than viewing a folder, you view the
-results of a search. So your inbox is simply the set of messages that
-have the 'inbox' label applied to them.
+If you're coming from the world of traditional email, there are a
+couple differences you should be aware of at this point. First, Sup
+does not use folders. Instead, you organize and find messages by a
+combination of search and labels (knowns as 'tags' everywhere else in
+the world). I like to say that 95% of the functionality of folders is
+superceded by a quick, easy-to-access, and powerful search mechanism,
+and the other 5% by labels. The Sup statement of philosophy has a
+little more on this. We'll get to search in a moment, but if you're
+unfamiliar with labels, they're just any arbitrary word that you can
+attach to a message, and any message can have zero or more labels. So
+you can think of folders as labels in the case where you're restricted
+to exactly one label per message.
 
-Second, Sup groups together messages into threads. You rarely operate
-on an individual message in Sup. Each line in the inbox is a thread,
-and the number in parentheses is the number of messages in that
-thread. (If there's no number, it means there's just one message.)
+The reason this works at all is due to the second thing you should be
+aware of: in Sup, rather than viewing the contents of a folder, you
+view the results of a search. I mentioned above that your inbox is, by
+definition, the set of all messages that aren't archived. This means
+that your inbox, in fact the result of the search for "all messages
+without the label 'archive'. (It's actually slightly more complicated
+than that---we omit killed, deleted and spam messages as well.)
 
-So use the up and down arrows to highlight a thread. ('j' and 'k' do
-the same thing, and 'J' and 'K' will scroll the whole window. Even the
-left and right arrow keys do something useful!) By default, Sup only
-loads as many threads as it takes to fill the window; if you'd like to
-load more, press 'M'. You can also hit tab to cycle between only new
-messages.
+So you could replicate the folder experience easily under this scheme,
+by giving each message exactly one label and only viewing the results
+of simple searches for those labels. But you'd quickly find out that
+life can be easier than that if you just trust the search engine and
+use labels judiciously to find those things that are too hard with
+search. (The best label I've seen someone use: "contact-info".)
 
-Press enter to view a thread once you've highlighted it. You'll notice
-that all messages in the thread are displayed together. By default,
-only the new messages in a thread are expanded; the others are
-hidden. Press 'E' to expand / collapse all messages, and 'N' to expand
-only the new messages. Use the arrow keys just as before to move
-around the message. You'll also notice that Sup hides quoted text and
-signatures. If you highlight a particular one, you can press enter to
-expand it. You can also press 'o' to open every hidden section in a
-particular message.
+But enough chit-chat. Let's take a look at your inbox. You'll see that
+Sup groups messages together into threads: each line in the inbox is a
+thread, and the number in parentheses is the number of messages in
+that thread. (If there's no number, it means there's just one
+message.) In Sup, you rarely operate on an individual message. The
+idea is that you rarely want to operate on a message independent of
+its context; you typically want to view, archive, kill, or label all
+the messages in a given thread at one time.
 
-A few other useful commands while viewing a thread: press 'd' to
+Use the up and down arrows to highlight a thread. ('j' and 'k' do the
+same thing, and 'J' and 'K' will scroll the whole window, just like
+scroll-lock used to. Even the left and right arrow keys work!) By
+default, Sup only loads as many threads as it takes to fill the
+window; if you'd like to load more, press 'M'. You can hit tab to
+cycle between only threads with new messages.
+
+Highlight a thread and press enter to view it. You'll notice that all
+messages in the thread are displayed together, and their relationship
+is shown graphically (replies are nested under parents). By default,
+only the new messages in a thread are expanded, and the others are
+hidden. You can toggle an individual message's state by highlighting a
+green line and pressing enter. You can use 'E' to expand or collapse
+all messages, and 'N' to expand only the new messages.  You'll also
+notice that Sup hides quoted text and signatures. If you highlight a
+particular one, you can press enter to expand it, or you can press 'o'
+to toggle every hidden section in a particular message. (Don't worry
+about remembering all these things---you can hit '?' to see the full
+list at any point.)
+
+A few other useful commands while viewing a thread. Press 'd' to
 toggle a detailed header. If you've scrolled too far to the right,
-press '[' to jump all the way to the left. Finally, for threads that
-are very large, you can press 'n' and 'p' to jump forward and backward
-between open messages.
+press '[' to jump all the way to the left. Finally, you can press 'n'
+and 'p' to jump forward and backward between open messages. (I find
+that very useful!)
 
-Now press 'x' to kill that buffer. You should see the inbox again.  If
+Now press 'x' to kill that buffer. You should see the inbox again. If
 you don't, you can cycle through the buffers by pressing 'b', or you
 can press 'A' to see a list of all buffers and simply select the
 inbox.
 
-There are many operations you can perform on threads beyond just
-viewing them. To archive a thread, press 'a'. The thread will
-disappear from your inbox, but will still appear in search results. If
-someone replies to the thread, it will reappear in your inbox (with
-the new message in its proper place).
-
-To kill a thread, press '&'. Killed threads will never come back to
-your inbox, even if people reply (but will still be searchable). Useful
+There are many operations you can perform on threads beyond viewing
+them. To archive a thread, press 'a'. The thread will disappear from
+your inbox, but will still appear in search results. If someone
+replies to the thread, it will reappear in your inbox. To kill a
+thread, press '&'. Killed threads will never come back to your inbox,
+even if people reply (but will still be searchable). This is useful
 for those interminable threads that you really have no interest in.
 
 If a thread is spam, press 'S'. It will disappear and won't come
-back. It won't even appear in search results, unless you explicitly
-search for spam.
+back. It won't even appear in search results (unless you explicitly
+search for spam.)
 
 You can also star a thread by pressing '*'. Starred threads are
 displayed with a little yellow asterix next to them, but otherwise
 have no functionality. (But you can also search for them
 easily---we'll see how in a moment).
 
-As I mentioned before, messages have labels. To edit the labels for
-(all the messages in) a thread, press 'l'. Type in the labels as a
-sequence of space-separated words. To cancel the input, press
-control-G.
+To edit the labels for (all the messages in) a thread, press 'l'. Type
+in the labels as a sequence of space-separated words. To cancel the
+input, press Ctrl-G.
 
 Many of these operations can be applied to a group of threads. Press
 't' to tag a thread. Tag a couple, then press ';' to apply the next
 command to the set of threads. ';t', of course, will untag all tagged
 messages.
 
-Ok, let's talk about labels and searching. Press 'L' 
+Ok, let's use labels and search. Press 'L' to bring up a list of all
+the labels you've ever used, along with some special labels (Draft,
+Starred, Spam, etc.). Highlight a label and press enter to view all
+the messages with that label.
+
+To search, press "/" and type in your query (again, Ctrl-G to cancel
+at any point.) You can just type in arbitrary text, which will be
+matched against the bodies of all email in the index, or you can make
+use of the full Ferret query syntax:
+
+- Phrasal queries using double-quotes, e.g.: "three contiguous words"
+- Queries against a particular field using <field name>:<query>,
+  e.g.: label:ruby-talk, or from:matz@ruby-lang.org. (Fields include:
+  body, from, to, and subject.)
+- Force occurrence and non-occurrence with + and -, e.g. +label:spam, or
+  -body:"hot soup"
+
+You can combine those all together. For example:
+     +label:ruby-talk +subject:\[ANN\] -rails
+
+Play around with the search, and see the Ferret documentation for
+details on more sophisticated queries (date ranges, "within n words",
+etc.)
+
+At this point, you're well on your way to figuring out all the cool
+things Sup can do. With judicious use of the '?' key, see if you can
+figure out how to:
+ - List your recent contacts
+ - Add someone to your address book
+ - Easily search for all mail from a recent contact
+ - Postpone a message (i.e., save a draft)
+ - Quickly re-edit a just-saved draft message
+ - View the raw header of a message
+
+Have fun, and let me know if you have any problems. --William
