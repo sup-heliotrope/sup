@@ -106,7 +106,7 @@ class Loader < Source
         @f.gets # now we're at a BREAK_RE, so skip past it
       else # case 2
         returned_offset = cur_offset
-        ## we've already skipped past the BREAK_RE, to just go
+        ## we've already skipped past the BREAK_RE, so just go
       end
 
       while(line = @f.gets)

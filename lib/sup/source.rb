@@ -3,26 +3,48 @@ module Redwood
 class SourceError < StandardError; end
 
 class Source
+  ## Implementing a new source is typically quite easy, because Sup
+  ## only needs to be able to:
+  ##  1. See how many messages it contains
+  ##  2. Get an arbirtrary message
+  ##  3. (optional) see whether the source has marked it read or not
+  ##
+  ## In particular, Sup doesn't need to move messages, mark them as
+  ## read, delete them, or anything else. (Well, maybe delete at some
+  ## point.)
+  ##
+  ## On the other hand, Sup assumes that you can assign each message a
+  ## unique integer id, such that newer messages have higher ids than
+  ## earlier ones, and that those ids stay constant across sessions
+  ## (in the absence of some other client going in and fucking
+  ## everything up). For example, for mboxes I use the file offset of
+  ## the start of the message. If a source does NOT have that
+  ## capability, e.g. IMAP, then you have to do a little more work to
+  ## simulate it.
+  ##
+  ## To write a new source, subclass this class, and should implement:
+  ##
+  ## - start_offset
+  ## - end_offset
+  ## - load_header offset
+  ## - load_message offset
+  ## - raw_header offset
+  ## - raw_full_message offset-
+  ## - next (or each, if you prefer)
+  ##
+  ## You can throw SourceErrors from any of those, but we don't catch
+  ## anything else, so make sure you catch *all* errors and reraise
+  ## them as SourceErrors, and set broken_msg to something if the
+  ## source needs to be rescanned.
+  ##
+  ## Also, be sure to make the source thread-safe, since it WILL be
+  ## pummeled from multiple threads at once.
+
   ## dirty? described whether cur_offset has changed, which means the
-  ## source needs to be re-saved to disk.
+  ## source info needs to be re-saved to sources.yaml.
   ##
   ## broken? means no message can be loaded, e.g. IMAP server is
-  ## down, mbox file is corrupt and needs to be rescanned.
-
-  ## When writing a new source, you should implement:
-  ##
-  ## start_offset
-  ## end_offset
-  ## load_header(offset)
-  ## load_message(offset)
-  ## raw_header(offset)
-  ## raw_full_message(offset)
-  ## next (or each, if you prefer)
-
-  ## you can throw SourceErrors from any of those, but we don't catch
-  ## anything else, so make sure you catch all non-fatal errors and
-  ## reraise them as source errors.
-
+  ## down, mbox file is corrupt and needs to be rescanned, etc.
   bool_reader :usual, :archived, :dirty
   attr_reader :uri, :cur_offset, :broken_msg
   attr_accessor :id
