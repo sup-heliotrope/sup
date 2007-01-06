@@ -170,7 +170,7 @@ begin
     start_offset = nil
     source.each do |offset, labels|
       start_offset ||= offset
-      labels -= [:inbox] if force_archive
+      labels -= [:inbox] if force_archive || archive
       labels -= [:unread] if force_read
       begin
         m = Redwood::Message.new :source => source, :source_info => offset, :labels => labels
