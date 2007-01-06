@@ -10,7 +10,7 @@ class PersonManager
     self.class.i_am_the_instance self
   end
 
-  def name_for email; @names.member?(email) && @names[email][1]; end
+  def name_for email; @names.member?(email) ? @names[email][1] : nil; end
   def register email, name
     return unless name
 
