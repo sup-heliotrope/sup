@@ -27,11 +27,10 @@ module MBox
         /^(In-Reply-To):\s+(.*)$/i,
         /^(Reply-To):\s+(.*)$/i,
         /^(List-Post):\s+(.*)$/i,
-        /^(Status):\s+(.*)$/i: header[last = $1.downcase] = $2
+        /^(Status):\s+(.*)$/i: header[last = $1] = $2
 
       ## these next three can occur multiple times, and we want the
       ## first one
-        
       when /^(Delivered-To):\s+(.*)$/i,
         /^(X-Original-To):\s+(.*)$/i,
         /^(Envelope-To):\s+(.*)$/i: header[last = $1.downcase] ||= $2
