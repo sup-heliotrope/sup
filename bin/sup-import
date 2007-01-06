@@ -183,6 +183,7 @@ begin
 
         m.remove_label :unread if m.source_marked_read? unless force_read
         puts "# message at #{offset}, labels: #{labels * ', '}" if verbose unless rebuild
+        labels.each { |l| Redwood::LabelManager << l }
         if (rebuild || force_rebuild) && 
             (docid, entry = index.load_entry_for_id(m.id)) && entry
           if force_rebuild || entry[:source_info].to_i != offset
