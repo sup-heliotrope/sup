@@ -112,14 +112,18 @@ class IMAP < Source
         #raise Net::IMAP::ByeResponseError, "simulated imap failure"
         @imap = Net::IMAP.new host, port, ssl?
         say "Logging in..."
+
+        ## although RFC1730 claims that "If an AUTHENTICATE command
+        ## fails with a NO response, the client may try another", in
+        ## practice it seems like they will also send BAD responses.
         begin
           @imap.authenticate 'CRAM-MD5', @username, @password
         rescue Net::IMAP::BadResponseError, Net::IMAP::NoResponseError => e
-          say "CRAM-MD5 authentication failed: #{e.class}"
+          Redwood::log "CRAM-MD5 authentication failed: #{e.class}. Trying LOGIN auth..."
           begin
             @imap.authenticate 'LOGIN', @username, @password
           rescue Net::IMAP::BadResponseError, Net::IMAP::NoResponseError => e
-            say "LOGIN authentication failed: #{e.class}"
+            Redwood::log "LOGIN authentication failed: #{e.class}. Trying plain-text LOGIN..."
             @imap.login @username, @password
           end
         end
