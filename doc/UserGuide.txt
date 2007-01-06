@@ -73,9 +73,9 @@ Search and labels are an integral part of Sup because in Sup, rather
 than viewing the contents of a folder, you view the results of a
 search. I mentioned above that your inbox is, by definition, the set
 of all messages that aren't archived. This means that your inbox is,
-in fact, the result of the search for "all messages without the label
-'archive'". It's actually slightly more complicated---we omit killed,
-deleted and spam messages as well.
+in fact, the result of the search for all messages with the label
+"inbox". (It's actually slightly more complicated---we omit killed,
+deleted and spam messages as well.)
 
 So you could replicate the folder paradigm easily under this scheme,
 by giving each message exactly one label and only viewing the results
