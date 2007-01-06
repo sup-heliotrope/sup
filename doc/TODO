@@ -1,4 +1,6 @@
+fix bug: when returning from a shelling out, ncurses is crazy 
 batch deletion
+maildir
 on startup, multi-threadedly call #connect on all sources 
 support for message-content modules such as ruby-talk:XXXXX detection
 use Net::SMTP
@@ -18,6 +20,7 @@ pop
 move sup-import argument handling to getopt
 be able to mark individual messages as spam in thread-view-mode
 
+x fix bug: envelope-to thing still not working
 x fix snippet repetitions with small snippets
 x fix next and previous in thread-view-mode with <unreceived messages>
 x move sup-import username/password prompts to highline
