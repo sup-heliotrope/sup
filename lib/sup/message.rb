@@ -130,7 +130,8 @@ class Message
         nil
       end
 
-    @recipient_email = header["x-original-to"] || header["envelope-to"] || header["delivered-to"]
+    @recipient_email = header["envelope-to"] || header["x-original-to"] || header["delivered-to"]
+    Redwood::log "XXX re is #{@recipient_email.inspect}, from #{header["envelope-to"]} || #{header["x-original-to"]} || #{header["delivered-to"]}"
     @source_marked_read = header["status"] == "RO"
   end
   private :read_header
