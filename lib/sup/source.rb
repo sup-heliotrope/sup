@@ -10,8 +10,8 @@ class Source
   ##  3. (optional) see whether the source has marked it read or not
   ##
   ## In particular, Sup doesn't need to move messages, mark them as
-  ## read, delete them, or anything else. (Well, maybe delete at some
-  ## point.)
+  ## read, delete them, or anything else. (Well, at some point it will
+  ## need to delete them, but that will be an optional capability.)
   ##
   ## On the other hand, Sup assumes that you can assign each message a
   ## unique integer id, such that newer messages have higher ids than
@@ -22,15 +22,19 @@ class Source
   ## capability, e.g. IMAP, then you have to do a little more work to
   ## simulate it.
   ##
-  ## To write a new source, subclass this class, and should implement:
+  ## To write a new source, subclass this class, and implement:
   ##
   ## - start_offset
   ## - end_offset
+  ## - pct_done (percent of the way cur_offset is to end_offset)
   ## - load_header offset
   ## - load_message offset
   ## - raw_header offset
-  ## - raw_full_message offset-
+  ## - raw_full_message offset
   ## - next (or each, if you prefer)
+  ##
+  ## ... where "offset" really means unique id. (You can tell I
+  ## started with mbox.)
   ##
   ## You can throw SourceErrors from any of those, but we don't catch
   ## anything else, so make sure you catch *all* errors and reraise
@@ -39,6 +43,11 @@ class Source
   ##
   ## Also, be sure to make the source thread-safe, since it WILL be
   ## pummeled from multiple threads at once.
+  ##
+  ## Two examples for you to look at, though sadly neither of them is
+  ## as simple as I'd like: mbox/loader.rb and imap.rb
+
+
 
   ## dirty? described whether cur_offset has changed, which means the
   ## source info needs to be re-saved to sources.yaml.
