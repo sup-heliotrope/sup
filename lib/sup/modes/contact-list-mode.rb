@@ -100,8 +100,7 @@ protected
 
   def regen_text
     @user_contacts = ContactManager.contacts.invert
-    recent = Index.load_contacts AccountManager.user_emails,
-                                 :num => @num
+    recent = Index.load_contacts AccountManager.user_emails, :num => [@num - @user_contacts.length, 0].max
     
     @contacts = (@user_contacts.keys + recent.select { |p| !@user_contacts[p] }).sort_by { |p| p.sort_by_me + (p.name || "") + p.email }.remove_successive_dupes
 
