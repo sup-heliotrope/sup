@@ -1,3 +1,8 @@
+== 0.0.5 / 2007-01-05
+
+* More bugfixes, primarily for IMAP.
+* doc/UserGuide.txt
+
 == 0.0.4 / 2007-01-03
  
 * Bugfixes, primarily for threaded networking.
