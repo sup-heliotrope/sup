@@ -1,6 +1,6 @@
 Should an email client have a philosophy? I think so. For many people,
-email is our primary means of communication. Something so important
-ought to warrant a little thought.
+email is one of our primary means of communication. Something so
+important ought to warrant a little thought.
 
 So here's Sup's philosophy.
 
@@ -9,38 +9,38 @@ Anyone who's on a high-traffic mailing list knows this.  My ruby-talk
 folder is 350 megs and Mutt sits there for 60 seconds while it opens
 it. Keeping up with the all the new traffic is painful, even with
 Mutt's excellent threading features, simply because there's so much of
-it---a single thread can span several pages, and God help you if you
-lag behind. And Mutt is probably the best email client out there in
+it. A single thread can span several pages in the folder index view
+alone! And Mutt is probably the fastest email client out there in
 terms of threading and mailing list support. God help me if I try and
 throw Thunderbird at that.
 
 The principle problem with traditional clients is that they deal with
-individual pieces of email, and place a high mental cost on the user
+individual pieces of email. This places a high mental cost on the user
 for each incoming email, by forcing them to ask: Should I keep this
-email, or delete it?  If I keep it, where should I file it?
-
-I've spent the last 10 years of my life laboriously hand-filing every
-email message I received and feeling a mild sense of panic every time
-an email was both "from Mom" and "about school". The massive amounts
-of email that many people receive, and the cheap cost of storage, have
-made these questions both more costly and less useful to answer.
+email, or delete it? If I keep it, where should I file it?
+For example, I've spent the last 10 years of my life laboriously
+hand-filing every email message I received and feeling a mild sense of
+panic every time an email was both "from Mom" and "about school". The
+massive amounts of email that many people receive, and the cheap cost
+of storage, have made these questions both more costly and less useful
+to answer.
 
 As a long-time Mutt user, when I first watched people use GMail, I saw
-them use email differently from how I had ever used it. I saw that
-making certain operations quantitatively easier (namely, search)
-resulted in a qualitative difference in usage: you don't have to worry
-about filing correctly, because you can always find things later by
-search. And I saw that thread-centrism had many advantages over
-message-centrism when message volume was high.
+them use their email client differently from how I had ever used it. I
+saw that making certain operations quantitatively easier (namely,
+search) resulted in a qualitative difference in usage: you don't have
+to worry about filing correctly, because you can always find things
+later by search. And I saw that thread-centrism had many advantages
+over message-centrism when message volume was high.
 
 So, in many ways, I believe GMail has taken the right approach to
 handle both of the factors above, and much of the inspiration for Sup
 was based on GMail. I think it's to the GMail designers' credit that
 they started with a somewhat ad-hoc idea (hey, we're really good at
-search engines, so can we build an email client on top of one?) and
-managed to build something that was actually better than everything
-else out there. But ultimately, GMail wasn't right for me (see FAQ),
-which is why the idea for Sup was born.
+search engines, so maybe we can build an email client on top of one)
+and managed to build something that was actually better than
+everything else out there. But ultimately, GMail wasn't right for me
+(see FAQ), which is why the idea for Sup was born.
 
 Sup is based on the following principles, which I more or less stole
 directly from GMail:
@@ -60,6 +60,6 @@ directly from GMail:
 Sup is also based on many ideas from mutt and Emacs and vi, having to
 do with the fantastic productivity of a console- and keyboard-based
 application, the usefulness of multiple buffers, the necessity of
-handling multiple email accounts, etc.
+handling multiple email accounts, etc. But those are just details!
 
 Give it a go and let me know what you think.
