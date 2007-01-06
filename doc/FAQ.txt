@@ -1,12 +1,10 @@
 Sup FAQ
 -------
 Q: What does Sup stand for?
-
 A: It stands for "what's up?", which is more or less the question I'm
    asking when I read my mail.
 
 Q: If you love GMail so much, why not just use it?
-
 A: I hate using a mouse, and I hate ads, and I hate non-programmability
    and non-extensibility.
 
