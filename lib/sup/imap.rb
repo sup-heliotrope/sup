@@ -112,7 +112,17 @@ class IMAP < Source
         #raise Net::IMAP::ByeResponseError, "simulated imap failure"
         @imap = Net::IMAP.new host, port, ssl?
         say "Logging in..."
-        @imap.authenticate 'LOGIN', @username, @password
+        begin
+          @imap.authenticate 'CRAM-MD5', @username, @password
+        rescue Net::IMAP::BadResponseError, Net::IMAP::NoResponseError => e
+          say "CRAM-MD5 authentication failed: #{e.class}"
+          begin
+            @imap.authenticate 'LOGIN', @username, @password
+          rescue Net::IMAP::BadResponseError, Net::IMAP::NoResponseError => e
+            say "LOGIN authentication failed: #{e.class}"
+            @imap.login @username, @password
+          end
+        end
         scan_mailbox
         say "Successfully connected to #{@parsed_uri}."
       rescue SocketError, Net::IMAP::Error, SourceError => e
@@ -190,7 +200,7 @@ private
     message =
       case e
       when Exception
-        "Error while #{opts[:while]}: #{e.message.chomp}."
+        "Error while #{opts[:while]}: #{e.message.chomp} (#{e.class.name})."
       when String
         e
       end
@@ -199,7 +209,7 @@ private
 
     self.broken_msg = message
     Redwood::log message
-    BufferManager.flash "Error communicating with IMAP server. See log for details."
+    BufferManager.flash "Error communicating with IMAP server. See log for details." if BufferManager.instantiated?
     raise SourceError, message
   end
   
