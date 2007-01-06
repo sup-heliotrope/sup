@@ -1,3 +1,6 @@
+== 0.0.6 / 2007-01-06
+* Very minor fix to support more types of IMAP authentication.
+
 == 0.0.5 / 2007-01-05
 
 * More bugfixes, primarily for IMAP.
