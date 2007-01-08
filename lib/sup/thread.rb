@@ -59,6 +59,7 @@ class Thread
     end
   end
 
+  def first; each { |m, *o| return m if m }; nil; end
   def dirty?; any? { |m, *o| m && m.dirty? }; end
   def date; map { |m, *o| m.date if m }.compact.max; end
   def snippet; argfind { |m, *o| m && m.snippet }; end
@@ -220,13 +221,13 @@ class ThreadSet
     (c = @messages[m.id]) && c.root.thread
   end
 
-  def delete_empties
-    @subj_thread.each { |k, v| @subj_thread.delete(k) if v.empty? }
+  def delete_cruft
+    @subj_thread.each { |k, v| @subj_thread.delete(k) if v.empty? || v.subj != k }
   end
-  private :delete_empties
+  private :delete_cruft
 
-  def threads; delete_empties; @subj_thread.values; end
-  def size; delete_empties; @subj_thread.size; end
+  def threads; delete_cruft; @subj_thread.values; end
+  def size; delete_cruft; @subj_thread.size; end
 
   def dump
     @subj_thread.each do |s, t|
@@ -323,38 +324,68 @@ class ThreadSet
 
     if root == oldroot
       if oldroot.thread
-        #        puts "*** root (#{root.subj}) == oldroot (#{oldroot.subj}); ignoring"
+        ## check to see if the subject is still the same (in the case
+        ## that we first added a child message with a different
+        ## subject)
+
+        ## this code is duplicated below. sorry! TODO: refactor
+        s = Message.normalize_subj(root.subj)
+        unless @subj_thread[s] == root.thread
+          ## Redwood::log "[1] moving thread to new subject #{root.subj}"
+          if @subj_thread[s]
+            @subj_thread[s] << root
+            root.thread = @subj_thread[s]
+          else
+            @subj_thread[s] = root.thread
+          end
+        end
+
       else
         ## to disable subject grouping, use the next line instead
         ## (and the same for below)
-        #Redwood::log "[1] normalized subject for #{id} is #{Message.normalize_subj(root.subj)}"
+        #Redwood::log "[1] for #{root}, subject #{Message.normalize_subj(root.subj)} has #{@subj_thread[Message.normalize_subj(root.subj)] ? 'a' : 'no'} thread"
         thread = (@subj_thread[Message.normalize_subj(root.subj)] ||= Thread.new)
         #thread = (@subj_thread[root.id] ||= Thread.new)
 
         thread << root
         root.thread = thread
-        #        puts "# (1) added #{root} to #{thread}"
+        # Redwood::log "[1] added #{root} to #{thread}"
       end
     else
       if oldroot.thread
         ## new root. need to drop old one and put this one in its place
-        #        puts "*** DROPPING #{oldroot} from #{oldroot.thread}"
         oldroot.thread.drop oldroot
         oldroot.thread = nil
       end
 
       if root.thread
-        #        puts "*** IGNORING cuz root already has a thread"
+        ## check to see if the subject is still the same (in the case
+        ## that we first added a child message with a different
+        ## subject)
+        s = Message.normalize_subj(root.subj)
+        unless @subj_thread[s] == root.thread
+          # Redwood::log "[2] moving thread to new subject #{root.subj}"
+          if @subj_thread[s]
+            @subj_thread[s] << root
+            root.thread = @subj_thread[s]
+          else
+            @subj_thread[s] = root.thread
+          end
+        end
+
       else
         ## to disable subject grouping, use the next line instead
         ## (and the same above)
-        #Redwood::log "[2] normalized subject for #{id} is #{Message.normalize_subj(root.subj)}"
+        
+        ## this code is duplicated above. sorry! TODO: refactor
+        # Redwood::log "[2] for #{root}, subject '#{Message.normalize_subj(root.subj)}' has #{@subj_thread[Message.normalize_subj(root.subj)] ? 'a' : 'no'} thread"
+
         thread = (@subj_thread[Message.normalize_subj(root.subj)] ||= Thread.new)
         #thread = (@subj_thread[root.id] ||= Thread.new)
 
         thread << root
         root.thread = thread
-        #        puts "# (2) added #{root} to #{thread}"
+        # Redwood::log "[2] added #{root} to #{thread}"
       end
     end
 
