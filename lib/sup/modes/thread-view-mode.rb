@@ -107,29 +107,16 @@ class ThreadViewMode < LineCursorMode
     update
   end
 
-  def save fn
-    if File.exists? fn
-      return unless BufferManager.ask_yes_or_no "File exists. Overwrite?"
-    end
-    begin
-      File.open(fn, "w") { |f| yield f }
-      BufferManager.flash "Successfully wrote #{fn}."
-    rescue SystemCallError => e
-      BufferManager.flash "Error writing to file: #{e.message}"
-    end
-  end
-  private :save
-
   def save_to_disk
     return unless(chunk = @chunk_lines[curpos])
     case chunk
     when Message::Attachment
-      fn = BufferManager.ask :filename, "save attachment to file: ", chunk.filename
-      save(fn) { |f| f.print chunk } if fn
+      fn = BufferManager.ask :filename, "Save attachment to file: ", chunk.filename
+      save_to_file(fn) { |f| f.print chunk } if fn
     else
       m = @message_lines[curpos]
-      fn = BufferManager.ask :filename, "save message to file: "
-      save(fn) { |f| f.print m.raw_full_message } if fn
+      fn = BufferManager.ask :filename, "Save message to file: "
+      save_to_file(fn) { |f| f.print m.raw_full_message } if fn
     end
   end
 

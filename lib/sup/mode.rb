@@ -75,6 +75,19 @@ EOS
       s
     end.compact.join "\n"
   end
+
+  ## helper function
+  def save_to_file fn
+    if File.exists? fn
+      return unless BufferManager.ask_yes_or_no "File exists. Overwrite?"
+    end
+    begin
+      File.open(fn, "w") { |f| yield f }
+      BufferManager.flash "Successfully wrote #{fn}."
+    rescue SystemCallError => e
+      BufferManager.flash "Error writing to file: #{e.message}"
+    end
+  end
 end
 
 end

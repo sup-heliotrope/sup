@@ -3,6 +3,7 @@ module Redwood
 class LogMode < TextMode
   register_keymap do |k|
     k.add :toggle_follow, "Toggle follow mode", 'f'
+    k.add :save_to_disk, "Save log to disk", 's'
   end
 
   def initialize
@@ -34,6 +35,11 @@ class LogMode < TextMode
       follow_top = lines - buffer.content_height + 1
       jump_to_line follow_top if topline < follow_top
     end
+  end
+
+  def save_to_disk
+    fn = BufferManager.ask :filename, "Save log to file: "
+    save_to_file(fn) { |f| f.puts text } if fn
   end
 
   def status
