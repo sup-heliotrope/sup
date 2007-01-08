@@ -10,7 +10,7 @@ class SentManager
     self.class.i_am_the_instance self
   end
 
-  def self.source_name; "sent://"; end
+  def self.source_name; "sup://sent"; end
   def self.source_id; 9998; end
   def new_source; @source = SentLoader.new; end
 

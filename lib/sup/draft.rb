@@ -10,7 +10,7 @@ class DraftManager
     self.class.i_am_the_instance self
   end
 
-  def self.source_name; "drafts://"; end
+  def self.source_name; "sup://drafts"; end
   def self.source_id; 9999; end
   def new_source; @source = DraftLoader.new; end
 
