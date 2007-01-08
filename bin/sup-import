@@ -128,6 +128,7 @@ index.load
 sources = ARGV.map do |uri|
   uri = "mbox://#{uri}" unless uri =~ %r!://!
   source = index.source_for uri
+  puts "source for #{uri} is #{source}"
   unless source
     source = 
       case uri

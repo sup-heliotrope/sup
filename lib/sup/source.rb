@@ -87,7 +87,7 @@ class Source
       true
     end
   end
-  def is_source_for? s; to_s == s; end
+  def is_source_for? uri; URI(self.uri) == URI(uri); end
 
   def each
     return if broken?
