@@ -1,3 +1,4 @@
+fix up contact list mode: should display while loading, and when you add an alias, should move everything else to the right
 add a flag to sup-import to force the creation of a new source (see http://rubyforge.org/forum/forum.php?thread_id=10973&forum_id=10340)
 fix bug: when returning from a shelling out, ncurses is crazy 
 batch deletion
@@ -7,6 +8,7 @@ support for message-content modules such as ruby-talk:XXXXX detection
 use Net::SMTP
 search for other messages from author in thread-view-mode
 forward attachments
+CREATE attachments
 tab completion on labels, contacts
 within-buffer search
 contact selector in edit-message-mode
