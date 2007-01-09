@@ -48,6 +48,7 @@ class DraftLoader < Source
 
   def id; DraftManager.source_id; end
   def to_s; DraftManager.source_name; end
+  def uri; DraftManager.source_name; end
 
   def each
     Dir.entries(@dir).select { |x| x =~ /^\d+$/ }.sort_by { |x| x.to_i }.each { |id| yield [id, [:draft]] }

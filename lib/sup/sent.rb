@@ -36,6 +36,7 @@ class SentLoader < MBox::Loader
     super "mbox://" + filename, cur_offset, true, true
   end
 
+  def uri; SentManager.source_name; end
   def to_s; SentManager.source_name; end
   def id; SentManager.source_id; end
   def labels; [:sent, :inbox]; end
