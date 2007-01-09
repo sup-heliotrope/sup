@@ -54,10 +54,13 @@ The following options can also be specified:
   --rebuild:       rebuild the index for the specified sources rather than
                    just adding new messages. Useful if the sources
                    have changed in any way *other* than new messages
-                   being added.
+                   being added. Only updates messages if the offsets have
+                   changed.
   --force-rebuild: force a rebuild of all messages in the inbox, not just
                    ones that have changed. You probably won't need this
                    unless William changes the index format.
+  --overwrite-labels: if rebuilding, update message if the labels have
+                   changed, not just the offset.
   --optimize:      optimize the index after adding any new messages.
   --help:          don't do anything, just show this message.
 EOS
@@ -106,6 +109,7 @@ force_read = ARGV.delete "--force-read"
 the_usual = ARGV.delete "--the-usual"
 rebuild = ARGV.delete "--rebuild"
 force_rebuild = ARGV.delete "--force-rebuild"
+overwrite_labels = ARGV.delete "--overwrite-labels"
 optimize = ARGV.delete "--optimize"
 verbose = ARGV.delete "--verbose"
 start_at = # ok really need to use optparse or something now
@@ -169,6 +173,8 @@ begin
     num = 0
     start_offset = nil
     source.each do |offset, labels|
+      labels.each { |l| Redwood::LabelManager << l }
+
       start_offset ||= offset
       labels -= [:inbox] if force_archive || archive
       labels -= [:unread] if force_read
@@ -181,14 +187,19 @@ begin
           found[m.id] = true
         end
 
-        m.remove_label :unread if m.source_marked_read? unless force_read
-        puts "# message at #{offset}, labels: #{labels * ', '}" if verbose unless rebuild
-        labels.each { |l| Redwood::LabelManager << l }
-        if (rebuild || force_rebuild) && 
-            (docid, entry = index.load_entry_for_id(m.id)) && entry
-          if force_rebuild || entry[:source_info].to_i != offset
-            puts "replacing message #{m.id} labels #{entry[:label].inspect} (offset #{entry[:source_info]} => #{offset})"
-            m.labels = entry[:label].split.map { |l| l.intern }
+        if m.source_marked_read?
+          m.remove_label :unread
+          labels -= [:unread]
+        end
+        puts "# message at #{offset}, labels: #{labels * ' '}" if verbose
+
+        ## possibly rebuild the message
+        if (rebuild || force_rebuild) && (docid, entry = index.load_entry_for_id(m.id)) && entry
+          oldlabels = entry[:label].split(" ").sort
+          newlabels = labels.map { |x| x.to_s }.sort
+          if force_rebuild || entry[:source_info].to_i != offset || (overwrite_labels && (oldlabels != newlabels))
+            puts "replacing message #{m.id}: offset #{entry[:source_info]} => #{offset}, labels #{oldlabels * ' '} => #{newlabels * ' '}"
+            m.labels = newlabels.map { |l| l.intern } if overwrite_labels
             num += 1 if index.update_message m, source, offset
           end
         else
