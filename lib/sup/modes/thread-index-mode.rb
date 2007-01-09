@@ -113,22 +113,28 @@ class ThreadIndexMode < LineCursorMode
     end
   end
 
-  def toggle_starred t=@threads[curpos]
+  ## i always hate people who name things like this...
+  def actually_toggle_starred t=@threads[curpos]
     if t.has_label? :starred # if ANY message has a star
       t.remove_label :starred # remove from all
     else
       t.first.add_label :starred # add only to first
     end
+  end  
+
+  def toggle_starred 
+    actually_toggle_starred
     update_text_for_line curpos
     cursor_down
   end
 
   def multi_toggle_starred threads
-    threads.each { |t| toggle_starred t }
+    threads.each { |t| actually_toggle_starred t }
+    regen_text
   end
 
-  def toggle_archived
-    return unless(t = @threads[curpos])
+  def toggle_archived 
+    t = @threads[curpos] or return
     t.toggle_label :inbox
     update_text_for_line curpos
     cursor_down
@@ -141,11 +147,13 @@ class ThreadIndexMode < LineCursorMode
 
   def toggle_new
     t = @threads[curpos] or return
+    t.toggle_label :unread
     update_text_for_line curpos
     cursor_down
   end
 
   def multi_toggle_new threads
+    threads.each { |t| t.toggle_label :unread }
     regen_text
   end
 
