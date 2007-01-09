@@ -1,4 +1,24 @@
-require 'date'
+## Herein is all the code responsible for threading messages. I use an
+## online version of the JWZ threading algorithm:
+## http://www.jwz.org/doc/threading.html
+##
+## I certainly didn't implement it for efficiency, but thanks to our
+## search engine backend, it's typically not applied to very many
+## messages at once.
+
+## At the top level, we have a ThreadSet. A ThreadSet represents a set
+## of threads, e.g. a message folder or an inbox. Each ThreadSet
+## contains zero or more Threads. A Thread represents all the message
+## related to a particular subject. Each Thread has one or more
+## Containers. A Container is a recursive structure that holds the
+## tree structure as determined by the references: and in-reply-to:
+## headers. A Thread with multiple Containers occurs if they have the
+## same subject, but (most likely due to someone using a primitive
+## MUA) we don't have evidence from in-reply-to: or references:
+## headers, only subject: (and thus our tree is probably broken). A
+## Container holds zero or one message. In the case of no message, it
+## means we've seen a reference to the message but haven't seen the
+## message itself (yet).
 
 module Redwood
 
@@ -30,9 +50,8 @@ class Thread
     puts "=== end thread ==="
   end
 
-  ## yields each message, its depth, and its parent
-  ## note that the message can be a Message object, or :fake_root,
-  ## or nil.
+  ## yields each message, its depth, and its parent.  note that the
+  ## message can be a Message object, or :fake_root, or nil.
   def each fake_root=false
     adj = 0
     root = @containers.find_all { |c| !Message.subj_is_reply?(c) }.argmin { |c| c.date }
