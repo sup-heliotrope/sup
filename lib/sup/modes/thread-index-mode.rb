@@ -1,3 +1,4 @@
+require 'thread'
 module Redwood
 
 ## subclasses should implement load_threads
@@ -105,7 +106,7 @@ class ThreadIndexMode < LineCursorMode
   end
 
   def edit_message
-    t = @threads[curpos] or return
+    return unless(t = @threads[curpos])
     message, *crap = t.find { |m, *o| m.has_label? :draft }
     if message
       mode = ResumeMode.new message
@@ -115,16 +116,19 @@ class ThreadIndexMode < LineCursorMode
     end
   end
 
-  def toggle_starred
-    t = @threads[curpos] or return
-    @starred_cache[t] = t.toggle_label :starred
+  def toggle_starred t=@threads[curpos]
+    if t.has_label? :starred # if ANY message has a star
+      t.remove_label :starred # remove from all
+    else
+      t.first.add_label :starred # add only to first
+    end
+    @starred_cache[t] = t.first.has_label? :starred
     update_text_for_line curpos
     cursor_down
   end
 
   def multi_toggle_starred threads
-    threads.each { |t| @starred_cache[t] = t.toggle_label :starred }
-    regen_text
+    threads.each { |t| toggle_starred t }
   end
 
   def toggle_archived
@@ -365,8 +369,19 @@ protected
       from += "." unless from[-1] == ?\s
     end
 
-    new = @new_cache.member?(t) ? @new_cache[t] : @new_cache[t] = t.has_label?(:unread)
-    starred = @starred_cache.member?(t) ? @starred_cache[t] : @starred_cache[t] = t.has_label?(:starred)
+
+    ## ok, turns out it's not so simple. messages can be added to the
+    ## threadset at any point, which can affect these values, so i'm
+    ## going to ignore the caches for now.
+    ##
+    ## for real caching to work we'd have to have a dirty mechanism on
+    ## the threadset.
+    
+    new = t.has_label?(:unread)
+    # new = @new_cache.member?(t) ? @new_cache[t] : @new_cache[t] = t.has_label?(:unread)
+
+    starred = t.has_label?(:starred)
+    # starred = @starred_cache.member?(t) ? @starred_cache[t] : @starred_cache[t] = t.has_label?(:starred)
 
     dp = (@dp_cache[t] ||= t.direct_participants.any? { |p| AccountManager.is_account? p })
     p = (@p_cache[t] ||= (dp || t.participants.any? { |p| AccountManager.is_account? p }))
@@ -392,6 +407,7 @@ private
 
   def initialize_threads
     @ts = ThreadSet.new Index.instance
+    @ts_mutex = Mutex.new
     @date_cache = {}
     @who_cache = {}
     @dp_cache = {}

@@ -45,7 +45,7 @@ class Index
     @sources[source.id] = source
   end
 
-  def source_for name; @sources.values.find { |s| s.is_source_for? name }; end
+  def source_for uri; @sources.values.find { |s| s.is_source_for? uri }; end
   def usual_sources; @sources.values.find_all { |s| s.usual? }; end
   def sources; @sources.values; end
 
@@ -231,8 +231,8 @@ class Index
     @index.add_document d
     
     ## TODO: figure out why this is sometimes triggered
-    #docid, entry = load_entry_for_id m.id
-    #raise "just added message #{m.id} but couldn't find it in a search" unless docid
+    docid, entry = load_entry_for_id m.id
+    raise "just added message #{m.id} but couldn't find it in a search" unless docid
     true
   end
 
