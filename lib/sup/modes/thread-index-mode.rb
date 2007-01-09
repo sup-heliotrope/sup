@@ -70,13 +70,11 @@ class ThreadIndexMode < LineCursorMode
   
   def handle_starred_update m
     return unless(t = @ts.thread_for m)
-    @starred_cache[t] = t.has_label? :starred
     update_text_for_line @lines[t]
   end
 
   def handle_read_update m
     return unless(t = @ts.thread_for m)
-    @new_cache[t] = false
     update_text_for_line @lines[t]
   end
 
@@ -86,7 +84,6 @@ class ThreadIndexMode < LineCursorMode
   def handle_add_update m
     if is_relevant?(m) || @ts.is_relevant?(m)
       @ts.load_thread_for_message m
-      @new_cache.delete @ts.thread_for(m) # force recalculation of newness
       update
     end
   end
@@ -122,7 +119,6 @@ class ThreadIndexMode < LineCursorMode
     else
       t.first.add_label :starred # add only to first
     end
-    @starred_cache[t] = t.first.has_label? :starred
     update_text_for_line curpos
     cursor_down
   end
@@ -145,13 +141,11 @@ class ThreadIndexMode < LineCursorMode
 
   def toggle_new
     t = @threads[curpos] or return
-    @new_cache[t] = t.toggle_label :unread
     update_text_for_line curpos
     cursor_down
   end
 
   def multi_toggle_new threads
-    threads.each { |t| @new_cache[t] = t.toggle_label :unread }
     regen_text
   end
 
@@ -162,8 +156,8 @@ class ThreadIndexMode < LineCursorMode
 
   def jump_to_next_new
     t = @threads[curpos] or return
-    n = ((curpos + 1) .. lines).find { |i| @new_cache[@threads[i]] }
-    n = (0 ... curpos).find { |i| @new_cache[@threads[i]] } unless n
+    n = ((curpos + 1) ... lines).find { |i| @threads[i].has_label? :unread }
+    n = (0 ... curpos).find { |i| @threads[i].has_label? :unread } unless n
     if n
       set_cursor_pos n
     else
@@ -362,29 +356,18 @@ protected
   end
 
   def text_for_thread t
-    date = (@date_cache[t] ||= t.date.to_nice_s(Time.now)) 
-    from = (@who_cache[t] ||= author_text_for_thread(t))
+    date = t.date.to_nice_s(Time.now)
+    from = author_text_for_thread(t)
     if from.length > @from_width
       from = from[0 ... (@from_width - 1)]
       from += "." unless from[-1] == ?\s
     end
 
-
-    ## ok, turns out it's not so simple. messages can be added to the
-    ## threadset at any point, which can affect these values, so i'm
-    ## going to ignore the caches for now.
-    ##
-    ## for real caching to work we'd have to have a dirty mechanism on
-    ## the threadset.
-    
     new = t.has_label?(:unread)
-    # new = @new_cache.member?(t) ? @new_cache[t] : @new_cache[t] = t.has_label?(:unread)
-
     starred = t.has_label?(:starred)
-    # starred = @starred_cache.member?(t) ? @starred_cache[t] : @starred_cache[t] = t.has_label?(:starred)
 
-    dp = (@dp_cache[t] ||= t.direct_participants.any? { |p| AccountManager.is_account? p })
-    p = (@p_cache[t] ||= (dp || t.participants.any? { |p| AccountManager.is_account? p }))
+    dp = t.direct_participants.any? { |p| AccountManager.is_account? p }
+    p = dp || t.participants.any? { |p| AccountManager.is_account? p }
 
     base_color = (new ? :index_new_color : :index_old_color)
     [ 
@@ -408,12 +391,6 @@ private
   def initialize_threads
     @ts = ThreadSet.new Index.instance
     @ts_mutex = Mutex.new
-    @date_cache = {}
-    @who_cache = {}
-    @dp_cache = {}
-    @p_cache = {}
-    @new_cache = {}
-    @starred_cache = {}
     @hidden_threads = {}
   end
 end
