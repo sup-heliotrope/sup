@@ -197,9 +197,15 @@ begin
         if (rebuild || force_rebuild) && (docid, entry = index.load_entry_for_id(m.id)) && entry
           oldlabels = entry[:label].split(" ").sort
           newlabels = labels.map { |x| x.to_s }.sort
+
           if force_rebuild || entry[:source_info].to_i != offset || (overwrite_labels && (oldlabels != newlabels))
-            puts "replacing message #{m.id}: offset #{entry[:source_info]} => #{offset}, labels #{oldlabels * ' '} => #{newlabels * ' '}"
-            m.labels = newlabels.map { |l| l.intern } if overwrite_labels
+            if overwrite_labels
+              puts "replacing message #{m.id}: offset #{entry[:source_info]} => #{offset}, labels #{oldlabels * ' '} => #{newlabels * ' '}"
+              m.labels = newlabels.map { |l| l.intern }              
+            else
+              puts "replacing message #{m.id}: offset #{entry[:source_info]} => #{offset}"
+              m.labels = oldlabels
+            end
             num += 1 if index.update_message m, source, offset
           end
         else
