@@ -228,6 +228,7 @@ private
   end
 
   def safely
+    retried = false
     begin
       yield
     rescue Net, SocketError, Net::IMAP::Error => e
