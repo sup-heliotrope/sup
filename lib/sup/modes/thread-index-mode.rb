@@ -163,7 +163,6 @@ class ThreadIndexMode < LineCursorMode
   end
 
   def jump_to_next_new
-    t = @threads[curpos] or return
     n = ((curpos + 1) ... lines).find { |i| @threads[i].has_label? :unread }
     n = (0 ... curpos).find { |i| @threads[i].has_label? :unread } unless n
     if n

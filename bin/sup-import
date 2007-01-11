@@ -5,7 +5,6 @@ require 'rubygems'
 require 'highline/import'
 require "sup"
 
-
 Thread.abort_on_exception = true # make debugging possible
 
 class Float
