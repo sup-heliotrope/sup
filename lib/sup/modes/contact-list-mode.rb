@@ -5,7 +5,7 @@ class ContactListMode < LineCursorMode
 
   register_keymap do |k|
     k.add :load_more, "Load #{LOAD_MORE_CONTACTS_NUM} more contacts", 'M'
-    k.add :reload, "Reload contacts", 'R'
+    k.add :reload, "Drop contact list and reload", 'D'
     k.add :alias, "Edit alias for contact", 'a'
     k.add :toggle_tagged, "Tag/untag current line", 't'
     k.add :apply_to_tagged, "Apply next command to all tagged items", ';'
@@ -15,7 +15,8 @@ class ContactListMode < LineCursorMode
   def initialize mode = :regular
     @mode = mode
     @tags = Tagger.new self
-    @num = 0
+    @num = nil
+    @text = []
     super()
   end
 
@@ -36,9 +37,9 @@ class ContactListMode < LineCursorMode
 
   def apply_to_tagged; @tags.apply_to_tagged; end
 
-  def load; regen_text; end
   def load_more num=LOAD_MORE_CONTACTS_NUM
     @num += num
+    load
     regen_text
     BufferManager.flash "Added #{num} contacts."
   end
@@ -70,6 +71,7 @@ class ContactListMode < LineCursorMode
 
   def reload
     @tags.drop_all_tags
+    @num = nil
     load
   end
 
@@ -85,6 +87,24 @@ class ContactListMode < LineCursorMode
     end
   end
 
+  def load_in_background
+    Redwood::reporting_thread do
+      load
+      regen_text
+      BufferManager.draw_screen
+    end
+  end
+
+  def load
+    @num ||= buffer.content_height
+    @user_contacts = ContactManager.contacts.invert
+    num = [@num - @user_contacts.length, 0].max
+    BufferManager.say("Loading #{num} contacts from index...") do
+      recentc = Index.load_contacts AccountManager.user_emails, :num => num
+      @contacts = (@user_contacts.keys + recentc).sort_by { |p| p.sort_by_me }.uniq
+    end
+  end
+  
 protected
 
   def update_text_for_line line
@@ -99,11 +119,6 @@ protected
   end
 
   def regen_text
-    @user_contacts = ContactManager.contacts.invert
-    recent = Index.load_contacts AccountManager.user_emails, :num => [@num - @user_contacts.length, 0].max
-    
-    @contacts = (@user_contacts.keys + recent.select { |p| !@user_contacts[p] }).sort_by { |p| p.sort_by_me + (p.name || "") + p.email }.remove_successive_dupes
-
     @awidth, @nwidth = 0, 0
     @contacts.each do |p|
       aalias = @user_contacts[p]
@@ -112,7 +127,7 @@ protected
     end
 
     @text = @contacts.map { |p| text_for_contact p }
-    buffer.mark_dirty if buffer
+    buffer.mark_dirty
   end
 end
 

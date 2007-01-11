@@ -176,19 +176,6 @@ class Array
   def rest; self[1..-1]; end
 
   def to_boolean_h; Hash[*map { |x| [x, true] }.flatten]; end
-  
-  ## apparently uniq doesn't use ==. wtf.
-  def remove_successive_dupes
-    ret = []
-    last = nil
-    each do |e|
-      unless e == last
-        ret << e
-        last = e
-      end
-    end
-    ret
-  end
 end
 
 class Time

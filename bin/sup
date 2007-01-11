@@ -130,7 +130,7 @@ begin
           bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
         when :list_contacts
           b = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
-          b.mode.load_more b.content_height
+          b.mode.load_in_background
         when :search
           text = bm.ask :search, "query: "
           next unless text && text !~ /^\s*$/
@@ -145,7 +145,6 @@ begin
           rescue Ferret::QueryParser::QueryParseException => e
             bm.flash "Couldn't parse query."
           end
-
         when :list_labels
           b = bm.spawn_unless_exists("Label List") { LabelListMode.new }
           b.mode.load_in_background

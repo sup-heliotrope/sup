@@ -15,18 +15,9 @@ class LabelListMode < LineCursorMode
   def lines; @text.length; end
   def [] i; @text[i]; end
 
-  def load; regen_text; end
-
   def load_in_background
     Redwood::reporting_thread do
-      regen_text do |i|
-        if i % 10 == 0
-          buffer.mark_dirty
-          BufferManager.draw_screen
-          sleep 0.1 # ok, dirty trick.
-        end
-      end
-      buffer.mark_dirty
+      BufferManager.say("Counting labels...") { regen_text }
       BufferManager.draw_screen
     end
   end
@@ -41,8 +32,7 @@ protected
   
   def regen_text
     @text = []
-    @labels = LabelManager::LISTABLE_LABELS.sort_by { |t| t.to_s } +
-                LabelManager.user_labels.sort_by { |t| t.to_s }
+    @labels = (LabelManager::LISTABLE_LABELS + LabelManager.user_labels).sort_by { |t| t.to_s }
 
     counts = @labels.map do |t|
       total = Index.num_results_for :label => t
@@ -71,6 +61,8 @@ protected
           sprintf("%#{width + 1}s %5d %s, %5d unread", label, total, total == 1 ? " message" : "messages", unread)]]
       yield i if block_given?
     end.compact
+
+    buffer.mark_dirty
   end
 
   def view_results
