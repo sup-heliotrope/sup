@@ -14,7 +14,7 @@ module Ncurses
   end
 
   def mutex; @mutex ||= Mutex.new; end
-  def sync &b; mutex.synchronize &b; end
+  def sync &b; mutex.synchronize(&b); end
 
   ## aaahhh, user input. who would have though that such a simple
   ## idea would be SO FUCKING COMPLICATED?! because apparently

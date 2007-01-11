@@ -102,7 +102,6 @@ class Thread
   def set_labels l; each { |m, *o| m && m.labels = l }; end
   
   def has_label? t; any? { |m, *o| m && m.has_label?(t) }; end
-  def dirty?; any? { |m, *o| m && m.dirty? }; end
   def save index; each { |m, *o| m && m.save(index) }; end
 
   def direct_participants

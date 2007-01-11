@@ -80,7 +80,7 @@ class ScrollMode < Mode
   end
 
   def resize *a
-    super *a
+    super(*a)
     ensure_mode_validity
   end
 
