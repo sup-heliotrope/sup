@@ -17,6 +17,7 @@ class MessageFormatError < StandardError; end
 ## appropriately.
 class Message
   SNIPPET_LEN = 80
+  WRAP_LEN = 80 # wrap at this width
   RE_PATTERN = /^((re|re[\[\(]\d[\]\)]):\s*)+/i
     
   ## some utility methods
@@ -54,7 +55,7 @@ class Message
     attr_reader :lines
     def initialize lines
       ## do some wrapping
-      @lines = lines.map { |l| l.chomp.wrap 80 }.flatten
+      @lines = lines.map { |l| l.chomp.wrap WRAP_LEN }.flatten
     end
   end
 
@@ -136,7 +137,7 @@ class Message
   private :read_header
 
   def broken?; @source.broken?; end
-  def snippet; @snippet || to_chunks && @snippet; end
+  def snippet; @snippet || chunks && @snippet; end
   def is_list_message?; !@list_address.nil?; end
   def is_draft?; DraftLoader === @source; end
   def draft_filename
@@ -172,7 +173,7 @@ class Message
   end
 
   ## this is called when the message body needs to actually be loaded.
-  def to_chunks
+  def chunks
     @chunks ||=
       if @source.broken?
         [Text.new(error_message(@source.broken_msg.split("\n")))]
@@ -228,13 +229,13 @@ EOS
       to.map { |p| "#{p.name} #{p.email}" },
       cc.map { |p| "#{p.name} #{p.email}" },
       bcc.map { |p| "#{p.name} #{p.email}" },
-      to_chunks.select { |c| c.is_a? Text }.map { |c| c.lines },
+      chunks.select { |c| c.is_a? Text }.map { |c| c.lines },
       Message.normalize_subj(subj),
     ].flatten.compact.join " "
   end
 
   def basic_body_lines
-    to_chunks.find_all { |c| c.is_a?(Text) || c.is_a?(Quote) }.map { |c| c.lines }.flatten
+    chunks.find_all { |c| c.is_a?(Text) || c.is_a?(Quote) }.map { |c| c.lines }.flatten
   end
 
   def basic_header_lines

@@ -1,7 +1,16 @@
 module Redwood
 
 class ScrollMode < Mode
-  attr_reader :status, :topline, :botline
+  ## we define topline and botline as the top and bottom lines of any
+  ## content in the currentview.
+  
+  ## we left leftcol and rightcol as the left and right columns of any
+  ## content in the current view. but since we're operating in a
+  ## line-centric fashion, rightcol is always leftcol + the buffer
+  ## width. (whereas botline is topline + at most the buffer height,
+  ## and can be == to topline in the case that there's no content.)
+
+  attr_reader :status, :topline, :botline, :leftcol
 
   COL_JUMP = 2
 
@@ -24,6 +33,8 @@ class ScrollMode < Mode
     @twiddles = opts.member?(:twiddles) ? opts[:twiddles] : true
     super()
   end
+
+  def rightcol; @leftcol + buffer.content_width; end
 
   def draw
     ensure_mode_validity

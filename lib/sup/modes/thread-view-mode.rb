@@ -1,7 +1,13 @@
 module Redwood
 
 class ThreadViewMode < LineCursorMode
+  ## this holds all info we need to lay out a message
+  class Layout
+    attr_accessor :top, :bot, :prev, :next, :depth, :width, :state
+  end
+
   DATE_FORMAT = "%B %e %Y %l:%M%P"
+  INDENT_SPACES = 2 # how many spaces to indent child messages
 
   register_keymap do |k|
     k.add :toggle_detailed_header, "Toggle detailed header", 'd'
@@ -19,31 +25,35 @@ class ThreadViewMode < LineCursorMode
     k.add :save_to_disk, "Save message/attachment to disk", 's'
   end
 
+  ## there are three important instance variables we hold to lay out
+  ## the thread. @layout is a map from Message and Chunk objects to
+  ## Layout objects. (for chunks, we only use the state field right
+  ## now.) @message_lines is a map from row #s to Message objects.
+  ## @chunk_lines is a map from row #s to Chunk objects.
+
   def initialize thread, hidden_labels=[]
     super()
     @thread = thread
-    @state = {}
     @hidden_labels = hidden_labels
 
+    @layout = {}
     earliest, latest = nil, nil
     latest_date = nil
     @thread.each do |m, d, p|
       next unless m
       earliest ||= m
-      @state[m] = initial_state_for m
+      @layout[m] = Layout.new
+      @layout[m].state = initial_state_for m
       if latest_date.nil? || m.date > latest_date
         latest_date = m.date
         latest = m
       end
     end
 
-    @state[latest] = :open if @state[latest] == :closed
-    @state[earliest] = :detailed if earliest.has_label?(:unread) || @thread.size == 1
+    @layout[latest].state = :open if @layout[latest].state == :closed
+    @layout[earliest].state = :detailed if earliest.has_label?(:unread) || @thread.size == 1
 
-    BufferManager.say "Loading message bodies..." do
-      regen_chunks
-      regen_text
-    end
+    BufferManager.say("Loading message bodies...") { regen_text }
   end
 
   def draw_line ln, opts={}
@@ -99,8 +109,9 @@ class ThreadViewMode < LineCursorMode
     return unless(chunk = @chunk_lines[curpos])
     case chunk
     when Message, Message::Quote, Message::Signature
-      @state[chunk] = (@state[chunk] != :closed ? :closed : :open)
-      cursor_down if @state[chunk] == :closed
+      l = @layout[chunk]
+      l.state = (l.state != :closed ? :closed : :open)
+      cursor_down if l.state == :closed
     when Message::Attachment
       view_attachment chunk
     end
@@ -133,8 +144,8 @@ class ThreadViewMode < LineCursorMode
 
   def jump_to_next_open
     return unless(m = @message_lines[curpos])
-    while nextm = @messages[m][3]
-      break if @state[nextm] == :open
+    while nextm = @layout[m].next
+      break if @layout[nextm].state == :open
       m = nextm
     end
     jump_to_message nextm if nextm
@@ -144,10 +155,11 @@ class ThreadViewMode < LineCursorMode
     return unless(m = @message_lines[curpos])
     ## jump to the top of the current message if we're in the body;
     ## otherwise, to the previous message
-    top = @messages[m][0]
+    
+    top = @layout[m].top
     if curpos == top
-      while(prevm = @messages[m][2])
-        break if @state[prevm] != :closed
+      while(prevm = @layout[m].prev)
+        break if @layout[prevm].state != :closed
         m = prevm
       end
       jump_to_message prevm if prevm
@@ -157,32 +169,38 @@ class ThreadViewMode < LineCursorMode
   end
 
   def jump_to_message m
-    top, bot, prevm, nextm, depth = @messages[m]
-    jump_to_line top unless top >= topline &&
-      top <= botline && bot >= topline && bot <= botline
-    jump_to_col depth * 2 # sorry!!!! TODO: make this a constant
-    set_cursor_pos top
+    l = @layout[m]
+    left = l.depth * INDENT_SPACES
+    right = left + l.width
+
+    ## jump to the top line unless both top and bottom fit in the current view
+    jump_to_line l.top unless l.top >= topline && l.top <= botline && l.bot >= topline && l.bot <= botline
+
+    ## jump to the left columns unless both left and right fit in the current view
+    jump_to_col left unless left >= leftcol && left <= rightcol && right >= leftcol && right <= rightcol
+
+    ## either way, move the cursor to the first line
+    set_cursor_pos l.top
   end
 
   def expand_all_messages
     @global_message_state ||= :closed
     @global_message_state = (@global_message_state == :closed ? :open : :closed)
-    @state.each { |m, v| @state[m] = @global_message_state if m.is_a? Message }
+    @layout.each { |m, l| l.state = @global_message_state if m.is_a? Message }
     update
   end
 
-
   def collapse_non_new_messages
-    @messages.each { |m, v| @state[m] = m.has_label?(:unread) ? :open : :closed }
+    @layout.each { |m, l| l.state = m.has_label?(:unread) ? :open : :closed }
     update
   end
 
   def expand_all_quotes
     if(m = @message_lines[curpos])
-      quotes = @chunks[m].select { |c| c.is_a?(Message::Quote) || c.is_a?(Message::Signature) }
-      open, closed = quotes.partition { |c| @state[c] == :open }
+      quotes = m.chunks.select { |c| c.is_a?(Message::Quote) || c.is_a?(Message::Signature) }
+      open, closed = quotes.partition { |c| @layout[c].state == :open }
       newstate = open.length > closed.length ? :closed : :open
-      quotes.each { |c| @state[c] = newstate }
+      quotes.each { |c| @layout[c].state = newstate }
       update
     end
   end
@@ -197,7 +215,7 @@ class ThreadViewMode < LineCursorMode
         end
       end
     end
-    @messages = @chunks = @text = nil
+    @layout = @text = nil
   end
 
 private 
@@ -215,18 +233,15 @@ private
     buffer.mark_dirty if buffer
   end
 
-  def regen_chunks
-    @chunks = {}
-    @thread.each { |m, d, p| @chunks[m] = m.to_chunks if m.is_a?(Message) }
-  end
-  
+  ## here we generate the actual content lines. we accumulate
+  ## everything into @text, and we set @chunk_lines and
+  ## @message_lines, and we update @layout.
   def regen_text
     @text = []
     @chunk_lines = []
     @message_lines = []
-    @messages = {}
 
-    prev_m = nil
+    prevm = nil
     @thread.each do |m, depth, parent|
       ## we're occasionally called on @threads that have had messages
       ## added to them since initialization. luckily we regen_text on
@@ -234,34 +249,50 @@ private
       ## scrolling (basically), so we can just slap this on here.
       ##
       ## to pick nits, the niceness that i do in the constructor with
-      ## 'latest' might not be valid, but i don't see that as a huge
-      ## issue.
-      @state[m] ||= initial_state_for m if m
+      ## 'latest' etc. (for automatically opening just the latest
+      ## message if everything's been read) will not be valid, but
+      ## that's just a nicety and hopefully this won't happen too
+      ## often.
+      l = (@layout[m] ||= Layout.new)
+      l.state ||= initial_state_for m
 
-      text = chunk_to_lines m, @state[m], @text.length, depth, parent
+      ## build the patina
+      text = chunk_to_lines m, l.state, @text.length, depth, parent
+      
+      l.top = @text.length
+      l.bot = @text.length + text.length # updated below
+      l.prev = prevm
+      l.next = nil
+      l.depth = depth
+      # l.state we preserve
+      l.width = 0 # updated below
+      @layout[l.prev].next = m if l.prev
+
       (0 ... text.length).each do |i|
         @chunk_lines[@text.length + i] = m
         @message_lines[@text.length + i] = m
+        lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.length }.sum
       end
 
-      ## sorry i store all this shit in an array. very, very sorry.
-      ## also sorry about the * 2. very, very sorry.
-      @messages[m] = [@text.length, @text.length + text.length, prev_m, nil, depth]
-      @messages[prev_m][3] = m if prev_m
-      prev_m = m if m.is_a? Message
-
       @text += text
-      if @state[m] != :closed && @chunks.member?(m)
-        @chunks[m].each do |c|
-          @state[c] ||= :closed
-          text = chunk_to_lines c, @state[c], @text.length, depth
-          (0 ... text.length).each do |i|
-            @chunk_lines[@text.length + i] = c
-            @message_lines[@text.length + i] = m
+
+      if m.is_a? Message
+        prevm = m 
+        if @layout[m].state != :closed
+          m.chunks.each do |c|
+            cl = (@layout[c] ||= Layout.new)
+            cl.state ||= :closed
+            text = chunk_to_lines c, cl.state, @text.length, depth
+            (0 ... text.length).each do |i|
+              @chunk_lines[@text.length + i] = c
+              @message_lines[@text.length + i] = m
+              lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.length }.sum - (depth * INDENT_SPACES)
+              l.width = lw if lw > l.width
+            end
+            @text += text
           end
-          @text += text
+          @layout[m].bot = @text.length
         end
-        @messages[m][1] = @text.length
       end
     end
   end
@@ -317,7 +348,7 @@ private
 
 
   def chunk_to_lines chunk, state, start, depth, parent=nil
-    prefix = "  " * depth
+    prefix = " " * INDENT_SPACES * depth
     case chunk
     when :fake_root
       [[[:message_patina_color, "#{prefix}<one or more unreceived messages>"]]]
