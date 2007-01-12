@@ -1,9 +1,10 @@
 module Redwood
 
 class ReplyMode < EditMessageMode
-  REPLY_TYPES = [:sender, :list, :all, :user]
+  REPLY_TYPES = [:sender, :recipient, :list, :all, :user]
   TYPE_DESCRIPTIONS = {
     :sender => "Reply to sender",
+    :recipient => "Reply to recipient",
     :all => "Reply to all",
     :list => "Reply to mailing list",
     :user => "Customized reply"
@@ -41,7 +42,12 @@ class ReplyMode < EditMessageMode
     @headers[:sender] = {
       "From" => "#{from.name} <#{from_email}>",
       "To" => [to.full_address],
-    }
+    } unless AccountManager.is_account? to
+
+    @headers[:recipient] = {
+      "From" => "#{from.name} <#{from_email}>",
+      "To" => cc.map { |p| p.full_address },
+    } unless cc.empty?
 
     @headers[:user] = {
       "From" => "#{from.name} <#{from_email}>",
@@ -73,9 +79,15 @@ class ReplyMode < EditMessageMode
     end
 
     @type_labels = REPLY_TYPES.select { |t| @headers.member?(t) }
-    @selected_type = @m.is_list_message? ? :list : :sender
+    @selected_type = 
+      if @m.is_list_message?
+        :list
+      elsif @headers.member? :sender
+        :sender
+      else
+        :recipient
+      end
 
-    @body += sig_lines
     regen_text
   end
 
@@ -99,7 +111,7 @@ class ReplyMode < EditMessageMode
 
 protected
 
-  def body; @body; end
+  def body; @body + sig_lines; end
   def header; @headers[@selected_type]; end
 
   def reply_body_lines m
@@ -121,7 +133,7 @@ protected
   end
 
   def regen_text
-    @text = header_lines(@headers[@selected_type] - NON_EDITABLE_HEADERS) + [""] + @body
+    @text = header_lines(header - NON_EDITABLE_HEADERS) + [""] + body
   end
 
   def gen_references
