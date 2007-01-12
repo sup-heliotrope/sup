@@ -23,7 +23,7 @@ class EditMessageMode < LineCursorMode
   end
 
   def edit
-    @file = Tempfile.new "redwood.#{self.class.name.camel_to_hyphy}"
+    @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
     @file.puts header_lines(header - NON_EDITABLE_HEADERS)
     @file.puts
     @file.puts body
@@ -44,7 +44,7 @@ class EditMessageMode < LineCursorMode
 protected
 
   def gen_message_id
-    "<#{Time.now.to_i}-redwood-#{rand 10000}@#{Socket.gethostname}>"
+    "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
   end
 
   def update
