@@ -75,7 +75,7 @@ class ThreadViewMode < LineCursorMode
 
   def toggle_detailed_header
     return unless(m = @message_lines[curpos])
-    @state[m] = (@state[m] == :detailed ? :open : :detailed)
+    @layout[m].state = (@layout[m].state == :detailed ? :open : :detailed)
     update
   end
 
