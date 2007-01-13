@@ -89,6 +89,7 @@ class ReplyMode < EditMessageMode
         :recipient
       end
 
+    @body += sig_lines
     regen_text
   end
 
@@ -112,7 +113,7 @@ class ReplyMode < EditMessageMode
 
 protected
 
-  def body; @body + sig_lines; end
+  def body; @body; end
   def header; @headers[@selected_type]; end
 
   def reply_body_lines m
