@@ -80,11 +80,12 @@ class ContactListMode < LineCursorMode
     a = BufferManager.ask(:alias, "alias for #{p.longname}: ", @user_contacts[p]) or return
     if a.empty?
       ContactManager.drop_contact p
+      @user_contacts.delete p
     else
       ContactManager.set_contact p, a
       @user_contacts[p] = a
-      update_text_for_line curpos
     end
+    regen_text # in case columns need to be shifted
   end
 
   def load_in_background

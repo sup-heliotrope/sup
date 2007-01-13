@@ -24,7 +24,7 @@ class ContactManager
     @people.delete oldentry.first if oldentry
     @people[aalias] = person
   end
-  def drop_contact person; @people.delete person; end
+  def drop_contact person; @people.find { |a, p| @people.delete a if p == person }; end
   def delete t; @people.delete t; end
   def resolve aalias; @people[aalias]; end
 
