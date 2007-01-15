@@ -174,7 +174,7 @@ class Index
         end
       end
     end
-    Redwood::log "ran #{num_queries} queries to build thread of #{messages.size} messages for #{m.id}"
+    Redwood::log "ran #{num_queries} queries to build thread of #{messages.size} messages for #{m.id}" if num_queries > 0
     messages.each { |mid, builder| yield mid, builder }
   end
 
