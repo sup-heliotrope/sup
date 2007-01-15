@@ -1,0 +1,4 @@
+To run sup locally, invoke it like this:
+
+ruby -I lib -w bin/sup
+
