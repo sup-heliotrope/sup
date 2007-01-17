@@ -127,7 +127,7 @@ protected
   def regen_text
     @awidth, @nwidth = 0, 0
     @contacts.each do |p|
-      aalias = ContactManager.alias_for_person(p)
+      aalias = ContactManager.alias_for(p)
       @awidth = aalias.length if aalias && aalias.length > @awidth
       @nwidth = p.name.length if p.name && p.name.length > @nwidth
     end

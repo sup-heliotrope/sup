@@ -19,11 +19,15 @@ class DraftManager
     fn = @source.fn_for_offset offset
     File.open(fn, "w") { |f| yield f }
 
-    @source.each do |offset, labels|
-      m = Message.new :source => @source, :source_info => offset, :labels => labels
+    my_message = nil
+    @source.each do |thisoffset, theselabels|
+      m = Message.new :source => @source, :source_info => thisoffset, :labels => theselabels
       Index.add_message m
       UpdateManager.relay :add, m
+      my_message = m if thisoffset == offset
     end
+
+    my_message
   end
 
   def discard mid
@@ -51,7 +55,13 @@ class DraftLoader < Source
   def uri; DraftManager.source_name; end
 
   def each
-    Dir.entries(@dir).select { |x| x =~ /^\d+$/ }.sort_by { |x| x.to_i }.each { |id| yield [id, [:draft]] }
+    ids = Dir.entries(@dir).select { |x| x =~ /^\d+$/ }.map { |x| x.to_i }.sort
+    ids.each do |id|
+      if id > cur_offset
+        self.cur_offset = id
+        yield [id, [:draft]]
+      end
+    end
   end
 
   def gen_offset
