@@ -1,4 +1,19 @@
-To run sup locally, invoke it like this:
+Running Sup locally
+-------------------
+Invoke it like this:
 
 ruby -I lib -w bin/sup
+
+Coding standards
+----------------
+
+- Wrap code at 99999 characters. The days of 80-column displays are
+  long over. Wrap comments and other text at whatever Emacs meta-Q
+  does.
+- Use as few parentheses as possible.
+- Use {} for one-liner blocks and do/end for multi-line blocks.
+- For one-line functions, put a semicolon before "end", like this:
+    def bool_writer *args; attr_writer(*args); end
+  (I just started doing this for no real reason, and now I kinda like
+  it.)
 
