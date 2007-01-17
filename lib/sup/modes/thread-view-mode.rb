@@ -23,6 +23,7 @@ class ThreadViewMode < LineCursorMode
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message", 'f'
     k.add :alias, "Edit alias/nickname for a person", 'a'
+    k.add :edit_as_new, "Edit message as new", 'd'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
   end
 
@@ -70,26 +71,26 @@ class ThreadViewMode < LineCursorMode
   def [] i; @text[i]; end
 
   def show_header
-    return unless(m = @message_lines[curpos])
+    m = @message_lines[curpos] or return
     BufferManager.spawn_unless_exists("Full header") do
       TextMode.new m.raw_header
     end
   end
 
   def toggle_detailed_header
-    return unless(m = @message_lines[curpos])
+    m = @message_lines[curpos] or return
     @layout[m].state = (@layout[m].state == :detailed ? :open : :detailed)
     update
   end
 
   def reply
-    return unless(m = @message_lines[curpos])
+    m = @message_lines[curpos] or return
     mode = ReplyMode.new m
     BufferManager.spawn "Reply to #{m.subj}", mode
   end
 
   def forward
-    return unless(m = @message_lines[curpos])
+    m = @message_lines[curpos] or return
     mode = ForwardMode.new m
     BufferManager.spawn "Forward of #{m.subj}", mode
     mode.edit
@@ -103,7 +104,7 @@ class ThreadViewMode < LineCursorMode
   end
 
   def toggle_starred
-    return unless(m = @message_lines[curpos])
+    m = @message_lines[curpos] or return
     if m.has_label? :starred
       m.remove_label :starred
     else
@@ -116,7 +117,7 @@ class ThreadViewMode < LineCursorMode
   end
 
   def toggle_expanded
-    return unless(chunk = @chunk_lines[curpos])
+    chunk = @chunk_lines[curpos] or return
     case chunk
     when Message, Message::Quote, Message::Signature
       l = @layout[chunk]
@@ -128,8 +129,15 @@ class ThreadViewMode < LineCursorMode
     update
   end
 
+  def edit_as_new
+    m = @message_lines[curpos] or return
+    mode = ComposeMode.new(:body => m.basic_body_lines, :to => m.to, :cc => m.cc, :subj => m.subj, :bcc => m.bcc)
+    BufferManager.spawn "edit as new", mode
+    mode.edit
+  end
+
   def save_to_disk
-    return unless(chunk = @chunk_lines[curpos])
+    chunk = @chunk_lines[curpos] or return
     case chunk
     when Message::Attachment
       fn = BufferManager.ask :filename, "Save attachment to file: ", chunk.filename
@@ -142,7 +150,7 @@ class ThreadViewMode < LineCursorMode
   end
 
   def edit_message
-    return unless(m = @message_lines[curpos])
+    m = @message_lines[curpos] or return
     if m.is_draft?
       mode = ResumeMode.new m
       BufferManager.spawn "Edit message", mode
@@ -153,7 +161,7 @@ class ThreadViewMode < LineCursorMode
   end
 
   def jump_to_next_open
-    return unless(m = @message_lines[curpos])
+    m = @message_lines[curpos] or return
     while nextm = @layout[m].next
       break if @layout[nextm].state == :open
       m = nextm
@@ -162,7 +170,7 @@ class ThreadViewMode < LineCursorMode
   end
 
   def jump_to_prev_open
-    return unless(m = @message_lines[curpos])
+    m = @message_lines[curpos] or return
     ## jump to the top of the current message if we're in the body;
     ## otherwise, to the previous message
     

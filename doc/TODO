@@ -17,13 +17,14 @@ undo
 maybe: filters
 maybe: rangefilter on the initial inbox to only consider the most recent 1000 messages
 select all, starred, to me, etc
-editing of arbitrary messages
 annotations on messages
 gmail
 pop
 move sup-import argument handling to getopt
 be able to mark individual messages as spam in thread-view-mode
+toggle wrapping
 
+x resuming of arbitrary messages
 x alias authors in thread-view-mode
 x fix up contact list mode: should display while loading, and when you add an alias, should move everything else to the right
 x fix bug: envelope-to thing still not working

@@ -3,15 +3,19 @@ module Redwood
 class ComposeMode < EditMessageMode
   attr_reader :body, :header
 
-  def initialize h={}
+  def initialize opts={}
     super()
     @header = {
       "From" => AccountManager.default_account.full_address,
       "Message-Id" => gen_message_id,
     }
 
-    @header["To"] = [h[:to]].flatten.compact.map { |p| p.full_address }
-    @body = sig_lines
+    @header["To"] = opts[:to].map { |p| p.full_address }.join(", ") if opts[:to]
+    @header["Cc"] = opts[:cc].map { |p| p.full_address }.join(", ") if opts[:cc]
+    @header["Bcc"] = opts[:bcc].map { |p| p.full_address }.join(", ") if opts[:bcc]
+    @header["Subject"] = opts[:subj] if opts[:subj]
+
+    @body = opts[:body] || sig_lines
     regen_text
   end
 
