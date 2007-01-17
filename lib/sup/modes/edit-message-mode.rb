@@ -55,7 +55,7 @@ protected
   def parse_file fn
     File.open(fn) do |f|
       header = MBox::read_header f
-      body = MBox::read_body f
+      body = f.readlines
 
       header.delete_if { |k, v| NON_EDITABLE_HEADERS.member? k }
       header.each do |k, v|
