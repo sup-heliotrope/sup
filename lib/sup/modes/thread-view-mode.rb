@@ -198,8 +198,8 @@ class ThreadViewMode < LineCursorMode
   def expand_all_quotes
     if(m = @message_lines[curpos])
       quotes = m.chunks.select { |c| c.is_a?(Message::Quote) || c.is_a?(Message::Signature) }
-      open, closed = quotes.partition { |c| @layout[c].state == :open }
-      newstate = open.length > closed.length ? :closed : :open
+      numopen = quotes.inject(0) { |s, c| s + (@layout[c].state == :open ? 1 : 0) }
+      newstate = numopen > quotes.length / 2 ? :closed : :open
       quotes.each { |c| @layout[c].state = newstate }
       update
     end
@@ -371,19 +371,19 @@ private
     when Message::Quote
       case state
       when :closed
-        [[[:quote_patina_color, "#{prefix}+ #{chunk.lines.length} quoted lines"]]]
+        [[[:quote_patina_color, "#{prefix}+ (#{chunk.lines.length} quoted lines)"]]]
       when :open
         t = chunk.lines
-        [[[:quote_patina_color, "#{prefix}- #{chunk.lines.length} quoted lines"]]] +
+        [[[:quote_patina_color, "#{prefix}- (#{chunk.lines.length} quoted lines)"]]] +
            t.map { |line| [[:quote_color, "#{prefix}#{line}"]] }
       end
     when Message::Signature
       case state
       when :closed
-        [[[:sig_patina_color, "#{prefix}+ #{chunk.lines.length}-line signature"]]]
+        [[[:sig_patina_color, "#{prefix}+ (#{chunk.lines.length}-line signature)"]]]
       when :open
         t = chunk.lines
-        [[[:sig_patina_color, "#{prefix}- #{chunk.lines.length}-line signature"]]] +
+        [[[:sig_patina_color, "#{prefix}- (#{chunk.lines.length}-line signature)"]]] +
            t.map { |line| [[:sig_color, "#{prefix}#{line}"]] }
       end
     else
