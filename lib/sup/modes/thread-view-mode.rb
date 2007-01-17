@@ -243,6 +243,11 @@ private
 
     prevm = nil
     @thread.each do |m, depth, parent|
+      unless m.is_a? Message # handle nil and :fake_root
+        @text += chunk_to_lines m, nil, @text.length, depth, parent
+        next
+      end
+
       ## we're occasionally called on @threads that have had messages
       ## added to them since initialization. luckily we regen_text on
       ## the entire thread every time the user does anything besides
@@ -253,6 +258,7 @@ private
       ## message if everything's been read) will not be valid, but
       ## that's just a nicety and hopefully this won't happen too
       ## often.
+
       l = (@layout[m] ||= Layout.new)
       l.state ||= initial_state_for m
 
@@ -275,24 +281,21 @@ private
       end
 
       @text += text
-
-      if m.is_a? Message
-        prevm = m 
-        if @layout[m].state != :closed
-          m.chunks.each do |c|
-            cl = (@layout[c] ||= Layout.new)
-            cl.state ||= :closed
-            text = chunk_to_lines c, cl.state, @text.length, depth
-            (0 ... text.length).each do |i|
-              @chunk_lines[@text.length + i] = c
-              @message_lines[@text.length + i] = m
-              lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.length }.sum - (depth * INDENT_SPACES)
-              l.width = lw if lw > l.width
-            end
-            @text += text
+      prevm = m 
+      if @layout[m].state != :closed
+        m.chunks.each do |c|
+          cl = (@layout[c] ||= Layout.new)
+          cl.state ||= :closed
+          text = chunk_to_lines c, cl.state, @text.length, depth
+          (0 ... text.length).each do |i|
+            @chunk_lines[@text.length + i] = c
+            @message_lines[@text.length + i] = m
+            lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.length }.sum - (depth * INDENT_SPACES)
+            l.width = lw if lw > l.width
           end
-          @layout[m].bot = @text.length
+          @text += text
         end
+        @layout[m].bot = @text.length
       end
     end
   end
