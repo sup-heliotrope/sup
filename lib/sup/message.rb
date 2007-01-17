@@ -76,7 +76,7 @@ class Message
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
   BLOCK_QUOTE_PATTERN = /^-----\s*Original Message\s*----+$/
   QUOTE_START_PATTERN = /(^\s*Excerpts from)|(^\s*In message )|(^\s*In article )|(^\s*Quoting )|((wrote|writes|said|says)\s*:\s*$)/
-  SIG_PATTERN = /(^-- ?$)|(^\s*----------+\s*$)|(^\s*_________+\s*$)/
+  SIG_PATTERN = /(^-- ?$)|(^\s*----------+\s*$)|(^\s*_________+\s*$)|(^\s*--~--~-)/
   MAX_SIG_DISTANCE = 15 # lines from the end
   DEFAULT_SUBJECT = "(missing subject)"
   DEFAULT_SENDER = "(missing sender)"
