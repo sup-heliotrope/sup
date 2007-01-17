@@ -61,7 +61,7 @@ protected
       header.each do |k, v|
         next unless MULTI_HEADERS.include?(k) && !v.empty?
         header[k] = v.split_on_commas.map do |name|
-          (p = ContactManager.resolve(name)) && p.full_address || name
+          (p = ContactManager.person_with(name)) && p.full_address || name
         end
       end
 

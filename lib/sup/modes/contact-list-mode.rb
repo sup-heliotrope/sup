@@ -1,12 +1,23 @@
 module Redwood
 
+module CanAliasContacts
+  def alias_contact p
+    a = BufferManager.ask(:alias, "Nickname for #{p.longname}: ", ContactManager.alias_for(p)) or return
+    if a.empty?
+      ContactManager.drop_contact p
+    else
+      ContactManager.set_contact p, a
+    end
+  end
+end
+
 class ContactListMode < LineCursorMode
   LOAD_MORE_CONTACTS_NUM = 10
 
   register_keymap do |k|
     k.add :load_more, "Load #{LOAD_MORE_CONTACTS_NUM} more contacts", 'M'
     k.add :reload, "Drop contact list and reload", 'D'
-    k.add :alias, "Edit alias for contact", 'a'
+    k.add :alias, "Edit nickname/alias for contact", 'a'
     k.add :toggle_tagged, "Tag/untag current line", 't'
     k.add :apply_to_tagged, "Apply next command to all tagged items", ';'
     k.add :search, "Search for messages from particular people", 'S'
@@ -18,6 +29,13 @@ class ContactListMode < LineCursorMode
     @num = nil
     @text = []
     super()
+  end
+
+  include CanAliasContacts
+  def alias
+    p = @contacts[curpos] or return
+    alias_contact p
+    regen_text
   end
 
   def lines; @text.length; end
@@ -75,19 +93,6 @@ class ContactListMode < LineCursorMode
     load
   end
 
-  def alias
-    p = @contacts[curpos] or return
-    a = BufferManager.ask(:alias, "alias for #{p.longname}: ", @user_contacts[p]) or return
-    if a.empty?
-      ContactManager.drop_contact p
-      @user_contacts.delete p
-    else
-      ContactManager.set_contact p, a
-      @user_contacts[p] = a
-    end
-    regen_text # in case columns need to be shifted
-  end
-
   def load_in_background
     Redwood::reporting_thread do
       load
@@ -98,11 +103,11 @@ class ContactListMode < LineCursorMode
 
   def load
     @num ||= buffer.content_height
-    @user_contacts = ContactManager.contacts.invert
+    @user_contacts = ContactManager.contacts
     num = [@num - @user_contacts.length, 0].max
     BufferManager.say("Loading #{num} contacts from index...") do
       recentc = Index.load_contacts AccountManager.user_emails, :num => num
-      @contacts = (@user_contacts.keys + recentc).sort_by { |p| p.sort_by_me }.uniq
+      @contacts = (@user_contacts + recentc).sort_by { |p| p.sort_by_me }.uniq
     end
   end
   
@@ -114,7 +119,7 @@ protected
   end
 
   def text_for_contact p
-    aalias = @user_contacts[p] || ""
+    aalias = ContactManager.alias_for(p) || ""
     [[:tagged_color, @tags.tagged?(p) ? ">" : " "],
      [:none, sprintf("%-#{@awidth}s %-#{@nwidth}s %s", aalias, p.name, p.email)]]
   end
@@ -122,7 +127,7 @@ protected
   def regen_text
     @awidth, @nwidth = 0, 0
     @contacts.each do |p|
-      aalias = @user_contacts[p]
+      aalias = ContactManager.alias_for_person(p)
       @awidth = aalias.length if aalias && aalias.length > @awidth
       @nwidth = p.name.length if p.name && p.name.length > @nwidth
     end

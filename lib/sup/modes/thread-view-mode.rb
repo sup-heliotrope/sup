@@ -22,14 +22,17 @@ class ThreadViewMode < LineCursorMode
     k.add :collapse_non_new_messages, "Collapse all but new messages", 'N'
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message", 'f'
+    k.add :alias, "Edit alias/nickname for a person", 'a'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
   end
 
-  ## there are three important instance variables we hold to lay out
-  ## the thread. @layout is a map from Message and Chunk objects to
-  ## Layout objects. (for chunks, we only use the state field right
-  ## now.) @message_lines is a map from row #s to Message objects.
-  ## @chunk_lines is a map from row #s to Chunk objects.
+  ## there are a couple important instance variables we hold to lay
+  ## out the thread and to provide line-based functionality. @layout
+  ## is a map from Message and Chunk objects to Layout objects. (for
+  ## chunks, we only use the state field right now.) @message_lines is
+  ## a map from row #s to Message objects. @chunk_lines is a map from
+  ## row #s to Chunk objects. @person_lines is a map from row #s to
+  ## Person objects.
 
   def initialize thread, hidden_labels=[]
     super()
@@ -90,6 +93,13 @@ class ThreadViewMode < LineCursorMode
     mode = ForwardMode.new m
     BufferManager.spawn "Forward of #{m.subj}", mode
     mode.edit
+  end
+
+  include CanAliasContacts
+  def alias
+    p = @person_lines[curpos] or return
+    alias_contact p
+    regen_text
   end
 
   def toggle_starred
@@ -240,6 +250,7 @@ private
     @text = []
     @chunk_lines = []
     @message_lines = []
+    @person_lines = []
 
     prevm = nil
     @thread.each do |m, depth, parent|
@@ -300,7 +311,7 @@ private
     end
   end
 
-  def message_patina_lines m, state, parent, prefix
+  def message_patina_lines m, state, start, parent, prefix
     prefix_widget = [:message_patina_color, prefix]
     widget = 
       case state
@@ -318,37 +329,58 @@ private
 
     case state
     when :open
+      @person_lines[start] = m.from
       [[prefix_widget, widget, imp_widget,
         [:message_patina_color, 
             "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
+
     when :closed
+      @person_lines[start] = m.from
       [[prefix_widget, widget, imp_widget,
         [:message_patina_color, 
         "#{m.from ? m.from.mediumname : '?'}, #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})  #{m.snippet}"]]]
+
     when :detailed
-      labels = m.labels# - @hidden_labels
-      x = [[prefix_widget, widget, imp_widget, [:message_patina_color, "From: #{m.from ? m.from.longname : '?'}"]]] +
-        ((m.to.empty? ? [] : break_into_lines("  To: ", m.to.map { |x| x.longname })) +
-           (m.cc.empty? ? [] : break_into_lines("  Cc: ", m.cc.map { |x| x.longname })) +
-           (m.bcc.empty? ? [] : break_into_lines("  Bcc: ", m.bcc.map { |x| x.longname })) +
-           ["  Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})"] +
-           ["  Subject: #{m.subj}"] +
-           [(parent ? "  In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil)] +
-           [labels.empty? ? nil : "  Labels: #{labels.join(', ')}"]
-        ).flatten.compact.map { |l| [[:message_patina_color, prefix + "  " + l]] }
-      #raise x.inspect
-      x
+      @person_lines[start] = m.from
+      from = [[prefix_widget, widget, imp_widget, [:message_patina_color, "From: #{m.from ? format_person(m.from) : '?'}"]]]
+
+      rest = []
+      unless m.to.empty?
+        m.to.each_with_index { |p, i| @person_lines[start + rest.length + from.length + i] = p }
+        rest += format_person_list "  To: ", m.to
+      end
+      unless m.cc.empty?
+        m.cc.each_with_index { |p, i| @person_lines[start + rest.length + from.length + i] = p }
+        rest += format_person_list "  Cc: ", m.cc
+      end
+      unless m.bcc.empty?
+        m.bcc.each_with_index { |p, i| @person_lines[start + rest.length + from.length + i] = p }
+        rest += format_person_list "  Bcc: ", m.bcc
+      end
+
+      rest += [
+        "  Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})",
+        "  Subject: #{m.subj}",
+        (parent ? "  In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil),
+        m.labels.empty? ? nil : "  Labels: #{m.labels.join(', ')}",
+      ].compact
+      
+      from + rest.map { |l| [[:message_patina_color, prefix + "  " + l]] }
     end
   end
 
-  def break_into_lines prefix, list
+  def format_person_list prefix, people
+    ptext = people.map { |p| format_person p }
     pad = " " * prefix.length
-    [prefix + list.first + (list.length > 1 ? "," : "")] + 
-      list[1 .. -1].map_with_index do |e, i|
-        pad + e + (i == list.length - 1 ? "" : ",")
+    [prefix + ptext.first + (ptext.length > 1 ? "," : "")] + 
+      ptext[1 .. -1].map_with_index do |e, i|
+        pad + e + (i == ptext.length - 1 ? "" : ",")
       end
   end
 
+  def format_person p
+    p.longname + (ContactManager.is_contact?(p) ? " (#{ContactManager.alias_for p})" : "")
+  end
 
   def chunk_to_lines chunk, state, start, depth, parent=nil
     prefix = " " * INDENT_SPACES * depth
@@ -358,7 +390,7 @@ private
     when nil
       [[[:message_patina_color, "#{prefix}<an unreceived message>"]]]
     when Message
-      message_patina_lines(chunk, state, parent, prefix) +
+      message_patina_lines(chunk, state, start, parent, prefix) +
         (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. To edit, hit 'e'. <<<"]]] : [])
     when Message::Attachment
       [[[:mime_color, "#{prefix}+ MIME attachment #{chunk.content_type}#{chunk.desc ? ' (' + chunk.desc + ')': ''}"]]]
