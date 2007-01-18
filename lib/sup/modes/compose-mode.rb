@@ -15,7 +15,7 @@ class ComposeMode < EditMessageMode
     @header["Bcc"] = opts[:bcc].map { |p| p.full_address }.join(", ") if opts[:bcc]
     @header["Subject"] = opts[:subj] if opts[:subj]
 
-    @body = opts[:body] || sig_lines
+    @body = (opts[:body] || []) + sig_lines
     regen_text
   end
 

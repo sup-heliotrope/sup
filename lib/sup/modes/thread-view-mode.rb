@@ -301,7 +301,7 @@ private
       unless @layout.member? m
         l = @layout[m] = Layout.new
         l.state = initial_state_for m
-        l.color = prevm && prevm.color == :message_patina_color ? :alternate_patina_color : :message_patina_color
+        l.color = prevm && @layout[prevm].color == :message_patina_color ? :alternate_patina_color : :message_patina_color
       end
       l = @layout[m]
 
