@@ -71,6 +71,8 @@ begin
     c.add :twiddle_color, Ncurses::COLOR_BLUE, Ncurses::COLOR_BLACK
     c.add :label_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
     c.add :message_patina_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_GREEN
+    c.add :alternate_patina_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_BLUE
+    c.add :missing_message_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_RED
     c.add :mime_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
     c.add :quote_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
     c.add :sig_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK

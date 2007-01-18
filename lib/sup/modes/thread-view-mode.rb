@@ -3,7 +3,7 @@ module Redwood
 class ThreadViewMode < LineCursorMode
   ## this holds all info we need to lay out a message
   class Layout
-    attr_accessor :top, :bot, :prev, :next, :depth, :width, :state
+    attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color
   end
 
   DATE_FORMAT = "%B %e %Y %l:%M%P"
@@ -44,11 +44,14 @@ class ThreadViewMode < LineCursorMode
     @layout = {}
     earliest, latest = nil, nil
     latest_date = nil
+    altcolor = false
     @thread.each do |m, d, p|
       next unless m
       earliest ||= m
       @layout[m] = Layout.new
       @layout[m].state = initial_state_for m
+      @layout[m].color = altcolor ? :alternate_patina_color : :message_patina_color
+      altcolor = !altcolor
       if latest_date.nil? || m.date > latest_date
         latest_date = m.date
         latest = m
@@ -295,11 +298,15 @@ private
       ## that's just a nicety and hopefully this won't happen too
       ## often.
 
-      l = (@layout[m] ||= Layout.new)
-      l.state ||= initial_state_for m
+      unless @layout.member? m
+        l = @layout[m] = Layout.new
+        l.state = initial_state_for m
+        l.color = prevm && prevm.color == :message_patina_color ? :alternate_patina_color : :message_patina_color
+      end
+      l = @layout[m]
 
       ## build the patina
-      text = chunk_to_lines m, l.state, @text.length, depth, parent
+      text = chunk_to_lines m, l.state, @text.length, depth, parent, @layout[m].color
       
       l.top = @text.length
       l.bot = @text.length + text.length # updated below
@@ -336,38 +343,38 @@ private
     end
   end
 
-  def message_patina_lines m, state, start, parent, prefix
-    prefix_widget = [:message_patina_color, prefix]
+  def message_patina_lines m, state, start, parent, prefix, color
+    prefix_widget = [color, prefix]
     widget = 
       case state
       when :closed
-        [:message_patina_color, "+ "]
+        [color, "+ "]
       when :open, :detailed
-        [:message_patina_color, "- "]
+        [color, "- "]
       end
     imp_widget = 
       if m.has_label?(:starred)
         [:starred_patina_color, "* "]
       else
-        [:message_patina_color, "  "]
+        [color, "  "]
       end
 
     case state
     when :open
       @person_lines[start] = m.from
       [[prefix_widget, widget, imp_widget,
-        [:message_patina_color, 
+        [color, 
             "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
 
     when :closed
       @person_lines[start] = m.from
       [[prefix_widget, widget, imp_widget,
-        [:message_patina_color, 
+        [color, 
         "#{m.from ? m.from.mediumname : '?'}, #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})  #{m.snippet}"]]]
 
     when :detailed
       @person_lines[start] = m.from
-      from = [[prefix_widget, widget, imp_widget, [:message_patina_color, "From: #{m.from ? format_person(m.from) : '?'}"]]]
+      from = [[prefix_widget, widget, imp_widget, [color, "From: #{m.from ? format_person(m.from) : '?'}"]]]
 
       rest = []
       unless m.to.empty?
@@ -390,7 +397,7 @@ private
         m.labels.empty? ? nil : "  Labels: #{m.labels.join(', ')}",
       ].compact
       
-      from + rest.map { |l| [[:message_patina_color, prefix + "  " + l]] }
+      from + rest.map { |l| [[color, prefix + "  " + l]] }
     end
   end
 
@@ -407,15 +414,15 @@ private
     p.longname + (ContactManager.is_contact?(p) ? " (#{ContactManager.alias_for p})" : "")
   end
 
-  def chunk_to_lines chunk, state, start, depth, parent=nil
+  def chunk_to_lines chunk, state, start, depth, parent=nil, color=nil
     prefix = " " * INDENT_SPACES * depth
     case chunk
     when :fake_root
-      [[[:message_patina_color, "#{prefix}<one or more unreceived messages>"]]]
+      [[[:missing_message_color, "#{prefix}<one or more unreceived messages>"]]]
     when nil
-      [[[:message_patina_color, "#{prefix}<an unreceived message>"]]]
+      [[[:missing_message_color, "#{prefix}<an unreceived message>"]]]
     when Message
-      message_patina_lines(chunk, state, start, parent, prefix) +
+      message_patina_lines(chunk, state, start, parent, prefix, color) +
         (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. To edit, hit 'e'. <<<"]]] : [])
     when Message::Attachment
       [[[:mime_color, "#{prefix}+ MIME attachment #{chunk.content_type}#{chunk.desc ? ' (' + chunk.desc + ')': ''}"]]]
