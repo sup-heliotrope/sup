@@ -78,7 +78,7 @@ class ContactListMode < LineCursorMode
 
   def multi_search people
     mode = PersonSearchResultsMode.new people
-    BufferManager.spawn "personal search results", mode
+    BufferManager.spawn "search for #{people.map { |p| p.name }.join(', ')}", mode
     mode.load_threads :num => mode.buffer.content_height
   end
 

@@ -7,7 +7,6 @@ maildir
 on startup, multi-threadedly call #connect on all sources 
 support for message-content modules such as ruby-talk:XXXXX detection
 use Net::SMTP
-search for other messages from author in thread-view-mode
 forward attachments
 CREATE attachments
 tab completion on labels, contacts
@@ -24,6 +23,7 @@ move sup-import argument handling to getopt
 be able to mark individual messages as spam in thread-view-mode
 toggle wrapping
 
+x search for other messages from author in thread-view-mode
 x resuming of arbitrary messages
 x alias authors in thread-view-mode
 x fix up contact list mode: should display while loading, and when you add an alias, should move everything else to the right

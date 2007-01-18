@@ -25,6 +25,7 @@ class ThreadViewMode < LineCursorMode
     k.add :alias, "Edit alias/nickname for a person", 'a'
     k.add :edit_as_new, "Edit message as new", 'd'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
+    k.add :search, "Search for messages from particular people", 'S'
   end
 
   ## there are a couple important instance variables we hold to lay
@@ -102,6 +103,13 @@ class ThreadViewMode < LineCursorMode
     alias_contact p
     regen_text
   end
+
+  def search
+    p = @person_lines[curpos] or return
+    mode = PersonSearchResultsMode.new [p]
+    BufferManager.spawn "search for #{p.name}", mode
+    mode.load_threads :num => mode.buffer.content_height
+  end    
 
   def toggle_starred
     m = @message_lines[curpos] or return
