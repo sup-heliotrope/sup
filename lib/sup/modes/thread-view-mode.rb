@@ -23,7 +23,7 @@ class ThreadViewMode < LineCursorMode
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message", 'f'
     k.add :alias, "Edit alias/nickname for a person", 'a'
-    k.add :edit_as_new, "Edit message as new", 'd'
+    k.add :edit_as_new, "Edit message as new", 'D'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
     k.add :search, "Search for messages from particular people", 'S'
   end
