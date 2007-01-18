@@ -168,10 +168,19 @@ class ThreadViewMode < LineCursorMode
     end
   end
 
+  def jump_to_first_open
+    m = @message_lines[0] or return
+    if @layout[m].state != :closed
+      jump_to_message m
+    else
+      jump_to_next_open
+    end
+  end
+
   def jump_to_next_open
     m = @message_lines[curpos] or return
     while nextm = @layout[m].next
-      break if @layout[nextm].state == :open
+      break if @layout[nextm].state != :closed
       m = nextm
     end
     jump_to_message nextm if nextm

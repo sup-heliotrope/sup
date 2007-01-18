@@ -61,7 +61,7 @@ class ThreadIndexMode < LineCursorMode
       mode = ThreadViewMode.new t, @hidden_labels
       BufferManager.spawn t.subj, mode
       BufferManager.draw_screen
-      mode.jump_to_next_open
+      mode.jump_to_first_open
       BufferManager.draw_screen # lame TODO: make this unnecessary
       ## the first draw_screen is needed before topline and botline
       ## are set, and the second to show the cursor having moved
