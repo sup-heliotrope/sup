@@ -24,6 +24,10 @@ class InboxMode < ThreadIndexMode
     regen_text
   end
 
+  def status
+    super + "    #{Index.size} messages in index"
+  end
+
   def is_relevant? m; m.has_label? :inbox; end
 
   def load_threads opts={}
