@@ -301,7 +301,7 @@ private
       when :quote
         newstate = nil
 
-        if line =~ QUOTE_PATTERN || line =~ QUOTE_START_PATTERN || line =~ /^\s*$/
+        if line =~ QUOTE_PATTERN || line =~ QUOTE_START_PATTERN #|| line =~ /^\s*$/
           chunk_lines << line
         elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE
           newstate = :sig

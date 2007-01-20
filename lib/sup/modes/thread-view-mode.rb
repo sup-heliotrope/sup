@@ -131,6 +131,7 @@ class ThreadViewMode < LineCursorMode
     chunk = @chunk_lines[curpos] or return
     case chunk
     when Message, Message::Quote, Message::Signature
+      return if chunk.lines.length == 1 unless chunk.is_a? Message # too small to expand/close
       l = @layout[chunk]
       l.state = (l.state != :closed ? :closed : :open)
       cursor_down if l.state == :closed
@@ -235,7 +236,7 @@ class ThreadViewMode < LineCursorMode
 
   def expand_all_quotes
     if(m = @message_lines[curpos])
-      quotes = m.chunks.select { |c| c.is_a?(Message::Quote) || c.is_a?(Message::Signature) }
+      quotes = m.chunks.select { |c| (c.is_a?(Message::Quote) || c.is_a?(Message::Signature)) && c.lines.length > 1 }
       numopen = quotes.inject(0) { |s, c| s + (@layout[c].state == :open ? 1 : 0) }
       newstate = numopen > quotes.length / 2 ? :closed : :open
       quotes.each { |c| @layout[c].state = newstate }
@@ -433,22 +434,20 @@ private
       end
       t.map { |line| [[:none, "#{prefix}#{line}"]] }
     when Message::Quote
+      return [[[:quote_color, "#{prefix}#{chunk.lines.first}"]]] if chunk.lines.length == 1
       case state
       when :closed
         [[[:quote_patina_color, "#{prefix}+ (#{chunk.lines.length} quoted lines)"]]]
       when :open
-        t = chunk.lines
-        [[[:quote_patina_color, "#{prefix}- (#{chunk.lines.length} quoted lines)"]]] +
-           t.map { |line| [[:quote_color, "#{prefix}#{line}"]] }
+        [[[:quote_patina_color, "#{prefix}- (#{chunk.lines.length} quoted lines)"]]] + chunk.lines.map { |line| [[:quote_color, "#{prefix}#{line}"]] }
       end
     when Message::Signature
+      return [[[:sig_patina_color, "#{prefix}#{chunk.lines.first}"]]] if chunk.lines.length == 1
       case state
       when :closed
         [[[:sig_patina_color, "#{prefix}+ (#{chunk.lines.length}-line signature)"]]]
       when :open
-        t = chunk.lines
-        [[[:sig_patina_color, "#{prefix}- (#{chunk.lines.length}-line signature)"]]] +
-           t.map { |line| [[:sig_color, "#{prefix}#{line}"]] }
+        [[[:sig_patina_color, "#{prefix}- (#{chunk.lines.length}-line signature)"]]] + chunk.lines.map { |line| [[:sig_color, "#{prefix}#{line}"]] }
       end
     else
       raise "unknown chunk type #{chunk.class.name}"
