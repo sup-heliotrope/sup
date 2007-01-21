@@ -237,7 +237,7 @@ class ThreadViewMode < LineCursorMode
   def expand_all_quotes
     if(m = @message_lines[curpos])
       quotes = m.chunks.select { |c| (c.is_a?(Message::Quote) || c.is_a?(Message::Signature)) && c.lines.length > 1 }
-      numopen = quotes.inject(0) { |s, c| s + (@layout[c].state == :open ? 1 : 0) }
+      numopen = quotes.inject(0) { |s, c| s + (@layout[c].state && @layout[c].state == :open ? 1 : 0) }
       newstate = numopen > quotes.length / 2 ? :closed : :open
       quotes.each { |c| @layout[c].state = newstate }
       update
