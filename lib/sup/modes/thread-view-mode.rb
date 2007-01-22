@@ -61,7 +61,7 @@ class ThreadViewMode < LineCursorMode
     @layout[latest].state = :open if @layout[latest].state == :closed
     @layout[earliest].state = :detailed if earliest.has_label?(:unread) || @thread.size == 1
 
-    BufferManager.say("Loading message bodies...") { update }
+    regen_text
   end
 
   def draw_line ln, opts={}
@@ -287,23 +287,6 @@ private
         @text += chunk_to_lines m, nil, @text.length, depth, parent
         next
       end
-
-      ## we're occasionally called on @threads that have had messages
-      ## added to them since initialization. luckily we regen_text on
-      ## the entire thread every time the user does anything besides
-      ## scrolling (basically), so we can just slap this on here.
-      ##
-      ## to pick nits, the niceness that i do in the constructor with
-      ## 'latest' etc. (for automatically opening just the latest
-      ## message if everything's been read) will not be valid, but
-      ## that's just a nicety and hopefully this won't happen too
-      ## often.
-
-      unless @layout.member? m
-        l = @layout[m] = Layout.new
-        l.state = initial_state_for m
-        l.color = prevm && @layout[prevm].color == :message_patina_color ? :alternate_patina_color : :message_patina_color
-      end
       l = @layout[m]
 
       ## build the patina
@@ -456,9 +439,10 @@ private
 
   def view_attachment a
     BufferManager.flash "viewing #{a.content_type} attachment..."
-    a.view!
+    success = a.view!
     BufferManager.erase_flash
     BufferManager.completely_redraw_screen
+    BufferManager.flash "Couldn't execute view command." unless success
   end
 
 end

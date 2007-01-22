@@ -1,7 +1,5 @@
 de-archived messages should be auto-added to inbox
 drafts sometimes not loaded
-bugfix: first time viewing a message only gets the first to:;
-   subsequent views get them all (wtf)
 add a flag to sup-import to force the creation of a new source (see http://rubyforge.org/forum/forum.php?thread_id=10973&forum_id=10340)
 fix bug: when returning from a shelling out, ncurses is crazy 
 batch deletion
@@ -25,6 +23,7 @@ move sup-import argument handling to getopt
 be able to mark individual messages as spam in thread-view-mode
 toggle wrapping
 
+x bugfix: first time viewing a message only gets the first to:; subsequent views get them all (wtf)
 x search for other messages from author in thread-view-mode
 x resuming of arbitrary messages
 x alias authors in thread-view-mode

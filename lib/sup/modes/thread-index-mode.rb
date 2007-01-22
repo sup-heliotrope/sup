@@ -56,8 +56,13 @@ class ThreadIndexMode < LineCursorMode
   def select t=nil
     t ||= @threads[curpos]
 
+    t = t.clone # XXXX highly experimental
+
     ## TODO: don't regen text completely
     Redwood::reporting_thread do
+      BufferManager.say("Loading message bodies...") do |sid|
+        t.each { |m, *o| m.load_from_source! }
+      end
       mode = ThreadViewMode.new t, @hidden_labels
       BufferManager.spawn t.subj, mode
       BufferManager.draw_screen

@@ -46,6 +46,7 @@ class Message
 
       ## TODO: handle unknown mime-types
       system "/usr/bin/run-mailcap --action=view #{@content_type}:#{@file.path}"
+      $? == 0
     end
 
     def to_s; @part.decode; end
@@ -83,7 +84,7 @@ class Message
 
   attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :source,
               :cc, :bcc, :labels, :list_address, :recipient_email, :replyto,
-              :source_info
+              :source_info, :chunks
 
   bool_reader :dirty, :source_marked_read
 
@@ -96,8 +97,11 @@ class Message
     @have_snippet = !opts[:snippet].nil?
     @labels = opts[:labels] || []
     @dirty = false
+    @chunks = nil
 
-    read_header(opts[:header] || @source.load_header(@source_info))
+    raise ArgumentError, "need a header" unless opts[:header]
+    read_header opts[:header]
+    #read_header(opts[:header] || @source.load_header(@source_info))
   end
 
   def read_header header
@@ -173,7 +177,7 @@ class Message
   end
 
   ## this is called when the message body needs to actually be loaded.
-  def chunks
+  def load_from_source!
     @chunks ||=
       if @source.broken?
         [Text.new(error_message(@source.broken_msg.split("\n")))]
@@ -185,6 +189,8 @@ class Message
           ## i could just store that in the index, but i think there might
           ## be other things like that in the future, and i'd rather not
           ## bloat the index.
+          ## actually, it's also the differentiation between to/cc/bcc,
+          ## so i will keep this.
           read_header @source.load_header(@source_info)
           message_to_chunks @source.load_message(@source_info)
         rescue SourceError, SocketError, MessageFormatError => e
