@@ -61,7 +61,7 @@ class ThreadIndexMode < LineCursorMode
     ## TODO: don't regen text completely
     Redwood::reporting_thread do
       BufferManager.say("Loading message bodies...") do |sid|
-        t.each { |m, *o| m.load_from_source! }
+        t.each { |m, *o| m.load_from_source! if m }
       end
       mode = ThreadViewMode.new t, @hidden_labels
       BufferManager.spawn t.subj, mode
