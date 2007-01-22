@@ -99,9 +99,7 @@ class Message
     @dirty = false
     @chunks = nil
 
-    raise ArgumentError, "need a header" unless opts[:header]
-    read_header opts[:header]
-    #read_header(opts[:header] || @source.load_header(@source_info))
+    read_header(opts[:header] || @source.load_header(@source_info))
   end
 
   def read_header header
@@ -230,6 +228,7 @@ EOS
   end
 
   def content
+    load_from_source!
     [
       from && "#{from.name} #{from.email}",
       to.map { |p| "#{p.name} #{p.email}" },
