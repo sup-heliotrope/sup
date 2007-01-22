@@ -14,7 +14,7 @@ class PersonManager
   def register email, name
     return unless name
 
-    name = name.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ")
+    name = name.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ").gsub(/^['"]|['"]$/, "")
 
     ## all else being equal, prefer longer names, unless the prior name
     ## doesn't contain any capitalization
