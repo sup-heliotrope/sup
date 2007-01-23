@@ -35,7 +35,7 @@ class ContactListMode < LineCursorMode
   def alias
     p = @contacts[curpos] or return
     alias_contact p
-    regen_text
+    update
   end
 
   def lines; @text.length; end
@@ -50,7 +50,7 @@ class ContactListMode < LineCursorMode
 
   def multi_toggle_tagged threads
     @tags.drop_all_tags
-    regen_text
+    update
   end
 
   def apply_to_tagged; @tags.apply_to_tagged; end
@@ -58,7 +58,7 @@ class ContactListMode < LineCursorMode
   def load_more num=LOAD_MORE_CONTACTS_NUM
     @num += num
     load
-    regen_text
+    update
     BufferManager.flash "Added #{num} contacts."
   end
 
@@ -96,7 +96,7 @@ class ContactListMode < LineCursorMode
   def load_in_background
     Redwood::reporting_thread do
       load
-      regen_text
+      update
       BufferManager.draw_screen
     end
   end
@@ -113,9 +113,14 @@ class ContactListMode < LineCursorMode
   
 protected
 
+  def update
+    regen_text
+    buffer.mark_dirty if buffer
+  end
+
   def update_text_for_line line
     @text[line] = text_for_contact @contacts[line]
-    buffer.mark_dirty
+    buffer.mark_dirty if buffer
   end
 
   def text_for_contact p
@@ -133,7 +138,6 @@ protected
     end
 
     @text = @contacts.map { |p| text_for_contact p }
-    buffer.mark_dirty
   end
 end
 
