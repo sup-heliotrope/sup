@@ -36,26 +36,21 @@ class SSHLoader < Source
     @labels << File.basename(filename).intern unless File.dirname(filename) =~ /\b(var|usr|spool)\b/
   end
 
+  def connect; safely { @f.connect }; end
   def host; @parsed_uri.host; end
   def filename; @parsed_uri.path[1..-1] end
 
   def next
     return if broken?
-    begin
+    safely do
       offset, labels = @loader.next
       self.cur_offset = @loader.cur_offset # superclass keeps @cur_offset which is used by yaml
       [offset, (labels + @labels).uniq] # add our labels
-    rescue Net::SSH::Exception, SocketError, SSHFileError, Errno::ENOENT => e
-      recover_from e
     end
   end
 
   def end_offset
-    begin
-      @f.size
-    rescue Net::SSH::Exception, SocketError, SSHFileError, Errno::ENOENT => e
-      recover_from e
-    end
+    safely { @f.size }
   end
 
   def cur_offset= o; @cur_offset = @loader.cur_offset = o; @dirty = true; end
@@ -64,21 +59,19 @@ class SSHLoader < Source
   # def cur_offset; @loader.cur_offset; end # think we'll be ok without this
   def to_s; @parsed_uri.to_s; end
 
-  def recover_from e
-    m = "error communicating with SSH server #{host} (#{e.class.name}): #{e.message}"
-    Redwood::log m
-    self.broken_msg = @loader.broken_msg = m
-    raise SourceError, m
+  def safely
+    begin
+      yield
+    rescue Net::SSH::Exception, SocketError, SSHFileError, SystemCallError => e
+      m = "error communicating with SSH server #{host} (#{e.class.name}): #{e.message}"
+      Redwood::log m
+      self.broken_msg = @loader.broken_msg = m
+      raise SourceError, m
+    end
   end
 
   [:start_offset, :load_header, :load_message, :raw_header, :raw_full_message].each do |meth|
-    define_method meth do |*a|
-      begin
-        @loader.send meth, *a
-      rescue Net::SSH::Exception, SocketError, SSHFileError, Errno::ENOENT => e
-        recover_from e
-      end
-    end
+    define_method(meth) { |*a| safely { @loader.send meth, *a } }
   end
 end
 

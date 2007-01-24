@@ -92,6 +92,9 @@ class SSHFile
   REASONABLE_TRANSFER_SIZE = 1024 * 32
   SIZE_CHECK_INTERVAL = 60 * 1 # seconds
 
+  ## upon these errors we'll try to rereconnect a few times
+  RECOVERABLE_ERRORS = [ Errno::EPIPE, Errno::ETIMEDOUT ]
+
   @@shells = {}
   @@shells_mutex = Mutex.new
 
@@ -105,46 +108,15 @@ class SSHFile
     @say_id = nil
     @broken_msg = nil
     @shell = nil
-    @shell_mutex = Mutex.new
+    @shell_mutex = nil
     @buf_mutex = Mutex.new
   end
 
-  def to_s; "mbox+ssh://#@host/#@fn"; end ## TODO: remove thisis EVILness
+  def to_s; "mbox+ssh://#@host/#@fn"; end ## TODO: remove this EVILness
   def broken?; !@broken_msg.nil?; end
 
-  ## TODO: share this code with imap
-  def say s
-    @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
-    Redwood::log s
-  end
-  def shutup
-    BufferManager.clear @say_id if BufferManager.instantiated? && @say_id
-    @say_id = nil
-  end
-  private :say, :shutup
-
   def connect
-    raise SSHFileError, @broken_msg if broken?
-    return if @shell
-
-    @key = [@host, @ssh_opts[:username]]
-    begin
-      @shell = @@shells_mutex.synchronize do
-        unless @@shells.member? @key
-          say "Opening SSH connection to #{@host} for #@fn..."
-          #raise SSHFileError, "simulated SSH file error"
-          session = Net::SSH.start @host, @ssh_opts
-          say "Starting SSH shell..."
-          @@shells[@key] = session.shell.sync
-        end
-        @@shells[@key]
-      end
-
-      say "Checking for #@fn..."
-      @shell_mutex.synchronize { raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0 }
-    ensure
-      shutup
-    end
+    do_remote nil
   end
 
   def eof?; @offset >= size; end
@@ -180,32 +152,72 @@ class SSHFile
 
 private
 
-  def do_remote cmd, expected_size=0
+  ## TODO: share this code with imap
+  def say s
+    @say_id = BufferManager.say "[#{@say_id.inspect}] #{s}", @say_id if BufferManager.instantiated?
+    Redwood::log s
+  end
+
+  def shutup
+    BufferManager.clear @say_id if BufferManager.instantiated? && @say_id
+    @say_id = nil
+  end
+
+  def unsafe_connect
+    raise SSHFileError, @broken_msg if broken?
+    return if @shell
+
+    @key = [@host, @ssh_opts[:username]]
     begin
-      retries = 0
-      connect
-      # MBox::debug "sending command: #{cmd.inspect}"
+      @shell, @shell_mutex = @@shells_mutex.synchronize do
+        unless @@shells.member? @key
+          say "Opening SSH connection to #{@host} for #@fn..."
+          #raise SSHFileError, "simulated SSH file error"
+          session = Net::SSH.start @host, @ssh_opts
+          say "Starting SSH shell..."
+          @@shells[@key] = [session.shell.sync, Mutex.new]
+        end
+        @@shells[@key]
+      end
+
+      say "Checking for #@fn..."
+      @shell_mutex.synchronize { raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0 }
+    ensure
+      say "Not checking for #@fn any more"
+      shutup
+    end
+  end
+
+  def do_remote cmd, expected_size=0
+    retries = 0
+    result = nil
+    begin
       begin
-        result = @shell_mutex.synchronize { x = @shell.send_command cmd; sleep 0.25; x }
-        raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{(result.stderr || result.stdout || "")[0 .. 100]}" unless result.status == 0
-      rescue Net::SSH::Exception # these happen occasionally for no apparent reason. gotta love that nondeterminism!
-        retry if (retries += 1) <= 3
-        raise
-      rescue Errno::EPIPE
-        if (retries += 1) <= e
+        unsafe_connect
+        if cmd
+          # MBox::debug "sending command: #{cmd.inspect}"
+          result = @shell_mutex.synchronize { x = @shell.send_command cmd; sleep 0.25; x }
+          raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{(result.stderr || result.stdout || "")[0 .. 100]}" unless result.status == 0
+        end
+
+        ## Net::SSH::Exceptions seem to happen every once in a while for
+        ## no good reason.
+      rescue Net::SSH::Exception, *RECOVERABLE_ERRORS
+        if (retries += 1) <= 3
           @@shells_mutex.synchronize do
             @shell = nil
             @@shells[@key] = nil
           end
-          connect
           retry
         end
+        raise
       end
-    rescue Net::SSH::Exception, SSHFileError, Errno::ENOENT => e
+    rescue Net::SSH::Exception, SSHFileError, SystemCallError => e
       @broken_msg = e.message
       raise
     end
-    result.stdout
+
+    result.stdout if cmd
   end
 
   def get_bytes offset, size
