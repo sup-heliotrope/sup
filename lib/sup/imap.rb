@@ -27,11 +27,13 @@ require 'time'
 
 ## fuck you, imap committee. you managed to design something as shitty
 ## as mbox but goddamn THIRTY YEARS LATER.
-
 module Redwood
 
 class IMAP < Source
   SCAN_INTERVAL = 60 # seconds
+
+  ## upon these errors we'll try to rereconnect a few times
+  RECOVERABLE_ERRORS = [ Errno::EPIPE, Errno::ETIMEDOUT ]
 
   attr_reader_cloned :labels
   attr_accessor :username, :password
@@ -72,24 +74,78 @@ class IMAP < Source
   end
 
   def raw_header id
-    @mutex.synchronize do
-      connect
-      header, flags = get_imap_fields id, 'RFC822.HEADER', 'FLAGS'
-      header = "Status: RO\n" + header if flags.include? :Seen # fake an mbox-style read header
-      header.gsub(/\r\n/, "\n")
-    end
+    unsynchronized_scan_mailbox
+    header, flags = get_imap_fields id, 'RFC822.HEADER', 'FLAGS'
+    header = header + "Status: RO\n" if flags.include? :Seen # fake an mbox-style read header # TODO: improve source-marked-as-read reporting system
+    header.gsub(/\r\n/, "\n")
   end
+  synchronized :raw_header
 
   def raw_full_message id
-    @mutex.synchronize do
-      connect
-      get_imap_fields(id, 'RFC822').first.gsub(/\r\n/, "\n")
-    end
+    unsynchronized_scan_mailbox
+    get_imap_fields(id, 'RFC822').first.gsub(/\r\n/, "\n")
   end
+  synchronized :raw_full_message
 
   def connect
     return if broken? || @imap
+    safely { } # do nothing!
+  end
+  synchronized :connect
 
+  def scan_mailbox
+    return if @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
+    last_id = safely do
+      @imap.examine mailbox
+      @imap.responses["EXISTS"].last
+    end
+    @last_scan = Time.now
+
+    return if last_id == @ids.length
+
+    Redwood::log "fetching IMAP headers #{(@ids.length + 1) .. last_id}"
+    values = safely { @imap.fetch((@ids.length + 1) .. last_id, ['RFC822.SIZE', 'INTERNALDATE']) }
+    values.each do |v|
+      id = make_id v
+      @ids << id
+      @imap_ids[id] = v.seqno
+    end
+  end
+  synchronized :scan_mailbox
+
+  def each
+    ids = 
+      @mutex.synchronize do
+        unsynchronized_scan_mailbox
+        @ids
+      end
+
+    start = ids.index(cur_offset || start_offset) or die_from "Unknown message id #{cur_offset || start_offset}.", :suggest_rebuild => true # couldn't find the most recent email
+
+    start.upto(ids.length - 1) do |i|         
+      id = ids[i]
+      self.cur_offset = id
+      yield id, labels
+    end
+  end
+
+  def start_offset
+    unsynchronized_scan_mailbox
+    @ids.first
+  end
+  synchronized :start_offset
+
+  def end_offset
+    unsynchronized_scan_mailbox
+    @ids.last
+  end
+  synchronized :end_offset
+
+  def pct_done; 100.0 * (@ids.index(cur_offset) || 0).to_f / (@ids.length - 1).to_f; end
+
+private
+
+  def unsafe_connect
     say "Connecting to IMAP server #{host}:#{port}..."
 
     ## apparently imap.rb does a lot of threaded stuff internally and
@@ -97,9 +153,8 @@ class IMAP < Source
     ## calling thread. but i can't seem to catch that exception, so
     ## i've resorted to initializing it in its own thread. surely
     ## there's a better way.
-
     exception = nil
-    Redwood::reporting_thread do
+    ::Thread.new do
       begin
         #raise Net::IMAP::ByeResponseError, "simulated imap failure"
         @imap = Net::IMAP.new host, port, ssl?
@@ -119,46 +174,16 @@ class IMAP < Source
             @imap.login @username, @password
           end
         end
-        scan_mailbox
-        say "Successfully connected to #{@parsed_uri}." unless broken?
-      rescue SocketError, Net::IMAP::Error, SourceError => e
+        say "Successfully connected to #{@parsed_uri}."
+      rescue Exception => e
         exception = e
       ensure
         shutup
       end
     end.join
 
-    die_from exception, :while => "connecting" if exception
+    raise exception if exception
   end
-
-  def each
-    @mutex.synchronize { connect }
-
-    start = @ids.index(cur_offset || start_offset) or die_from "Unknown message id #{cur_offset || start_offset}.", :suggest_rebuild => true # couldn't find the most recent email
-
-    start.upto(@ids.length - 1) do |i|         
-      id = @ids[i]
-      self.cur_offset = id
-      yield id, labels
-    end
-  end
-
-  def start_offset
-    @mutex.synchronize { connect }
-    @ids.first
-  end
-
-  def end_offset
-    @mutex.synchronize do
-      connect
-      scan_mailbox
-    end
-    @ids.last
-  end
-
-  def pct_done; 100.0 * (@ids.index(cur_offset) || 0).to_f / (@ids.length - 1).to_f; end
-
-private
 
   def say s
     @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
@@ -168,25 +193,6 @@ private
   def shutup
     BufferManager.clear @say_id if BufferManager.instantiated?
     @say_id = nil
-  end
-
-  def scan_mailbox
-    return if @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
-
-    last_id = safely do
-      @imap.examine mailbox
-      @imap.responses["EXISTS"].last
-    end
-
-    @last_scan = Time.now
-    return if last_id == @ids.length
-    Redwood::log "fetching IMAP headers #{(@ids.length + 1) .. last_id}"
-    values = safely { @imap.fetch((@ids.length + 1) .. last_id, ['RFC822.SIZE', 'INTERNALDATE']) }
-    values.each do |v|
-      id = make_id v
-      @ids << id
-      @imap_ids[id] = v.seqno
-    end
   end
 
   def die_from e, opts={}
@@ -227,21 +233,24 @@ private
     fields.map { |f| results.attr[f] }
   end
 
+  ## execute a block, connected if unconnected, re-connected up to 3
+  ## times if a recoverable error occurs, and properly dying if an
+  ## unrecoverable error occurs.
   def safely
-    retried = false
+    retries = 0
     begin
-      yield
-    rescue Net, SocketError, Net::IMAP::Error => e
-      die_from e, :while => "communicating with IMAP server"
-    rescue Errno::EPIPE
-      unless retried
-        retried = true
-        @imap = nil
-        connect
-        retry
-      else
-        die_from e, :while => "communicating with IMAP server"
+      begin
+        unsafe_connect unless @imap
+        yield
+      rescue *RECOVERABLE_ERRORS
+        if (retries += 1) <= 3
+          @imap = nil
+          retry
+        end
+        raise
       end
+    rescue Net, SocketError, Net::IMAP::Error, SystemCallError => e
+      die_from e, :while => "communicating with IMAP server"
     end
   end
 

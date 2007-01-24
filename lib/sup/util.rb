@@ -43,6 +43,19 @@ class Object
   ## i'm sure there's pithy comment i could make here about the
   ## superiority of lisp, but fuck lisp.
   def returning x; yield x; x; end
+
+  ## clone of java-style whole-method synchronization
+  ## assumes a @mutex variable
+  def synchronized *meth
+    meth.each do
+      class_eval <<-EOF
+        alias unsynchronized_#{meth} #{meth}
+        def #{meth}(*a, &b)
+          @mutex.synchronize { unsynchronized_#{meth}(*a, &b) }
+        end
+      EOF
+    end
+  end
 end
 
 class String
