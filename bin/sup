@@ -102,7 +102,17 @@ begin
   Logger.make_buf
 
   bm.draw_screen
-  imode.load_threads :num => ibuf.content_height, :when_done => lambda {   reporting_thread { sleep 1; PollManager.poll } }
+  Index.usual_sources.each do |s|
+    reporting_thread do
+      begin
+        s.connect
+      rescue SourceError => e
+        Redwood::log "Fatal error loading from #{s}: #{e.message}"
+      end
+    end if s.respond_to? :connect
+  end
+
+  imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread { sleep 1; PollManager.poll } }
 
   PollManager.start_thread
 
