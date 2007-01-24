@@ -154,7 +154,7 @@ private
 
   ## TODO: share this code with imap
   def say s
-    @say_id = BufferManager.say "[#{@say_id.inspect}] #{s}", @say_id if BufferManager.instantiated?
+    @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
     Redwood::log s
   end
 
