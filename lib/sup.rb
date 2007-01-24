@@ -19,7 +19,7 @@ module Redwood
   CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
   SOURCE_FN  = File.join(BASE_DIR, "sources.yaml")
   LABEL_FN   = File.join(BASE_DIR, "labels.txt")
-  PERSON_FN   = File.join(BASE_DIR, "people.txt")
+  PERSON_FN  = File.join(BASE_DIR, "people.txt")
   CONTACT_FN = File.join(BASE_DIR, "contacts.txt")
   DRAFT_DIR  = File.join(BASE_DIR, "drafts")
   SENT_FN    = File.join(BASE_DIR, "sent.mbox")
@@ -34,7 +34,7 @@ module Redwood
       begin
         yield
       rescue Exception => e
-        File.open("exception-log.txt", "w") do |f|
+        File.open("sup-exception-log.txt", "w") do |f|
           f.puts "--- #{e.class.name} at #{Time.now}"
           f.puts e.message, e.backtrace
         end
