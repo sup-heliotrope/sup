@@ -128,7 +128,6 @@ protected
 
     if new_header.size != header.size ||
         header.any? { |k, v| new_header[k] != v }
-      #raise "nhs: #{new_header.size} hs: #{header.size} new: #{new_header.inspect} old: #{header.inspect}"
       @selected_type = :user
       @headers[:user] = new_header
     end

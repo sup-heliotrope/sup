@@ -183,7 +183,6 @@ private
       say "Checking for #@fn..."
       @shell_mutex.synchronize { raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0 }
     ensure
-      say "Not checking for #@fn any more"
       shutup
     end
   end

@@ -280,6 +280,7 @@ class ThreadIndexMode < LineCursorMode
     t = @threads[curpos] or return
     m = t.latest_message
     return if m.nil? # probably won't happen
+    m.load_from_source!
     mode = ReplyMode.new m
     BufferManager.spawn "Reply to #{m.subj}", mode
   end
