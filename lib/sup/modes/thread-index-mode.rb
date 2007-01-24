@@ -17,6 +17,7 @@ class ThreadIndexMode < LineCursorMode
     k.add :edit_labels, "Edit or add labels for a thread", 'l'
     k.add :edit_message, "Edit message (drafts only)", 'e'
     k.add :mark_as_spam, "Mark thread as spam", 'S'
+    k.add :delete, "Mark thread for deletion", 'd'
     k.add :kill, "Kill thread (never to be seen in inbox again)", '&'
     k.add :save, "Save changes now", '$'
     k.add :jump_to_next_new, "Jump to next new thread", :tab
@@ -189,6 +190,19 @@ class ThreadIndexMode < LineCursorMode
   def multi_mark_as_spam threads
     threads.each do |t|
       t.toggle_label :spam
+      hide_thread t
+    end
+    regen_text
+  end
+
+  def delete
+    t = @threads[curpos] or return
+    multi_delete [t]
+  end
+
+  def multi_delete threads
+    threads.each do |t|
+      t.toggle_label :deleted
       hide_thread t
     end
     regen_text

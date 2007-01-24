@@ -33,8 +33,6 @@ class InboxMode < ThreadIndexMode
   def load_threads opts={}
     n = opts[:num] || ThreadIndexMode::LOAD_MORE_THREAD_NUM
     load_n_threads_background n, :label => :inbox,
-                                 :load_killed => false,
-                                 :load_spam => false,
                                  :when_done => (lambda do |num|
       opts[:when_done].call if opts[:when_done]
       BufferManager.flash "Added #{num} threads."

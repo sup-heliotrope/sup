@@ -22,6 +22,21 @@ A: You can manually mark messages as spam, which prevents them from
    showing up in future searches, but that's all that Sup does. Spam
    filtering should be done by a dedicated tool like SpamAssassin.
 
+Q: How do I delete a message?
+A: Press the 'd' key.
+
+Q: But I want to delete it for real, not just add a 'deleted' flag in
+   the index. I want it gone from disk!
+A: Deleting a message is an old-fashioned concept. In the modern
+   world, disk space is cheap enough that you should never have to
+   delete a message. If it's spam, save it for future analysis.
+
+Q: C'mon, really!
+A: Ok, at some point I plan to have a batch deletion tool that will
+   run through a source and delete all messages that have a 'spam' or
+   'deleted' tags (and, for mbox sources, will update the offsets of
+   all later messages). But that doesn't exist yet.
+
 Q: What are all these "Redwood" references I see in the code?
 A: That was Sup's original name. (Think pine, elm. Although I am a
    Mutt user, I couldn't think of a good progression there.) But it was

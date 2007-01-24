@@ -294,6 +294,7 @@ protected
     end
         
     query.add_query Ferret::Search::TermQuery.new("label", "spam"), :must_not unless opts[:load_spam] || labels.include?(:spam)
+    query.add_query Ferret::Search::TermQuery.new("label", "deleted"), :must_not unless opts[:load_deleted] || labels.include?(:deleted)
     query.add_query Ferret::Search::TermQuery.new("label", "killed"), :must_not unless opts[:load_killed] || labels.include?(:killed)
     query
   end
