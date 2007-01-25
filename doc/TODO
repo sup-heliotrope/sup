@@ -1,10 +1,20 @@
-de-archived messages should be auto-added to inbox
-drafts sometimes not loaded
+for next release
+----------------
+bugfix: killed threads
+bugfix: new messages, drafts sometimes not showing up in inbox
+bugfix: changing IMAP ids
+use trollop to handle sup-devel args
 add a flag to sup-import to force the creation of a new source (see http://rubyforge.org/forum/forum.php?thread_id=10973&forum_id=10340)
+clean up import code and share between poll.rb and sup-import
+de-archived messages should be auto-added to inbox
+maildir
+undo
+
+future
+------
+wide character support
 fix bug: when returning from a shelling out, ncurses is crazy 
 batch deletion
-maildir
-on startup, multi-threadedly call #connect on all sources 
 support for message-content modules such as ruby-talk:XXXXX detection
 use Net::SMTP
 forward attachments
@@ -12,17 +22,16 @@ CREATE attachments
 tab completion on labels, contacts
 within-buffer search
 contact selector in edit-message-mode
-undo
 maybe: filters
 maybe: rangefilter on the initial inbox to only consider the most recent 1000 messages
 select all, starred, to me, etc
 annotations on messages
 gmail
 pop
-move sup-import argument handling to getopt
 be able to mark individual messages as spam in thread-view-mode
 toggle wrapping
 
+x on startup, multi-threadedly call #connect on all sources 
 x bugfix: first time viewing a message only gets the first to:; subsequent views get them all (wtf)
 x search for other messages from author in thread-view-mode
 x resuming of arbitrary messages
