@@ -8,7 +8,7 @@ class LabelManager
   RESERVED_LABELS = [ :starred, :spam, :draft, :unread, :killed, :sent, :deleted ]
 
   ## labels which it nonetheless makes sense to search for by
-  LISTABLE_LABELS = [ :starred, :spam, :draft, :sent, :deleted ]
+  LISTABLE_LABELS = [ :starred, :spam, :draft, :sent, :killed, :deleted ]
 
   ## labels that will never be displayed to the user
   HIDDEN_LABELS = [ :starred, :unread ]
