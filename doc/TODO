@@ -1,5 +1,6 @@
 for next release
 ----------------
+bugfix: resuming a draft asks before discard
 bugfix: killed threads
 bugfix: new messages, drafts sometimes not showing up in inbox
 bugfix: changing IMAP ids
