@@ -4,6 +4,10 @@ require 'rubygems'
 require 'hoe'
 require './lib/sup.rb'
 
+class Hoe
+  def extra_deps; @extra_deps.reject { |x| Array(x).first == "hoe" } end
+end # thanks to "Mike H"
+
 Hoe.new('sup', Redwood::VERSION) do |p|
   p.rubyforge_name = 'sup'
   p.author = "William Morgan"
@@ -12,7 +16,7 @@ Hoe.new('sup', Redwood::VERSION) do |p|
   p.url = p.paragraphs_of('README.txt', 0).first.split(/\n/)[2].gsub(/^\s+/, "")
   p.changes = p.paragraphs_of('History.txt', 0..1).join("\n\n")
   p.email = "wmorgan-sup@masanjin.net"
-  p.extra_deps = [['ferret', '>= 0.10.13'], ['ncurses', '>= 0.9.1'], ['rmail', '>= 0.17'], 'highline', 'net-ssh']
+  p.extra_deps = [['ferret', '>= 0.10.13'], ['ncurses', '>= 0.9.1'], ['rmail', '>= 0.17'], 'highline', 'net-ssh', 'trollop']
 end
 
 rule 'ss?.png' => 'ss?-small.png' do |t|
