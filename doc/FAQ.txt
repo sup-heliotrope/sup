@@ -1,21 +1,18 @@
 Sup FAQ
 -------
 Q: What does Sup stand for?
-A: It stands for "what's up?", which is more or less the question I'm
-   asking when I read my mail.
+A: It stands for "what's up?", which is more or less the question in
+   mind when I fire up my mail client.
 
 Q: If you love GMail so much, why not just use it?
-A: I hate using a mouse, and I hate ads, and I hate non-programmability
+A: I hate ads, I hate using a mouse, and I hate non-programmability
    and non-extensibility.
 
 Q: Why the console?
-A: There are many advantages to the console. As any Unix user knows, a
-   few keystrokes can accomplish the work of a hundred mouse clicks.
-   Also, you don't need web browser, and you get instantaneous response
-   and a simple interface.
-
-   That said, a good Ajax programmer could probably replicate GMail
-   pretty easily using Sup as the backend.
+A: There are many advantages to the console. A
+   few keystrokes can accomplish the work of a hundred mouse clicks
+   (as any Unix user knows). Also, you don't need web browser, and you
+   get instantaneous response and a simple interface.
 
 Q: How does Sup deal with spam?
 A: You can manually mark messages as spam, which prevents them from
@@ -31,11 +28,24 @@ A: Deleting a message is an old-fashioned concept. In the modern
    world, disk space is cheap enough that you should never have to
    delete a message. If it's spam, save it for future analysis.
 
-Q: C'mon, really!
+Q: C'mon, really now!
 A: Ok, at some point I plan to have a batch deletion tool that will
    run through a source and delete all messages that have a 'spam' or
    'deleted' tags (and, for mbox sources, will update the offsets of
    all later messages). But that doesn't exist yet.
+
+Q: I got some error message about needing to run sup-import --rescan
+   when I tried to read a message. What's that about?
+A: If messages have been moved, deleted, or altered in a source, Sup
+   may have to rebuild its index for that source. For example, for
+   mbox files, even reading a message changes the offsets of every
+   file on disk. Rather than rescanning every time, Sup assumes
+   sources don't change except by having new messages added. If that
+   assumption is violated, you'll have to run sup-import --rescan.
+
+   The alternative is to rescan every source when Sup starts
+   up. Because Sup is designed to work with arbitrarily large mbox
+   files, this would not be a good idea.
 
 Q: What are all these "Redwood" references I see in the code?
 A: That was Sup's original name. (Think pine, elm. Although I am a
@@ -45,6 +55,15 @@ A: That was Sup's original name. (Think pine, elm. Although I am a
 
    Maybe one day I'll do a huge search-and-replace on the code, but it
    doesn't seem that important at this point.
+
+Q: I want to move messages from one source to another. (E.g., my
+   primary inbox is an IMAP server with a quota, and I want to move
+   some of those messages to local mbox files.) How do I do that while
+   preserving message state?
+A: Move the messages from the source to the target using whatever tool
+   you'd like. Then (and this is the important part), sup-import
+   --rescan the target, and THEN the source. If you do it the other
+   way around, you'll lose any message state.
 
 Q: How is Sup possible?
 A: Sup is only possible through the hard work of Dave Balmain, the
