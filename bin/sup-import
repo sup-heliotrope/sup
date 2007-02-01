@@ -96,10 +96,12 @@ begin
       end
 
       ## update if...
-      if entry.nil? || # it's a new message; or
-          opts[:full_rebuild] || # we're updating everyone; or
+      if entry.nil? # it's a new message; or
+        puts "# adding message at #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
+        m
+      elsif opts[:full_rebuild] || # we're updating everyone; or
           (opts[:rebuild] && (entry[:source_id].to_i != source.id || entry[:source_info].to_i != offset)) # we're updating just the changed ones
-        puts "# message at #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
+        puts "# updating message at #{offset}, source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
         m
       else
         nil
