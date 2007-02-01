@@ -38,59 +38,23 @@ class PollManager
     end
   end
 
-  ## TODO: merge this with sup-import
   def do_poll
     total_num = total_numi = 0
     @mutex.synchronize do
       found = {}
       Index.usual_sources.each do |source|
-        next if source.broken? || source.done?
-
-        yield "Loading from #{source}... "
-        start_offset = nil
+        yield "Loading from #{source}... " unless source.done? || source.broken?
         num = 0
-        num_inbox = 0
-
-        source.each do |offset, labels|
-          break if source.broken?
-          start_offset ||= offset
-          yield "Found message at #{offset} with labels #{labels * ', '}"
-
-          begin
-            begin
-              m = Redwood::Message.new :source => source, :source_info => offset, :labels => labels
-            rescue MessageFormatError => e
-              yield "Non-fatal error loading message #{source}##{offset}: #{e.message}"
-              next
-            end
-
-            if found[m.id]
-              yield "Skipping duplicate message #{m.id}"
-              next
-            end
-            found[m.id] = true
-          
-            if Index.add_message m
-              UpdateManager.relay :add, m
-              num += 1
-              total_num += 1
-              total_numi += 1 if m.labels.include? :inbox
-            end
-        
-            if num % 1000 == 0 && num > 0
-              elapsed = Time.now - start
-              pctdone = source.pct_done
-              remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
-              yield "## #{num} (#{pctdone}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
-            end
-          rescue SourceError => e
-            msg = "Fatal error loading from #{source}: #{e.message}"
-            Redwood::log msg
-            yield msg
-            break
-          end
+        numi = 0
+        Index.add_new_messages_from source do |m, offset, source_labels, entry|
+          yield "Found message at #{offset} with labels #{m.labels * ', '}"
+          num += 1
+          numi += 1 if m.labels.include? :inbox
+          m
         end
-        yield "Found #{num} messages" unless num == 0
+        yield "Found #{num} messages, #{numi} to inbox" unless num == 0
+        total_num += num
+        total_numi += numi
       end
 
       yield "Done polling; loaded #{total_num} new messages total"

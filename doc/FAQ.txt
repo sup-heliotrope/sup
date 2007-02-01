@@ -62,8 +62,9 @@ Q: I want to move messages from one source to another. (E.g., my
    preserving message state?
 A: Move the messages from the source to the target using whatever tool
    you'd like. Then (and this is the important part), sup-import
-   --rescan the target, and THEN the source. If you do it the other
-   way around, you'll lose any message state.
+   --rescan both sources at once. If you do it one at a time, you may
+   lose message state. (Depending, actually, on which order you do it
+   in. But just do them both at once.)
 
 Q: How is Sup possible?
 A: Sup is only possible through the hard work of Dave Balmain, the

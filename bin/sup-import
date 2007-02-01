@@ -2,7 +2,7 @@
 
 require 'uri'
 require 'rubygems'
-require 'highline/import'
+require 'trollop'
 require "sup"
 
 Thread.abort_on_exception = true # make debugging possible
@@ -24,203 +24,88 @@ def time
   Time.now - startt
 end
 
-def educate_user
-  $stderr.puts <<EOS
-Loads messages into the Sup index, adding sources as needed to the
-source list.
+opts = Trollop::options do
+  version "sup-import (sup #{Redwood::VERSION})"
+  banner <<EOS
+Imports messages into the Sup index from one or more sources.
 
 Usage:
   sup-import [options] <source>*
-where <source>* is zero or more source descriptions (e.g., mbox
-filenames on disk, or imap/imaps URIs). 
 
-If the sources listed are not already in the Sup source list,
-they will be added to it, as parameterized by the following options:
-  --archive: messages from these sources will not appear in the inbox
-  --unusual: these sources will not be polled when the flag --the-usual
-             is called
+where <source>* is zero or more source URIs or mbox filenames, e.g.
+"imaps://my.imapserver.com", or "/var/spool/mail/me". If no sources
+are given, imports messages from all sources marked as "usual".
 
-Regardless of whether the sources are new or not, they will be polled,
-and any new messages will be added to the index, as parameterized by
-the following options:
-  --force-archive: regardless of the source "archive" flag, any new
-                   messages found will not appear in the inbox.
-  --force-read:    any messages found will not be marked as new.
-
-The following options can also be specified:
-  --verbose:       print message ids as they're processed
-  --the-usual:     import new messages from all usual sources
-  --rebuild:       rebuild the index for the specified sources rather than
-                   just adding new messages. Useful if the sources
-                   have changed in any way *other* than new messages
-                   being added. Only updates messages if the offsets have
-                   changed.
-  --force-rebuild: force a rebuild of all messages in the inbox, not just
-                   ones that have changed. You probably won't need this
-                   unless William changes the index format.
-  --overwrite-labels: if rebuilding, update message if the labels have
-                   changed, not just the offset.
-  --optimize:      optimize the index after adding any new messages.
-  --help:          don't do anything, just show this message.
+Options are:
 EOS
-  exit
+  opt :archive, "Automatically archive any imported messages."
+  opt :read, "Automatically mark as read any imported messages."
+  opt :verbose, "Print message ids as they're processed."
+  opt :optimize, "As the last stage of the import, optimize the index."
+  text <<EOS
+
+The following options allow sup-import to consider *all* messages in the
+source, not just new ones:
+EOS
+  opt :rebuild, "Scan over the entire source and update the index to account for any messages that have been deleted, altered, or moved from another source."
+  opt :full_rebuild, "Re-insert all messages in the source, not just ones that have changed or are new."
+  opt :start_at, "For rescan and rebuild, start at the given offset.", :type => :int
+  opt :overwrite_state, "For --full-rebuild, overwrite the message state to the default state for that source, obeying --archive and --read if given."
 end
-#' stupid ruby-mode
+Trollop::die :start_at, "must be non-negative" if (opts[:start_at] || 0) < 0
+Trollop::die :start_at, "requires either --rebuild or --full-rebuild" if opts[:start_at] && !(opts[:rebuild] || opts[:full_rebuild])
+Trollop::die :overwrite_state, "requires --full-rebuild" if opts[:overwrite_state] && !opts[:full_rebuild]
+Trollop::die :force_rebuild, "cannot be specified with --rebuild" if opts[:full_rebuild] && opts[:rebuild]
 
-## for sources that require login information, prompt the user for
-## that. also provide a list of previously-defined login info to
-## choose from, if any.
-def get_login_info uri, sources
-  uri = URI(uri)
-  accounts = sources.map do |s|
-    next unless s.respond_to?(:username)
-    suri = URI(s.uri)
-    [suri.host, s.username, s.password]
-  end.compact.uniq.sort_by { |h, u, p| h == uri.host ? 0 : 1 }
-
-  username, password = nil, nil
-  unless accounts.empty?
-    say "Would you like to use the same account as for a previous source for #{uri}?"
-    choose do |menu|
-      accounts.each do |host, olduser, oldpw|
-        menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
-      end
-      menu.choice("Use a new account") { }
-      menu.prompt = "Account selection? "
-    end
-  end
-
-  unless username && password
-    username = ask("Username for #{uri.host}: ");
-    password = ask("Password for #{uri.host}: ") { |q| q.echo = false }
-    puts # why?
-  end
-
-  [username, password]
-end
-
-educate_user if ARGV.member? '--help'
-
-archive = ARGV.delete "--archive"
-unusual = ARGV.delete "--unusual"
-force_archive = ARGV.delete "--force-archive"
-force_read = ARGV.delete "--force-read"
-the_usual = ARGV.delete "--the-usual"
-rebuild = ARGV.delete "--rebuild"
-force_rebuild = ARGV.delete "--force-rebuild"
-overwrite_labels = ARGV.delete "--overwrite-labels"
-optimize = ARGV.delete "--optimize"
-verbose = ARGV.delete "--verbose"
-start_at = # ok really need to use optparse or something now
-  if(i = ARGV.index("--start-at"))
-    raise "start-at requires a numeric argument: #{ARGV[i + 1].inspect}" unless ARGV.length > (i + 1) && ARGV[i + 1] =~ /\d/
-    ARGV.delete_at i
-    ARGV.delete_at(i).to_i # whoa!
-  end
-
-if(o = ARGV.find { |x| x =~ /^--/ })
-  $stderr.puts "error: unknown option #{o}"
-  educate_user
-end
-
-$terminal.wrap_at = :auto
 Redwood::start
 index = Redwood::Index.new
 index.load
 
 sources = ARGV.map do |uri|
   uri = "mbox://#{uri}" unless uri =~ %r!://!
-  source = index.source_for uri
-  unless source
-    source = 
-      case uri
-      when %r!^mbox\+ssh://!
-        say "For SSH connections, if you will use public key authentication, you may leave the username and password blank."
-        say "\n"
-        username, password = get_login_info uri, index.sources
-        Redwood::MBox::SSHLoader.new(uri, username, password, nil, !unusual, !!archive)
-      when %r!^imaps?://!
-        username, password = get_login_info uri, index.sources
-        Redwood::IMAP.new(uri, username, password, nil, !unusual, !!archive)
-      else
-        Redwood::MBox::Loader.new(uri, nil, !unusual, !!archive)
-      end
-    index.add_source source
-  end
-  source
+  index.source_for uri or raise "Unknown source: #{uri}"
 end
 
-sources = (sources + index.usual_sources).uniq if the_usual
-if rebuild || force_rebuild
-  if start_at
-    sources.each { |s| s.seek_to! start_at }
+sources = index.usual_sources if sources.empty?
+
+if opts[:rebuild] || opts[:full_rebuild]
+  if opts[:start_at]
+    sources.each { |s| s.seek_to! opts[:start_at] }
   else
     sources.each { |s| s.reset! }
   end
 end
 
-found = {}
 start = Time.now
+found = {}
 begin
   sources.each do |source|
-    if source.broken?
-      $stderr.puts "error loading messages from #{source}: #{source.broken_msg}"
-      next
-    end
-    next if source.done?
-    puts "loading from #{source}... "
     num = 0
-    start_offset = nil
-    source.each do |offset, labels|
-      labels.each { |l| Redwood::LabelManager << l }
+    index.add_new_messages_from source do |m, offset, source_labels, entry|
+      found[m.id] = true
+      m.labels = source_labels if opts[:overwrite_state]
+      m.labels -= [:inbox] if opts[:archive]
+      m.labels -= [:unread] if opts[:read]
 
-      start_offset ||= offset
-      labels -= [:inbox] if force_archive || archive
-      labels -= [:unread] if force_read
-      begin
-        m = Redwood::Message.new :source => source, :source_info => offset, :labels => labels
-        if found[m.id]
-          puts "skipping duplicate message #{m.id}"
-          next
-        else
-          found[m.id] = true
-        end
-
-        if m.source_marked_read?
-          m.remove_label :unread
-          labels -= [:unread]
-        end
-        puts "# message at #{offset}, labels: #{labels * ' '}" if verbose
-
-        ## possibly rebuild the message
-        if (rebuild || force_rebuild) && (docid, entry = index.load_entry_for_id(m.id)) && entry
-          oldlabels = entry[:label].split(" ").sort
-          newlabels = labels.map { |x| x.to_s }.sort
-
-          if force_rebuild || entry[:source_info].to_i != offset || (overwrite_labels && (oldlabels != newlabels))
-            if overwrite_labels
-              puts "replacing message #{m.id}: offset #{entry[:source_info]} => #{offset}, labels #{oldlabels * ' '} => #{newlabels * ' '}"
-              m.labels = newlabels.map { |l| l.intern }              
-            else
-              puts "replacing message #{m.id}: offset #{entry[:source_info]} => #{offset}"
-              m.labels = oldlabels
-            end
-            num += 1 if index.update_message m, source, offset
-          end
-        else
-          num += 1 if index.add_message m
-        end
-      rescue Redwood::MessageFormatError, Redwood::SourceError => e
-        $stderr.puts "ignoring erroneous message at #{source}##{offset}: #{e.message}"
-      end
+      num += 1
       if num % 1000 == 0 && num > 0
         elapsed = Time.now - start
         pctdone = source.pct_done
         remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
         puts "## #{num} (#{pctdone}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
       end
+
+      ## update if...
+      if entry.nil? || # it's a new message; or
+          opts[:full_rebuild] || # we're updating everyone; or
+          (opts[:rebuild] && (entry[:source_id].to_i != source.id || entry[:source_info].to_i != offset)) # we're updating just the changed ones
+        puts "# message at #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
+        m
+      else
+        nil
+      end
     end
-    puts "loaded #{num} messages" unless num == 0
+    puts "loaded #{num} messages from #{source}" unless num == 0
   end
 ensure
   $stderr.puts "saving index and sources..."
@@ -228,27 +113,33 @@ ensure
   Redwood::finish
 end
 
-if rebuild || force_rebuild
+## delete any messages in the index that claim they're from one of
+## these sources, but that we didn't see.
+##
+## kinda crappy code here, because we delve directly into the Ferret
+## API.
+##
+## TODO: move this to Index, i suppose.
+if opts[:rebuild] || opts[:full_rebuild]
   puts "deleting missing messages from the index..."
   numdel = num = 0
   sources.each do |source|
     raise "no source id for #{source}" unless source.id
     q = "+source_id:#{source.id}"
-    q += " +source_info: >= #{start_at}" if start_at
-    #p q
+    q += " +source_info: >= #{opts[:start_at]}" if opts[:start_at]
     num += index.index.search_each(q, :limit => :all) do |docid, score|
       mid = index.index[docid][:message_id]
+#      puts "got #{mid}"
       next if found[mid]
       puts "deleting #{mid}"
       index.index.delete docid
       numdel += 1
     end
-    #p num
   end
   puts "deleted #{numdel} / #{num} messages"
 end
 
-if optimize
+if opts[:optimize]
   puts "optimizing index..."
   optt = time { index.index.optimize }
   puts "optimized index of size #{index.size} in #{optt}s."

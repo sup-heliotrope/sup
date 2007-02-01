@@ -4,9 +4,6 @@ bugfix: resuming a draft asks before discard
 bugfix: killed threads
 bugfix: new messages, drafts sometimes not showing up in inbox
 bugfix: changing IMAP ids
-use trollop to handle sup-devel args
-add a flag to sup-import to force the creation of a new source (see http://rubyforge.org/forum/forum.php?thread_id=10973&forum_id=10340)
-clean up import code and share between poll.rb and sup-import
 de-archived messages should be auto-added to inbox
 maildir
 undo
@@ -32,6 +29,11 @@ pop
 be able to mark individual messages as spam in thread-view-mode
 toggle wrapping
 
+done
+----
+x add a flag to sup-import to force the creation of a new source (see http://rubyforge.org/forum/forum.php?thread_id=10973&forum_id=10340)
+x use trollop to handle sup-devel args
+x clean up import code and share between poll.rb and sup-import
 x on startup, multi-threadedly call #connect on all sources 
 x bugfix: first time viewing a message only gets the first to:; subsequent views get them all (wtf)
 x search for other messages from author in thread-view-mode

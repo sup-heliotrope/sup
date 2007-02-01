@@ -3,7 +3,6 @@
 require 'thread'
 require 'fileutils'
 require 'ferret'
-#require_gem 'ferret', ">= 0.10.13"
 
 module Redwood
 
@@ -73,24 +72,67 @@ class Index
     end
   end
 
-  ## update the message by deleting and re-adding
-  def update_message m, source=nil, source_info=nil
-    docid, entry = load_entry_for_id m.id
-    if entry
-      source ||= entry[:source_id].to_i
-      source_info ||= entry[:source_info].to_i
+  ## Update the message state on disk, by deleting and re-adding it.
+  ## The message must exist in the index. docid and entry are found
+  ## unless given.
+  def update_message m, docid=nil, entry=nil
+    unless docid && entry
+      docid, entry = load_entry_for_id m.id
+      raise ArgumentError, "cannot find #{m.id} in the index" unless entry
     end
 
-    ## this happens sometimes. i'm not sure why. ferret bug?
-    raise "no entry and no source info for message #{m.id}: source #{source.inspect}, info #{source_info.inspect}, entry #{entry.inspect}, query #{Ferret::Search::TermQuery.new(:message_id, m.id)}, results #{@index.search(Ferret::Search::TermQuery.new(:message_id, m.id)).inspect}" unless source && source_info
+    raise "no entry and no source info for message #{m.id}" unless m.source && m.source_info
 
     raise "deleting non-corresponding entry #{docid}" unless @index[docid][:message_id] == m.id
+
     @index.delete docid
     add_message m
   end
 
+  ## for each new message form the source, yields a bunch of stuff,
+  ## gets the message back from the block, and adds it or updates it.
+  def add_new_messages_from source
+    found = {}
+    return if source.done? || source.broken?
+
+    source.each do |offset, labels|
+      if source.broken?
+        Redwood::log "error loading messages from #{source}: #{source.broken_msg}"
+        return
+      end
+      
+      labels.each { |l| LabelManager << l }
+
+      begin
+        m = Message.new :source => source, :source_info => offset, :labels => labels
+        if found[m.id]
+          puts "skipping duplicate message #{m.id}"
+          next
+        else
+          found[m.id] = true
+        end
+
+        if m.source_marked_read?
+          m.remove_label :unread
+          labels.delete :unread
+        end
+
+        docid, entry = load_entry_for_id m.id
+        m = yield m, offset, labels, entry
+        next unless m
+        if entry
+          update_message m, docid, entry
+        else
+          add_message m
+        end
+      rescue MessageFormatError, SourceError => e
+        Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
+      end
+    end
+  end
+
   def save_index fn=File.join(@dir, "ferret")
-    # don't have to do anything apparently
+    # don't have to do anything,  apparently
   end
 
   def contains_id? id
@@ -203,8 +245,10 @@ class Index
   def wrap_subj subj; "__START_SUBJECT__ #{subj} __END_SUBJECT__"; end
   def unwrap_subj subj; subj =~ /__START_SUBJECT__ (.*?) __END_SUBJECT__/ && $1; end
 
+  ## Adds a message to the index. The message cannot already exist in
+  ## the index.
   def add_message m
-    return false if contains? m
+    raise ArgumentError, "index already contains #{m.id}" if contains? m
 
     source_id = 
       if m.source.is_a? Integer
@@ -230,8 +274,8 @@ class Index
 
     @index.add_document d
     
-    ## TODO: figure out why this is sometimes triggered
     docid, entry = load_entry_for_id m.id
+    ## this hasn't been triggered in a long time. TODO: decide whether it's still a problem.
     raise "just added message #{m.id} but couldn't find it in a search" unless docid
     true
   end

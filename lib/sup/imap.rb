@@ -25,8 +25,8 @@ require 'time'
 ## slow for large mailboxes, and we'll just have to hope that there
 ## are no collisions. ho ho! a perfectly reasonable solution!
 
-## fuck you, imap committee. you managed to design something as shitty
-## as mbox but goddamn THIRTY YEARS LATER.
+## fuck you, imap committee. you managed to design something nearly as
+## shitty as mbox but goddamn THIRTY YEARS LATER.
 module Redwood
 
 class IMAP < Source
@@ -64,6 +64,7 @@ class IMAP < Source
     x.nil? || x.empty? ? 'INBOX' : x
   end
   def ssl?; @parsed_uri.scheme == 'imaps' end
+  def == o; o.is_a?(IMAP) && o.uri == self.uri && o.username == self.username; end
 
   def load_header id
     MBox::read_header StringIO.new(raw_header(id))
