@@ -139,7 +139,7 @@ class BufferManager
     @minibuf_mutex = Mutex.new
     @textfields = {}
     @flash = nil
-    @shelled = false
+    @shelled = @asking = false
 
     self.class.i_am_the_instance self
   end
