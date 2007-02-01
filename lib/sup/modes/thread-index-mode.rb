@@ -320,11 +320,13 @@ class ThreadIndexMode < LineCursorMode
   def load_n_threads n=LOAD_MORE_THREAD_NUM, opts={}
     @mbid = BufferManager.say "Searching for threads..."
     orig_size = @ts.size
+    last_update = Time.now
     @ts.load_n_threads(@ts.size + n, opts) do |i|
       BufferManager.say "Loaded #{i} threads...", @mbid
-      if i % 5 == 0
+      if (Time.now - last_update) >= 0.25
         update
         BufferManager.draw_screen
+        last_update = Time.now
       end
     end
     @ts.threads.each { |th| th.labels.each { |l| LabelManager << l } }
