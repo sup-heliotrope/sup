@@ -1,3 +1,13 @@
+== 0.0.7 / XXXXXX
+* Moving messages between sources now preserves state.
+* Split sup-import into two bits: sup-import and sup-add.
+* sup-import --force_rebuild is now --full-rebuild.
+* Better error handling for IMAP and svn+ssh.
+* Hit 'a' in thread-view-mode to alias a contact. Hit 'S' to search for
+  all email to/from them.
+* Removed hoe dependency; added trollop dependency.
+* Many internal code improvements.
+
 == 0.0.6 / 2007-01-06
 * Very minor fix to support more types of IMAP authentication.
 
