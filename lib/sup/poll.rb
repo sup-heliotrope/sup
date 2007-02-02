@@ -23,8 +23,6 @@ class PollManager
     num, numi = buffer.mode.poll
     if num > 0
       BufferManager.flash "Loaded #{num} new messages, #{numi} to inbox." 
-    else
-      BufferManager.flash "No new messages."
     end
     [num, numi]
   end

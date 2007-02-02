@@ -29,6 +29,7 @@ class TextField
     @w.mvaddstr @y, 0, @question
     Ncurses.curs_set 1
     Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
+    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_NEXT_CHAR if @history[@i] =~ / $/ # fucking RETARDED!!!!
   end
 
   def deactivate

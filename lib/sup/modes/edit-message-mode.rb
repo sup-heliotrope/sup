@@ -114,7 +114,7 @@ protected
 
     acct = AccountManager.account_for(from_email) || AccountManager.default_account
     SentManager.write_sent_message(date, from_email) { |f| write_message f, true, date }
-    BufferManager.flash "sending..."
+    BufferManager.flash "Sending..."
 
     IO.popen(acct.sendmail, "w") { |p| write_message p, true, date }
 
