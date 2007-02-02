@@ -1,5 +1,6 @@
 for next release
 ----------------
+attach messages
 warnings: top-posting, attachments
 bugfix: killed threads
 bugfix: new messages, drafts sometimes not showing up in inbox

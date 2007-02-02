@@ -95,6 +95,7 @@ class ThreadIndexMode < LineCursorMode
     if is_relevant?(m) || @ts.is_relevant?(m)
       @ts.load_thread_for_message m
       update
+      BufferManager.draw_screen
     end
   end
 

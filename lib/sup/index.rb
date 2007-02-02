@@ -124,6 +124,7 @@ class Index
           update_message m, docid, entry
         else
           add_message m
+          UpdateManager.relay :add, m
         end
       rescue MessageFormatError, SourceError => e
         Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
