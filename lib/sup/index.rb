@@ -106,7 +106,7 @@ class Index
       begin
         m = Message.new :source => source, :source_info => offset, :labels => labels
         if found[m.id]
-          puts "skipping duplicate message #{m.id}"
+          Redwood::log "skipping duplicate message #{m.id}"
           next
         else
           found[m.id] = true
