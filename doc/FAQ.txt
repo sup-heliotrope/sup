@@ -62,7 +62,7 @@ Q: I want to move messages from one source to another. (E.g., my
    preserving message state?
 A: Move the messages from the source to the target using whatever tool
    you'd like. Then (and this is the important part), sup-import
-   --rescan both sources at once. If you do it one at a time, you may
+   --rebuild both sources at once. If you do it one at a time, you may
    lose message state. (Depending, actually, on which order you do it
    in. But just do them both at once.)
 

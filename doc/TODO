@@ -1,6 +1,6 @@
 for next release
 ----------------
-bugfix: resuming a draft asks before discard
+warnings: top-posting, attachments
 bugfix: killed threads
 bugfix: new messages, drafts sometimes not showing up in inbox
 bugfix: changing IMAP ids
@@ -10,8 +10,9 @@ undo
 
 future
 ------
+bugfix: when returning from a shelling out, ncurses is crazy 
+bugfix: miscellaneous weirdnesses in buffer line editing
 wide character support
-fix bug: when returning from a shelling out, ncurses is crazy 
 batch deletion
 support for message-content modules such as ruby-talk:XXXXX detection
 use Net::SMTP
@@ -31,6 +32,7 @@ toggle wrapping
 
 done
 ----
+x bugfix: resuming a draft asks before discard
 x add a flag to sup-import to force the creation of a new source (see http://rubyforge.org/forum/forum.php?thread_id=10973&forum_id=10340)
 x use trollop to handle sup-devel args
 x clean up import code and share between poll.rb and sup-import
