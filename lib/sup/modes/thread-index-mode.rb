@@ -57,7 +57,8 @@ class ThreadIndexMode < LineCursorMode
   def select t=nil
     t ||= @threads[curpos]
 
-    t = t.clone # XXXX highly experimental
+    t = t.clone # required so that messages added later on don't completely
+                # screw everything up
 
     ## TODO: don't regen text completely
     Redwood::reporting_thread do
@@ -81,11 +82,13 @@ class ThreadIndexMode < LineCursorMode
   def handle_starred_update m
     return unless(t = @ts.thread_for m)
     update_text_for_line @lines[t]
+    BufferManager.draw_screen
   end
 
   def handle_read_update m
     return unless(t = @ts.thread_for m)
     update_text_for_line @lines[t]
+    BufferManager.draw_screen
   end
 
   ## overwrite me!
@@ -103,6 +106,7 @@ class ThreadIndexMode < LineCursorMode
     if @ts.contains_id? mid
       @ts.remove mid
       update
+      BufferManager.draw_screen
     end
   end
 
