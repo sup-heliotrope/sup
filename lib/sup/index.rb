@@ -87,6 +87,7 @@ class Index
 
     @index.delete docid
     add_message m
+    docid, entry = load_entry_for_id m.id
   end
 
   ## for each new message form the source, yields a bunch of stuff,
@@ -124,7 +125,7 @@ class Index
           update_message m, docid, entry
         else
           add_message m
-          UpdateManager.relay :add, m if UpdateManager.instantiated?
+          UpdateManager.relay :add, m
         end
       rescue MessageFormatError, SourceError => e
         Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
@@ -143,8 +144,7 @@ class Index
   def size; @index.size; end
 
   ## you should probably not call this on a block that doesn't break
-  ## rather quickly because the results will probably be, as we say
-  ## in scotland, frikkin' huuuge.
+  ## rather quickly because the results can be very large.
   EACH_BY_DATE_NUM = 100
   def each_id_by_date opts={}
     return if @index.size == 0 # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
@@ -166,20 +166,20 @@ class Index
   end
 
   ## yield all messages in the thread containing 'm' by repeatedly
-  ## querying the index.  yields pairs of message ids and
+  ## querying the index. uields pairs of message ids and
   ## message-building lambdas, so that building an unwanted message
   ## can be skipped in the block if desired.
+  ##
+  ## stops loading any thread if a message with a :killed flag is found.
+
   SAME_SUBJECT_DATE_LIMIT = 7
   def each_message_in_thread_for m, opts={}
     messages = {}
     searched = {}
     num_queries = 0
 
-    ## temporarily disabling subject searching because it's a
-    ## significant slowdown.
-    ##
-    ## TODO: make this configurable, i guess
-    if true
+    ## todo: make subject querying configurable
+    if true # do subject queries
       date_min = m.date - (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
       date_max = m.date + (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
 
@@ -189,8 +189,9 @@ class Index
         sq.add_term t
       end
       q.add_query sq, :must
-      q.add_query Ferret::Search::TermQuery.new(:label, "spam"), :must_not
       q.add_query Ferret::Search::RangeQuery.new(:date, :>= => date_min.to_indexable_s, :<= => date_max.to_indexable_s), :must
+
+      q = build_query :qobj => q
 
       pending = @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] }
       Redwood::log "found #{pending.size} results for subject query #{q}"
@@ -206,9 +207,12 @@ class Index
       q.add_query Ferret::Search::TermQuery.new(:message_id, id), :should
       q.add_query Ferret::Search::TermQuery.new(:refs, id), :should
 
+      q = build_query :qobj => q, :load_killed => true
+
       num_queries += 1
       @index.search_each(q, :limit => :all) do |docid, score|
         break if opts[:limit] && messages.size >= opts[:limit]
+        break if @index[docid][:label].split(/\s+/).include? "killed" unless opts[:load_killed]
         mid = @index[docid][:message_id]
         unless messages.member? mid
           messages[mid] ||= lambda { build_message docid }

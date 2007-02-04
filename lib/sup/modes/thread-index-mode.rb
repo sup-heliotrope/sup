@@ -112,7 +112,7 @@ class ThreadIndexMode < LineCursorMode
 
   def update
     ## let's see you do THIS in python
-    @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| t.date }.reverse
+    @threads = @ts.threads.select { |t| !@hidden_threads[t] && !t.has_label?(:killed) }.sort_by { |t| t.date }.reverse
     @size_width = (@threads.map { |t| t.size }.max || 0).num_digits
     regen_text
   end
