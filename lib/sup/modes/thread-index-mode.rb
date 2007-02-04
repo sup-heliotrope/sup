@@ -260,7 +260,8 @@ class ThreadIndexMode < LineCursorMode
     thread = @threads[curpos]
     speciall = (@hidden_labels + LabelManager::RESERVED_LABELS).uniq
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
-    label_string = modifyl.join(" ") + " "
+    label_string = modifyl.join(" ")
+    label_string += " " unless label_string.empty?
 
     answer = BufferManager.ask :edit_labels, "edit labels: ", label_string
     return unless answer
