@@ -3,7 +3,6 @@ for next release
 message attachments
 warnings: top-posting, attachments
 bugfix: deleted threads are showing up
-bugfix: new messages, drafts sometimes not showing up in inbox
 bugfix: changing IMAP ids
 de-archived messages should be auto-added to inbox
 maildir
@@ -33,6 +32,7 @@ toggle wrapping
 
 done
 ----
+x bugfix: new messages, drafts sometimes not showing up in inbox
 x bugfix: killed threads
 x bugfix: resuming a draft asks before discard
 x add a flag to sup-import to force the creation of a new source (see http://rubyforge.org/forum/forum.php?thread_id=10973&forum_id=10340)
