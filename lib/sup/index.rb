@@ -85,6 +85,7 @@ class Index
 
     raise "deleting non-corresponding entry #{docid}" unless @index[docid][:message_id] == m.id
 
+    m.labels = entry[:label].split(/\s+/).map { |x| x.intern }
     @index.delete docid
     add_message m
     docid, entry = load_entry_for_id m.id

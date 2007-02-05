@@ -298,7 +298,7 @@ class ThreadSet
   end
 
   ## loads in all messages needed to thread m
-  def load_thread_for_message m, opts
+  def load_thread_for_message m, opts={}
     @index.each_message_in_thread_for m, opts.merge({:limit => 100}) do |mid, builder|
       next if contains_id? mid
       add_message builder.call
