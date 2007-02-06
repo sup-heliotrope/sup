@@ -108,9 +108,9 @@ class PollManager
         m = yield m, offset, entry
         next unless m
         if entry
-          update_message m, docid, entry
+          Index.update_message m, docid, entry
         else
-          add_message m
+          Index.add_message m
           UpdateManager.relay :add, m
         end
       rescue MessageFormatError, SourceError => e
