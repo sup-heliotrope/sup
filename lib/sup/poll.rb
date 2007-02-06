@@ -46,7 +46,9 @@ class PollManager
         yield "Loading from #{source}... " unless source.done? || source.broken?
         num = 0
         numi = 0
-        Index.add_new_messages_from source do |m, offset, source_labels, entry|
+        add_new_messages_from source do |m, offset, entry|
+          ## always preserve the labels on disk.
+          m.labels = entry[:label].split(/\s+/).map { |x| x.intern } if entry
           yield "Found message at #{offset} with labels #{m.labels * ', '}"
           num += 1
           numi += 1 if m.labels.include? :inbox
@@ -62,6 +64,59 @@ class PollManager
       @polling = false
     end
     [total_num, total_numi]
+  end
+
+  ## this is the main mechanism for adding new messages to the
+  ## index. it's called both by sup-import and by PollMode.
+  ##
+  ## for each new message in the source, this yields the message, the
+  ## source offset, and the index entry on disk (if any). it expects
+  ## the yield to return the message (possibly altered in some way),
+  ## and then adds it (if new) or updates it (if previously seen).
+  ##
+  ## the labels of the yielded message are the source labels. it is
+  ## likely that callers will want to replace these with the index
+  ## labels, if they exist, so that state is not lost when e.g. a new
+  ## version of a message from a mailing list comes in.
+  def add_new_messages_from source
+    found = {}
+    return if source.done? || source.broken?
+
+    source.each do |offset, labels|
+      if source.broken?
+        Redwood::log "error loading messages from #{source}: #{source.broken_msg}"
+        return
+      end
+      
+      labels.each { |l| LabelManager << l }
+
+      begin
+        m = Message.new :source => source, :source_info => offset, :labels => labels
+        if found[m.id]
+          Redwood::log "skipping duplicate message #{m.id}"
+          next
+        else
+          found[m.id] = true
+        end
+
+        if m.source_marked_read?
+          m.remove_label :unread
+          labels.delete :unread
+        end
+
+        docid, entry = Index.load_entry_for_id m.id
+        m = yield m, offset, entry
+        next unless m
+        if entry
+          update_message m, docid, entry
+        else
+          add_message m
+          UpdateManager.relay :add, m
+        end
+      rescue MessageFormatError, SourceError => e
+        Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
+      end
+    end
   end
 end
 

@@ -81,13 +81,18 @@ found = {}
 begin
   sources.each do |source|
     num = 0
-    index.add_new_messages_from source do |m, offset, source_labels, entry|
+    Redwood::PollManager.add_new_messages_from source do |m, offset, entry|
       found[m.id] = true
-      m.labels = source_labels if opts[:overwrite_state]
-      m.labels -= [:inbox] if opts[:archive]
-      m.labels -= [:unread] if opts[:read]
 
-      num += 1
+      ## if the entry exists on disk
+      if entry && !opts[:overwrite_state]
+        m.labels = entry[:label].split(/\s+/).map { |x| x.intern }
+      else
+        ## m.labels defaults to labels from the source
+        m.labels -= [:inbox] if opts[:archive]
+        m.labels -= [:unread] if opts[:read]
+      end
+
       if num % 1000 == 0 && num > 0
         elapsed = Time.now - start
         pctdone = source.pct_done
@@ -98,10 +103,12 @@ begin
       ## update if...
       if entry.nil? # it's a new message; or
         puts "# adding message at #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
+        num += 1
         m
       elsif opts[:full_rebuild] || # we're updating everyone; or
           (opts[:rebuild] && (entry[:source_id].to_i != source.id || entry[:source_info].to_i != offset)) # we're updating just the changed ones
         puts "# updating message at #{offset}, source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
+        num += 1
         m
       else
         nil

@@ -75,6 +75,9 @@ class Index
   ## Update the message state on disk, by deleting and re-adding it.
   ## The message must exist in the index. docid and entry are found
   ## unless given.
+  ##
+  ## Overwrites the labels on disk with the new labels in 'm', so that
+  ## we can actually change message state.
   def update_message m, docid=nil, entry=nil
     unless docid && entry
       docid, entry = load_entry_for_id m.id
@@ -85,53 +88,9 @@ class Index
 
     raise "deleting non-corresponding entry #{docid}" unless @index[docid][:message_id] == m.id
 
-    m.labels = entry[:label].split(/\s+/).map { |x| x.intern }
     @index.delete docid
     add_message m
     docid, entry = load_entry_for_id m.id
-  end
-
-  ## for each new message form the source, yields a bunch of stuff,
-  ## gets the message back from the block, and adds it or updates it.
-  def add_new_messages_from source
-    found = {}
-    return if source.done? || source.broken?
-
-    source.each do |offset, labels|
-      if source.broken?
-        Redwood::log "error loading messages from #{source}: #{source.broken_msg}"
-        return
-      end
-      
-      labels.each { |l| LabelManager << l }
-
-      begin
-        m = Message.new :source => source, :source_info => offset, :labels => labels
-        if found[m.id]
-          Redwood::log "skipping duplicate message #{m.id}"
-          next
-        else
-          found[m.id] = true
-        end
-
-        if m.source_marked_read?
-          m.remove_label :unread
-          labels.delete :unread
-        end
-
-        docid, entry = load_entry_for_id m.id
-        m = yield m, offset, labels, entry
-        next unless m
-        if entry
-          update_message m, docid, entry
-        else
-          add_message m
-          UpdateManager.relay :add, m
-        end
-      rescue MessageFormatError, SourceError => e
-        Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
-      end
-    end
   end
 
   def save_index fn=File.join(@dir, "ferret")
