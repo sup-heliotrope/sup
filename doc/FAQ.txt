@@ -8,6 +8,9 @@ Q: If you love GMail so much, why not just use it?
 A: I hate ads, I hate using a mouse, and I hate non-programmability
    and non-extensibility.
 
+   Also, GMail encourages top-posting in a variety of ways. THIS CANNOT BE
+   TOLERATED!
+
 Q: Why the console?
 A: There are many advantages to the console. A
    few keystrokes can accomplish the work of a hundred mouse clicks

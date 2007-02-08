@@ -309,6 +309,7 @@ class ThreadIndexMode < LineCursorMode
     t = @threads[curpos] or return
     m = t.latest_message
     return if m.nil? # probably won't happen
+    m.load_from_source!
     mode = ForwardMode.new m
     BufferManager.spawn "Forward of #{m.subj}", mode
     mode.edit

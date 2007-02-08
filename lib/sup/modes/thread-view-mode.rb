@@ -287,7 +287,7 @@ private
         @text += chunk_to_lines m, nil, @text.length, depth, parent
         next
       end
-      l = @layout[m]
+      l = @layout[m] or next # TODO: figure out why this is nil sometimes
 
       ## build the patina
       text = chunk_to_lines m, l.state, @text.length, depth, parent, @layout[m].color
