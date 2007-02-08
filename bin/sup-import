@@ -32,9 +32,9 @@ Imports messages into the Sup index from one or more sources.
 Usage:
   sup-import [options] <source>*
 
-where <source>* is zero or more source URIs or mbox filenames, e.g.
-"imaps://my.imapserver.com", or "/var/spool/mail/me". If no sources
-are given, imports messages from all sources marked as "usual".
+where <source>* is zero or more source URIs or mbox filenames. If no
+sources are given, imports messages from all sources marked as
+"usual".
 
 Options are:
 EOS
@@ -107,7 +107,7 @@ begin
         m
       elsif opts[:full_rebuild] || # we're updating everyone; or
           (opts[:rebuild] && (entry[:source_id].to_i != source.id || entry[:source_info].to_i != offset)) # we're updating just the changed ones
-        puts "# updating message at #{offset}, source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
+        puts "# updating message at #{offset}, #{m.from.inspect}, #{m.subj.inspect}, source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
         num += 1
         m
       else

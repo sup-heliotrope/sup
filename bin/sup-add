@@ -16,8 +16,24 @@ Adds a source to the Sup source list.
 Usage:
   sup-add [options] <source>+
 
-where <source>+ is one or more source URIs or mbox filenames, e.g.
-"imaps://my.imapserver.com", or "/var/spool/mail/me".
+where <source>+ is one or more sources.
+
+For mbox files on local disk, use the form:
+    mbox://<path to mbox file>
+or simply
+    <path to mbox file>
+
+For mbox files on remote machines, use the form:
+    mbox+ssh://<machine name>/<path to mbox file>
+
+For IMAP folders, use the form (note no username or password!):
+    imap://<machine name>/          # unsecure, "INBOX" folder  
+    imap://<machine name>/<folder>  # unsecure, arbitrary
+    imaps://<machine name>/         # secure, "INBOX" folder
+    imaps://<machine name>/<folder> # secure, arbitrary folder 
+
+For gmail accounts, use the form (note no username or password!):
+    gmail://
 
 Options are:
 EOS
