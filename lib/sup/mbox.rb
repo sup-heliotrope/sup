@@ -38,7 +38,7 @@ module MBox
       when /^$/: break
       when /:/: last = nil
       else
-        header[last] += line.chomp.gsub(/^\s+/, "") if last
+        header[last] += " " + line.chomp.gsub(/^\s+/, "") if last
       end
     end
     header
