@@ -55,9 +55,9 @@ class DraftLoader < Source
   def uri; DraftManager.source_name; end
 
   def each
-    ids = Dir.entries(@dir).select { |x| x =~ /^\d+$/ }.map { |x| x.to_i }.sort
+    ids = get_ids
     ids.each do |id|
-      if id > cur_offset
+      if id >= cur_offset
         self.cur_offset = id
         yield [id, [:draft, :inbox]]
       end
@@ -107,7 +107,16 @@ class DraftLoader < Source
   end
 
   def start_offset; 0; end
-  def end_offset; Dir.new(@dir).entries.sort.last.to_i; end
+  def end_offset
+    ids = get_ids
+    ids.empty? ? 0 : (ids.last + 1)
+  end
+
+private
+
+  def get_ids
+    Dir.entries(@dir).select { |x| x =~ /^\d+$/ }.map { |x| x.to_i }.sort
+  end
 end
 
 Redwood::register_yaml(DraftLoader, %w(cur_offset))

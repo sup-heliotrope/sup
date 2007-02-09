@@ -25,7 +25,7 @@ class Source
   ## To write a new source, subclass this class, and implement:
   ##
   ## - start_offset
-  ## - end_offset
+  ## - end_offset (exclusive!)
   ## - pct_done (percent of the way cur_offset is to end_offset)
   ## - load_header offset
   ## - load_message offset

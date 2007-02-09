@@ -57,6 +57,7 @@ class ThreadIndexMode < LineCursorMode
   def select t=nil
     t ||= @threads[curpos]
 
+    ## this isn't working entirely. TODO:figure out why
     t = t.clone # required so that messages added later on don't completely
                 # screw everything up
 
@@ -327,7 +328,7 @@ class ThreadIndexMode < LineCursorMode
   def load_n_threads n=LOAD_MORE_THREAD_NUM, opts={}
     @mbid = BufferManager.say "Searching for threads..."
     orig_size = @ts.size
-    last_update = Time.now
+    last_update = Time.now - 9999 # oh yeah
     @ts.load_n_threads(@ts.size + n, opts) do |i|
       BufferManager.say "Loaded #{i} threads...", @mbid
       if (Time.now - last_update) >= 0.25

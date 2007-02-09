@@ -43,6 +43,7 @@ class PollManager
     @mutex.synchronize do
       found = {}
       Index.usual_sources.each do |source|
+#        yield "source #{source} is done? #{source.done?} (cur_offset #{source.cur_offset} >= #{source.end_offset})"
         yield "Loading from #{source}... " unless source.done? || source.broken?
         num = 0
         numi = 0

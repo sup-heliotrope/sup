@@ -9,6 +9,7 @@ bugfix: changing IMAP ids
 de-archived messages should be auto-added to inbox
 maildir
 undo
+remove stupid percent_done source methods
 
 future
 ------
