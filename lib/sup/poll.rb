@@ -41,7 +41,6 @@ class PollManager
   def do_poll
     total_num = total_numi = 0
     @mutex.synchronize do
-      found = {}
       Index.usual_sources.each do |source|
 #        yield "source #{source} is done? #{source.done?} (cur_offset #{source.cur_offset} >= #{source.end_offset})"
         yield "Loading from #{source}... " unless source.done? || source.broken?
@@ -50,7 +49,7 @@ class PollManager
         add_new_messages_from source do |m, offset, entry|
           ## always preserve the labels on disk.
           m.labels = entry[:label].split(/\s+/).map { |x| x.intern } if entry
-          yield "Found message at #{offset} with labels #{m.labels * ', '}"
+          yield "Found message at #{offset} with labels {#{m.labels * ', '}}"
           num += 1
           numi += 1 if m.labels.include? :inbox
           m
@@ -80,7 +79,6 @@ class PollManager
   ## labels, if they exist, so that state is not lost when e.g. a new
   ## version of a message from a mailing list comes in.
   def add_new_messages_from source
-    found = {}
     return if source.done? || source.broken?
 
     source.each do |offset, labels|
@@ -93,13 +91,6 @@ class PollManager
 
       begin
         m = Message.new :source => source, :source_info => offset, :labels => labels
-        if found[m.id]
-          Redwood::log "skipping duplicate message #{m.id}"
-          next
-        else
-          found[m.id] = true
-        end
-
         if m.source_marked_read?
           m.remove_label :unread
           labels.delete :unread

@@ -107,8 +107,8 @@ begin
         m
       elsif opts[:full_rebuild] || # we're updating everyone; or
           (opts[:rebuild] && (entry[:source_id].to_i != source.id || entry[:source_info].to_i != offset)) # we're updating just the changed ones
-        puts "# updating message at #{offset}, #{m.from.inspect}, #{m.subj.inspect}, source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
-        num += 1
+        puts "# updating message at #{offset} (from #{m.from.longname} subject \"#{m.subj}\"), source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, labels: {#{m.labels * ', '}}" if opts[:verbose]
+        num += 1 unless found[m.id]
         m
       else
         nil
