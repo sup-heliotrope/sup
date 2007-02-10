@@ -50,8 +50,10 @@ class PollManager
           ## always preserve the labels on disk.
           m.labels = entry[:label].split(/\s+/).map { |x| x.intern } if entry
           yield "Found message at #{offset} with labels {#{m.labels * ', '}}"
-          num += 1
-          numi += 1 if m.labels.include? :inbox
+          unless entry
+            num += 1
+            numi += 1 if m.labels.include? :inbox
+          end
           m
         end
         yield "Found #{num} messages, #{numi} to inbox" unless num == 0
