@@ -128,7 +128,7 @@ begin
         x = global_keymap.action_for c
         case x
         when :quit
-          break
+          break if bm.kill_all_buffers_safely
         when :help
           curmode = bm.focus_buf.mode
           bm.spawn_unless_exists("<help for #{curmode.name}>") { HelpMode.new curmode, global_keymap }
@@ -137,7 +137,7 @@ begin
         when :roll_buffers_backwards
           bm.roll_buffers_backwards
         when :kill_buffer
-          bm.kill_buffer bm.focus_buf if bm.focus_buf.mode.killable?
+          bm.kill_buffer_safely bm.focus_buf
         when :list_buffers
           bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
         when :list_contacts
@@ -192,7 +192,6 @@ begin
       end
     end
   end
-  bm.kill_all_buffers
 rescue Exception => e
   $exception ||= e
 ensure
