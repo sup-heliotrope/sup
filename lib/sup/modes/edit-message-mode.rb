@@ -9,6 +9,7 @@ class EditMessageMode < LineCursorMode
   NON_EDITABLE_HEADERS = %w(Message-Id Date)
 
   attr_reader :status
+  bool_reader :edited
 
   register_keymap do |k|
     k.add :send_message, "Send message", 'y'
@@ -42,7 +43,7 @@ class EditMessageMode < LineCursorMode
   end
 
   def killable?
-    !@edited || BufferManager.ask_yes_or_no("Discard message?")
+    !edited? || BufferManager.ask_yes_or_no("Discard message?")
   end
 
 protected
@@ -105,7 +106,7 @@ protected
   end
 
   def send_message
-    return false unless @edited || BufferManager.ask_yes_or_no("Message unedited. Really send?")
+    return unless edited? || BufferManager.ask_yes_or_no("Message unedited. Really send?")
 
     raise "no message id!" unless header["Message-Id"]
     date = Time.now
@@ -124,14 +125,12 @@ protected
 
     BufferManager.kill_buffer buffer
     BufferManager.flash "Message sent!"
-    true
   end
 
   def save_as_draft
     DraftManager.write_draft { |f| write_message f, false }
     BufferManager.kill_buffer buffer
     BufferManager.flash "Saved for later editing."
-    true
   end
 
   def sig_lines

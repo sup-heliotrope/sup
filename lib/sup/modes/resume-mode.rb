@@ -12,18 +12,22 @@ class ResumeMode < ComposeMode
   end
 
   def killable?
-    unless @safe
-      case BufferManager.ask_yes_or_no "Discard draft?"
-      when true
+    return true if @safe
+
+    case BufferManager.ask_yes_or_no "Discard draft?"
+    when true
+      DraftManager.discard @id
+      BufferManager.flash "Draft discarded."
+      true
+    when false
+      if edited?
+        DraftManager.write_draft { |f| write_message f, false }
         DraftManager.discard @id
-        BufferManager.flash "Draft discarded."
-        true
-      when false
         BufferManager.flash "Draft saved."
-        true
-      else
-        false
       end
+      true
+    else
+      false
     end
   end
 
