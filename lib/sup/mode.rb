@@ -48,12 +48,9 @@ class Mode
   end
 
   def handle_input c
-    if(action = resolve_input c)
-      send action
-      true
-    else
-      false
-    end
+    action = resolve_input(c) or return false
+    send action
+    true
   end
 
   def help_text

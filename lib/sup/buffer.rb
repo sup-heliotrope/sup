@@ -359,9 +359,9 @@ class BufferManager
     ret
   end
 
+  ## returns true (y), false (n), or nil (ctrl-g / cancel)
   def ask_yes_or_no question
-    r = ask_getch(question, "ynYN")
-    case r
+    case(r = ask_getch question, "ynYN")
     when ?y, ?Y
       true
     when nil
@@ -399,6 +399,7 @@ class BufferManager
 
   def say s, id=nil
     new_id = nil
+
     @minibuf_mutex.synchronize do
       new_id = id.nil?
       id ||= @minibuf_stack.length
