@@ -41,6 +41,10 @@ class EditMessageMode < LineCursorMode
     update
   end
 
+  def killable?
+    !@edited || BufferManager.ask_yes_or_no("Discard message?")
+  end
+
 protected
 
   def gen_message_id
