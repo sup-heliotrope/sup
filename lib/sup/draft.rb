@@ -58,7 +58,7 @@ class DraftLoader < Source
     ids = get_ids
     ids.each do |id|
       if id >= cur_offset
-        self.cur_offset = id
+        self.cur_offset = id + 1
         yield [id, [:draft, :inbox]]
       end
     end
