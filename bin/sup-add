@@ -32,9 +32,6 @@ For IMAP folders, use the form (note no username or password!):
     imaps://<machine name>/         # secure, "INBOX" folder
     imaps://<machine name>/<folder> # secure, arbitrary folder 
 
-For gmail accounts, use the form (note no username or password!):
-    gmail://
-
 Options are:
 EOS
   opt :archive, "Automatically archive all new messages from these sources."

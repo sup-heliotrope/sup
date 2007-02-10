@@ -8,18 +8,18 @@ Q: If you love GMail so much, why not just use it?
 A: I hate ads, I hate using a mouse, and I hate non-programmability
    and non-extensibility.
 
-   Also, GMail encourages top-posting in a variety of ways. THIS CANNOT BE
-   TOLERATED!
+   Also, GMail encourages top-posting in a variety of ways. THIS
+   CANNOT BE TOLERATED!
 
 Q: Why the console?
-A: There are many advantages to the console. A
-   few keystrokes can accomplish the work of a hundred mouse clicks
-   (as any Unix user knows). Also, you don't need web browser, and you
-   get instantaneous response and a simple interface.
+
+A: Because a keystroke is with a hundred mouse clicks (as any Unix
+   user knows). Because you don't need web browser. Because you get
+   instantaneous response and a simple interface.
 
 Q: How does Sup deal with spam?
 A: You can manually mark messages as spam, which prevents them from
-   showing up in future searches, but that's all that Sup does. Spam
+   showing up in future searches, but that's as far as Sup goes. Spam
    filtering should be done by a dedicated tool like SpamAssassin.
 
 Q: How do I delete a message?
@@ -74,4 +74,3 @@ A: Sup is only possible through the hard work of Dave Balmain, the
    author of ferret, which is the search engine behind Sup. Ferret is
    really a first-class piece of software, and it's due to the
    tremendous amount of time and effort he's put in to it.
-
