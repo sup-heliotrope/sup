@@ -80,10 +80,10 @@ start = Time.now
 found = {}
 begin
   sources.each do |source|
-    num = 0
+    num_added = 0
+    num_updated = 0
+    puts "Scanning #{source}..."
     Redwood::PollManager.add_new_messages_from source do |m, offset, entry|
-      found[m.id] = true
-
       ## if the entry exists on disk
       if entry && !opts[:overwrite_state]
         m.labels = entry[:label].split(/\s+/).map { |x| x.intern }
@@ -93,6 +93,7 @@ begin
         m.labels -= [:unread] if opts[:read]
       end
 
+      num = num_added + num_updated
       if num % 1000 == 0 && num > 0
         elapsed = Time.now - start
         pctdone = source.pct_done
@@ -102,22 +103,23 @@ begin
 
       ## update if...
       if entry.nil? # it's a new message; or
-        puts "# adding message at #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
-        num += 1
+        puts "Adding message at #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
+        num_added += 1
         m
       elsif opts[:full_rebuild] || # we're updating everyone; or
           (opts[:rebuild] && (entry[:source_id].to_i != source.id || entry[:source_info].to_i != offset)) # we're updating just the changed ones
-        puts "# updating message at #{offset} (from #{m.from.longname} subject \"#{m.subj}\"), source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, labels: {#{m.labels * ', '}}" if opts[:verbose]
-        num += 1 unless found[m.id]
+        puts "Updating message at #{offset} (from #{m.from.longname}, subject '#{m.subj}'), source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, labels: {#{m.labels * ', '}}" if opts[:verbose]
+        num_updated += 1 unless found[m.id]
         m
       else
         nil
       end
+      found[m.id] = true
     end
-    puts "loaded #{num} messages from #{source}" unless num == 0
+    puts "Added #{num_added}, updated #{num_updated} messages from #{source}."
   end
 ensure
-  $stderr.puts "saving index and sources..."
+  puts "Saving index and sources..."
   index.save
   Redwood::finish
 end
@@ -130,7 +132,7 @@ end
 ##
 ## TODO: move this to Index, i suppose.
 if opts[:rebuild] || opts[:full_rebuild]
-  puts "deleting missing messages from the index..."
+  puts "Deleting missing messages from the index..."
   numdel = num = 0
   sources.each do |source|
     raise "no source id for #{source}" unless source.id
@@ -140,16 +142,16 @@ if opts[:rebuild] || opts[:full_rebuild]
       mid = index.index[docid][:message_id]
 #      puts "got #{mid}"
       next if found[mid]
-      puts "deleting #{mid}"
+      puts "Deleting #{mid} (from #{m.from.longname}, subject '#{m.subj}')" if opts[:verbose]
       index.index.delete docid
       numdel += 1
     end
   end
-  puts "deleted #{numdel} / #{num} messages"
+  puts "Deleted #{numdel} / #{num} messages"
 end
 
 if opts[:optimize]
-  puts "optimizing index..."
+  puts "Optimizing index..."
   optt = time { index.index.optimize }
-  puts "optimized index of size #{index.size} in #{optt}s."
+  puts "Optimized index of size #{index.size} in #{optt}s."
 end
