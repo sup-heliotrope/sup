@@ -105,16 +105,18 @@ begin
       if entry.nil? # it's a new message; or
         puts "Adding message at #{offset}, labels: #{m.labels * ' '}" if opts[:verbose]
         num_added += 1
+        found[m.id] = true
         m
       elsif opts[:full_rebuild] || # we're updating everyone; or
           (opts[:rebuild] && (entry[:source_id].to_i != source.id || entry[:source_info].to_i != offset)) # we're updating just the changed ones
         puts "Updating message at #{offset} (from #{m.from.longname}, subject '#{m.subj}'), source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, labels: {#{m.labels * ', '}}" if opts[:verbose]
         num_updated += 1 unless found[m.id]
+        found[m.id] = true
         m
       else
+        found[m.id] = true
         nil
       end
-      found[m.id] = true
     end
     puts "Added #{num_added}, updated #{num_updated} messages from #{source}."
   end
@@ -142,7 +144,7 @@ if opts[:rebuild] || opts[:full_rebuild]
       mid = index.index[docid][:message_id]
 #      puts "got #{mid}"
       next if found[mid]
-      puts "Deleting #{mid} (from #{m.from.longname}, subject '#{m.subj}')" if opts[:verbose]
+      puts "Deleting #{mid}" if opts[:verbose]
       index.index.delete docid
       numdel += 1
     end
