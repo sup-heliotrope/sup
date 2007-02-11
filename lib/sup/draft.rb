@@ -23,7 +23,7 @@ class DraftManager
     @source.each do |thisoffset, theselabels|
       m = Message.new :source => @source, :source_info => thisoffset, :labels => theselabels
       Index.add_message m
-      UpdateManager.relay :add, m
+      UpdateManager.relay self, :add, m
       my_message = m if thisoffset == offset
     end
 
@@ -36,7 +36,7 @@ class DraftManager
     raise ArgumentError, "not a draft: source id #{entry[:source_id].inspect}, should be #{DraftManager.source_id.inspect} for #{mid.inspect} / docno #{docid}" unless entry[:source_id].to_i == DraftManager.source_id
     Index.drop_entry docid
     File.delete @source.fn_for_offset(entry[:source_info])
-    UpdateManager.relay :delete, mid
+    UpdateManager.relay self, :delete, mid
   end
 end
 

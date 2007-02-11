@@ -15,13 +15,22 @@ class InboxMode < ThreadIndexMode
   def killable?; false; end
 
   def archive
-    remove_label_and_hide_thread cursor_thread, :inbox
+    cursor_thread.remove_label :inbox
+    hide_thread cursor_thread
     regen_text
   end
 
   def multi_archive threads
     threads.each { |t| remove_label_and_hide_thread t, :inbox }
     regen_text
+  end
+
+  def handle_archived_update sender, t
+    hide_thread t if contains_thread? t
+  end
+
+  def handle_unarchived_update sender, t
+    ## XXX todo: fill me in
   end
 
   def status

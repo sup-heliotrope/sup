@@ -85,9 +85,7 @@ class Thread
   def authors; map { |m, *o| m.from if m }.compact.uniq; end
 
   def apply_label t; each { |m, *o| m && m.add_label(t) }; end
-  def remove_label t
-    each { |m, *o| m && m.remove_label(t) }
-  end
+  def remove_label t; each { |m, *o| m && m.remove_label(t) }; end
 
   def toggle_label label
     if has_label? label

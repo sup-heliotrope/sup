@@ -46,6 +46,7 @@ class ThreadIndexMode < LineCursorMode
 
   def lines; @text.length; end
   def [] i; @text[i]; end
+  def contains_thread? t; !@lines[t].nil?; end
 
   def reload
     drop_all_threads
@@ -58,7 +59,7 @@ class ThreadIndexMode < LineCursorMode
     t ||= @threads[curpos]
 
     ## this isn't working entirely. TODO:figure out why
-    t = t.clone # required so that messages added later on don't completely
+    # t = t.clone # required so that messages added later on don't completely
                 # screw everything up
 
     ## TODO: don't regen text completely
@@ -80,22 +81,24 @@ class ThreadIndexMode < LineCursorMode
     threads.each { |t| select t }
   end
   
-  def handle_starred_update m
+  def handle_starred_update sender, m
     return unless(t = @ts.thread_for m)
     update_text_for_line @lines[t]
     BufferManager.draw_screen
   end
 
-  def handle_read_update m
-    return unless(t = @ts.thread_for m)
+  def handle_read_update sender, t
+    return unless @lines[t]
     update_text_for_line @lines[t]
     BufferManager.draw_screen
   end
+
+  def handle_archived_update *a; handle_read_update *a; end
 
   ## overwrite me!
   def is_relevant? m; false; end
 
-  def handle_add_update m
+  def handle_add_update sender, m
     if is_relevant?(m) || @ts.is_relevant?(m)
       @ts.load_thread_for_message m
       update
@@ -103,7 +106,7 @@ class ThreadIndexMode < LineCursorMode
     end
   end
 
-  def handle_delete_update mid
+  def handle_delete_update sender, mid
     if @ts.contains_id? mid
       @ts.remove mid
       update
@@ -129,8 +132,7 @@ class ThreadIndexMode < LineCursorMode
     end
   end
 
-  ## i always hate people who name things like this...
-  def actually_toggle_starred t=@threads[curpos]
+  def actually_toggle_starred t
     if t.has_label? :starred # if ANY message has a star
       t.remove_label :starred # remove from all
     else
@@ -139,7 +141,8 @@ class ThreadIndexMode < LineCursorMode
   end  
 
   def toggle_starred 
-    actually_toggle_starred
+    t = @threads[curpos] or return
+    actually_toggle_starred t
     update_text_for_line curpos
     cursor_down
   end
@@ -149,15 +152,24 @@ class ThreadIndexMode < LineCursorMode
     regen_text
   end
 
+  def actually_toggle_archived t
+    if t.has_label? :inbox
+      t.remove_label :inbox
+      UpdateManager.relay self, :unarchived, t
+    else
+      t.add_label :inbox
+      UpdateManager.relay self, :archived, t
+    end
+  end
+
   def toggle_archived 
     t = @threads[curpos] or return
-    t.toggle_label :inbox
+    actually_toggle_archived t
     update_text_for_line curpos
-    cursor_down
   end
 
   def multi_toggle_archived threads
-    threads.each { |t| t.toggle_label :inbox }
+    threads.each { |t| actually_toggle_archived t }
     regen_text
   end
 
@@ -362,11 +374,6 @@ protected
     @tags.drop_all_tags
     initialize_threads
     update
-  end
-
-  def remove_label_and_hide_thread t, label
-    t.remove_label label
-    hide_thread t
   end
 
   def hide_thread t

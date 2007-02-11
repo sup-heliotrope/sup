@@ -105,7 +105,7 @@ class PollManager
           Index.update_message m, docid, entry
         else
           Index.add_message m
-          UpdateManager.relay :add, m
+          UpdateManager.relay self, :add, m
         end
       rescue MessageFormatError, SourceError => e
         Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"

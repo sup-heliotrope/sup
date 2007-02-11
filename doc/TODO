@@ -1,21 +1,27 @@
-for next release
+for 0.0.7
 ----------------
-make 'a' archive in thread-view-mode
+de-archived messages should be auto-added to inbox
+
+for 0.0.8
+---------
 message attachments
 warnings: top-posting, attachments
 maildir
+
+for 0.0.9
+---------
 undo
+use Net::SMTP
+gmail
 
 future
 ------
-maybe: de-archived messages should be auto-added to inbox
 swappable keymappings
 bugfix: when returning from a shelling out, ncurses is crazy 
 bugfix: miscellaneous weirdnesses in buffer line editing
 wide character support
 batch deletion
 support for message-content modules such as ruby-talk:XXXXX detection
-use Net::SMTP
 forward attachments
 CREATE attachments
 tab completion on labels, contacts
@@ -25,13 +31,13 @@ maybe: filters
 maybe: rangefilter on the initial inbox to only consider the most recent 1000 messages
 select all, starred, to me, etc
 annotations on messages
-gmail
 pop
 be able to mark individual messages as spam in thread-view-mode
 toggle wrapping
 
 done
 ----
+x make 'A' archive in thread-view-mode
 x remove stupid percent_done source methods (still useful; made it optional)
 x don't quit while writing thread index state to disk or with unsaved drafts/messages
 x bugfix: deleted threads are showing up (i don't see this any more)

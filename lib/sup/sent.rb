@@ -24,7 +24,7 @@ class SentManager
     @source.each do |offset, labels|
       m = Message.new :source => @source, :source_info => offset, :labels => labels
       Index.add_message m
-      UpdateManager.relay :add, m
+      UpdateManager.relay self, :add, m
     end
   end
 end

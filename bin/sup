@@ -12,9 +12,9 @@ global_keymap = Keymap.new do |k|
   k.add :quit, "Quit Redwood", 'q'
   k.add :help, "Show help", 'H', '?'
   k.add :roll_buffers, "Switch to next buffer", 'b'
-  k.add :roll_buffers_backwards, "Switch to previous buffer", 'B'
+#  k.add :roll_buffers_backwards, "Switch to previous buffer", 'B'
   k.add :kill_buffer, "Kill the current buffer", 'x'
-  k.add :list_buffers, "List all buffers", 'A'
+  k.add :list_buffers, "List all buffers", 'B'
   k.add :list_contacts, "List contacts", 'C'
   k.add :redraw, "Redraw screen", :ctrl_l
   k.add :search, "Search messages", '/'

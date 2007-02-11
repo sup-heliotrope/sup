@@ -26,6 +26,7 @@ class ThreadViewMode < LineCursorMode
     k.add :edit_as_new, "Edit message as new", 'D'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
     k.add :search, "Search for messages from particular people", 'S'
+    k.add :archive_and_kill, "Archive thread and kill buffer", 'A'
   end
 
   ## there are a couple important instance variables we hold to lay
@@ -124,7 +125,7 @@ class ThreadViewMode < LineCursorMode
     ## TODO: don't recalculate EVERYTHING just to add a stupid little
     ## star to the display
     update
-    UpdateManager.relay :starred, m
+    UpdateManager.relay self, :starred, m
   end
 
   def toggle_expanded
@@ -244,17 +245,16 @@ class ThreadViewMode < LineCursorMode
     end
   end
 
-  ## kinda slow for large threads. TODO: fasterify
   def cleanup
-    BufferManager.say "Marking messages as read..." do
-      @thread.each do |m, d, p|
-        if m && m.has_label?(:unread)
-          m.remove_label :unread 
-          UpdateManager.relay :read, m
-        end
-      end
-    end
+    @thread.remove_label :unread
+    UpdateManager.relay self, :read, @thread
     @layout = @text = nil
+  end
+
+  def archive_and_kill
+    @thread.remove_label :inbox
+    UpdateManager.relay self, :archived, @thread
+    BufferManager.kill_buffer_safely buffer
   end
 
 private 
