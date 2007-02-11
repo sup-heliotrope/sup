@@ -26,7 +26,6 @@ class Source
   ##
   ## - start_offset
   ## - end_offset (exclusive!)
-  ## - pct_done (percent of the way cur_offset is to end_offset)
   ## - load_header offset
   ## - load_message offset
   ## - raw_header offset

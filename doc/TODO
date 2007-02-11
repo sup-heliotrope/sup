@@ -1,16 +1,14 @@
 for next release
 ----------------
-don't quit while writing thread index state to disk or with unsaved drafts/messages
 make 'a' archive in thread-view-mode
 message attachments
 warnings: top-posting, attachments
-de-archived messages should be auto-added to inbox
 maildir
 undo
-remove stupid percent_done source methods
 
 future
 ------
+maybe: de-archived messages should be auto-added to inbox
 swappable keymappings
 bugfix: when returning from a shelling out, ncurses is crazy 
 bugfix: miscellaneous weirdnesses in buffer line editing
@@ -34,6 +32,8 @@ toggle wrapping
 
 done
 ----
+x remove stupid percent_done source methods (still useful; made it optional)
+x don't quit while writing thread index state to disk or with unsaved drafts/messages
 x bugfix: deleted threads are showing up (i don't see this any more)
 x bugfix: changing IMAP ids
 x bugfix: STILL new messages, drafts sometimes not showing up in inbox
