@@ -1,7 +1,8 @@
 for 0.0.8
 ---------
-message attachments
-warnings: top-posting, attachments
+create attachments
+forward attachments
+warnings: top-posting, missing attachment
 maildir
 
 for 0.0.9
@@ -12,16 +13,17 @@ gmail
 
 future
 ------
+decode RFC 2047 ("encoded word") headers
+  - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
 swappable keymappings
+within-buffer search
 bugfix: when returning from a shelling out, ncurses is crazy 
 bugfix: miscellaneous weirdnesses in buffer line editing
 wide character support
+i18n support
 batch deletion
 support for message-content modules such as ruby-talk:XXXXX detection
-forward attachments
-CREATE attachments
 tab completion on labels, contacts
-within-buffer search
 contact selector in edit-message-mode
 maybe: filters
 maybe: rangefilter on the initial inbox to only consider the most recent 1000 messages

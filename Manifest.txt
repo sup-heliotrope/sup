@@ -1,3 +1,4 @@
+HACKING
 History.txt
 LICENSE
 Manifest.txt
