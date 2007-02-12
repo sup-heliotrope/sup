@@ -26,7 +26,10 @@ class InboxMode < ThreadIndexMode
   end
 
   def handle_archived_update sender, t
-    hide_thread t if contains_thread? t
+    if contains_thread? t
+      hide_thread t
+      regen_text
+    end
   end
 
 # not quite working, and not sure if i like it anyways
