@@ -7,6 +7,7 @@ maildir
 
 for 0.0.9
 ---------
+select all, starred, to me, etc
 undo
 use Net::SMTP
 gmail
@@ -27,7 +28,6 @@ tab completion on labels, contacts
 contact selector in edit-message-mode
 maybe: filters
 maybe: rangefilter on the initial inbox to only consider the most recent 1000 messages
-select all, starred, to me, etc
 annotations on messages
 pop
 be able to mark individual messages as spam in thread-view-mode
