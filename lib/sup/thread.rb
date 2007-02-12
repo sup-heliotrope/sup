@@ -303,6 +303,12 @@ class ThreadSet
     end
   end
 
+  ## merges in a pre-loaded thread
+  def add_thread t
+    raise "duplicate" if @subj_thread.values.member? t
+    t.each { |m, *o| add_message m }
+  end
+
   def is_relevant? m
     m.refs.any? { |ref_id| @messages[ref_id] }
   end

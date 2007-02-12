@@ -1,9 +1,10 @@
-== 0.0.7 / XXXXXX
-* Moving messages between sources now preserves state.
+== 0.0.7 / 2007-02-12
 * Split sup-import into two bits: sup-import and sup-add.
 * Command-line arguments now handled by trollop.
 * Better error handling for IMAP and svn+ssh.
-* New commands in thread-view-mode
+* Messages can now be moved between sources while preserving all
+  message state.
+* New commands in thread-view-mode:
   - 'a' to add an email to the addressbook
   - 'S' to search for all email to/from an email address
   - 'A' to kill buffer and archive thread in one swell foop

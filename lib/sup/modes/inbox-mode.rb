@@ -29,9 +29,11 @@ class InboxMode < ThreadIndexMode
     hide_thread t if contains_thread? t
   end
 
-  def handle_unarchived_update sender, t
-    ## XXX todo: fill me in
-  end
+# not quite working, and not sure if i like it anyways
+#   def handle_unarchived_update sender, t
+#     Redwood::log "unarchived #{t.subj}"
+#     show_thread t
+#   end
 
   def status
     super + "    #{Index.size} messages in index"

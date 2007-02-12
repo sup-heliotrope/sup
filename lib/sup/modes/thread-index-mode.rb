@@ -82,18 +82,19 @@ class ThreadIndexMode < LineCursorMode
   end
   
   def handle_starred_update sender, m
-    return unless(t = @ts.thread_for m)
-    update_text_for_line @lines[t]
+    t = @ts.thread_for(m) or return
+    l = @lines[t] or return
+    update_text_for_line l
     BufferManager.draw_screen
   end
 
   def handle_read_update sender, t
-    return unless @lines[t]
+    l = @lines[t] or return
     update_text_for_line @lines[t]
     BufferManager.draw_screen
   end
 
-  def handle_archived_update *a; handle_read_update *a; end
+  def handle_archived_update *a; handle_read_update(*a); end
 
   ## overwrite me!
   def is_relevant? m; false; end
@@ -155,10 +156,10 @@ class ThreadIndexMode < LineCursorMode
   def actually_toggle_archived t
     if t.has_label? :inbox
       t.remove_label :inbox
-      UpdateManager.relay self, :unarchived, t
-    else
-      t.add_label :inbox
       UpdateManager.relay self, :archived, t
+    else
+      t.apply_label :inbox
+      UpdateManager.relay self, :unarchived, t
     end
   end
 
@@ -381,6 +382,15 @@ protected
     @hidden_threads[t] = true
     @threads.delete t
     @tags.drop_tag_for t
+  end
+
+  def show_thread t
+    if @hidden_threads[t]
+      @hidden_threads.delete t
+    else
+      @ts.add_thread t
+    end
+    update
   end
 
   def update_text_for_line l
