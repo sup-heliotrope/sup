@@ -12,9 +12,9 @@ Hoe.new('sup', Redwood::VERSION) do |p|
   p.rubyforge_name = 'sup'
   p.author = "William Morgan"
   p.summary = 'A console-based email client with the best features of GMail, mutt, and emacs. Features full text search, labels, tagged operations, multiple buffers, recent contacts, and more.'
-  p.description = p.paragraphs_of('README.txt', 2..4).join("\n\n")
+  p.description = p.paragraphs_of('README.txt', 2..9).join("\n\n")
   p.url = p.paragraphs_of('README.txt', 0).first.split(/\n/)[2].gsub(/^\s+/, "")
-  p.changes = p.paragraphs_of('History.txt', 0..1).join("\n\n")
+  p.changes = p.paragraphs_of('History.txt', 0..0).join("\n\n")
   p.email = "wmorgan-sup@masanjin.net"
   p.extra_deps = [['ferret', '>= 0.10.13'], ['ncurses', '>= 0.9.1'], ['rmail', '>= 0.17'], 'highline', 'net-ssh', 'trollop']
 end
