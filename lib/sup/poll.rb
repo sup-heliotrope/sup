@@ -83,15 +83,15 @@ class PollManager
   def add_new_messages_from source
     return if source.done? || source.broken?
 
-    source.each do |offset, labels|
-      if source.broken?
-        Redwood::log "error loading messages from #{source}: #{source.broken_msg}"
-        return
-      end
+    begin
+      source.each do |offset, labels|
+        if source.broken?
+          Redwood::log "error loading messages from #{source}: #{source.broken_msg}"
+          return
+        end
       
-      labels.each { |l| LabelManager << l }
+        labels.each { |l| LabelManager << l }
 
-      begin
         m = Message.new :source => source, :source_info => offset, :labels => labels
         if m.source_marked_read?
           m.remove_label :unread
@@ -107,9 +107,9 @@ class PollManager
           Index.add_message m
           UpdateManager.relay self, :add, m
         end
-      rescue MessageFormatError, SourceError => e
-        Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
       end
+    rescue MessageFormatError, SourceError => e
+      Redwood::log "found problem with #{source}: #{e.message}"
     end
   end
 end
