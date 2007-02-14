@@ -92,24 +92,28 @@ class PollManager
       
         labels.each { |l| LabelManager << l }
 
-        m = Message.new :source => source, :source_info => offset, :labels => labels
-        if m.source_marked_read?
-          m.remove_label :unread
-          labels.delete :unread
-        end
+        begin
+          m = Message.new :source => source, :source_info => offset, :labels => labels
+          if m.source_marked_read?
+            m.remove_label :unread
+            labels.delete :unread
+          end
 
-        docid, entry = Index.load_entry_for_id m.id
-        m = yield m, offset, entry
-        next unless m
-        if entry
-          Index.update_message m, docid, entry
-        else
-          Index.add_message m
-          UpdateManager.relay self, :add, m
+          docid, entry = Index.load_entry_for_id m.id
+          m = yield m, offset, entry
+          next unless m
+          if entry
+            Index.update_message m, docid, entry
+          else
+            Index.add_message m
+            UpdateManager.relay self, :add, m
+          end
+        rescue MessageFormatError, SourceError => e
+          Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
         end
       end
-    rescue MessageFormatError, SourceError => e
-      Redwood::log "found problem with #{source}: #{e.message}"
+    rescue SourceError => e
+      Redwood::log "problem getting messages from #{source}: #{e.message}"
     end
   end
 end

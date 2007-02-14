@@ -21,7 +21,10 @@ class InboxMode < ThreadIndexMode
   end
 
   def multi_archive threads
-    threads.each { |t| remove_label_and_hide_thread t, :inbox }
+    threads.each do |t|
+      t.remove_label :inbox
+      hide_thread t
+    end
     regen_text
   end
 

@@ -98,7 +98,7 @@ begin
         elapsed = last_update - start
         pctdone = source.respond_to?(:pct_done) ? source.pct_done : 100.0 * (source.cur_offset.to_f - source.start_offset).to_f / (source.end_offset - source.start_offset).to_f
         remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
-        puts "## #{num} (#{pctdone}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
+        puts "## #{num_added + num_updated} (#{pctdone}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
       end
 
       ## update if...
@@ -145,7 +145,7 @@ if opts[:rebuild] || opts[:full_rebuild]
 #      puts "got #{mid}"
       next if found[mid]
       puts "Deleting #{mid}" if opts[:verbose]
-      index.index.delete docid
+      #index.index.delete docid
       numdel += 1
     end
   end
