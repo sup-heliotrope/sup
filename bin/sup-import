@@ -145,7 +145,7 @@ if opts[:rebuild] || opts[:full_rebuild]
 #      puts "got #{mid}"
       next if found[mid]
       puts "Deleting #{mid}" if opts[:verbose]
-      #index.index.delete docid
+      index.index.delete docid
       numdel += 1
     end
   end
