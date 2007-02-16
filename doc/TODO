@@ -1,5 +1,7 @@
 for 0.0.8
 ---------
+bugfix: triggering a pageup when cursor scrolling up jumps to the bottom of the
+  page rather than the next line
 create attachments
 forward attachments
 warnings: top-posting, missing attachment
