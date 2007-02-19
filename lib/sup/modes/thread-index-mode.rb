@@ -275,7 +275,7 @@ class ThreadIndexMode < LineCursorMode
   def apply_to_tagged; @tags.apply_to_tagged; end
 
   def edit_labels
-    thread = @threads[curpos]
+    thread = @threads[curpos] or return
     speciall = (@hidden_labels + LabelManager::RESERVED_LABELS).uniq
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
     label_string = modifyl.join(" ")
