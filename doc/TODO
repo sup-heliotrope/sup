@@ -1,5 +1,7 @@
 for 0.0.8
 ---------
+bugfix: when one new message comes into an imap folder, we don't catch
+   it until a restart
 bugfix: triggering a pageup when cursor scrolling up jumps to the bottom of the
   page rather than the next line
 create attachments
