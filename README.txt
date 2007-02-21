@@ -124,7 +124,10 @@ Current limitations which will be fixed:
   No worries, just re-run sup-import. (This is unresolved atm.)
 * There are a couple other Ferret issues with outstanding patches but
   they are pretty rare.
-
+* If you are using IMAP and see this error:
+    /usr/local/lib/ruby/1.8/yaml.rb:133:in `transfer': allocator undefined for Bignum (TypeError)
+  then you need to upgrade to Ruby 1.8.5. YAML in earlier versions
+  can't parse BigNums, but IMAP requires that functionality.
 
 == LICENSE:
 
