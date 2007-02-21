@@ -95,7 +95,7 @@ class Source
       until done? || broken? # just like life!
         n, labels = self.next
         raise "no message" unless n
-        yield n, labels
+        yield n, labels + (archived? ? [] : [:inbox])
       end
     rescue SourceError => e
       self.broken_msg = e.message

@@ -8,10 +8,6 @@ class Module
     bool_writer(*args)
   end
 
-  def attr_reader_cloned *args
-    args.each { |sym| class_eval %{ def #{sym}; @#{sym}.clone; end } }
-  end
-
   def defer_all_other_method_calls_to obj
     class_eval %{ def method_missing meth, *a, &b; @#{obj}.send meth, *a, &b; end }
   end

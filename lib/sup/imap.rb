@@ -35,7 +35,6 @@ class IMAP < Source
   ## upon these errors we'll try to rereconnect a few times
   RECOVERABLE_ERRORS = [ Errno::EPIPE, Errno::ETIMEDOUT ]
 
-  attr_reader_cloned :labels
   attr_accessor :username, :password
 
   def initialize uri, username, password, last_idate=nil, usual=true, archived=false, id=nil
@@ -52,7 +51,6 @@ class IMAP < Source
     @ids = []
     @last_scan = nil
     @labels = [:unread]
-    @labels << :inbox unless archived?
     @labels << mailbox.intern unless mailbox =~ /inbox/i
     @mutex = Mutex.new
   end
@@ -126,7 +124,7 @@ class IMAP < Source
     start.upto(ids.length - 1) do |i|         
       id = ids[i]
       self.cur_offset = id
-      yield id, labels
+      yield id, @labels.clone
     end
   end
 

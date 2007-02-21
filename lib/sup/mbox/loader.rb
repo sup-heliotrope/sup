@@ -4,14 +4,11 @@ module Redwood
 module MBox
 
 class Loader < Source
-  attr_reader_cloned :labels
-
   def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil
     super
 
     @mutex = Mutex.new
     @labels = [:unread]
-    @labels << :inbox unless archived?
 
     case uri_or_fp
     when String
@@ -115,7 +112,7 @@ class Loader < Source
     end
 
     self.cur_offset = next_offset
-    [returned_offset, labels]
+    [returned_offset, @labels.clone]
   end
 end
 
