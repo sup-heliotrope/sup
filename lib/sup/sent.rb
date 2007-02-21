@@ -22,7 +22,7 @@ class SentManager
       yield f
     end
     @source.each do |offset, labels|
-      m = Message.new :source => @source, :source_info => offset, :labels => self.labels
+      m = Message.new :source => @source, :source_info => offset, :labels => @source.labels
       Index.add_message m
       UpdateManager.relay self, :add, m
     end
