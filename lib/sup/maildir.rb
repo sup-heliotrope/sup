@@ -17,7 +17,6 @@ class Maildir < Source
     @dir = URI(uri).path
     @ids = []
     @ids_to_fns = {}
-    @labels = [:unread]
     @last_scan = nil
     @mutex = Mutex.new
   end
@@ -78,7 +77,7 @@ class Maildir < Source
     start.upto(@ids.length - 1) do |i|         
       id = @ids[i]
       self.cur_offset = id
-      yield id, @labels.clone
+      yield id, (@ids_to_fns[id] =~ /,.*R.*$/ ? [] : [:unread])
     end
   end
 
