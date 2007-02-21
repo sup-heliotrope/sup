@@ -91,6 +91,7 @@ class PollManager
         end
       
         labels.each { |l| LabelManager << l }
+        labels += [:inbox] unless source.archived?
 
         begin
           m = Message.new :source => source, :source_info => offset, :labels => labels
