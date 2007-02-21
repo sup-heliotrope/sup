@@ -2,6 +2,7 @@ require 'uri'
 require 'net/imap'
 require 'stringio'
 require 'time'
+require 'rmail'
 
 ## fucking imap fucking sucks. what the FUCK kind of committee of
 ## dunces designed this shit.
@@ -62,6 +63,8 @@ class IMAP < Source
     x.nil? || x.empty? ? 'INBOX' : x
   end
   def ssl?; @parsed_uri.scheme == 'imaps' end
+
+  ## is this necessary? TODO: remove maybe
   def == o; o.is_a?(IMAP) && o.uri == self.uri && o.username == self.username; end
 
   def load_header id
