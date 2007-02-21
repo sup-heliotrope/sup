@@ -6,8 +6,6 @@ require 'highline/import'
 require 'trollop'
 require "sup"
 
-Thread.abort_on_exception = true # make debugging possible
-
 $opts = Trollop::options do
   version "sup-add (sup #{Redwood::VERSION})"
   banner <<EOS
@@ -31,6 +29,9 @@ For IMAP folders, use the form (note no username or password!):
     imap://<machine name>/<folder>  # unsecure, arbitrary
     imaps://<machine name>/         # secure, "INBOX" folder
     imaps://<machine name>/<folder> # secure, arbitrary folder 
+
+For Maildir folders, use the form:
+    maildir://<path to Maildir directory>
 
 Options are:
 EOS
@@ -80,22 +81,30 @@ index.load
 
 ARGV.each do |uri|
   uri = "mbox://#{uri}" unless uri =~ %r!://!
+
   if !$opts[:force_new] && index.source_for(uri) 
     say "Already know about #{uri}; skipping."
     next
   end
+
+  parsed_uri = URI(uri)
+
   source = 
-    case uri
-    when %r!^mbox\+ssh://!
+    case parsed_uri.scheme
+    when "mbox+ssh"
       say "For SSH connections, if you will use public key authentication, you may leave the username and password blank."
       say ""
       username, password = get_login_info uri, index.sources
-      Redwood::MBox::SSHLoader.new(uri, username, password, nil, !$opts[:unusual], $opts[:archive])
-    when %r!^imaps?://!
+      Redwood::MBox::SSHLoader.new uri, username, password, nil, !$opts[:unusual], $opts[:archive]
+    when "imap", "imaps"
       username, password = get_login_info uri, index.sources
-      Redwood::IMAP.new(uri, username, password, nil, !$opts[:unusual], $opts[:archive])
+      Redwood::IMAP.new uri, username, password, nil, !$opts[:unusual], $opts[:archive]
+    when "maildir"
+      Redwood::Maildir.new uri, nil, !$opts[:unusual], $opts[:archive]
+    when "mbox"
+      Redwood::MBox::Loader.new uri, nil, !$opts[:unusual], $opts[:archive]
     else
-      Redwood::MBox::Loader.new(uri, nil, !$opts[:unusual], $opts[:archive])
+      Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"      
     end
   say "Adding #{source}..."
   index.add_source source

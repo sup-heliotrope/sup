@@ -5,8 +5,6 @@ require 'rubygems'
 require 'trollop'
 require "sup"
 
-Thread.abort_on_exception = true # make debugging possible
-
 class Float
   def to_s; sprintf '%.2f', self; end
 end

@@ -23,6 +23,7 @@ lib/sup/index.rb
 lib/sup/keymap.rb
 lib/sup/label.rb
 lib/sup/logger.rb
+lib/sup/maildir.rb
 lib/sup/mbox.rb
 lib/sup/mbox/loader.rb
 lib/sup/mbox/ssh-file.rb

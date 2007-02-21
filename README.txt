@@ -11,9 +11,9 @@ with the speed and simplicity of a console interface.
 Sup makes it easy to:
 - Handle massive amounts of email.
 
-- Mix email from different sources: mbox files (even across
-  different machines), IMAP folders, POP accounts, and GMail
-  accounts.
+- Mix email from different sources: mbox files (even across different
+  machines), Maildir directories, IMAP folders, POP accounts, and
+  GMail accounts.
 
 - Instantaneously search over your entire email collection. Search
   over body text, or use a query language to combine search
@@ -40,7 +40,7 @@ Features:
   operability, regardless of how much amount of email you have.
 
 - Immediate full-text search of your entire email archive, using the
-  Ferret query langauge. Search over message bodies, labels, from: and
+  Ferret query language. Search over message bodies, labels, from: and
   to: fields, or any combination thereof.
 
 - Thread-centrism. Operations are performed at the thread, not the
@@ -109,21 +109,24 @@ Current limitations which will be fixed:
 * ncurses
 * rmail
 * highline
+* trollop
+* net-ssh
 
 == INSTALL:
 
 * gem install sup -y
 
 == KNOWN BUGS IN OTHER PACKAGES:
+
 * If you get an error about frozen strings in RubyMail when importing
   certain messages with attachments, in rmail, change line 159 of
   multipart.rb to:
     chunk = chunk[0..start]
+  This is because RubyMail hasn't been updated since like Ruby 1.8.2.
+  Please bug Matt Lickey.
 * Occasionally Ferret produces something the Ruby GC doesn't like
   (particularly when importing messages from very large sources).
   No worries, just re-run sup-import. (This is unresolved atm.)
-* There are a couple other Ferret issues with outstanding patches but
-  they are pretty rare.
 * If you are using IMAP or Maildir and see this error:
     /usr/local/lib/ruby/1.8/yaml.rb:133:in `transfer': allocator undefined for Bignum (TypeError)
   then you need to upgrade to Ruby 1.8.5. YAML in earlier versions

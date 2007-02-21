@@ -1,3 +1,7 @@
+== 0.0.8 / XXXX
+* Maildir support.
+* More bugfixes. Will they ever end?
+
 == 0.0.7 / 2007-02-12
 * Split sup-import into two bits: sup-import and sup-add.
 * Command-line arguments now handled by trollop.
