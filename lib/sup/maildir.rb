@@ -51,7 +51,7 @@ class Maildir < Source
     return if @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
 
     cdir = File.join(@dir, 'cur')
-    ndir = File.join(@dir, 'cur')
+    ndir = File.join(@dir, 'new')
 
     begin
       @ids, @ids_to_fns = @mutex.synchronize do
@@ -105,7 +105,7 @@ private
   
   def make_id fn
     # use 7 digits for the size. why 7? seems nice.
-    sprintf("%d%07d", File.ctime(fn), File.size(fn)).to_i
+    sprintf("%d%07d", File.mtime(fn), File.size(fn)).to_i
   end
 
   def with_file_for id
