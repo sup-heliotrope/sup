@@ -1,6 +1,7 @@
 for 0.0.8
 ---------
 x maildir
+_ bugfix: single-line messages come empty upon reply
 _ bugfix: when one new message comes into an imap folder, we don't
    catch it until a restart
 _ bugfix: triggering a pageup when cursor scrolling up jumps to the
@@ -8,6 +9,7 @@ _ bugfix: triggering a pageup when cursor scrolling up jumps to the
 _ create attachments
 _ forward attachments
 _ warnings: top-posting, missing attachment
+x compose in thread-view-mode auto-fills in person
 
 for 0.0.9
 ---------

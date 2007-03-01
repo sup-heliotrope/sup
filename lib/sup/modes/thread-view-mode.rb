@@ -26,6 +26,7 @@ class ThreadViewMode < LineCursorMode
     k.add :edit_as_new, "Edit message as new", 'D'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
     k.add :search, "Search for messages from particular people", 'S'
+    k.add :compose, "Compose message to person", 'm'
     k.add :archive_and_kill, "Archive thread and kill buffer", 'A'
   end
 
@@ -111,8 +112,15 @@ class ThreadViewMode < LineCursorMode
   def search
     p = @person_lines[curpos] or return
     mode = PersonSearchResultsMode.new [p]
-    BufferManager.spawn "search for #{p.name}", mode
+    BufferManager.spawn "Search for #{p.name}", mode
     mode.load_threads :num => mode.buffer.content_height
+  end    
+
+  def compose
+    p = @person_lines[curpos] or return
+    mode = ComposeMode.new :to => [p]
+    BufferManager.spawn "Message to #{p.name}", mode
+    mode.edit
   end    
 
   def toggle_starred
