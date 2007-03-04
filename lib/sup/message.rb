@@ -202,8 +202,9 @@ class Message
 #@snippet...
 
 ***********************************************************************
-* An error occurred while loading this message. It is possible that   *
-* the source has changed, or (in the case of remote sources) is down. *
+ An error occurred while loading this message. It is possible that
+ the source has changed, or (in the case of remote sources) is down.
+ The message source and offset are: #@source##@source_info
 ***********************************************************************
 
 The error message was:
@@ -259,7 +260,7 @@ private
     ret = [] <<
       case m.header.content_type
       when "text/plain", nil
-        m.body && body = m.decode or raise MessageFormatError, "for some bizarre reason, RubyMail was unable to parse this message."
+        m.body && body = m.decode or raise MessageFormatError, "For some bizarre reason, RubyMail was unable to parse this message."
         text_to_chunks body.normalize_whitespace.split("\n")
       when /^multipart\//
         nil
