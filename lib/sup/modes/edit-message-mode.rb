@@ -158,7 +158,7 @@ EOS
     end
 
     f.puts
-    f.puts @body
+    f.puts @body.map { |l| l =~ /^From / ? ">#{l}" : l }
   end  
 end
 
