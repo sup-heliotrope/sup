@@ -10,6 +10,8 @@ _ create attachments
 _ forward attachments
 _ warnings: top-posting, missing attachment
 x compose in thread-view-mode auto-fills in person
+_ bugfix: stars on messages with blue backgrounds still have green bgs
+_ bugfix: mark messages as read immediately when t-v-m is opened
 
 for 0.0.9
 ---------
