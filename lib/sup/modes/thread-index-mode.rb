@@ -58,10 +58,6 @@ class ThreadIndexMode < LineCursorMode
   def select t=nil
     t ||= @threads[curpos]
 
-    ## this isn't working entirely. TODO:figure out why
-    # t = t.clone # required so that messages added later on don't completely
-                # screw everything up
-
     ## TODO: don't regen text completely
     Redwood::reporting_thread do
       BufferManager.say("Loading message bodies...") do |sid|
@@ -74,6 +70,10 @@ class ThreadIndexMode < LineCursorMode
       BufferManager.draw_screen # lame TODO: make this unnecessary
       ## the first draw_screen is needed before topline and botline
       ## are set, and the second to show the cursor having moved
+
+      t.remove_label :unread
+      update_text_for_line curpos
+      UpdateManager.relay self, :read, t
     end
   end
 

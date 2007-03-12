@@ -254,9 +254,7 @@ class ThreadViewMode < LineCursorMode
   end
 
   def cleanup
-    @thread.remove_label :unread
-    UpdateManager.relay self, :read, @thread
-    @layout = @text = nil
+    @layout = @text = nil # for good luck
   end
 
   def archive_and_kill
