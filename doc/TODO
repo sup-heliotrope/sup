@@ -6,32 +6,36 @@ _ bugfix: when one new message comes into an imap folder, we don't
    catch it until a reload
 _ bugfix: triggering a pageup when cursor scrolling up jumps to the
    bottom of the page rather than the next line
-_ create attachments
-_ forward attachments
 _ warnings: top-posting, missing attachment
+_ split out threading & message chunk parsing to a separate library
 x compose in thread-view-mode auto-fills in person
 _ bugfix: stars on messages with blue backgrounds still have green bgs
 x bugfix: mark messages as read immediately when t-v-m is opened
+_ bugfix: m in thread-view-mode when a person is not selected should open up a
+  blank compose-mode rather than do nothing
+_ Net::SMTP support (cuz I'm going to need it soon)
+x bugfix: 'N' in thread-view-mode (expand only new messages) crashes
 
 for 0.0.9
 ---------
-select all, starred, to me, etc
-undo
-use Net::SMTP
-gmail
+_ create attachments
+_ forward attachments
+_ select all, starred, to me, etc
+_ undo
+_ gmail
 
 future
 ------
+pluggable modules such as ruby-talk:XXXXX detection, "attachment" but no attachment, top-posting
 decode RFC 2047 ("encoded word") headers
   - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
 swappable keymappings
 within-buffer search
 bugfix: when returning from a shelling out, ncurses is crazy 
-bugfix: miscellaneous weirdnesses in buffer line editing
+more control character support in buffer line editing
 wide character support
 i18n support
 batch deletion
-support for message-content modules such as ruby-talk:XXXXX detection
 tab completion on labels, contacts
 contact selector in edit-message-mode
 maybe: filters
@@ -41,6 +45,7 @@ pop
 be able to mark individual messages as spam in thread-view-mode
 toggle wrapping
 maybe: de-archived messages auto-added to inbox
+prune old entries from contacts.txt so that it doesn't arbitrarily
 
 done
 ----
@@ -90,3 +95,4 @@ x highlighting/different color stuff
 x config: your email, sendmail, etc
 x status: to/from_you, cc_you_others
 x status: new/not, important
+x bugfix: miscellaneous weirdnesses in buffer line editing
