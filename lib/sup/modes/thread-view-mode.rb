@@ -3,7 +3,7 @@ module Redwood
 class ThreadViewMode < LineCursorMode
   ## this holds all info we need to lay out a message
   class Layout
-    attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color
+    attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color, :orig_new
   end
 
   DATE_FORMAT = "%B %e %Y %l:%M%P"
@@ -53,6 +53,7 @@ class ThreadViewMode < LineCursorMode
       @layout[m] = Layout.new
       @layout[m].state = initial_state_for m
       @layout[m].color = altcolor ? :alternate_patina_color : :message_patina_color
+      @layout[m].orig_new = m.has_label? :unread
       altcolor = !altcolor
       if latest_date.nil? || m.date > latest_date
         latest_date = m.date
@@ -239,7 +240,7 @@ class ThreadViewMode < LineCursorMode
   end
 
   def collapse_non_new_messages
-    @layout.each { |m, l| l.state = m.has_label?(:unread) ? :open : :closed }
+    @layout.each { |m, l| l.state = l.orig_new ? :open : :closed if m.is_a? Message }
     update
   end
 
