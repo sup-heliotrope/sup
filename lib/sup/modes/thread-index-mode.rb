@@ -56,7 +56,7 @@ class ThreadIndexMode < LineCursorMode
 
   ## open up a thread view window
   def select t=nil
-    t ||= @threads[curpos]
+    t ||= @threads[curpos] or return
 
     ## TODO: don't regen text completely
     Redwood::reporting_thread do
