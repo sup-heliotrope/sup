@@ -71,7 +71,7 @@ class Source
   def to_s; @uri.to_s; end
   def seek_to! o; self.cur_offset = o; end
   def reset!
-    return if broken?
+    @broken_msg = nil
     begin
       seek_to! start_offset
     rescue SourceError

@@ -22,6 +22,10 @@ class Loader < Source
     else
       @f = uri_or_fp
     end
+
+    if cur_offset > end_offset
+      self.broken_msg = "mbox file is smaller than last recorded message offset. Messages have probably been deleted via another client. Run 'sup-import --rebuild #{to_s}' to correct this."
+    end
   end
 
   def start_offset; 0; end

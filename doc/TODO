@@ -1,13 +1,14 @@
 for 0.0.8
 ---------
+_ split out threading & message chunk parsing to a separate library
+_ ferret upgrade script (dump & restore)
+_ nice little startup config program
 x maildir
 x bugfix: single-line messages come empty upon reply
 _ bugfix: when one new message comes into an imap folder, we don't
    catch it until a reload
 _ bugfix: triggering a pageup when cursor scrolling up jumps to the
    bottom of the page rather than the next line
-_ warnings: top-posting, missing attachment
-_ split out threading & message chunk parsing to a separate library
 x compose in thread-view-mode auto-fills in person
 _ bugfix: stars on messages with blue backgrounds still have green bgs
 x bugfix: mark messages as read immediately when t-v-m is opened
@@ -15,6 +16,11 @@ _ bugfix: m in thread-view-mode when a person is not selected should open up a
   blank compose-mode rather than do nothing
 _ Net::SMTP support (cuz I'm going to need it soon)
 x bugfix: 'N' in thread-view-mode (expand only new messages) crashes
+_ bugfix: detect source corruption at startup
+_ bugfix: add new message counts until keypress
+_ bugfix: attachment filenames sometimes not detected (filename=)
+_ bugfix: final logging messages to stdout?
+_ bugfix: mbox directory shouldn't generate an exception, just an error
 
 for 0.0.9
 ---------
@@ -23,10 +29,12 @@ _ forward attachments
 _ select all, starred, to me, etc
 _ undo
 _ gmail
+_ warnings: top-posting, missing attachment, ruby-talk:XXXX detection
 
 future
 ------
-pluggable modules such as ruby-talk:XXXXX detection, "attachment" but no attachment, top-posting
+search results: highlight relevant snippets and open to relevant portion of thread
+email address to name mapping needs some work. automatic email addresses (noreply@...) are often assigned to something screwy.
 decode RFC 2047 ("encoded word") headers
   - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
 swappable keymappings

@@ -111,10 +111,12 @@ class PollManager
           end
         rescue MessageFormatError, SourceError => e
           Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
+          Redwood::report_broken_sources if BufferManager.instantiated?
         end
       end
     rescue SourceError => e
       Redwood::log "problem getting messages from #{source}: #{e.message}"
+      Redwood::report_broken_sources if BufferManager.instantiated?
     end
   end
 end

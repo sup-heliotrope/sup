@@ -98,16 +98,19 @@ begin
   imode = InboxMode.new
   ibuf = bm.spawn "inbox", imode
 
-  log "ready for (inter)action!"
+  log "ready for interaction!"
   Logger.make_buf
 
   bm.draw_screen
+
+  Redwood::report_broken_sources
+  
   Index.usual_sources.each do |s|
     reporting_thread do
       begin
         s.connect
       rescue SourceError => e
-        Redwood::log "Fatal error loading from #{s}: #{e.message}"
+        Redwood::log "fatal error loading from #{s}: #{e.message}"
       end
     end if s.respond_to? :connect
   end

@@ -95,7 +95,24 @@ module Redwood
     Redwood::PersonManager.save
   end
 
-  module_function :register_yaml, :save_yaml_obj, :load_yaml_obj, :start, :finish
+  ## not really a good place for this, so I'll just dump it here.
+  def report_broken_sources
+    broken_sources = Index.usual_sources.select { |s| s.broken? }
+    unless broken_sources.empty?
+      BufferManager.spawn "Broken source report", TextMode.new(<<EOM)
+Broken source report
+--------------------
+
+The following message sources reported errors. Until these errors are
+corrected, messages from these sources cannot be viewed, and new messages
+will not be detected.
+
+#{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.broken_msg.wrap(70).join("\n        ") }.join('\n\n')}
+EOM
+    end
+  end
+
+  module_function :register_yaml, :save_yaml_obj, :load_yaml_obj, :start, :finish, :report_broken_sources
 end
 
 ## set up default configuration file
