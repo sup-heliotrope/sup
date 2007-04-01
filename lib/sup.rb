@@ -116,8 +116,7 @@ EOM
 
     desynced_sources = Index.usual_sources.select { |s| s.error.is_a? OutOfSyncSourceError }
     unless desynced_sources.empty?
-      BufferManager.spawn_unless_exists "Out-of-sync soure notification" do
-        TextMode.new(<<EOM)
+      BufferManager.spawn("Out-of-sync source notification", TextMode.new(<<EOM))
 Out-of-sync source notification
 -------------------------------
 
@@ -135,7 +134,6 @@ and new messages will not be detected. Luckily, this is easy to correct!
   end}
 EOM
 #' stupid ruby-mode
-      end
     end
   end
 
