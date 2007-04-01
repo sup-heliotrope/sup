@@ -26,7 +26,7 @@ class Loader < Source
   end
 
   def check
-    if cur_offset > end_offset
+    if (cur_offset ||= start_offset) > end_offset
       raise OutOfSyncSourceError, "mbox file is smaller than last recorded message offset. Messages have probably been deleted by another client."
     end
   end
