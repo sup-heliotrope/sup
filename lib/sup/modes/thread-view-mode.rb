@@ -119,9 +119,14 @@ class ThreadViewMode < LineCursorMode
   end    
 
   def compose
-    p = @person_lines[curpos] or return
-    mode = ComposeMode.new :to => [p]
-    BufferManager.spawn "Message to #{p.name}", mode
+    p = @person_lines[curpos]
+    mode =
+      if p
+        ComposeMode.new :to => [p]
+      else
+        ComposeMode.new
+      end
+    BufferManager.spawn "Compose message", mode
     mode.edit
   end    
 

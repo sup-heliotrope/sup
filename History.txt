@@ -1,5 +1,6 @@
 == 0.0.8 / XXXX
-* Maildir support.
+* Maildir support!
+* Be proactive about notifying users of de-synced sources.
 * Renamed sup-import => sup-sync with a brand new interface.
 * Added a sup-dump, to enable backing up and rebuilding indices from
   scratch (e.g. when Ferret upgrades break index formats).

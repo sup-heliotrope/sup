@@ -100,13 +100,16 @@ module Redwood
     return unless BufferManager.instantiated?
     broken_sources = Index.usual_sources.select { |s| s.broken? }
     unless broken_sources.empty?
-      BufferManager.spawn "Broken source report", TextMode.new(<<EOM)
-Broken source report
---------------------
+      BufferManager.spawn "Out-of-sync soure notification", TextMode.new(<<EOM)
+Out-of-sync source notification
+-------------------------------
 
-The following message sources reported errors. Until these errors are
-corrected, messages from these sources cannot be viewed, and new messages
-will not be detected.
+Hi there. It looks like one or more sources have fallen out of sync
+with my index. This can happen when you modify these sources with
+other email clients. (Sorry, I don't play well with others.)
+
+Until this is corrected, messages from these sources cannot be viewed,
+and new messages will not be detected. Luckily, this is easy to correct!
 
 #{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.broken_msg.wrap(70).join("\n        ") }.join('\n\n')}
 EOM
