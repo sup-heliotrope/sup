@@ -22,7 +22,7 @@ class DraftManager
     my_message = nil
     @source.each do |thisoffset, theselabels|
       m = Message.new :source => @source, :source_info => thisoffset, :labels => theselabels
-      Index.add_message m
+      Index.sync_message m
       UpdateManager.relay self, :add, m
       my_message = m if thisoffset == offset
     end

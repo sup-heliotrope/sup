@@ -149,7 +149,7 @@ class Message
 
   def save index
     return if broken?
-    index.update_message self if @dirty
+    index.sync_message self if @dirty
     @dirty = false
   end
 

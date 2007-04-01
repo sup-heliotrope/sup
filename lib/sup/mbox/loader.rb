@@ -24,7 +24,7 @@ class Loader < Source
     end
 
     if cur_offset > end_offset
-      self.broken_msg = "mbox file is smaller than last recorded message offset. Messages have probably been deleted via another client. Run 'sup-import --rebuild #{to_s}' to correct this."
+      self.broken_msg = "mbox file is smaller than last recorded message offset. Messages have probably been deleted via another client. Run 'sup-sync --changed #{to_s}' to correct this."
     end
   end
 
@@ -38,7 +38,7 @@ class Loader < Source
       l = @f.gets
       unless l =~ BREAK_RE
         Redwood::log "#{to_s}: offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}"
-        self.broken_msg = "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-import --rebuild #{to_s}' to correct this." 
+        self.broken_msg = "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-sync --changed #{to_s}' to correct this." 
         raise SourceError, self.broken_msg
       end
       header = MBox::read_header @f

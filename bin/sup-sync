@@ -1,0 +1,235 @@
+#!/usr/bin/env ruby
+
+require 'uri'
+require 'rubygems'
+require 'trollop'
+require "sup"
+
+class Float
+  def to_s; sprintf '%.2f', self; end
+end
+
+class Numeric
+  def to_time_s
+    i = to_i
+    sprintf "%d:%02d:%02d", i / 3600, (i / 60) % 60, i % 60
+  end
+end
+
+def time
+  startt = Time.now
+  yield
+  Time.now - startt
+end
+
+opts = Trollop::options do
+  version "sup-sync (sup #{Redwood::VERSION})"
+  banner <<EOS
+Synchronizes the Sup index with one or more message sources by adding
+messages, deleting messages, or changing message state in the index as
+appropriate.
+
+"Message state" means read/unread, archived/inbox, starred/unstarred,
+and all user-defined labels on each message.
+
+"Default source state" refers to any state that a source itself has
+keeps about a message. Sup-sync uses this information when adding a
+new message to the index. The source state is typically limited to
+read/unread, archived/inbox status and a single label based on the
+source name. Messages using the default source state are placed in
+the inbox (i.e. not archived) and unstarred.
+
+Usage:
+  sup-sync [options] <source>*
+
+where <source>* is zero or more source URIs. If no sources are given,
+sync from all usual sources.
+
+Supported source URIs:
+  mbox://<path to mbox file>,      e.g. mbox:///var/spool/mail/me
+  maildir://<path to maildir dir>, e.g. maildir:///home/me/Maildir
+  mbox+ssh://<machine>/<path to mbox file>
+  imap://<machine>/[<folder>]
+  imaps://<machine>/[<folder>]
+
+Options controlling WHICH messages sup-sync operates on:
+EOS
+  opt :new, "Operate on new messages only. Don't scan over the entire source. (Default.)", :short => :none
+  opt :changed, "Scan over the entire source for messages that have been deleted, altered, or moved from another source. (In the case of mbox sources, this includes all messages AFTER an altered message.)"
+  opt :restored, "Operate only on those messages included in a dump file as specified by --restore."
+  opt :all, "Operate on all messages in the source, regardless of newness or changedness."
+  opt :start_at, "For --changed and --all, start at a particular offset.", :type => :int
+
+text <<EOS
+
+Options controlling HOW message state is altered:
+EOS
+  opt :asis, "If the message is already in the index, preserve its state. Otherwise, use default source state. (Default.)", :short => :none
+  opt :restore, "Restore message state from a dump file created with sup-dump. If a message is not in this dumpfile, act as --asis.", :type => String, :short => :none
+  opt :discard, "Discard any message state in the index and use the default source state. Dangerous!", :short => :none
+  opt :archive, "When using the default source state, mark messages as archived.", :short => "-x"
+  opt :read, "When using the default source state, mark messages as read."
+  opt :extra_labels, "When using the default source state, also apply these user-defined labels. Should be a comma-separated list.", :type => String, :short => :none
+
+text <<EOS
+
+Other options:
+EOS
+  opt :verbose, "Print message ids as they're processed."
+  opt :optimize, "As the final operation, optimize the index."
+  opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
+  opt :version, "Show version information", :short => :none
+
+  conflicts :changed, :all, :new, :restored
+  conflicts :asis, :restore, :discard
+end
+Trollop::die :restored, "requires --restore" if opts[:restore] unless opts[:restored]
+if opts[:start_at]
+  Trollop::die :start_at, "must be non-negative" if opts[:start_at] < 0
+  Trollop::die :start_at, "requires either --changed or --all" unless opts[:changed] || opts[:all]
+end
+
+target = [:new, :changed, :all, :restored].find { |x| opts[x] } || :new
+op = [:asis, :restore, :discard].find { |x| opts[x] } || :asis
+
+Redwood::start
+index = Redwood::Index.new
+index.load
+
+restored_state =
+  if opts[:restore]
+    dump = {}
+    $stderr.puts "Loading state dump from #{opts[:restore]}..."
+    IO.foreach opts[:restore] do |l|
+      l =~ /^(\S+) (\d+) (\d+) \((.*?)\)$/ or raise "Can't read dump line: #{l.inspect}"
+      mid, source_id, source_info, labels = $1, $2.to_i, $3.to_i, $4
+      dump[mid] = labels.split(" ").map { |x| x.intern }
+    end
+    $stderr.puts "Read #{dump.size} entries from dump file."
+    dump
+  else
+    {}
+  end
+
+sources = ARGV.map do |uri|
+  uri = "mbox://#{uri}" unless uri =~ %r!://!
+  index.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+end
+
+sources = index.usual_sources if sources.empty?
+
+unless target == :new
+  if opts[:start_at]
+    sources.each { |s| s.seek_to! opts[:start_at] }
+  else
+    sources.each { |s| s.reset! }
+  end
+end
+
+last_info_time = start_time = Time.now
+seen = {}
+begin
+  sources.each do |source|
+    num_added, num_updated, num_scanned = 0, 0, 0
+    $stderr.puts "Scanning #{source}..."
+
+    Redwood::PollManager.add_messages_from source do |m, offset, entry|
+      num_scanned += 1
+      seen[m.id] = true
+
+      ## skip if we're operating only on changed messages, the message
+      ## is in the index, and it's unchanged from what the source is
+      ## reporting.
+      next if target == :changed && entry && entry[:source_id].to_i == source.id && entry[:source_info].to_i == offset
+
+      ## skip if we're operating on restored messages, and this one
+      ## ain't.
+      next if target == :restored && !restored_state[m.id]
+
+      ## m.labels is the default source labels. tweak these according
+      ## to default source state modification flags.
+      m.labels -= [:inbox] if opts[:archive]
+      m.labels -= [:unread] if opts[:read]
+      m.labels += opts[:extra_labels].split(/\s*,\s*/).map { |x| x.intern } if opts[:extra_labels]
+
+      ## get the state currently in the index
+      index_state =
+        if entry
+          entry[:label].split(/\s+/).map { |x| x.intern }
+        else
+          nil
+        end
+
+      ## assign message labels based on the operation we're performing
+      case op
+      when :asis
+        m.labels = index_state if index_state
+      when :restore
+        ## if the entry exists on disk
+        if restored_state[m.id]
+          m.labels = restored_state[m.id]
+        elsif index_state
+          m.labels = index_state
+        end
+      when :discard
+        ## nothin! use default source labels
+      end
+
+      if Time.now - last_info_time > 60
+        last_info_time = Time.now
+        elapsed = last_info_time - start_time
+        pctdone = source.respond_to?(:pct_done) ? source.pct_done : 100.0 * (source.cur_offset.to_f - source.start_time_offset).to_f / (source.end_offset - source.start_time_offset).to_f
+        remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
+        puts "## #{num_added + num_updated} (#{pctdone}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
+      end
+
+      if index_state.nil?
+        puts "Adding message #{source}##{offset} with state {#{m.labels * ', '}}" if opts[:verbose]
+        num_added += 1
+      else
+        puts "Updating message #{source}##{offset}, source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, state {#{index_state * ', '}} => {#{m.labels * ', '}}" if opts[:verbose]
+        num_updated += 1
+      end
+
+      opts[:dry_run] ? nil : m
+    end
+    $stderr.puts "Added #{num_added}, updated #{num_updated} messages from #{source}."
+  end
+ensure
+  $stderr.puts "Saving index and sources..."
+  index.save
+  Redwood::finish
+end
+
+## delete any messages in the index that claim they're from one of
+## these sources, but that we didn't see.
+##
+## kinda crappy code here, because we delve directly into the Ferret
+## API.
+##
+## TODO: move this to Index, i suppose.
+if target == :all || target == :changed
+  $stderr.puts "Deleting missing messages from the index..."
+  num_del, num_scanned = 0, 0
+  sources.each do |source|
+    raise "no source id for #{source}" unless source.id
+    q = "+source_id:#{source.id}"
+    q += " +source_info: >= #{opts[:start_at]}" if opts[:start_at]
+    index.index.search_each(q, :limit => :all) do |docid, score|
+      num_scanned += 1
+      mid = index.index[docid][:message_id]
+      unless seen[mid]
+        puts "Deleting #{mid}" if opts[:verbose]
+        index.index.delete docid unless opts[:dry_run]
+        num_del += 1
+      end
+    end
+  end
+  $stderr.puts "Deleted #{num_del} / #{num_scanned} messages"
+end
+
+if opts[:optimize]
+  $stderr.puts "Optimizing index..."
+  optt = time { index.index.optimize unless opts[:dry_run] }
+  $stderr.puts "Optimized index of size #{index.size} in #{optt}s."
+end

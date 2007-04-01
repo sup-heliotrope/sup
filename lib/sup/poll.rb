@@ -46,7 +46,7 @@ class PollManager
         yield "Loading from #{source}... " unless source.done? || source.broken?
         num = 0
         numi = 0
-        add_new_messages_from source do |m, offset, entry|
+        add_messages_from source do |m, offset, entry|
           ## always preserve the labels on disk.
           m.labels = entry[:label].split(/\s+/).map { |x| x.intern } if entry
           yield "Found message at #{offset} with labels {#{m.labels * ', '}}"
@@ -69,18 +69,19 @@ class PollManager
   end
 
   ## this is the main mechanism for adding new messages to the
-  ## index. it's called both by sup-import and by PollMode.
+  ## index. it's called both by sup-sync and by PollMode.
   ##
-  ## for each new message in the source, this yields the message, the
-  ## source offset, and the index entry on disk (if any). it expects
-  ## the yield to return the message (possibly altered in some way),
-  ## and then adds it (if new) or updates it (if previously seen).
+  ## for each message in the source, starting from the source's
+  ## starting offset, this methods yields the message, the source
+  ## offset, and the index entry on disk (if any). it expects the
+  ## yield to return the message (possibly altered in some way), and
+  ## then adds it (if new) or updates it (if previously seen).
   ##
-  ## the labels of the yielded message are the source labels. it is
-  ## likely that callers will want to replace these with the index
-  ## labels, if they exist, so that state is not lost when e.g. a new
-  ## version of a message from a mailing list comes in.
-  def add_new_messages_from source
+  ## the labels of the yielded message are the default source
+  ## labels. it is likely that callers will want to replace these with
+  ## the index labels, if they exist, so that state is not lost when
+  ## e.g. a new version of a message from a mailing list comes in.
+  def add_messages_from source
     return if source.done? || source.broken?
 
     begin
@@ -101,22 +102,16 @@ class PollManager
           end
 
           docid, entry = Index.load_entry_for_id m.id
-          m = yield m, offset, entry
-          next unless m
-          if entry
-            Index.update_message m, docid, entry
-          else
-            Index.add_message m
-            UpdateManager.relay self, :add, m
-          end
-        rescue MessageFormatError, SourceError => e
+          m = yield(m, offset, entry) or next
+          Index.sync_message m, docid, entry
+          UpdateManager.relay self, :add, m unless entry
+        rescue MessageFormatError => e
           Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
-          Redwood::report_broken_sources if BufferManager.instantiated?
         end
       end
     rescue SourceError => e
       Redwood::log "problem getting messages from #{source}: #{e.message}"
-      Redwood::report_broken_sources if BufferManager.instantiated?
+      Redwood::report_broken_sources
     end
   end
 end

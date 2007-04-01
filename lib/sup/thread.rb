@@ -54,7 +54,7 @@ class Thread
   ## message can be a Message object, or :fake_root, or nil.
   def each fake_root=false
     adj = 0
-    root = @containers.find_all { |c| !Message.subj_is_reply?(c) }.argmin { |c| c.date }
+    root = @containers.find_all { |c| !Message.subj_is_reply?(c) }.argmin { |c| c.date || 0 }
 
     if root
       adj = 1

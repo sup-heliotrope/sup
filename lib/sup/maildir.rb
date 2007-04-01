@@ -96,7 +96,7 @@ class Maildir < Source
 private
 
   def die message, opts={}
-    message += " It is likely that messages have been deleted from this Maildir mailbox. Please run sup-import --rebuild #{to_s} to correct this problem." if opts[:suggest_rebuild]
+    message += " It is likely that messages have been deleted from this Maildir mailbox. Please run sup-sync --changed #{to_s} to correct this problem." if opts[:suggest_rebuild]
     self.broken_msg = message
     Redwood::log message
     BufferManager.flash "Error communicating with Maildir. See log for details." if BufferManager.instantiated?

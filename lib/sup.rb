@@ -97,6 +97,7 @@ module Redwood
 
   ## not really a good place for this, so I'll just dump it here.
   def report_broken_sources
+    return unless BufferManager.instantiated?
     broken_sources = Index.usual_sources.select { |s| s.broken? }
     unless broken_sources.empty?
       BufferManager.spawn "Broken source report", TextMode.new(<<EOM)

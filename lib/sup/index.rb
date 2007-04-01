@@ -72,25 +72,46 @@ class Index
     end
   end
 
-  ## Update the message state on disk, by deleting and re-adding it.
-  ## The message must exist in the index. docid and entry are found
-  ## unless given.
+  ## Syncs the message to the index: deleting if it's already there,
+  ## and adding either way. Index state will be determined by m.labels.
   ##
-  ## Overwrites the labels on disk with the new labels in 'm', so that
-  ## we can actually change message state.
-  def update_message m, docid=nil, entry=nil
-    unless docid && entry
-      docid, entry = load_entry_for_id m.id
-      raise ArgumentError, "cannot find #{m.id} in the index" unless entry
-    end
+  ## docid and entry can be specified if they're already known.
+  def sync_message m, docid=nil, entry=nil
+    docid, entry = load_entry_for_id m.id unless docid && entry
 
-    raise "no entry and no source info for message #{m.id}" unless m.source && m.source_info
+    raise "no source info for message #{m.id}" unless m.source && m.source_info
+    raise "trying deleting non-corresponding entry #{docid}" if docid && @index[docid][:message_id] != m.id
 
-    raise "deleting non-corresponding entry #{docid}" unless @index[docid][:message_id] == m.id
+    source_id = 
+      if m.source.is_a? Integer
+        raise "Debugging: integer source set"
+        m.source
+      else
+        m.source.id or raise "unregistered source #{m.source} (id #{m.source.id.inspect})"
+      end
 
-    @index.delete docid
-    add_message m
+    to = (m.to + m.cc + m.bcc).map { |x| x.email }.join(" ")
+    d = {
+      :message_id => m.id,
+      :source_id => source_id,
+      :source_info => m.source_info,
+      :date => m.date.to_indexable_s,
+      :body => m.content,
+      :snippet => m.snippet,
+      :label => m.labels.join(" "),
+      :from => m.from ? m.from.email : "",
+      :to => (m.to + m.cc + m.bcc).map { |x| x.email }.join(" "),
+      :subject => wrap_subj(Message.normalize_subj(m.subj)),
+      :refs => (m.refs + m.replytos).uniq.join(" "),
+    }
+
+    @index.delete docid if docid
+    @index.add_document d
+    
     docid, entry = load_entry_for_id m.id
+    ## this hasn't been triggered in a long time. TODO: decide whether it's still a problem.
+    raise "just added message #{m.id} but couldn't find it in a search" unless docid
+    true
   end
 
   def save_index fn=File.join(@dir, "ferret")
@@ -209,41 +230,6 @@ class Index
   def fresh_thread_id; @next_thread_id += 1; end
   def wrap_subj subj; "__START_SUBJECT__ #{subj} __END_SUBJECT__"; end
   def unwrap_subj subj; subj =~ /__START_SUBJECT__ (.*?) __END_SUBJECT__/ && $1; end
-
-  ## Adds a message to the index. The message cannot already exist in
-  ## the index.
-  def add_message m
-    raise ArgumentError, "index already contains #{m.id}" if contains? m
-
-    source_id = 
-      if m.source.is_a? Integer
-        m.source
-      else
-        m.source.id or raise "unregistered source #{m.source} (id #{m.source.id.inspect})"
-      end
-
-    to = (m.to + m.cc + m.bcc).map { |x| x.email }.join(" ")
-    d = {
-      :message_id => m.id,
-      :source_id => source_id,
-      :source_info => m.source_info,
-      :date => m.date.to_indexable_s,
-      :body => m.content,
-      :snippet => m.snippet,
-      :label => m.labels.join(" "),
-      :from => m.from ? m.from.email : "",
-      :to => (m.to + m.cc + m.bcc).map { |x| x.email }.join(" "),
-      :subject => wrap_subj(Message.normalize_subj(m.subj)),
-      :refs => (m.refs + m.replytos).uniq.join(" "),
-    }
-
-    @index.add_document d
-    
-    docid, entry = load_entry_for_id m.id
-    ## this hasn't been triggered in a long time. TODO: decide whether it's still a problem.
-    raise "just added message #{m.id} but couldn't find it in a search" unless docid
-    true
-  end
 
   def drop_entry docno; @index.delete docno; end
 

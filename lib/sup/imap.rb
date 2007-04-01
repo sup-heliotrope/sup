@@ -208,7 +208,7 @@ private
         e
       end
 
-    message += " It is likely that messages have been deleted from this IMAP mailbox. Please run sup-import --rebuild #{to_s} to correct this problem." if opts[:suggest_rebuild]
+    message += " It is likely that messages have been deleted from this IMAP mailbox. Please run sup-sync --changed #{to_s} to correct this problem." if opts[:suggest_rebuild]
 
     self.broken_msg = message
     Redwood::log message
