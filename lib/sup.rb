@@ -98,21 +98,44 @@ module Redwood
   ## not really a good place for this, so I'll just dump it here.
   def report_broken_sources
     return unless BufferManager.instantiated?
-    broken_sources = Index.usual_sources.select { |s| s.broken? }
+
+    broken_sources = Index.usual_sources.select { |s| s.error.is_a? FatalSourceError }
     unless broken_sources.empty?
-      BufferManager.spawn "Out-of-sync soure notification", TextMode.new(<<EOM)
+      BufferManager.spawn "Broken source notification", TextMode.new(<<EOM)
+Source error notification
+-------------------------
+
+Hi there. It looks like one or more message sources is reporting
+errors. Until this is corrected, messages from these sources cannot
+be viewed, and new messages will not be detected.
+
+#{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.error.message.wrap(70).join("\n        ")}.join('\n\n')}
+EOM
+#' stupid ruby-mode
+    end
+
+    desynced_sources = Index.usual_sources.select { |s| s.error.is_a? OutOfSyncSourceError }
+    unless desynced_sources.empty?
+      BufferManager.spawn_unless_exists "Out-of-sync soure notification" do
+        TextMode.new(<<EOM)
 Out-of-sync source notification
 -------------------------------
 
-Hi there. It looks like one or more sources have fallen out of sync
+Hi there. It looks like one or more sources has fallen out of sync
 with my index. This can happen when you modify these sources with
 other email clients. (Sorry, I don't play well with others.)
 
 Until this is corrected, messages from these sources cannot be viewed,
 and new messages will not be detected. Luckily, this is easy to correct!
 
-#{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.broken_msg.wrap(70).join("\n        ") }.join('\n\n')}
+#{desynced_sources.map do |s|
+  "Source: " + s.to_s + 
+   "\n Error: " + s.error.message.wrap(70).join("\n        ") + 
+   "\n   Fix: sup-sync --changed #{s.to_s}"
+  end}
 EOM
+#' stupid ruby-mode
+      end
     end
   end
 

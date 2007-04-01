@@ -105,6 +105,11 @@ begin
 
   bm.draw_screen
 
+  begin
+    Index.usual_sources.each { |s| s.check }
+  rescue SourceError
+    # do nothing! we'll report it at the next step
+  end
   Redwood::report_broken_sources
   
   Index.usual_sources.each do |s|

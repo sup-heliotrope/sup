@@ -90,7 +90,7 @@ class IMAP < Source
   synchronized :raw_full_message
 
   def connect
-    return if broken? || @imap
+    return if @imap
     safely { } # do nothing!
   end
   synchronized :connect
@@ -122,7 +122,7 @@ class IMAP < Source
         @ids
       end
 
-    start = ids.index(cur_offset || start_offset) or die_from "Unknown message id #{cur_offset || start_offset}.", :suggest_rebuild => true # couldn't find the most recent email
+    start = ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}."
 
     start.upto(ids.length - 1) do |i|         
       id = ids[i]
@@ -197,26 +197,6 @@ private
     @say_id = nil
   end
 
-  def die_from e, opts={}
-    @imap = nil
-
-    message =
-      case e
-      when Exception
-        "Error while #{opts[:while]}: #{e.message.chomp} (#{e.class.name})."
-      when String
-        e
-      end
-
-    message += " It is likely that messages have been deleted from this IMAP mailbox. Please run sup-sync --changed #{to_s} to correct this problem." if opts[:suggest_rebuild]
-
-    self.broken_msg = message
-    Redwood::log message
-    BufferManager.flash "Error communicating with IMAP server. See log for details." if BufferManager.instantiated?
-    raise SourceError, message
-  end
-  
-  ## build a fake unique id
   def make_id imap_stuff
     # use 7 digits for the size. why 7? seems nice.
     msize, mdate = imap_stuff.attr['RFC822.SIZE'] % 10000000, Time.parse(imap_stuff.attr["INTERNALDATE"])
@@ -224,13 +204,12 @@ private
   end
 
   def get_imap_fields id, *fields
-    raise SourceError, broken_msg if broken?
-    imap_id = @imap_ids[id] or die_from "Unknown message id #{id}.", :suggest_rebuild => true
+    imap_id = @imap_ids[id] or raise OutOfSyncSourceError, "Unknown message id #{id}"
 
     retried = false
     results = safely { @imap.fetch imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq }.first
     got_id = make_id results
-    die_from "IMAP message mismatch: requested #{id}, got #{got_id}.", :suggest_rebuild => true unless got_id == id
+    raise OutOfSyncSourceError, "IMAP message mismatch: requested #{id}, got #{got_id}." unless got_id == id
 
     fields.map { |f| results.attr[f] }
   end
@@ -252,7 +231,7 @@ private
         raise
       end
     rescue Net, SocketError, Net::IMAP::Error, SystemCallError => e
-      die_from e, :while => "communicating with IMAP server"
+      raise FatalSourceError, "While communicating with IMAP server: #{e.message}"
     end
   end
 

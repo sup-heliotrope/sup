@@ -138,7 +138,6 @@ class Message
   end
   private :read_header
 
-  def broken?; @source.broken?; end
   def snippet; @snippet || chunks && @snippet; end
   def is_list_message?; !@list_address.nil?; end
   def is_draft?; DraftLoader === @source; end
@@ -148,7 +147,6 @@ class Message
   end
 
   def save index
-    return if broken?
     index.sync_message self if @dirty
     @dirty = false
   end
@@ -177,8 +175,8 @@ class Message
   ## this is called when the message body needs to actually be loaded.
   def load_from_source!
     @chunks ||=
-      if @source.broken?
-        [Text.new(error_message(@source.broken_msg.split("\n")))]
+      if @source.has_errors?
+        [Text.new(error_message(@source.error.message.split("\n")))]
       else
         begin
           ## we need to re-read the header because it contains information

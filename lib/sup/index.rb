@@ -295,7 +295,8 @@ protected
   end
 
   def load_sources fn=Redwood::SOURCE_FN
-    @sources = Hash[*(Redwood::load_yaml_obj(fn) || []).map { |s| [s.id, s] }.flatten]
+    source_array = (Redwood::load_yaml_obj(fn) || []).map { |o| Recoverable.new o }
+    @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
     @sources_dirty = false
   end
 

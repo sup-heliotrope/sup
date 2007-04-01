@@ -1,4 +1,5 @@
 require 'rmail'
+require 'uri'
 
 module Redwood
 module MBox
@@ -14,7 +15,7 @@ class Loader < Source
     when String
       raise ArgumentError, "not an mbox uri" unless uri_or_fp =~ %r!mbox://!
 
-      fn = uri_or_fp.sub(%r!^mbox://!, "")
+      fn = URI(uri_or_fp).path
       ## heuristic: use the filename as a label, unless the file
       ## has a path that probably represents an inbox.
       @labels << File.basename(fn).intern unless File.dirname(fn) =~ /\b(var|usr|spool)\b/
@@ -22,12 +23,14 @@ class Loader < Source
     else
       @f = uri_or_fp
     end
-
-    if cur_offset > end_offset
-      self.broken_msg = "mbox file is smaller than last recorded message offset. Messages have probably been deleted via another client. Run 'sup-sync --changed #{to_s}' to correct this."
-    end
   end
 
+  def check
+    if cur_offset > end_offset
+      raise OutOfSyncSourceError, "mbox file is smaller than last recorded message offset. Messages have probably been deleted by another client."
+    end
+  end
+    
   def start_offset; 0; end
   def end_offset; File.size @f; end
 
@@ -37,9 +40,7 @@ class Loader < Source
       @f.seek offset
       l = @f.gets
       unless l =~ BREAK_RE
-        Redwood::log "#{to_s}: offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}"
-        self.broken_msg = "offset mismatch in mbox file offset #{offset.inspect}: #{l.inspect}. Run 'sup-sync --changed #{to_s}' to correct this." 
-        raise SourceError, self.broken_msg
+        raise OutOfSyncSourceError, "mismatch in mbox file offset #{offset.inspect}: #{l.inspect}." 
       end
       header = MBox::read_header @f
     end
@@ -47,7 +48,6 @@ class Loader < Source
   end
 
   def load_message offset
-    raise SourceError, self.broken_msg if broken?
     @mutex.synchronize do
       @f.seek offset
       begin
@@ -55,13 +55,12 @@ class Loader < Source
           return RMail::Parser.read(input)
         end
       rescue RMail::Parser::Error => e
-        raise SourceError, "error parsing message with rmail: #{e.message}"
+        raise FatalSourceError, "error parsing mbox file: #{e.message}"
       end
     end
   end
 
   def raw_header offset
-    raise SourceError, self.broken_msg if broken?
     ret = ""
     @mutex.synchronize do
       @f.seek offset
@@ -73,7 +72,6 @@ class Loader < Source
   end
 
   def raw_full_message offset
-    raise SourceError, self.broken_msg if broken?
     ret = ""
     @mutex.synchronize do
       @f.seek offset
@@ -86,33 +84,36 @@ class Loader < Source
   end
 
   def next
-    raise SourceError, self.broken_msg if broken?
     returned_offset = nil
     next_offset = cur_offset
 
-    @mutex.synchronize do
-      @f.seek cur_offset
+    begin
+      @mutex.synchronize do
+        @f.seek cur_offset
 
-      ## cur_offset could be at one of two places here:
+        ## cur_offset could be at one of two places here:
 
-      ## 1. before a \n and a mbox separator, if it was previously at
-      ##    EOF and a new message was added; or,
-      ## 2. at the beginning of an mbox separator (in all other
-      ##    cases).
+        ## 1. before a \n and a mbox separator, if it was previously at
+        ##    EOF and a new message was added; or,
+        ## 2. at the beginning of an mbox separator (in all other
+        ##    cases).
 
-      l = @f.gets or raise "next while at EOF"
-      if l =~ /^\s*$/ # case 1
-        returned_offset = @f.tell
-        @f.gets # now we're at a BREAK_RE, so skip past it
-      else # case 2
-        returned_offset = cur_offset
-        ## we've already skipped past the BREAK_RE, so just go
+        l = @f.gets or raise "next while at EOF"
+        if l =~ /^\s*$/ # case 1
+          returned_offset = @f.tell
+          @f.gets # now we're at a BREAK_RE, so skip past it
+        else # case 2
+          returned_offset = cur_offset
+          ## we've already skipped past the BREAK_RE, so just go
+        end
+
+        while(line = @f.gets)
+          break if line =~ BREAK_RE
+          next_offset = @f.tell
+        end
       end
-
-      while(line = @f.gets)
-        break if line =~ BREAK_RE
-        next_offset = @f.tell
-      end
+    rescue SystemCallError => e
+      raise FatalSourceError, "Error reading #{@f.path}: #{e.message}"
     end
 
     self.cur_offset = next_offset

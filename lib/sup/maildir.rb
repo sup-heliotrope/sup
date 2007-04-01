@@ -64,7 +64,7 @@ class Maildir < Source
         [ids.sort, ids_to_fns]
       end
     rescue SystemCallError => e
-      die "Problem scanning Maildir directories: #{e.message}."
+      raise FatalSourceError, "Problem scanning Maildir directories: #{e.message}."
     end
     
     @last_scan = Time.now
@@ -72,7 +72,7 @@ class Maildir < Source
 
   def each
     scan_mailbox
-    start = @ids.index(cur_offset || start_offset) or die "Unknown message id #{cur_offset || start_offset}.", :suggest_rebuild => true # couldn't find the most recent email
+    start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
 
     start.upto(@ids.length - 1) do |i|         
       id = @ids[i]
@@ -95,25 +95,17 @@ class Maildir < Source
 
 private
 
-  def die message, opts={}
-    message += " It is likely that messages have been deleted from this Maildir mailbox. Please run sup-sync --changed #{to_s} to correct this problem." if opts[:suggest_rebuild]
-    self.broken_msg = message
-    Redwood::log message
-    BufferManager.flash "Error communicating with Maildir. See log for details." if BufferManager.instantiated?
-    raise SourceError, message
-  end
-  
   def make_id fn
     # use 7 digits for the size. why 7? seems nice.
     sprintf("%d%07d", File.mtime(fn), File.size(fn)).to_i
   end
 
   def with_file_for id
-    fn = @ids_to_fns[id] or die "No such id: #{id.inspect}.", :suggest_rebuild => true
+    fn = @ids_to_fns[id] or raise OutOfSyncSourceError, "No such id: #{id.inspect}."
     begin
       File.open(fn) { |f| yield f }
     rescue SystemCallError => e
-      die "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
+      raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
     end
   end
 end

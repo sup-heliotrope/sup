@@ -282,3 +282,31 @@ module Singleton
     klass.extend ClassMethods
   end
 end
+
+## wraps an object. if it throws an exception, keeps a copy, and
+## rethrows it for any further method calls.
+class Recoverable
+  def initialize o
+    @o = o
+    @e = nil
+  end
+
+  def clear_error!; @e = nil; end
+  def has_errors?; !@e.nil?; end
+  def error; @e; end
+
+  def method_missing m, *a, &b; __pass m, *a, &b; end
+  
+  def id; __pass :id; end
+  def to_s; __pass :to_s; end
+  def to_yaml x; __pass :to_yaml, x; end
+
+  def __pass m, *a, &b
+    begin
+      @o.send(m, *a, &b)
+    rescue Exception => e
+      @e = e
+      raise e
+    end
+  end
+end

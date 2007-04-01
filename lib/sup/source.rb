@@ -1,6 +1,8 @@
 module Redwood
 
 class SourceError < StandardError; end
+class OutOfSyncSourceError < SourceError; end
+class FatalSourceError < SourceError; end
 
 class Source
   ## Implementing a new source is typically quite easy, because Sup
@@ -30,75 +32,60 @@ class Source
   ## - load_message offset
   ## - raw_header offset
   ## - raw_full_message offset
+  ## - check
   ## - next (or each, if you prefer)
   ##
   ## ... where "offset" really means unique id. (You can tell I
   ## started with mbox.)
   ##
-  ## You can throw SourceErrors from any of those, but we don't catch
-  ## anything else, so make sure you catch *all* errors and reraise
-  ## them as SourceErrors, and set broken_msg to something if the
-  ## source needs to be rescanned.
+  ## All exceptions relating to accessing the source must be caught
+  ## and rethrown as FatalSourceErrors or OutOfSyncSourceErrors.
+  ## OutOfSyncSourceErrors should be used for problems that a call to
+  ## sup-sync will fix (namely someone's been playing with the source
+  ## from another client); FatalSourceErrors can be used for anything
+  ## else (e.g. the imap server is down or the maildir is missing.)
   ##
-  ## Also, be sure to make the source thread-safe, since it WILL be
+  ## Finally, be sure the source is thread-safe, since it WILL be
   ## pummeled from multiple threads at once.
   ##
-  ## Two examples for you to look at, though sadly neither of them is
-  ## as simple as I'd like: mbox/loader.rb and imap.rb
+  ## Examples for you to look at: mbox/loader.rb, imap.rb, and
+  ## maildir.rb.
 
-
-
-  ## dirty? described whether cur_offset has changed, which means the
-  ## source info needs to be re-saved to sources.yaml.
+  ## let's begin!
   ##
-  ## broken? means no message can be loaded, e.g. IMAP server is
-  ## down, mbox file is corrupt and needs to be rescanned, etc.
+  ## dirty? means cur_offset has changed, so the source info needs to
+  ## be re-saved to sources.yaml.
   bool_reader :usual, :archived, :dirty
-  attr_reader :uri, :cur_offset, :broken_msg
+  attr_reader :uri, :cur_offset
   attr_accessor :id
 
   def initialize uri, initial_offset=nil, usual=true, archived=false, id=nil
     @uri = uri
-    @cur_offset = initial_offset
+    @cur_offset = initial_offset || start_offset
     @usual = usual
     @archived = archived
     @id = id
     @dirty = false
-    @broken_msg = nil
   end
 
-  def broken?; !@broken_msg.nil?; end
   def to_s; @uri.to_s; end
   def seek_to! o; self.cur_offset = o; end
-  def reset!
-    @broken_msg = nil
-    begin
-      seek_to! start_offset
-    rescue SourceError
-    end
-  end
+  def reset!; seek_to! start_offset; end
   def == o; o.to_s == to_s; end
-  def done?;
-    return true if broken? 
-    begin
-      (self.cur_offset ||= start_offset) >= end_offset
-    rescue SourceError => e
-      true
-    end
-  end
+  def done?; (self.cur_offset ||= start_offset) >= end_offset; end
   def is_source_for? uri; URI(self.uri) == URI(uri); end
 
+  ## check should throw a FatalSourceError or an OutOfSyncSourcError
+  ## if it can detect a problem. it is called when the sup starts up
+  ## to proactively notify the user of any source problems.
+  def check; end
+
   def each
-    return if broken?
-    begin
-      self.cur_offset ||= start_offset
-      until done? || broken? # just like life!
-        n, labels = self.next
-        raise "no message" unless n
-        yield n, labels
-      end
-    rescue SourceError => e
-      self.broken_msg = e.message
+    self.cur_offset ||= start_offset
+    until done?
+      n, labels = self.next
+      raise "no message" unless n
+      yield n, labels
     end
   end
 
@@ -107,11 +94,6 @@ protected
   def cur_offset= o
     @cur_offset = o
     @dirty = true
-  end
-
-  def broken_msg= m
-    @broken_msg = m
-#    Redwood::log "#{to_s}: #{m}"
   end
 end
 

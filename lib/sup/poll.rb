@@ -43,7 +43,7 @@ class PollManager
     @mutex.synchronize do
       Index.usual_sources.each do |source|
 #        yield "source #{source} is done? #{source.done?} (cur_offset #{source.cur_offset} >= #{source.end_offset})"
-        yield "Loading from #{source}... " unless source.done? || source.broken?
+        yield "Loading from #{source}... " unless source.done? || source.has_errors?
         num = 0
         numi = 0
         add_messages_from source do |m, offset, entry|
@@ -82,11 +82,11 @@ class PollManager
   ## the index labels, if they exist, so that state is not lost when
   ## e.g. a new version of a message from a mailing list comes in.
   def add_messages_from source
-    return if source.done? || source.broken?
+    return if source.done? || source.has_errors?
 
     begin
       source.each do |offset, labels|
-        if source.broken?
+        if source.has_errors?
           Redwood::log "error loading messages from #{source}: #{source.broken_msg}"
           return
         end
