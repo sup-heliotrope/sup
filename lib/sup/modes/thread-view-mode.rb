@@ -3,7 +3,7 @@ module Redwood
 class ThreadViewMode < LineCursorMode
   ## this holds all info we need to lay out a message
   class Layout
-    attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color, :orig_new
+    attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color, :star_color, :orig_new
   end
 
   DATE_FORMAT = "%B %e %Y %l:%M%P"
@@ -53,6 +53,7 @@ class ThreadViewMode < LineCursorMode
       @layout[m] = Layout.new
       @layout[m].state = initial_state_for m
       @layout[m].color = altcolor ? :alternate_patina_color : :message_patina_color
+      @layout[m].star_color = altcolor ? :alternate_starred_patina_color : :starred_patina_color
       @layout[m].orig_new = m.has_label? :unread
       altcolor = !altcolor
       if latest_date.nil? || m.date > latest_date
@@ -297,7 +298,7 @@ private
       l = @layout[m] or next # TODO: figure out why this is nil sometimes
 
       ## build the patina
-      text = chunk_to_lines m, l.state, @text.length, depth, parent, @layout[m].color
+      text = chunk_to_lines m, l.state, @text.length, depth, parent, @layout[m].color, @layout[m].star_color
       
       l.top = @text.length
       l.bot = @text.length + text.length # updated below
@@ -334,7 +335,7 @@ private
     end
   end
 
-  def message_patina_lines m, state, start, parent, prefix, color
+  def message_patina_lines m, state, start, parent, prefix, color, star_color
     prefix_widget = [color, prefix]
     widget = 
       case state
@@ -345,7 +346,7 @@ private
       end
     imp_widget = 
       if m.has_label?(:starred)
-        [:starred_patina_color, "* "]
+        [star_color, "* "]
       else
         [color, "  "]
       end
@@ -405,7 +406,7 @@ private
     p.longname + (ContactManager.is_contact?(p) ? " (#{ContactManager.alias_for p})" : "")
   end
 
-  def chunk_to_lines chunk, state, start, depth, parent=nil, color=nil
+  def chunk_to_lines chunk, state, start, depth, parent=nil, color=nil, star_color=nil
     prefix = " " * INDENT_SPACES * depth
     case chunk
     when :fake_root
@@ -413,7 +414,7 @@ private
     when nil
       [[[:missing_message_color, "#{prefix}<an unreceived message>"]]]
     when Message
-      message_patina_lines(chunk, state, start, parent, prefix, color) +
+      message_patina_lines(chunk, state, start, parent, prefix, color, star_color) +
         (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. To edit, hit 'e'. <<<"]]] : [])
     when Message::Attachment
       [[[:mime_color, "#{prefix}+ MIME attachment #{chunk.content_type}#{chunk.desc ? ' (' + chunk.desc + ')': ''}"]]]

@@ -83,6 +83,8 @@ begin
           Ncurses::A_BOLD
     c.add :starred_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_GREEN,
           Ncurses::A_BOLD
+    c.add :alternate_starred_patina_color, Ncurses::COLOR_YELLOW,
+          Ncurses::COLOR_BLUE, Ncurses::A_BOLD
     c.add :snippet_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
     c.add :option_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
     c.add :tagged_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK,

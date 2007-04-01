@@ -1,13 +1,11 @@
 for 0.0.8
 ---------
 _ split out threading & message chunk parsing to a separate library
-_ ferret upgrade script (dump & restore)
 _ nice little startup config program
 _ bugfix: when one new message comes into an imap folder, we don't
    catch it until a reload
 _ bugfix: triggering a pageup when cursor scrolling up jumps to the
    bottom of the page rather than the next line
-_ bugfix: stars on messages with blue backgrounds still have green bgs
 _ bugfix: m in thread-view-mode when a person is not selected should open up a
   blank compose-mode rather than do nothing
 _ Net::SMTP support (cuz I'm going to need it soon)
@@ -15,6 +13,8 @@ _ bugfix: add new message counts until keypress
 _ bugfix: attachment filenames sometimes not detected (filename=)
 _ bugfix: final logging messages to stdout?
 _ bugfix: mbox directory shouldn't generate an exception, just an error
+x bugfix: stars on messages with blue backgrounds still have green bgs
+x ferret upgrade script (dump & restore)
 x bugfix: mark messages as read immediately when t-v-m is opened
 x compose in thread-view-mode auto-fills in person
 x bugfix: 'N' in thread-view-mode (expand only new messages) crashes
