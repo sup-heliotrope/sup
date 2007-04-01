@@ -6,8 +6,9 @@ README.txt
 Rakefile
 bin/sup
 bin/sup-add
-bin/sup-sync
+bin/sup-dump
 bin/sup-recover-sources
+bin/sup-sync
 doc/FAQ.txt
 doc/Philosophy.txt
 doc/TODO

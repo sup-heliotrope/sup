@@ -56,7 +56,7 @@ Options controlling WHICH messages sup-sync operates on:
 EOS
   opt :new, "Operate on new messages only. Don't scan over the entire source. (Default.)", :short => :none
   opt :changed, "Scan over the entire source for messages that have been deleted, altered, or moved from another source. (In the case of mbox sources, this includes all messages AFTER an altered message.)"
-  opt :restored, "Operate only on those messages included in a dump file as specified by --restore."
+  opt :restored, "Operate only on those messages included in a dump file as specified by --restore which have changed state."
   opt :all, "Operate on all messages in the source, regardless of newness or changedness."
   opt :start_at, "For --changed and --all, start at a particular offset.", :type => :int
 
@@ -77,13 +77,14 @@ Other options:
 EOS
   opt :verbose, "Print message ids as they're processed."
   opt :optimize, "As the final operation, optimize the index."
+  opt :all_sources, "Scan over all sources.", :short => :none
   opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
   opt :version, "Show version information", :short => :none
 
   conflicts :changed, :all, :new, :restored
   conflicts :asis, :restore, :discard
 end
-Trollop::die :restored, "requires --restore" if opts[:restore] unless opts[:restored]
+Trollop::die :restored, "requires --restore" if opts[:restored] unless opts[:restore]
 if opts[:start_at]
   Trollop::die :start_at, "must be non-negative" if opts[:start_at] < 0
   Trollop::die :start_at, "requires either --changed or --all" unless opts[:changed] || opts[:all]
@@ -101,8 +102,8 @@ restored_state =
     dump = {}
     $stderr.puts "Loading state dump from #{opts[:restore]}..."
     IO.foreach opts[:restore] do |l|
-      l =~ /^(\S+) (\d+) (\d+) \((.*?)\)$/ or raise "Can't read dump line: #{l.inspect}"
-      mid, source_id, source_info, labels = $1, $2.to_i, $3.to_i, $4
+      l =~ /^(\S+) \((.*?)\)$/ or raise "Can't read dump line: #{l.inspect}"
+      mid, labels = $1, $2
       dump[mid] = labels.split(" ").map { |x| x.intern }
     end
     $stderr.puts "Read #{dump.size} entries from dump file."
@@ -117,6 +118,7 @@ sources = ARGV.map do |uri|
 end
 
 sources = index.usual_sources if sources.empty?
+sources = index.sources if opts[:all_sources]
 
 unless target == :new
   if opts[:start_at]
@@ -126,12 +128,12 @@ unless target == :new
   end
 end
 
-last_info_time = start_time = Time.now
 seen = {}
 begin
   sources.each do |source|
-    num_added, num_updated, num_scanned = 0, 0, 0
     $stderr.puts "Scanning #{source}..."
+    num_added = num_updated = num_scanned = num_restored = 0
+    last_info_time = start_time = Time.now
 
     Redwood::PollManager.add_messages_from source do |m, offset, entry|
       num_scanned += 1
@@ -142,16 +144,6 @@ begin
       ## reporting.
       next if target == :changed && entry && entry[:source_id].to_i == source.id && entry[:source_info].to_i == offset
 
-      ## skip if we're operating on restored messages, and this one
-      ## ain't.
-      next if target == :restored && !restored_state[m.id]
-
-      ## m.labels is the default source labels. tweak these according
-      ## to default source state modification flags.
-      m.labels -= [:inbox] if opts[:archive]
-      m.labels -= [:unread] if opts[:read]
-      m.labels += opts[:extra_labels].split(/\s*,\s*/).map { |x| x.intern } if opts[:extra_labels]
-
       ## get the state currently in the index
       index_state =
         if entry
@@ -159,6 +151,16 @@ begin
         else
           nil
         end
+
+      ## skip if we're operating on restored messages, and this one
+      ## ain't.
+      next if target == :restored && (!restored_state[m.id] || restored_state[m.id].sort_by { |s| s.to_s } == index_state.sort_by { |s| s.to_s })
+
+      ## m.labels is the default source labels. tweak these according
+      ## to default source state modification flags.
+      m.labels -= [:inbox] if opts[:archive]
+      m.labels -= [:unread] if opts[:read]
+      m.labels += opts[:extra_labels].split(/\s*,\s*/).map { |x| x.intern } if opts[:extra_labels]
 
       ## assign message labels based on the operation we're performing
       case op
@@ -168,6 +170,7 @@ begin
         ## if the entry exists on disk
         if restored_state[m.id]
           m.labels = restored_state[m.id]
+          num_restored += 1
         elsif index_state
           m.labels = index_state
         end
@@ -178,9 +181,9 @@ begin
       if Time.now - last_info_time > 60
         last_info_time = Time.now
         elapsed = last_info_time - start_time
-        pctdone = source.respond_to?(:pct_done) ? source.pct_done : 100.0 * (source.cur_offset.to_f - source.start_time_offset).to_f / (source.end_offset - source.start_time_offset).to_f
+        pctdone = source.respond_to?(:pct_done) ? source.pct_done : 100.0 * (source.cur_offset.to_f - source.start_offset).to_f / (source.end_offset - source.start_offset).to_f
         remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
-        puts "## #{num_added + num_updated} (#{pctdone}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining"
+        $stderr.puts "## #{num_added + num_updated} (#{pctdone}% done) read; #{elapsed.to_time_s} elapsed; est. #{remaining.to_time_s} remaining (for this source)"
       end
 
       if index_state.nil?
@@ -193,7 +196,8 @@ begin
 
       opts[:dry_run] ? nil : m
     end
-    $stderr.puts "Added #{num_added}, updated #{num_updated} messages from #{source}."
+    $stderr.puts "Scanned #{num_scanned}, added #{num_added}, updated #{num_updated} messages from #{source}."
+    $stderr.puts "Restored state on #{num_restored} (#{100.0 * num_restored / num_scanned}%) messages." if num_restored > 0
   end
 ensure
   $stderr.puts "Saving index and sources..."
