@@ -93,6 +93,7 @@ module Redwood
     Redwood::LabelManager.save
     Redwood::ContactManager.save
     Redwood::PersonManager.save
+    Redwood::BufferManager.deinstantiate!
   end
 
   ## not really a good place for this, so I'll just dump it here.

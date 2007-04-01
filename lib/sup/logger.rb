@@ -26,7 +26,7 @@ class Logger
 #    $stderr.puts s
     make_buf
     @mode << "#{Time.now}: #{s.chomp}\n"
-    $stderr.puts "[#{Time.now}] #{s.chomp}" unless @mode.buffer
+    $stderr.puts "[#{Time.now}] #{s.chomp}" unless BufferManager.instantiated? && @mode.buffer
   end
   
   def self.method_missing m, *a

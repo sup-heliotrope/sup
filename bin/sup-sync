@@ -200,7 +200,6 @@ begin
     $stderr.puts "Restored state on #{num_restored} (#{100.0 * num_restored / num_scanned}%) messages." if num_restored > 0
   end
 ensure
-  $stderr.puts "Saving index and sources..."
   index.save
   Redwood::finish
 end

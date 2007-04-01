@@ -110,6 +110,5 @@ ARGV.each do |uri|
   index.add_source source
 end
 
-say "Saving source list..."
 index.save
 Redwood::finish

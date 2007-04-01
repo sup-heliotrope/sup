@@ -30,6 +30,7 @@ class Index
   end
 
   def save
+    Redwood::log "saving index and sources..."
     FileUtils.mkdir_p @dir unless File.exists? @dir
     save_sources
     save_index

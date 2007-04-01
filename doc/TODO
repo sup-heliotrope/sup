@@ -5,12 +5,12 @@ _ bugfix: when one new message comes into an imap folder, we don't
    catch it until a reload
 _ bugfix: triggering a pageup when cursor scrolling up jumps to the
    bottom of the page rather than the next line
-  blank compose-mode rather than do nothing
 _ bugfix: add new message counts until keypress
 _ bugfix: attachment filenames sometimes not detected (filename=)
-_ bugfix: final logging messages to stdout?
+x bugfix: final logging messages to stdout?
 x bugfix: mbox directory shouldn't generate an exception, just an error
 x bugfix: m in thread-view-mode when a person is not selected should open up a
+   blank compose-mode rather than do nothing
 x bugfix: stars on messages with blue backgrounds still have green bgs
 x ferret upgrade script (dump & restore)
 x bugfix: mark messages as read immediately when t-v-m is opened
@@ -33,7 +33,7 @@ _ select all, starred, to me, etc
 _ undo
 _ gmail
 _ warnings: top-posting, missing attachment, ruby-talk:XXXX detection
-_ mboxz (compressed mbox)
+_ mboxz, mboxbz
 
 future
 ------

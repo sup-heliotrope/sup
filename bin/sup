@@ -207,12 +207,11 @@ rescue Exception => e
 ensure
   Redwood::finish
   stop_cursing
-  
-  # don't ask me why, but sometimes it's necessary to print something
-  # to stderr at this point or the exception doesn't get printed.
-  # doesn't get printed. WHY?
-
-  $stderr.puts " " 
+  if $exception
+    Redwood::log "oh crap, an exception"
+  else
+    Redwood::log "good night, sweet prince!"
+  end
 end
 
 Index.save unless $exception # TODO: think about this

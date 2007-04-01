@@ -263,11 +263,12 @@ end
 ## allows for constructors that take arguments.
 ##
 ## You must have #initialize call "self.class.i_am_the_instance self"
-## at some point or everything will fail horribly
+## at some point or everything will fail horribly.
 module Singleton
   module ClassMethods
     def instance; @instance; end
     def instantiated?; defined?(@instance) && !@instance.nil?; end
+    def deinstantiate!; @instance = nil; end
     def method_missing meth, *a, &b
       raise "no instance defined!" unless defined? @instance
       @instance.send meth, *a, &b
