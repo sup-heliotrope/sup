@@ -13,13 +13,13 @@ class Loader < Source
 
     case uri_or_fp
     when String
-      raise ArgumentError, "not an mbox uri" unless uri_or_fp =~ %r!mbox://!
-
-      fn = URI(uri_or_fp).path
+      uri = URI(uri_or_fp)
+      raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
+      raise ArgumentError, "mbox uri cannot have a host: #{uri.host}" if uri.host
       ## heuristic: use the filename as a label, unless the file
       ## has a path that probably represents an inbox.
-      @labels << File.basename(fn).intern unless File.dirname(fn) =~ /\b(var|usr|spool)\b/
-      @f = File.open fn
+      @labels << File.basename(uri.path).intern unless File.dirname(uri.path) =~ /\b(var|usr|spool)\b/
+      @f = File.open uri.path
     else
       @f = uri_or_fp
     end

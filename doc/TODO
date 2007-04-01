@@ -9,7 +9,7 @@ _ bugfix: triggering a pageup when cursor scrolling up jumps to the
 _ bugfix: add new message counts until keypress
 _ bugfix: attachment filenames sometimes not detected (filename=)
 _ bugfix: final logging messages to stdout?
-_ bugfix: mbox directory shouldn't generate an exception, just an error
+x bugfix: mbox directory shouldn't generate an exception, just an error
 x bugfix: m in thread-view-mode when a person is not selected should open up a
 x bugfix: stars on messages with blue backgrounds still have green bgs
 x ferret upgrade script (dump & restore)

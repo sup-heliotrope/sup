@@ -13,8 +13,12 @@ class Maildir < Source
 
   def initialize uri, last_date=nil, usual=true, archived=false, id=nil
     super
+    uri = URI(uri)
 
-    @dir = URI(uri).path
+    raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
+    raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
+
+    @dir = uri.path
     @ids = []
     @ids_to_fns = {}
     @last_scan = nil
@@ -52,6 +56,9 @@ class Maildir < Source
 
     cdir = File.join(@dir, 'cur')
     ndir = File.join(@dir, 'new')
+    
+    raise FatalSourceError, "#{cdir} not a directory" unless File.directory? cdir
+    raise FatalSourceError, "#{ndir} not a directory" unless File.directory? ndir
 
     begin
       @ids, @ids_to_fns = @mutex.synchronize do
@@ -61,6 +68,7 @@ class Maildir < Source
           ids << id
           ids_to_fns[id] = fn
         end
+        p [ids.sort, ids_to_fns]
         [ids.sort, ids_to_fns]
       end
     rescue SystemCallError => e

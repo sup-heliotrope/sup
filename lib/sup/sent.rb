@@ -12,7 +12,7 @@ class SentManager
 
   def self.source_name; "sup://sent"; end
   def self.source_id; 9998; end
-  def new_source; @source = SentLoader.new; end
+  def new_source; @source = Recoverable.new SentLoader.new; end
 
   def write_sent_message date, from_email
     need_blank = File.exists?(@fn) && !File.zero?(@fn)

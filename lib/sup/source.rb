@@ -61,7 +61,7 @@ class Source
 
   def initialize uri, initial_offset=nil, usual=true, archived=false, id=nil
     @uri = uri
-    @cur_offset = initial_offset || start_offset
+    @cur_offset = initial_offset
     @usual = usual
     @archived = archived
     @id = id
@@ -71,7 +71,7 @@ class Source
   def to_s; @uri.to_s; end
   def seek_to! o; self.cur_offset = o; end
   def reset!; seek_to! start_offset; end
-  def == o; o.to_s == to_s; end
+  def == o; o.uri == uri; end
   def done?; (self.cur_offset ||= start_offset) >= end_offset; end
   def is_source_for? uri; URI(self.uri) == URI(uri); end
 
