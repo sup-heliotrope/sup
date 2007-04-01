@@ -64,6 +64,8 @@ class IMAP < Source
   end
   def ssl?; @parsed_uri.scheme == 'imaps' end
 
+  def check; scan_mailbox; end
+
   ## is this necessary? TODO: remove maybe
   def == o; o.is_a?(IMAP) && o.uri == self.uri && o.username == self.username; end
 

@@ -25,6 +25,11 @@ class Maildir < Source
     @mutex = Mutex.new
   end
 
+  def check
+    scan_mailbox
+    start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
+  end
+
   def load_header id
     scan_mailbox
     with_file_for(id) { |f| MBox::read_header f }
