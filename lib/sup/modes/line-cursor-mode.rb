@@ -61,7 +61,7 @@ protected
     return false unless @curpos < lines - 1
     if @curpos >= botline - 1
       page_down
-      set_cursor_pos [topline + 1, botline].min
+      set_cursor_pos topline
     else
       @curpos += 1
       unless buffer.dirty?
@@ -77,8 +77,9 @@ protected
   def cursor_up
     return false unless @curpos > @cursor_top
     if @curpos == topline
+      old_topline = topline
       page_up
-      set_cursor_pos [botline - 2, topline].max
+      set_cursor_pos [old_topline - 1, topline].max
     else
       @curpos -= 1
       unless buffer.dirty?

@@ -1,12 +1,8 @@
 for 0.0.8
 ---------
 _ nice little startup config program
-_ bugfix: when one new message comes into an imap folder, we don't
-   catch it until a reload
-_ bugfix: triggering a pageup when cursor scrolling up jumps to the
+x bugfix: triggering a pageup when cursor scrolling up jumps to the
    bottom of the page rather than the next line
-_ bugfix: add new message counts until keypress
-_ bugfix: attachment filenames sometimes not detected (filename=)
 x bugfix: final logging messages to stdout?
 x bugfix: mbox directory shouldn't generate an exception, just an error
 x bugfix: m in thread-view-mode when a person is not selected should open up a
@@ -22,6 +18,10 @@ x bugfix: single-line messages come empty upon reply
 
 next release
 ------------
+_ bugfix: when one new message comes into an imap folder, we don't
+   catch it until a reload (sometimes?)
+_ bugfix: add new message counts until keypress
+_ bugfix: attachment filenames sometimes not detected (filename=)
 _ split out threading & message chunk parsing to a separate library
 
 near future

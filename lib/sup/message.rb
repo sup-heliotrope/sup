@@ -205,7 +205,11 @@ class Message
 ***********************************************************************
  An error occurred while loading this message. It is possible that
  the source has changed, or (in the case of remote sources) is down.
- The message source and offset are: #@source##@source_info
+ You can check the log for errors, though hopefully an error window
+ should have popped up at some point.
+
+ The message location was:
+ #@source##@source_info
 ***********************************************************************
 
 The error message was:
