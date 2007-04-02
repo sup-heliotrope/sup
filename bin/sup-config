@@ -24,7 +24,7 @@ def axe q, default=nil
   if default && !default.empty?
     ask "#{q} (enter for \"#{default}\"): "
   else
-    ask "#{q} "
+    ask "#{q}: "
   end
   ans.empty? ? default : ans
 end
@@ -70,6 +70,7 @@ def add_source
         $last_server = srv
         fn = axe "What's the full path to the mbox file?", ENV["MAIL"] #"srm
         return if fn.nil? || fn.empty?
+        fn = "/#{fn}" # lame
         { :scheme => "mbox+ssh", :host => srv, :path => fn }
       when :imap, :imaps
         srv = axe "What is the IMAP server?", $last_server
