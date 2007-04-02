@@ -26,12 +26,21 @@ for messages or view your inbox, Sup talks only to the index (stored
 locally on disk). When you view a thread, Sup requests the full
 content of all the messages from the source.
 
-So let's add some sources to Sup's source list. Run 'sup-add' with
-a URI pointing to an email source. The URI should be of the form:
-- mbox://path/to/a/filename, for an mbox file on disk. (You can also
-  just provide the filename).
-- imap://imap.server/folder or imaps://secure.imap.server/folder for
-  an IMAP folder. (Leave the folder blank for INBOX.)
+The easiest way to set up all your sources is to run "sup-config".
+This will interactively walk you through some basic configuration,
+prompt you for all the sources you need, and optionally import
+messages from them.
+
+sup-config works by calling sup-add and sup-sync with the right
+arguments. If you have a non-trivial setup, you may need to run
+sup-add and sup-sync manually.
+
+You can manually add a source to Sup's source list by running
+'sup-add' with a URI pointing to it. The URI should be of the form:
+- mbox://path/to/a/filename, for an mbox file on disk.
+- maildir://path/to/a/filename, for an maildir directory on disk.
+- imap://imap.server/folder for an unsecure IMAP folder.
+- imaps://secure.imap.server/folder for a secure IMAP folder.
 - mbox+ssh://remote.machine/path/to/a/filename for a remote mbox file.
 
 Before you add the source, you need make two decisions. The first is
@@ -46,39 +55,33 @@ inbox, but will be found when you search. (Your inbox in Sup is, by
 definition, the set of all all non-archived messages). Specify
 --archive to automatically archive all messages from the source. This
 is useful for sources that contain, for example, high-traffic mailing
-lists that you don't want "polluting" your inbox.
+lists that you don't want polluting your inbox.
 
 If Sup requires account information, e.g. for IMAP servers and remote
 mbox files, sup-add will ask for it.
 
 Now that you've added the source, let's import all the current
-messages from it, by running sup-import with the source URI. You can
+messages from it, by running sup-sync with the source URI. You can
 specify --archive to automatically archive all messages in this
 import; typically you'll want to specify this for every source you
 import except your actual inbox. You can also specify --read to mark
 all imported messages as read; the default is to preserve the
 read/unread status from the source.
 
-sup-import will now load all the messages from the source into the
+sup-sync will now load all the messages from the source into the
 index. Depending on the size of the source, this may take a
 while. Don't panic! It's a one-time process.
-
-We're almost ready. But before we run 'sup' again, take a moment to
-edit your ~/.sup/config.yaml file. Replace "Your Name Here" with your
-name, "your.email.here@domain.tld" with your email address, and fill
-in your .signature file if you choose. You can also set the default
-editor.
 
 Ok, now run 'sup'. You should see the most recent unarchived messages
 appear in your inbox. Congratulations, you've got Sup working!
 
-If you're coming from the world of traditional email, there are a
+If you're coming from the world of traditional MUAs, there are a
 couple differences you should be aware of at this point. First, Sup
 does not use folders. Instead, you organize and find messages by a
 combination of search and labels (knowns as 'tags' everywhere else in
-the world). I like to say that 95% of the functionality of folders is
+the world). I claim that 95% of the functionality of folders is
 superceded by a quick, easy-to-access, and powerful search mechanism,
-and the other 5% by labels. (The Sup statement of philosophy has a
+and the other 5% by labels. (The Sup philosophical treatise has a
 little more on this.)
 
 Search and labels are an integral part of Sup because in Sup, rather
@@ -96,18 +99,18 @@ life can be easier than that if you just trust the search engine, and
 use labels judiciously for things that are too hard to find with
 search.
 
-But enough chit-chat! Let's take a look at your inbox. You'll see that
-Sup groups messages together into threads: each line in the inbox is a
-thread, and the number in parentheses is the number of messages in
-that thread. (If there's no number in parens, it means there's just
-one message.) In Sup, you rarely operate on an individual message. The
-idea is that you rarely want to operate on a message independent of
-its context; you typically want to view, archive, kill, or label all
-the messages in a thread at one time.
+Now let's take a look at your inbox. You'll see that Sup groups
+messages together into threads: each line in the inbox is a thread,
+and the number in parentheses is the number of messages in that
+thread. (If there's no number, there's just one message.) In Sup, most
+operations are on threads, not individual messages. The idea is that
+you rarely want to operate on a message independent of its context.
+You typically want to view, archive, kill, or label all the messages
+in a thread at one time.
 
 Use the up and down arrows to highlight a thread. ('j' and 'k' do the
 same thing, and 'J' and 'K' will scroll the whole window.  Even the
-left and right arrow keys work!) By default, Sup only loads as many
+left and right arrow keys work.) By default, Sup only loads as many
 threads as it takes to fill the window; if you'd like to load more,
 press 'M'. You can hit tab to cycle between only threads with new
 messages.
@@ -122,19 +125,18 @@ to expand or collapse all messages or 'N' to expand only the new
 messages. You'll also notice that Sup hides quoted text and
 signatures. If you highlight a particular hidden chunk, you can press
 enter to expand it, or you can press 'o' to toggle every hidden chunk
-in a particular message. (Don't worry about remembering all these
-things---you can hit '?' to see the full list of keyboard commands at
-any point.)
+in a particular message. (You can hit '?' to see the full list of
+keyboard commands at any point.)
 
 A few other useful commands while viewing a thread. Press 'd' to
 toggle a detailed header fpr a message. If you've scrolled too far to
 the right, press '[' to jump all the way to the left. Finally, you can
 press 'n' and 'p' to jump forward and backward between open
-messages. (I find that very useful!)
+messages, aligning the display as necessary.
 
 Now press 'x' to kill the thread view buffer. You should see the inbox
 again. If you don't, you can cycle through the buffers by pressing
-'b', or you can press 'A' to see a list of all buffers and simply
+'b', or you can press 'B' to see a list of all buffers and simply
 select the inbox.
 
 There are many operations you can perform on threads beyond viewing
@@ -190,11 +192,11 @@ details on more sophisticated queries (date ranges, "within n words",
 etc.)
 
 At this point, you're well on your way to figuring out all the cool
-things Sup can do. By repeated applications of the '?' key, see if you
+things Sup can do. By repeated application of the '?' key, see if you
 can figure out how to:
  - List some recent contacts
  - Easily search for all mail from a recent contact
- - Easily search for all mail from several recent contacts!
+ - Easily search for all mail from several recent contacts
  - Add someone to your address book
  - Postpone a message (i.e., save a draft)
  - Quickly re-edit a just-saved draft message
@@ -203,11 +205,10 @@ can figure out how to:
 
 There's one last thing to be aware of when using Sup: how it interacts
 with other email programs. Sup stores data about messages in the
-index---information necessary for searching, and message state---but
-doesn't duplicate the message contents themselves. The messages remain
-on the source. If the index and the source every fall out of sync,
-e.g. due to another email client modifying the source, then Sup will
-be unable to operate on that source.
+index, but doesn't duplicate the message contents themselves. The
+messages remain on the source. If the index and the source every fall
+out of sync, e.g. due to another email client modifying the source,
+then Sup will be unable to operate on that source.
 
 For example, for mbox files, Sup stores a byte offset into the file
 for each message. If a message deleted from that file by another
@@ -216,8 +217,8 @@ offsets will be wrong.
 
 That's the bad news. The good news is that Sup is fairly good at being
 able to detect this type of situation, and fixing it is just a matter
-of running sup-import --rebuild on the source. Sup will even tell you
-how to invoke sup-import when it detects a problem. This is a
+of running sup-sync --changed on the source. Sup will even tell you
+how to invoke sup-sync when it detects a problem. This is a
 complication you will almost certainly run in to if you use both Sup
 and another MUA on the same source, so it's good to be aware of it.
 

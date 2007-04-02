@@ -1,6 +1,6 @@
 for 0.0.8
 ---------
-_ nice little startup config program
+x nice little startup config program
 x bugfix: triggering a pageup when cursor scrolling up jumps to the
    bottom of the page rather than the next line
 x bugfix: final logging messages to stdout?
