@@ -12,14 +12,13 @@ $opts = Trollop::options do
 Adds a source to the Sup source list.
 
 Usage:
-  sup-add [options] <source>+
+  sup-add [options] <source uri>+
 
-where <source>+ is one or more sources.
+where <source uri>+ is one or more source URIs.
 
 For mbox files on local disk, use the form:
+    mbox:<path to mbox file>, or
     mbox://<path to mbox file>
-or simply
-    <path to mbox file>
 
 For mbox files on remote machines, use the form:
     mbox+ssh://<machine name>/<path to mbox file>
@@ -31,6 +30,7 @@ For IMAP folders, use the form (note no username or password!):
     imaps://<machine name>/<folder> # secure, arbitrary folder 
 
 For Maildir folders, use the form:
+    maildir:<path to Maildir directory>; or
     maildir://<path to Maildir directory>
 
 Options are:
@@ -80,8 +80,6 @@ index = Redwood::Index.new
 index.load
 
 ARGV.each do |uri|
-  uri = "mbox://#{uri}" unless uri =~ %r!://!
-
   if !$opts[:force_new] && index.source_for(uri) 
     say "Already know about #{uri}; skipping."
     next

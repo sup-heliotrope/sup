@@ -43,14 +43,8 @@ Usage:
   sup-sync [options] <source>*
 
 where <source>* is zero or more source URIs. If no sources are given,
-sync from all usual sources.
-
-Supported source URIs:
-  mbox://<path to mbox file>,      e.g. mbox:///var/spool/mail/me
-  maildir://<path to maildir dir>, e.g. maildir:///home/me/Maildir
-  mbox+ssh://<machine>/<path to mbox file>
-  imap://<machine>/[<folder>]
-  imaps://<machine>/[<folder>]
+sync from all usual sources. All supported source URI schemes can
+be seen by running "sup-add --help".
 
 Options controlling WHICH messages sup-sync operates on:
 EOS
@@ -199,6 +193,9 @@ begin
     $stderr.puts "Scanned #{num_scanned}, added #{num_added}, updated #{num_updated} messages from #{source}."
     $stderr.puts "Restored state on #{num_restored} (#{100.0 * num_restored / num_scanned}%) messages." if num_restored > 0
   end
+rescue Exception => e
+  File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
+  raise
 ensure
   index.save
   Redwood::finish
