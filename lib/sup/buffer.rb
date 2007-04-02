@@ -50,6 +50,7 @@ module Redwood
 class Buffer
   attr_reader :mode, :x, :y, :width, :height, :title
   bool_reader :dirty
+  bool_accessor :force_to_top
 
   def initialize window, mode, width, height, opts={}
     @w = window
@@ -57,6 +58,7 @@ class Buffer
     @dirty = true
     @focus = false
     @title = opts[:title] || ""
+    @force_to_top = opts[:force_to_top] || false
     @x, @y, @width, @height = 0, 0, width, height
   end
 
@@ -156,18 +158,33 @@ class BufferManager
 
   def raise_to_front buf
     raise ArgumentError, "buffer not on stack: #{buf.inspect}" unless @buffers.member? buf
+
     @buffers.delete buf
-    @buffers.push buf
-    focus_on buf
+    if @buffers.length > 0 && @buffers.last.force_to_top?
+      @buffers.insert -2, buf
+    else
+      @buffers.push buf
+      focus_on buf
+    end
     @dirty = true
   end
 
+  ## we reset force_to_top when rolling buffers. this is so that the
+  ## human can actually still move buffers around, while still
+  ## programmatically being able to pop stuff up in the middle of
+  ## drawing a window without worrying about covering it up.
+  ##
+  ## if we ever start calling roll_buffers programmatically, we will
+  ## have to change this. but it's not clear that we will ever actually
+  ## do that.
   def roll_buffers
+    @buffers.last.force_to_top = false
     raise_to_front @buffers.first
   end
 
   def roll_buffers_backwards
     return unless @buffers.length > 1
+    @buffers.last.force_to_top = false
     raise_to_front @buffers[@buffers.length - 2]
   end
 
@@ -258,14 +275,14 @@ class BufferManager
     ## w = Ncurses::WINDOW.new(height, width, (opts[:top] || 0),
     ## (opts[:left] || 0))
     w = Ncurses.stdscr
-    b = Buffer.new w, mode, width, height, :title => realtitle
+    b = Buffer.new w, mode, width, height, :title => realtitle, :force_to_top => (opts[:force_to_top] || false)
     mode.buffer = b
     @name_map[realtitle] = b
+
+    @buffers.unshift b
     if opts[:hidden]
-      @buffers.unshift b
       focus_on b unless @focus_buf
     else
-      @buffers.push b
       raise_to_front b
     end
     b

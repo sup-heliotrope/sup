@@ -190,6 +190,9 @@ class Message
           read_header @source.load_header(@source_info)
           message_to_chunks @source.load_message(@source_info)
         rescue SourceError, SocketError, MessageFormatError => e
+          ## we need force_to_top here otherwise this window will cover
+          ## up the error message one
+          Redwood::report_broken_sources :force_to_top => true
           [Text.new(error_message(e.message))]
         end
       end

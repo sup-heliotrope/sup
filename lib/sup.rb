@@ -97,12 +97,12 @@ module Redwood
   end
 
   ## not really a good place for this, so I'll just dump it here.
-  def report_broken_sources
+  def report_broken_sources opts={}
     return unless BufferManager.instantiated?
 
     broken_sources = Index.usual_sources.select { |s| s.error.is_a? FatalSourceError }
     unless broken_sources.empty?
-      BufferManager.spawn "Broken source notification", TextMode.new(<<EOM)
+      BufferManager.spawn "Broken source notification", TextMode.new(<<EOM), opts
 Source error notification
 -------------------------
 
@@ -117,7 +117,7 @@ EOM
 
     desynced_sources = Index.usual_sources.select { |s| s.error.is_a? OutOfSyncSourceError }
     unless desynced_sources.empty?
-      BufferManager.spawn("Out-of-sync source notification", TextMode.new(<<EOM))
+      BufferManager.spawn "Out-of-sync source notification", TextMode.new(<<EOM), opts
 Out-of-sync source notification
 -------------------------------
 
