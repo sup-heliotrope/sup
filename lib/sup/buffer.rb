@@ -161,7 +161,7 @@ class BufferManager
 
     @buffers.delete buf
     if @buffers.length > 0 && @buffers.last.force_to_top?
-      @buffers.insert -2, buf
+      @buffers.insert(-2, buf)
     else
       @buffers.push buf
       focus_on buf

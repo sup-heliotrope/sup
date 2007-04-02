@@ -73,7 +73,6 @@ class Maildir < Source
           ids << id
           ids_to_fns[id] = fn
         end
-        p [ids.sort, ids_to_fns]
         [ids.sort, ids_to_fns]
       end
     rescue SystemCallError => e
