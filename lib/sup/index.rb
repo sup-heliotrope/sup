@@ -272,6 +272,12 @@ class Index
     contacts.keys.compact
   end
 
+  def load_sources fn=Redwood::SOURCE_FN
+    source_array = (Redwood::load_yaml_obj(fn) || []).map { |o| Recoverable.new o }
+    @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
+    @sources_dirty = false
+  end
+
 protected
 
   def parse_user_query_string str; @qparser.parse str; end
@@ -293,12 +299,6 @@ protected
     query.add_query Ferret::Search::TermQuery.new("label", "deleted"), :must_not unless opts[:load_deleted] || labels.include?(:deleted)
     query.add_query Ferret::Search::TermQuery.new("label", "killed"), :must_not unless opts[:load_killed] || labels.include?(:killed)
     query
-  end
-
-  def load_sources fn=Redwood::SOURCE_FN
-    source_array = (Redwood::load_yaml_obj(fn) || []).map { |o| Recoverable.new o }
-    @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
-    @sources_dirty = false
   end
 
   def save_sources fn=Redwood::SOURCE_FN

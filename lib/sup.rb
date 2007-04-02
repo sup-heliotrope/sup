@@ -148,8 +148,8 @@ else
   $config = {
     :accounts => {
       :default => {
-        :name => "Your Name Here",
-        :email => "your.email.here@domain.tld",
+        :name => "Sup Rocks",
+        :email => "sup-rocks@reading-my-emails",
         :alternates => [],
         :sendmail => "/usr/sbin/sendmail -oem -ti",
         :signature => File.join(ENV["HOME"], ".signature")

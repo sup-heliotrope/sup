@@ -1,0 +1,221 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'highline/import'
+require 'yaml'
+require 'trollop'
+require "sup"
+
+$opts = Trollop::options do
+  version "sup-config (sup #{Redwood::VERSION})"
+  banner <<EOS
+Interactive configuration tool for Sup. Won't destroy existing
+configuration.
+
+Usage:
+  sup-config
+
+Options:
+EOS
+end #' stupid ruby-mode
+
+def axe q, default=nil
+  ans = 
+  if default && !default.empty?
+    ask "#{q} (enter for \"#{default}\"): "
+  else
+    ask "#{q} "
+  end
+  ans.empty? ? default : ans
+end
+
+def axe_yes q, default="n"
+  axe(q, default) =~ /^y|yes$/i
+end
+
+def build_cmd cmd
+  (ENV["RUBY_INVOCATION"] ? ENV["RUBY_INVOCATION"] + " " : "") + File.join(File.dirname($0), cmd)
+end
+
+def add_source
+  type = nil
+
+  say "Ok, adding a new source."
+  choose do |menu|
+    menu.prompt = "What type of mail source is it?"
+    menu.choice("mbox file") { type = :mbox }
+    menu.choice("maildir directory") { type = :maildir }
+    menu.choice("remote mbox file (accessible via ssh)") { type = :mboxssh }
+    menu.choice("IMAP server (secure)") { type = :imaps }
+    menu.choice("IMAP server (unsecure)") { type = :imap }
+    menu.choice("Get me out of here!") { return }
+  end
+
+  while true do
+    say "Now for the details."
+
+    components = 
+      case type
+      when :mbox
+        fn = axe "What's the full path to the mbox file?", ENV["MAIL"] #"srm
+        return if fn.nil? || fn.empty?
+        { :scheme => "mbox", :path => fn }
+      when :maildir
+        fn = axe "What's the full path to the maildir directory?", ENV["MAIL"] #"srm
+        return if fn.nil? || fn.empty?
+        { :scheme => "maildir", :path => fn }
+      when :mboxssh
+        srv = axe "What server is the mbox file located on?", $last_server 
+        return if srv.nil? || srv.empty?
+        $last_server = srv
+        fn = axe "What's the full path to the mbox file?", ENV["MAIL"] #"srm
+        return if fn.nil? || fn.empty?
+        { :scheme => "mbox+ssh", :host => srv, :path => fn }
+      when :imap, :imaps
+        srv = axe "What is the IMAP server?", $last_server
+        return if srv.nil? || srv.empty?
+        $last_server = srv
+        fn = axe "What's the folder path?", "INBOX" #"srm 
+        return if fn.nil? || fn.empty?
+        fn = "/#{fn}" # lame
+        { :scheme => type.to_s, :host => srv, :path => fn }
+      end
+    
+    uri = 
+      begin
+        URI::Generic.build components
+      rescue URI::Error => e
+        say "Whoopsie! I couldn't build a URI from that: #{e.message}"
+        if axe_yes("Try again?") then next else return end
+      end
+
+    say "I'm going to add this source: #{uri}."
+    unless axe("Does that look right?", "y") =~ /^y|yes$/i
+      if axe_yes("Try again?") then next else return end
+    end
+
+    usual = axe_yes "Does this source ever receive new messages?", "y"
+    archive = usual ? axe_yes("Should those new messages be automatically archived?") : false
+    
+    cmd = build_cmd "sup-add"
+    cmd += " --unusual" unless usual
+    cmd += " --archive" if archive
+    cmd += " #{uri}"
+
+    puts "Ok, trying to run \"#{cmd}\"..."
+
+    system cmd
+    if $?.success?
+      say "Great! Added!"
+      break 
+    else
+      say "Rats, that failed. You may have to do it manually."
+      if axe_yes("Try again?") then next else return end
+    end
+  end
+end
+
+$terminal.wrap_at = :auto
+Redwood::start
+index = Redwood::Index.new
+index.load_sources
+
+say <<EOS
+Howdy neighbor! This here's sup-config, ready to help you jack in to
+the next generation of digital cyberspace: the text-based email
+program. Get ready to be the envy of everyone in your internets
+with your amazing keyboarding skills! Jump from email to email with
+nary a click of the mouse!
+
+Just answer these simple questions and you'll be on your way! Press
+enter at any point to accept the default answer.
+
+EOS
+#' stupid ruby-mode
+
+account = $config[:accounts][:default]
+
+name = axe "What's your name?", account[:name]
+email = axe "What's your email address?", account[:email] #'srm
+
+say "Ok, your header will look like this:"
+say "  From: #{name} <#{email}>"
+
+say "\nDo you have any alternate email addresses that also receive email?"
+say "If so, enter them now, separated by spaces."
+alts = axe("Alternate email addresses", account[:alternates].join(" ")).split(/\s+/)
+
+sigfn = axe "What file contains your signature?", account[:signature]
+editor = axe "What editor would you like to use?", $config[:editor]
+
+$config[:accounts][:default][:name] = name
+$config[:accounts][:default][:email] = email
+$config[:accounts][:default][:alternates] = alts
+$config[:accounts][:default][:signature] = sigfn
+$config[:editor] = editor
+
+Redwood::save_yaml_obj $config, Redwood::CONFIG_FN
+
+say "Ok, I've saved you up a nice lil' #{Redwood::CONFIG_FN}."
+
+done = false
+until done
+  say "\nNow, we'll tell Sup where to find all your email."
+  index.load_sources
+  say "Current sources:"
+  if index.sources.empty?
+    say "  No sources!"
+  else
+    index.sources.each { |s| puts "* #{s}" }
+  end
+
+  say "\n"
+  choose do |menu|
+    menu.prompt = "Your wish?"
+    menu.choice("Add a new source.") { add_source }
+    menu.choice("Done adding sources!") { done = true }
+  end
+end
+
+say <<EOS
+
+Ok. The final step is to import all your messages into the Sup index.
+Depending on how many messages are in the sources, this could take
+quite a while.
+
+IMPORTANT NOTE: this import will archive messages if the source is
+marked archival, and won't otherwise. It will preserve read/unread
+status as given by the source, and it will automatically add one label
+per source. All of this behavior can be controlled on per-source
+basis by running sup-sync manually.
+
+EOS
+#'
+if axe_yes "Run sup-sync to import all messages now?"
+  while true
+    cmd = build_cmd("sup-sync") + " --all-sources"
+    puts "Ok, trying to run \"#{cmd}\"..."
+    system cmd
+    if $?.success?
+      say "Great! It worked!"
+      break 
+    else
+      say "Rats, that failed. You may have to do it manually."
+      if axe_yes("Try again?") then next else break end
+    end
+  end
+end
+
+index.load
+
+say <<EOS
+
+Okee doke, you've got yourself an index of #{index.size} messages. Looks
+like you're ready to jack in to cyberspace there, cowboy.
+
+Just one last command:
+
+  sup
+
+Have fun!
+EOS

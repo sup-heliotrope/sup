@@ -6,6 +6,7 @@ README.txt
 Rakefile
 bin/sup
 bin/sup-add
+bin/sup-config
 bin/sup-dump
 bin/sup-recover-sources
 bin/sup-sync
