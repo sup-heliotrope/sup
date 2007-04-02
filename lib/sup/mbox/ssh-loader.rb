@@ -3,10 +3,6 @@ require 'net/ssh'
 module Redwood
 module MBox
 
-## this is slightly complicated because SSHFile (and thus @f or
-## @loader) can throw a variety of exceptions, and we need to catch
-## those, reraise them as SourceErrors, and set ourselves as broken.
-
 class SSHLoader < Source
   attr_accessor :username, :password
 
@@ -39,7 +35,6 @@ class SSHLoader < Source
   def filename; @parsed_uri.path[1..-1] end
 
   def next
-    return if broken?
     safely do
       offset, labels = @loader.next
       self.cur_offset = @loader.cur_offset # superclass keeps @cur_offset which is used by yaml
@@ -60,11 +55,9 @@ class SSHLoader < Source
   def safely
     begin
       yield
-    rescue Net::SSH::Exception, SocketError, SSHFileError, SystemCallError => e
+    rescue Net::SSH::Exception, SocketError, SSHFileError, SystemCallError, IOError => e
       m = "error communicating with SSH server #{host} (#{e.class.name}): #{e.message}"
-      Redwood::log m
-      self.broken_msg = @loader.broken_msg = m
-      raise SourceError, m
+      raise FatalSourceError, m
     end
   end
 

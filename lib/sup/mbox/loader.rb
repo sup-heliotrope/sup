@@ -15,7 +15,7 @@ class Loader < Source
     when String
       uri = URI(uri_or_fp)
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
-      raise ArgumentError, "mbox uri cannot have a host: #{uri.host}" if uri.host
+      raise ArgumentError, "mbox uri ('#{uri}') cannot have a host: #{uri.host}" if uri.host
       ## heuristic: use the filename as a label, unless the file
       ## has a path that probably represents an inbox.
       @labels << File.basename(uri.path).intern unless File.dirname(uri.path) =~ /\b(var|usr|spool)\b/
@@ -112,7 +112,7 @@ class Loader < Source
           next_offset = @f.tell
         end
       end
-    rescue SystemCallError => e
+    rescue SystemCallError, IOError => e
       raise FatalSourceError, "Error reading #{@f.path}: #{e.message}"
     end
 

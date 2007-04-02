@@ -75,7 +75,7 @@ class Maildir < Source
         end
         [ids.sort, ids_to_fns]
       end
-    rescue SystemCallError => e
+    rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem scanning Maildir directories: #{e.message}."
     end
     
@@ -116,7 +116,7 @@ private
     fn = @ids_to_fns[id] or raise OutOfSyncSourceError, "No such id: #{id.inspect}."
     begin
       File.open(fn) { |f| yield f }
-    rescue SystemCallError => e
+    rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
     end
   end

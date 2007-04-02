@@ -81,7 +81,7 @@ EOS
     begin
       File.open(fn, "w") { |f| yield f }
       BufferManager.flash "Successfully wrote #{fn}."
-    rescue SystemCallError => e
+    rescue SystemCallError, IOError => e
       BufferManager.flash "Error writing to file: #{e.message}"
     end
   end

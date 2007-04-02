@@ -240,7 +240,7 @@ private
         end
         raise
       end
-    rescue Net, SocketError, Net::IMAP::Error, SystemCallError => e
+    rescue SocketError, Net::IMAP::Error, SystemCallError, IOError => e
       raise FatalSourceError, "While communicating with IMAP server: #{e.message}"
     end
   end

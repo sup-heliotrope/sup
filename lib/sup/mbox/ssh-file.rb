@@ -106,14 +106,12 @@ class SSHFile
     @file_size = nil
     @offset = 0
     @say_id = nil
-    @broken_msg = nil
     @shell = nil
     @shell_mutex = nil
     @buf_mutex = Mutex.new
   end
 
   def to_s; "mbox+ssh://#@host/#@fn"; end ## TODO: remove this EVILness
-  def broken?; !@broken_msg.nil?; end
 
   def connect
     do_remote nil
@@ -164,7 +162,6 @@ private
   end
 
   def unsafe_connect
-    raise SSHFileError, @broken_msg if broken?
     return if @shell
 
     @key = [@host, @ssh_opts[:username]]
@@ -172,14 +169,13 @@ private
       @shell, @shell_mutex = @@shells_mutex.synchronize do
         unless @@shells.member? @key
           say "Opening SSH connection to #{@host} for #@fn..."
-          #raise SSHFileError, "simulated SSH file error"
           session = Net::SSH.start @host, @ssh_opts
           say "Starting SSH shell..."
           @@shells[@key] = [session.shell.sync, Mutex.new]
         end
         @@shells[@key]
       end
-
+      
       say "Checking for #@fn..."
       @shell_mutex.synchronize { raise Errno::ENOENT, @fn unless @shell.test("-e #@fn").status == 0 }
     ensure
@@ -190,29 +186,24 @@ private
   def do_remote cmd, expected_size=0
     retries = 0
     result = nil
-    begin
-      begin
-        unsafe_connect
-        if cmd
-          # MBox::debug "sending command: #{cmd.inspect}"
-          result = @shell_mutex.synchronize { x = @shell.send_command cmd; sleep 0.25; x }
-          raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{(result.stderr || result.stdout || "")[0 .. 100]}" unless result.status == 0
-        end
 
-        ## Net::SSH::Exceptions seem to happen every once in a while for
-        ## no good reason.
-      rescue Net::SSH::Exception, *RECOVERABLE_ERRORS
-        if (retries += 1) <= 3
-          @@shells_mutex.synchronize do
-            @shell = nil
-            @@shells[@key] = nil
-          end
-          retry
-        end
-        raise
+    begin
+      unsafe_connect
+      if cmd
+        # MBox::debug "sending command: #{cmd.inspect}"
+        result = @shell_mutex.synchronize { x = @shell.send_command cmd; sleep 0.25; x }
+        raise SSHFileError, "Failure during remote command #{cmd.inspect}: #{(result.stderr || result.stdout || "")[0 .. 100]}" unless result.status == 0
       end
-    rescue Net::SSH::Exception, SSHFileError, SystemCallError => e
-      @broken_msg = e.message
+      ## Net::SSH::Exceptions seem to happen every once in a while for
+      ## no good reason.
+    rescue Net::SSH::Exception, *RECOVERABLE_ERRORS
+      if (retries += 1) <= 3
+        @@shells_mutex.synchronize do
+          @shell = nil
+          @@shells[@key] = nil
+        end
+        retry
+      end
       raise
     end
 
