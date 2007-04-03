@@ -1,23 +1,9 @@
-for 0.0.8
+for 0.0.9
 ---------
-x nice little startup config program
-x bugfix: triggering a pageup when cursor scrolling up jumps to the
-   bottom of the page rather than the next line
-x bugfix: final logging messages to stdout?
-x bugfix: mbox directory shouldn't generate an exception, just an error
-x bugfix: m in thread-view-mode when a person is not selected should open up a
-   blank compose-mode rather than do nothing
-x bugfix: stars on messages with blue backgrounds still have green bgs
-x ferret upgrade script (dump & restore)
-x bugfix: mark messages as read immediately when t-v-m is opened
-x compose in thread-view-mode auto-fills in person
-x bugfix: 'N' in thread-view-mode (expand only new messages) crashes
-x bugfix: detect source corruption at startup
-x maildir
-x bugfix: single-line messages come empty upon reply
-
-next release
-------------
+_ bugfix: sup-add not prompting for old accounts, i think? possibly because
+    sources no longer respond_to? :username due to Recoverable wrapping
+_ bugfix: rmail multipart error
+_ bugfix: ferret flakiness: just added message but can't find it.
 _ bugfix: when one new message comes into an imap folder, we don't
    catch it until a reload (sometimes?)
 _ bugfix: add new message counts until keypress
@@ -61,6 +47,21 @@ prune old entries from contacts.txt so that it doesn't arbitrarily
 
 done
 ----
+x nice little startup config program
+x bugfix: triggering a pageup when cursor scrolling up jumps to the
+   bottom of the page rather than the next line
+x bugfix: final logging messages to stdout?
+x bugfix: mbox directory shouldn't generate an exception, just an error
+x bugfix: m in thread-view-mode when a person is not selected should open up a
+   blank compose-mode rather than do nothing
+x bugfix: stars on messages with blue backgrounds still have green bgs
+x ferret upgrade script (dump & restore)
+x bugfix: mark messages as read immediately when t-v-m is opened
+x compose in thread-view-mode auto-fills in person
+x bugfix: 'N' in thread-view-mode (expand only new messages) crashes
+x bugfix: detect source corruption at startup
+x maildir
+x bugfix: single-line messages come empty upon reply
 x make 'A' archive in thread-view-mode
 x remove stupid percent_done source methods (still useful; made it optional)
 x don't quit while writing thread index state to disk or with unsaved drafts/messages

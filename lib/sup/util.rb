@@ -301,6 +301,7 @@ class Recoverable
   def id; __pass :id; end
   def to_s; __pass :to_s; end
   def to_yaml x; __pass :to_yaml, x; end
+  def is_a? c; @o.is_a? c; end
 
   def __pass m, *a, &b
     begin

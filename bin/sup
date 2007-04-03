@@ -175,7 +175,7 @@ begin
           bm.spawn "New Message", mode
           mode.edit
         when :poll
-          bm.raise_to_front PollManager.buffer
+#          bm.raise_to_front PollManager.buffer
           reporting_thread { PollManager.poll }
         when :recall_draft
           case Index.num_results_for :label => :draft
