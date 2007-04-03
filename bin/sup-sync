@@ -107,7 +107,6 @@ restored_state =
   end
 
 sources = ARGV.map do |uri|
-  uri = "mbox://#{uri}" unless uri =~ %r!://!
   index.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
 end
 
