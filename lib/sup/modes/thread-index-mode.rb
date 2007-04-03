@@ -241,12 +241,12 @@ class ThreadIndexMode < LineCursorMode
   end
 
   def save
-    threads = @threads + @hidden_threads.keys
+    dirty_threads = (@threads + @hidden_threads.keys).select { |t| t.dirty? }
+    return if dirty_threads.empty?
 
     BufferManager.say("Saving threads...") do |say_id|
-      threads.each_with_index do |t, i|
-        next unless t.dirty?
-        BufferManager.say "Saving thread #{i +1} of #{threads.length}...", say_id
+      dirty_threads.each_with_index do |t, i|
+        BufferManager.say "Saving modified thread #{i + 1} of #{dirty_threads.length}...", say_id
         t.save Index
       end
     end
