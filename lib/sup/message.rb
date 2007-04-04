@@ -190,6 +190,7 @@ class Message
           read_header @source.load_header(@source_info)
           message_to_chunks @source.load_message(@source_info)
         rescue SourceError, SocketError, MessageFormatError => e
+          Redwood::log "problem getting messages from #{@source}: #{e.message}"
           ## we need force_to_top here otherwise this window will cover
           ## up the error message one
           Redwood::report_broken_sources :force_to_top => true
@@ -221,6 +222,7 @@ EOS
     begin
       @source.raw_header @source_info
     rescue SourceError => e
+      Redwood::log "problem getting messages from #{@source}: #{e.message}"
       error_message e.message
     end
   end
@@ -229,6 +231,7 @@ EOS
     begin
       @source.raw_full_message @source_info
     rescue SourceError => e
+      Redwood::log "problem getting messages from #{@source}: #{e.message}"
       error_message(e.message)
     end
   end

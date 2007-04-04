@@ -1,5 +1,6 @@
 for 0.0.9
 ---------
+_ bugfix: read before thread-index has finished loading then hides the thread?!? wtf. (on jamie)
 _ bugfix: sup-add not prompting for old accounts, i think? possibly because
     sources no longer respond_to? :username due to Recoverable wrapping
 _ bugfix: rmail multipart error
