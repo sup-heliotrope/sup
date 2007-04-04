@@ -427,12 +427,20 @@ protected
     dp = t.direct_participants.any? { |p| AccountManager.is_account? p }
     p = dp || t.participants.any? { |p| AccountManager.is_account? p }
 
-    base_color = (new ? :index_new_color : :index_old_color)
+    base_color =
+      if starred
+        :index_starred_color
+      elsif new
+        :index_new_color
+      else 
+        :index_old_color
+      end
+
     [ 
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
-      [:none, sprintf("%#{@date_width}s ", date)],
+      [:none, sprintf("%#{@date_width}s", date)],
+      (starred ? [:starred_color, "*"] : [:none, " "]),
       [base_color, sprintf("%-#{@from_width}s", from)],
-      [:starred_color, starred ? "*" : " "],
       [:none, t.size == 1 ? " " * (@size_width + 2) : sprintf("(%#{@size_width}d)", t.size)],
       [:to_me_color, dp ? " >" : (p ? ' +' : "  ")],
       [base_color, t.subj + (t.subj.empty? ? "" : " ")],
