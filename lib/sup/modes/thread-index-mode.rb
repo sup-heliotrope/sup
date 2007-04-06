@@ -428,10 +428,10 @@ protected
     p = dp || t.participants.any? { |p| AccountManager.is_account? p }
 
     base_color =
-      if starred
-        :index_starred_color
-      elsif new
+      if new
         :index_new_color
+      elsif starred
+        :index_starred_color
       else 
         :index_old_color
       end
