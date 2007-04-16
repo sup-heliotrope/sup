@@ -263,22 +263,22 @@ EOS
 
 private
 
-  ## everything RubyMail-specific goes here.
+  ## (almost) everything rmail-specific goes here
   def message_to_chunks m
-    ret = [] <<
+    if m.multipart?
+      m.body.map { |p| message_to_chunks p }.flatten.compact
+    else
       case m.header.content_type
       when "text/plain", nil
         m.body && body = m.decode or raise MessageFormatError, "For some bizarre reason, RubyMail was unable to parse this message."
-        text_to_chunks body.normalize_whitespace.split("\n")
+        text_to_chunks(body.normalize_whitespace.split("\n"))
       when /^multipart\//
-        nil
+        []
       else
         disp = m.header["Content-Disposition"] || ""
-        Attachment.new m.header.content_type, disp.gsub(/[\s\n]+/, " "), m
+        [Attachment.new(m.header.content_type, disp.gsub(/[\s\n]+/, " "), m)]
       end
-    
-    m.each_part { |p| ret << message_to_chunks(p) } if m.multipart?
-    ret.compact.flatten
+    end
   end
 
   ## parse the lines of text into chunk objects.  the heuristics here
