@@ -34,7 +34,7 @@ class IMAP < Source
   SCAN_INTERVAL = 60 # seconds
 
   ## upon these errors we'll try to rereconnect a few times
-  RECOVERABLE_ERRORS = [ Errno::EPIPE, Errno::ETIMEDOUT ]
+  RECOVERABLE_ERRORS = [ Errno::EPIPE, Errno::ETIMEDOUT, OpenSSL::SSL::SSLError ]
 
   attr_accessor :username, :password
 
@@ -233,15 +233,17 @@ private
       begin
         unsafe_connect unless @imap
         yield
-      rescue *RECOVERABLE_ERRORS
+      rescue *RECOVERABLE_ERRORS => e
         if (retries += 1) <= 3
           @imap = nil
+          Redwood::log "got #{e.class.name}: #{e.message.inspect}"
+          sleep 2
           retry
         end
         raise
       end
     rescue SocketError, Net::IMAP::Error, SystemCallError, IOError, OpenSSL::SSL::SSLError => e
-      raise FatalSourceError, "While communicating with IMAP server (type #{e.class.name}): #{e.message}"
+      raise FatalSourceError, "While communicating with IMAP server (type #{e.class.name}): #{e.message.inspect}"
     end
   end
 
