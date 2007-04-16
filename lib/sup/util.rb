@@ -303,6 +303,8 @@ class Recoverable
   def to_yaml x; __pass :to_yaml, x; end
   def is_a? c; @o.is_a? c; end
 
+  def respond_to? m; @o.respond_to? m end
+
   def __pass m, *a, &b
     begin
       @o.send(m, *a, &b)
