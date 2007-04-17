@@ -1,19 +1,21 @@
 for 0.0.9
 ---------
 _ bugfix: read before thread-index has finished loading then hides the thread?!? wtf. (on jamie)
-_ bugfix: sup-add not prompting for old accounts, i think? possibly because
-    sources no longer respond_to? :username due to Recoverable wrapping
-_ bugfix: rmail multipart error
 _ bugfix: ferret flakiness: just added message but can't find it.
 _ bugfix: when one new message comes into an imap folder, we don't
    catch it until a reload (sometimes?)
 _ bugfix: add new message counts until keypress
 _ bugfix: attachment filenames sometimes not detected (filename=)
+_ bugfix: readlock
 _ split out threading & message chunk parsing to a separate library
+_ decode RFC 2047 ("encoded word") headers
+  - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
+x bugfix: rmail multipart error
+x bugfix: sup-add not prompting for old accounts, i think? possibly because
+    sources no longer respond_to? :username due to Recoverable wrapping
 
 near future
 ---------
-_ Net::SMTP support (cuz I'm going to need it soon)
 _ create attachments
 _ forward attachments
 _ select all, starred, to me, etc
@@ -24,10 +26,9 @@ _ mboxz, mboxbz
 
 future
 ------
+Net::SMTP support
 search results: highlight relevant snippets and open to relevant portion of thread
 email address to name mapping needs some work. automatic email addresses (noreply@...) are often assigned to something screwy.
-decode RFC 2047 ("encoded word") headers
-  - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
 swappable keymappings
 within-buffer search
 bugfix: when returning from a shelling out, ncurses is crazy 
