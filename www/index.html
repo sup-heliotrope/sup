@@ -1,103 +1,136 @@
-<html>
-<head>
-<title>Sup</title>
-</head>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
-<body>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<title>Sup</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+		<link rel="stylesheet" href="main.css" type="text/css" />
+	</head>
 
-<h1>Sup</h1>
+	<body>
+		<h1>Sup</h1>
 
-<p> Sup is a console-based email client that combines the best
-    features of GMail, mutt, and emacs. Sup matches the power of GMail
-    with the speed and simplicity of a console interface.
-</p>
+		<p>
+		Sup is a console-based email client that combines the best features
+		of Gmail, mutt, and emacs. Sup matches the power of Gmail with the
+		speed and simplicity of a console interface.
+		</p>
 
-<p> Sup makes it easy to:
+		<p>
+		Sup makes it easy to:
+		</p>
 
-<ul>
+		<ul>
+			<li>
+			Handle massive amounts of email.
+			</li>
 
-<li> Handle massive amounts of email. </li>
+			<li>
+			Mix email from different sources: mbox files (even across
+			different machines), IMAP folders, POP accounts, and Gmail
+			accounts.
+			</li>
 
-<li> Mix email from different sources: mbox files (even across
-     different machines), IMAP folders, POP accounts, and GMail
-     accounts. </li>
+			<li>
+			Instantaneously search over your entire email collection.
+			Search over body text, or use a query language to combine
+			search predicates in any way.
+			</li>
 
-<li> Instantaneously search over your entire email collection. Search
-     over body text, or use a query language to combine search
-     predicates in any way. </li>
+			<li>
+			Handle multiple accounts. Replying to email sent to a
+			particular account will use the correct SMTP server, signature,
+			and from address.
+			</li>
 
-<li> Handle multiple accounts. Replying to email sent to a particular
-     account will use the correct SMTP server, signature, and from
-     address. </li>
+			<li>
+			Add custom code to handle certain types of messages or to
+			handle certain types of text within messages.
+			</li>
 
-<li> Add custom code to handle certain types of messages or to handle
-     certain types of text within messages. </li>
+			<li>
+			Organize email with user-defined labels, automatically track
+			recent contacts, and much more!
+			</li>
+		</ul>
 
-<li> Organize email with user-defined labels, automatically track
-     recent contacts, and much more! </li> </ul> </p>
+		<p>
+		The goal of Sup is to become the email client of choice for nerds
+		everywhere.
+		</p>
 
-<p> The goal of Sup is to become the email client of choice for nerds
-    everywhere. </p>
+		<h2>Screenshots</h2>
 
-<h2>Screenshots</h2>
+		<ul id="screenshots">
+			<li><a href="ss1.png"><img src="ss1-small.png" alt="Sup screenshot 1" /></a></li>
+			<li><a href="ss2.png"><img src="ss2-small.png" alt="Sup screenshot 2" /></a></li>
+			<li><a href="ss3.png"><img src="ss3-small.png" alt="Sup screenshot 3" /></a></li>
+			<li><a href="ss4.png"><img src="ss4-small.png" alt="Sup screenshot 4" /></a></li>
+			<li><a href="ss5.png"><img src="ss5-small.png" alt="Sup screenshot 5" /></a></li>
+			<li><a href="ss6.png"><img src="ss6-small.png" alt="Sup screenshot 6" /></a></li>
+		</ul>
 
-<a href="ss1.png"><img src="ss1-small.png"></a>
-<a href="ss2.png"><img src="ss2-small.png"></a>
-<a href="ss3.png"><img src="ss3-small.png"></a>
-<a href="ss4.png"><img src="ss4-small.png"></a>
-<a href="ss5.png"><img src="ss5-small.png"></a>
-<a href="ss6.png"><img src="ss6-small.png"></a>
+		<h2>Documentation</h2>
 
-<h2>Documentation</h2>
+		<p>
+		Please read the <a href="README.txt">README</a>, the <a
+			href="FAQ.txt">FAQ</a>, the <a href="UserGuide.txt">user guide</a>
+		and the <a href="Philosophy.txt">philosophical statement</a>.
+		</p>
 
-Please read the <a href="README.txt">README</a>, the <a
-href="FAQ.txt">FAQ</a>, the <a href="UserGuide.txt">user guide</a> and
-the <a href="Philosophy.txt">philosophical statement</a>.
+		<h2>Status</h2>
 
-<h2>Status</h2>
+		<p>
+		The current version of Sup is 0.0.8, released 2007-04-01. This is a
+		beta release. It is unix-centric and has no i18n support. It supports
+		mbox, mbox over ssh, IMAP, IMAPS, and Maildir. It does not support POP
+		or Gmail. I plan to fix all of these problems.
+		</p>
 
-<p> The current version of Sup is 0.0.8, released 2007-04-01.
-    This is a beta release. It is unix-centric and has no i18n
-    support. It supports mbox, mbox over ssh, IMAP, and Maildir.  It
-    does not support POP or GMail. I plan to fix all of these
-    problems. </p>
+		<p>
+		Other than those limitations, it works great! I use it for my everyday
+		email, and it makes dealing with 85,000 messages a breeze.
+		</p>
 
-<p> Other than those limitations, it works great! I use it for my
-    everyday email, and it makes dealing with 85,000 messages a
-    breeze. </p>
+		<h2>Getting it</h2>
 
-<h2>Getting it</h2>
+		<p>
+		You can download Sup releases from the <a
+			href="http://rubyforge.org/projects/sup/">Sup RubyForge page</a>.
+		If you have RubyGems installed, simply command your computer to "gem
+		install sup".
+		</p>
 
-<p> You can download Sup releases from the <a
-    href="http://rubyforge.org/projects/sup/">Sup RubyForge
-    page</a>. If you have RubyGems installed, simply command your
-    computer to "gem install sup". </p>
+		<p>
+		If you're interested in development, please read the <a
+			href="http://rubyforge.org/scm/?group_id=2603">Sup anonymous SVN
+			access instructions</a>. You can also <a
+			href="http://rubyforge.org/viewvc?root=sup">browse the SVN
+			repository</a>.
+		</p>
 
-<p> If you're interested in development, please read the <a
-    href="http://rubyforge.org/scm/?group_id=2603">Sup anonymous SVN
-    access instructions</a>. You can also <a
-    href="http://rubyforge.org/viewvc?root=sup">browse the SVN
-    repository</a>.</p>
+		<h2>Bug reports</h2>
 
-<h2>Bug reports</h2>
+		<p>
+		You can email me at wmorgan dash sup at masanjin dot nets, but I would
+		prefer that you post something to the <a
+			href="http://rubyforge.org/forum/?group_id=2603">sup forums</a>.
+		</p>
 
-<p> You can email me at wmorgan dash sup at masanjin dot nets, but I
-    would prefer that you post something to the <a
-    href="http://rubyforge.org/forum/?group_id=2603">sup forums</a>.
-</p>
+		<h2>Credit</h2>
 
-<h2>Credit</h2>
+		<p>
+		Sup is brought to you by <a href="http://cs.stanford.edu/~ruby/">William Morgan</a>.
+		</p>
 
-<p> Sup is brought to you by <a href="http://cs.stanford.edu/~ruby/">William Morgan</a>. </p>
-
-<p> Sup is made possible by the hard work of <a
-    href="http://www.davebalmain.com/">Dave Balmain</a> and his
-    fantastic IR engine <a
-    href="http://ferret.davebalmain.com/trac/">Ferret</a>, and by <a
-    href="http://www.lickey.com/">Matt Armstrong</a>'s tragically
-    abandoned <a href="http://www.lickey.com/rubymail/">RubyMail</a>
-    package.
-</p>
-
-</body>
+		<p>
+		Sup is made possible by the hard work of <a
+			href="http://www.davebalmain.com/">Dave Balmain</a> and his
+		fantastic IR engine <a
+			href="http://ferret.davebalmain.com/trac/">Ferret</a>, and by <a
+			href="http://www.lickey.com/">Matt Armstrong</a>'s tragically
+		abandoned <a href="http://www.lickey.com/rubymail/">RubyMail</a>
+		package.
+		</p>
+	</body>
 </html>

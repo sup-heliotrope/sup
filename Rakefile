@@ -23,7 +23,7 @@ rule 'ss?.png' => 'ss?-small.png' do |t|
 end
 
 ## is there really no way to make a rule for this?
-WWW_FILES = %w(www/index.html README.txt doc/Philosophy.txt doc/FAQ.txt doc/UserGuide.txt)
+WWW_FILES = %w(www/index.html README.txt doc/Philosophy.txt doc/FAQ.txt doc/UserGuide.txt www/main.css)
 
 SCREENSHOTS = FileList["www/ss?.png"]
 SCREENSHOTS_SMALL = []
