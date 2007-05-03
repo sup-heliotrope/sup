@@ -34,7 +34,7 @@ class Message
       @desc = desc
       @part = part
       @file = nil
-      desc =~ /filename="(.*?)"/ && @filename = $1
+      desc =~ /filename="?(.*?)("|$)/ && @filename = $1
     end
 
     def view!
