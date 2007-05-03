@@ -209,6 +209,10 @@ private
 
   def make_id imap_stuff
     # use 7 digits for the size. why 7? seems nice.
+    %w(RFC822.SIZE INTERNALDATE).each do |w|
+      raise FatalSourceError, "requested data not in IMAP response: #{w}" unless imap_stuff.attr[w]
+    end
+    
     msize, mdate = imap_stuff.attr['RFC822.SIZE'] % 10000000, Time.parse(imap_stuff.attr["INTERNALDATE"])
     sprintf("%d%07d", mdate.to_i, msize).to_i
   end
@@ -221,7 +225,7 @@ private
     got_id = make_id results
     raise OutOfSyncSourceError, "IMAP message mismatch: requested #{id}, got #{got_id}." unless got_id == id
 
-    fields.map { |f| results.attr[f] }
+    fields.map { |f| results.attr[f] or raise FatalSourceError, "empty response from IMAP server: #{f}" }
   end
 
   ## execute a block, connected if unconnected, re-connected up to 3
