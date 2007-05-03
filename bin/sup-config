@@ -65,7 +65,7 @@ def add_source
         return if fn.nil? || fn.empty?
         { :scheme => "maildir", :path => fn }
       when :mboxssh
-        srv = axe "What server is the mbox file located on?", $last_server 
+        srv = axe "What machine is the mbox file located on?", $last_server 
         return if srv.nil? || srv.empty?
         $last_server = srv
         fn = axe "What's the full path to the mbox file?", ENV["MAIL"] #"srm
@@ -73,13 +73,19 @@ def add_source
         fn = "/#{fn}" # lame
         { :scheme => "mbox+ssh", :host => srv, :path => fn }
       when :imap, :imaps
-        srv = axe "What is the IMAP server?", $last_server
+        srv = axe "What is the IMAP server (host, or host:port notation)?", $last_server
         return if srv.nil? || srv.empty?
         $last_server = srv
         fn = axe "What's the folder path?", "INBOX" #"srm 
         return if fn.nil? || fn.empty?
         fn = "/#{fn}" # lame
-        { :scheme => type.to_s, :host => srv, :path => fn }
+
+        if srv =~ /^(\w+):(\d+)$/
+          host, port = $1, $2.to_i
+        else
+          host, port = srv, nil
+        end
+        { :scheme => type.to_s, :host => host, :port => port, :path => fn }
       end
     
     uri = 
