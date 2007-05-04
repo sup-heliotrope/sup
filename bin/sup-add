@@ -86,6 +86,7 @@ ARGV.each do |uri|
   end
 
   parsed_uri = URI(uri)
+  Trollop::die "no path component to uri: #{parsed_uri}" unless parsed_uri.path
 
   source = 
     case parsed_uri.scheme
