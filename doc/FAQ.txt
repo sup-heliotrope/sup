@@ -1,14 +1,15 @@
 Sup FAQ
 -------
+
 Q: What does Sup stand for?
 A: It stands for "what's up?", which is more or less the question in
    mind when I fire up my mail client.
 
-Q: If you love GMail so much, why not just use it?
+Q: If you love Gmail so much, why not just use it?
 A: I hate ads, I hate using a mouse, and I hate non-programmability
    and non-extensibility.
 
-   Also, GMail encourages top-posting. THIS CANNOT BE TOLERATED!
+   Also, Gmail encourages top-posting. THIS CANNOT BE TOLERATED!
 
 Q: Why the console?
 A: Because a keystroke is worth a hundred mouse clicks (as any Unix
@@ -41,9 +42,9 @@ A: If messages have been moved, deleted, or altered in a source, Sup
    sources don't change except by having new messages added. If that
    assumption is violated, you'll have to sync the index.
 
-   The alternative is to rescan every source when Sup starts
-   up. Because Sup is designed to work with arbitrarily large mbox
-   files, this would not be a good idea.
+   The alternative is to rescan every source when Sup starts up.
+   Because Sup is designed to work with arbitrarily large mbox files,
+   this would not be a good idea.
 
 Q: How do I back up my index?
 Q: How do I make a state dump?
@@ -83,7 +84,7 @@ A: Move the messages from the source to the target using whatever tool
 
    If you sup-sync only one source at a time, depending on the order,
    the messages may be treated as missing and then deleted from the
-   index, which means that their state will be lost when you sync the
+   index, which means that their states will be lost when you sync the
    other source.
 
 Q: What are all these "Redwood" references I see in the code?
@@ -100,4 +101,3 @@ A: Sup is only possible through the hard work of Dave Balmain, the
    author of ferret, which is the search engine behind Sup. Ferret is
    really a first-class piece of software, and it's due to the
    tremendous amount of time and effort he's put in to it.
-

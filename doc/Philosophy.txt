@@ -5,7 +5,7 @@ ought to warrant a little thought.
 Here's Sup's philosophy.
 
 Using "traditional" email clients today is increasingly problematic.
-Anyone who's on a high-traffic mailing list knows this.  My ruby-talk
+Anyone who's on a high-traffic mailing list knows this. My ruby-talk
 folder is 430 megs and Mutt sits there for 60 seconds while it opens
 it. Keeping up with the all the new traffic is painful, even with
 Mutt's excellent threading features, simply because there's so much of
@@ -17,7 +17,7 @@ support. God help me if I try and throw Thunderbird at that.
 The principle problem with traditional clients is that they deal with
 individual pieces of email. This places a high mental cost on the user
 for each incoming email, by forcing them to ask: Should I keep this
-email, or delete it? If I keep it, where should I file it?  For
+email, or delete it? If I keep it, where should I file it? For
 example, I've spent the last 10 years of my life laboriously
 hand-filing every email message I received and feeling a mild sense of
 panic every time an email was both "from Mom" and "about school". The
@@ -25,9 +25,9 @@ massive amounts of email that many people receive, and the cheap cost
 of storage, have made these questions both more costly and less useful
 to answer.
 
-I think GMail has taken the right approach. As a long-time Mutt user,
-I was pretty much blown away when I first saw people use GMail,
-because I saw them treat email differently from how I ever had.  I saw
+I think Gmail has taken the right approach. As a long-time Mutt user,
+I was pretty much blown away when I first saw people use Gmail,
+because I saw them treat email differently from how I ever had. I saw
 that making certain operations quantitatively easier (namely, search)
 resulted in a qualitative difference in usage. You didn't have to
 worry about filing things into folders correctly, because you could
@@ -35,23 +35,23 @@ just find things later by searching for them. I also saw how
 thread-centrism was advantageous over message-centrism when message
 volume was high: if nothing else, there's simply less of them.
 
-Much of the inspiration for Sup was based on GMail. I think it's to
-the GMail designers' credit that they started with a somewhat ad-hoc
+Much of the inspiration for Sup was based on Gmail. I think it's to
+the Gmail designers' credit that they started with a somewhat ad-hoc
 idea (hey, we're really good at search engines, so maybe we can build
 an email client on top of one) and managed to build something that was
 actually better than everything else out there. At least, that's how I
 imagine in happened. Maybe they knew what they were doing from the
 start.
 
-But ultimately, GMail wasn't right for me (fuck top posting and HTML
+But ultimately, Gmail wasn't right for me (fuck top posting and HTML
 mail), which is why the idea for Sup was born.
 
 Sup is based on the following principles, which I stole directly from
-GMail:
+Gmail:
 
-- An immediately accessible and fast search capability over the
-  entire email archive eliminates most of the need for folders,
-  and eliminates the necessity of having to ever delete email.
+- An immediately accessible and fast search capability over the entire
+  email archive eliminates most of the need for folders, and
+  eliminates the necessity of having to ever delete email.
 
 - Labels eliminate what little need for folders search doesn't cover.
 

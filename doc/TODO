@@ -16,7 +16,7 @@ x bugfix: sup-add not prompting for old accounts, i think? possibly because
     sources no longer respond_to? :username due to Recoverable wrapping
 
 near future
----------
+-----------
 _ create attachments
 _ forward attachments
 _ select all, starred, to me, etc

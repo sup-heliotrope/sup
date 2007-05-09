@@ -9,7 +9,7 @@ If you want to play around a little at this point, you can press 'b'
 to cycle between buffers and 'x' to kill a buffer. There's probably
 not too much interesting there, but there's a log buffer with some
 cryptic messages. You can also press '?' at any point to get a list of
-keyboard commands, but in the absense of any email, these will be
+keyboard commands, but in the absence of any email, these will be
 mostly useless. When you get bored, press 'q' to quit.
 
 I mentioned that Sup's index was empty. The index is where Sup stores
@@ -19,8 +19,8 @@ only knows about messages in its index, so we've got to add some to
 it.
 
 We add messages to the index by telling Sup about the source where the
-messages reside. Sources are things like imap folders, mbox folders,
-maildir directories, and gmail accounts (in the future). Sup doesn't
+messages reside. Sources are things like IMAP folders, mbox folders,
+maildir directories, and Gmail accounts (in the future). Sup doesn't
 duplicate the actual message content in the index. So when you search
 for messages or view your inbox, Sup talks only to the index (stored
 locally on disk). When you view a thread, Sup requests the full
@@ -38,16 +38,15 @@ sup-add and sup-sync manually.
 You can manually add a source to Sup's source list by running
 'sup-add' with a URI pointing to it. The URI should be of the form:
 - mbox://path/to/a/filename, for an mbox file on disk.
-- maildir://path/to/a/filename, for an maildir directory on disk.
+- maildir://path/to/a/filename, for a maildir directory on disk.
 - imap://imap.server/folder for an unsecure IMAP folder.
 - imaps://secure.imap.server/folder for a secure IMAP folder.
 - mbox+ssh://remote.machine/path/to/a/filename for a remote mbox file.
 
 Before you add the source, you need make two decisions. The first is
-whether you want Sup to regularly poll this source for new
-messages. By default it will, but if this is a source that will never
-have new messages, you can specify --unusual. Sup polls only "usual"
-sources.
+whether you want Sup to regularly poll this source for new messages.
+By default it will, but if this is a source that will never have new
+messages, you can specify --unusual. Sup polls only "usual" sources.
 
 The second is whether you want messages from the source to be
 automatically archived. An archived message will not show up in your
@@ -69,8 +68,8 @@ all imported messages as read; the default is to preserve the
 read/unread status from the source.
 
 sup-sync will now load all the messages from the source into the
-index. Depending on the size of the source, this may take a
-while. Don't panic! It's a one-time process.
+index. Depending on the size of the source, this may take a while.
+Don't panic! It's a one-time process.
 
 Ok, now run 'sup'. You should see the most recent unarchived messages
 appear in your inbox. Congratulations, you've got Sup working!
@@ -80,7 +79,7 @@ couple differences you should be aware of at this point. First, Sup
 does not use folders. Instead, you organize and find messages by a
 combination of search and labels (knowns as 'tags' everywhere else in
 the world). I claim that 95% of the functionality of folders is
-superceded by a quick, easy-to-access, and powerful search mechanism,
+superseded by a quick, easy-to-access, and powerful search mechanism,
 and the other 5% by labels. (The Sup philosophical treatise has a
 little more on this.)
 
@@ -109,19 +108,19 @@ You typically want to view, archive, kill, or label all the messages
 in a thread at one time.
 
 Use the up and down arrows to highlight a thread. ('j' and 'k' do the
-same thing, and 'J' and 'K' will scroll the whole window.  Even the
+same thing, and 'J' and 'K' will scroll the whole window. Even the
 left and right arrow keys work.) By default, Sup only loads as many
 threads as it takes to fill the window; if you'd like to load more,
 press 'M'. You can hit tab to cycle between only threads with new
 messages.
 
 Highlight a thread and press enter to view it. You'll notice that all
-messages in the thread are displayed together, layed out graphically
-by their relationship to each other (replies are nested under
-parents). By default, only the new messages in a thread are expanded,
-and the others are hidden. You can toggle an individual message's
-state by highlighting a green line and pressing enter. You can use 'E'
-to expand or collapse all messages or 'N' to expand only the new
+messages in the thread are displayed together, laid out graphically by
+their relationship to each other (replies are nested under parents).
+By default, only the new messages in a thread are expanded, and the
+others are hidden. You can toggle an individual message's state by
+highlighting a green line and pressing enter. You can use 'E' to
+expand or collapse all messages or 'N' to expand only the new
 messages. You'll also notice that Sup hides quoted text and
 signatures. If you highlight a particular hidden chunk, you can press
 enter to expand it, or you can press 'o' to toggle every hidden chunk
@@ -129,10 +128,10 @@ in a particular message. (You can hit '?' to see the full list of
 keyboard commands at any point.)
 
 A few other useful commands while viewing a thread. Press 'd' to
-toggle a detailed header fpr a message. If you've scrolled too far to
+toggle a detailed header for a message. If you've scrolled too far to
 the right, press '[' to jump all the way to the left. Finally, you can
-press 'n' and 'p' to jump forward and backward between open
-messages, aligning the display as necessary.
+press 'n' and 'p' to jump forward and backward between open messages,
+aligning the display as necessary.
 
 Now press 'x' to kill the thread view buffer. You should see the inbox
 again. If you don't, you can cycle through the buffers by pressing
@@ -148,12 +147,12 @@ even if people reply, but will still be searchable. (This is useful
 for those interminable threads that you really have no interest in,
 but which seem to pop up on every mailing list.)
 
-If a thread is spam, press 'S'. It will disappear and won't come
-back. It won't even appear in search results (unless you explicitly
-search for spam.)
+If a thread is spam, press 'S'. It will disappear and won't come back.
+It won't even appear in search results (unless you explicitly search
+for spam.)
 
 You can also star a thread by pressing '*'. Starred threads are
-displayed with a little yellow asterix next to them, but otherwise
+displayed with a little yellow asterisk next to them, but otherwise
 have no special semantics. (But you can also search for them
 easily---we'll see how in a moment).
 
