@@ -16,18 +16,18 @@ module MBox
     ## when scanning over large mbox files.
     while(line = f.gets)
       case line
-      when /^(From):\s+(.*)\s*$/i,
-        /^(To):\s+(.*)\s*$/i,
-        /^(Cc):\s+(.*)\s*$/i,
-        /^(Bcc):\s+(.*)\s*$/i,
-        /^(Subject):\s+(.*)\s*$/i,
-        /^(Date):\s+(.*)\s*$/i,
-        /^(Message-Id):\s+<(.*)>\s*$/i,
-        /^(References):\s+(.*)\s*$/i,
-        /^(In-Reply-To):\s+(.*)\s*$/i,
-        /^(Reply-To):\s+(.*)\s*$/i,
-        /^(List-Post):\s+(.*)\s*$/i,
-        /^(Status):\s+(.*)\s*$/i: header[last = $1] = $2
+      when /^(From):\s+(.*?)\s*$/i,
+        /^(To):\s+(.*?)\s*$/i,
+        /^(Cc):\s+(.*?)\s*$/i,
+        /^(Bcc):\s+(.*?)\s*$/i,
+        /^(Subject):\s+(.*?)\s*$/i,
+        /^(Date):\s+(.*?)\s*$/i,
+        /^(Message-Id):\s+<(.*?)>\s*$/i,
+        /^(References):\s+(.*?)\s*$/i,
+        /^(In-Reply-To):\s+(.*?)\s*$/i,
+        /^(Reply-To):\s+(.*?)\s*$/i,
+        /^(List-Post):\s+(.*?)\s*$/i,
+        /^(Status):\s+(.*?)\s*$/i: header[last = $1] = $2
 
       ## these next three can occur multiple times, and we want the
       ## first one
@@ -36,7 +36,7 @@ module MBox
         /^(Envelope-To):\s+(.*)$/i: header[last = $1] ||= $2
 
       when /^$/: break
-      when /:/: last = nil
+      when /:/: last = nil # some other header we don't care about
       else
         header[last] += " " + line.chomp.gsub(/^\s+/, "") if last
       end
