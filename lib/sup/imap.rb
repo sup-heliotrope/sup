@@ -115,9 +115,16 @@ class IMAP < Source
 
     return if last_id == @ids.length
 
-    Redwood::log "fetching IMAP headers #{(@ids.length + 1) .. last_id}"
-    values = safely { @imap.fetch((@ids.length + 1) .. last_id, ['RFC822.SIZE', 'INTERNALDATE']) }
-    values.each do |v|
+    range = (@ids.length + 1) .. last_id
+    Redwood::log "fetching IMAP headers #{range}"
+    values = safely { @imap.fetch range, ['RFC822.SIZE', 'INTERNALDATE'] }
+    relevant_values = values.find_all { |v| range.include? v.seqno }
+
+    if relevant_values.size < values.size
+      Redwood::log "You IMAP server is buggy: it returned #{values.size} headers for a request for #{range.size}. What are you using, Binc?"
+    end
+
+    relevant_values.each do |v|
       id = make_id v
       @ids << id
       @imap_ids[id] = v.seqno
