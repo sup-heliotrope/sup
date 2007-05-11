@@ -116,21 +116,9 @@ Current limitations which will be fixed:
 
 * gem install sup -y
 
-== KNOWN BUGS IN OTHER PACKAGES:
+== PROBLEMS:
 
-* If you get an error about frozen strings in RubyMail when importing
-  certain messages with attachments, in rmail, change line 159 of
-  multipart.rb to:
-    chunk = chunk[0..start]
-  This is because RubyMail hasn't been updated since like Ruby 1.8.2.
-  Please bug Matt Lickey.
-* Occasionally Ferret produces something the Ruby GC doesn't like
-  (particularly when importing messages from very large sources).
-  No worries, just re-run sup-import. (This is unresolved atm.)
-* If you are using IMAP or Maildir and see this error:
-    /usr/local/lib/ruby/1.8/yaml.rb:133:in `transfer': allocator undefined for Bignum (TypeError)
-  then you need to upgrade to Ruby 1.8.5. YAML in earlier versions
-  can't parse BigNums.
+See FAQ.txt for some common problems and their solutions.
 
 == LICENSE:
 
