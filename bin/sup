@@ -2,7 +2,21 @@
 
 require 'rubygems'
 require 'ncurses'
+require 'trollop'
 require "sup"
+
+$opts = Trollop::options do
+  version "sup v#{Redwood::VERSION}"
+  banner <<EOS
+Sup is a curses-based email client.
+
+Usage:
+  sup [options]
+
+Options are:
+EOS
+  opt :no_threads, "Turn of threading. Helps with debugging. (Necessarily disables background polling for new messages.)"
+end
 
 Thread.abort_on_exception = true # make debugging possible
 
@@ -126,7 +140,7 @@ begin
 
   imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread { sleep 1; PollManager.poll } }
 
-  PollManager.start_thread
+  PollManager.start_thread unless $opts[:no_threads]
 
   until $exception
     bm.draw_screen

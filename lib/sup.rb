@@ -30,16 +30,20 @@ module Redwood
 ## record exceptions thrown in threads nicely
   $exception = nil
   def reporting_thread
-    ::Thread.new do
-      begin
-        yield
-      rescue Exception => e
-        File.open("sup-exception-log.txt", "w") do |f|
-          f.puts "--- #{e.class.name} at #{Time.now}"
-          f.puts e.message, e.backtrace
+    if $opts[:no_threads]
+      yield
+    else
+      ::Thread.new do
+        begin
+          yield
+        rescue Exception => e
+          File.open("sup-exception-log.txt", "w") do |f|
+            f.puts "--- #{e.class.name} at #{Time.now}"
+            f.puts e.message, e.backtrace
+          end
+          $exception ||= e
+          raise
         end
-        $exception ||= e
-        raise
       end
     end
   end
