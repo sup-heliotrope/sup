@@ -11,6 +11,9 @@ A: I hate ads, I hate using a mouse, and I hate non-programmability
 
    Also, Gmail encourages top-posting. THIS CANNOT BE TOLERATED!
 
+   Also, Gmail doesn't let you use a monospace font, which is just
+   plain lame.
+
 Q: Why the console?
 A: Because a keystroke is worth a hundred mouse clicks (as any Unix
    user knows). Because you don't need web browser. Because you get
