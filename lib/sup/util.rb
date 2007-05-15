@@ -9,7 +9,10 @@ class Module
   end
 
   def defer_all_other_method_calls_to obj
-    class_eval %{ def method_missing meth, *a, &b; @#{obj}.send meth, *a, &b; end }
+    class_eval %{
+      def method_missing meth, *a, &b; @#{obj}.send meth, *a, &b; end
+      def respond_to? meth; @#{obj}.respond_to?(meth); end
+    }
   end
 end
 
@@ -313,4 +316,36 @@ class Recoverable
       raise e
     end
   end
+end
+
+## acts like a hash with an initialization block, but saves any
+## newly-created value even upon lookup.
+##
+## for example:
+##
+## class C
+##   attr_accessor :val
+##   def initialize; @val = 0 end
+## end
+## 
+## h = Hash.new { C.new }
+## h[:a].val # => 0
+## h[:a].val = 1
+## h[:a].val # => 0
+##
+## h2 = SavingHash.new { C.new }
+## h2[:a].val # => 0
+## h2[:a].val = 1
+## h2[:a].val # => 1
+class SavingHash
+  def initialize &b
+    @constructor = b
+    @hash = Hash.new
+  end
+
+  def [] k
+    @hash[k] ||= @constructor.call(k)
+  end
+
+  defer_all_other_method_calls_to :hash
 end

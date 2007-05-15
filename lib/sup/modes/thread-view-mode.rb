@@ -2,8 +2,12 @@ module Redwood
 
 class ThreadViewMode < LineCursorMode
   ## this holds all info we need to lay out a message
-  class Layout
+  class MessageLayout
     attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color, :star_color, :orig_new
+  end
+
+  class ChunkLayout
+    attr_accessor :state
   end
 
   DATE_FORMAT = "%B %e %Y %l:%M%P"
@@ -30,27 +34,26 @@ class ThreadViewMode < LineCursorMode
     k.add :archive_and_kill, "Archive thread and kill buffer", 'A'
   end
 
-  ## there are a couple important instance variables we hold to lay
-  ## out the thread and to provide line-based functionality. @layout
-  ## is a map from Message and Chunk objects to Layout objects. (for
-  ## chunks, we only use the state field right now.) @message_lines is
-  ## a map from row #s to Message objects. @chunk_lines is a map from
-  ## row #s to Chunk objects. @person_lines is a map from row #s to
-  ## Person objects.
+  ## there are a couple important instance variables we hold to format
+  ## the thread and to provide line-based functionality. @layout is a
+  ## map from Messages to MessageLayouts, and @chunk_layout from
+  ## Chunks to ChunkLayouts.  @message_lines is a map from row #s to
+  ## Message objects.  @chunk_lines is a map from row #s to Chunk
+  ## objects. @person_lines is a map from row #s to Person objects.
 
   def initialize thread, hidden_labels=[]
     super()
     @thread = thread
     @hidden_labels = hidden_labels
 
-    @layout = {}
+    @layout = SavingHash.new { MessageLayout.new }
+    @chunk_layout = SavingHash.new { ChunkLayout.new }
     earliest, latest = nil, nil
     latest_date = nil
     altcolor = false
     @thread.each do |m, d, p|
       next unless m
       earliest ||= m
-      @layout[m] = Layout.new
       @layout[m].state = initial_state_for m
       @layout[m].color = altcolor ? :alternate_patina_color : :message_patina_color
       @layout[m].star_color = altcolor ? :alternate_starred_patina_color : :starred_patina_color
@@ -148,7 +151,7 @@ class ThreadViewMode < LineCursorMode
     case chunk
     when Message, Message::Quote, Message::Signature
       return if chunk.lines.length == 1 unless chunk.is_a? Message # too small to expand/close
-      l = @layout[chunk]
+      l = @chunk_layout[chunk]
       l.state = (l.state != :closed ? :closed : :open)
       cursor_down if l.state == :closed
     when Message::Attachment
@@ -241,27 +244,27 @@ class ThreadViewMode < LineCursorMode
   def expand_all_messages
     @global_message_state ||= :closed
     @global_message_state = (@global_message_state == :closed ? :open : :closed)
-    @layout.each { |m, l| l.state = @global_message_state if m.is_a? Message }
+    @layout.each { |m, l| l.state = @global_message_state }
     update
   end
 
   def collapse_non_new_messages
-    @layout.each { |m, l| l.state = l.orig_new ? :open : :closed if m.is_a? Message }
+    @layout.each { |m, l| l.state = l.orig_new ? :open : :closed }
     update
   end
 
   def expand_all_quotes
     if(m = @message_lines[curpos])
       quotes = m.chunks.select { |c| (c.is_a?(Message::Quote) || c.is_a?(Message::Signature)) && c.lines.length > 1 }
-      numopen = quotes.inject(0) { |s, c| s + (@layout[c].state == :open ? 1 : 0) }
+      numopen = quotes.inject(0) { |s, c| s + (@chunk_layout[c].state == :open ? 1 : 0) }
       newstate = numopen > quotes.length / 2 ? :closed : :open
-      quotes.each { |c| @layout[c].state = newstate }
+      quotes.each { |c| @chunk_layout[c].state = newstate }
       update
     end
   end
 
   def cleanup
-    @layout = @text = nil # for good luck
+    @layout = @chunk_layout = @text = nil # for good luck
   end
 
   def archive_and_kill
@@ -300,10 +303,10 @@ private
         @text += chunk_to_lines m, nil, @text.length, depth, parent
         next
       end
-      l = @layout[m] or next # TODO: figure out why this is nil sometimes
+      l = @layout[m]
 
       ## build the patina
-      text = chunk_to_lines m, l.state, @text.length, depth, parent, @layout[m].color, @layout[m].star_color
+      text = chunk_to_lines m, l.state, @text.length, depth, parent, l.color, l.star_color
       
       l.top = @text.length
       l.bot = @text.length + text.length # updated below
@@ -322,9 +325,9 @@ private
 
       @text += text
       prevm = m 
-      if @layout[m].state != :closed
+      if l.state != :closed
         m.chunks.each do |c|
-          cl = (@layout[c] ||= Layout.new)
+          cl = @chunk_layout[c]
           cl.state ||= :closed
           text = chunk_to_lines c, cl.state, @text.length, depth
           (0 ... text.length).each do |i|
