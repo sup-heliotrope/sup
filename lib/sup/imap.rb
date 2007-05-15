@@ -120,7 +120,7 @@ class IMAP < Source
     values = safely { @imap.fetch range, ['RFC822.SIZE', 'INTERNALDATE'] }
     relevant_values = values.find_all { |v| range.include? v.seqno }
 
-    if relevant_values.size < values.size
+    if relevant_values.size != values.size
       Redwood::log "You IMAP server is buggy: it returned #{values.size} headers for a request for #{range.size}. What are you using, Binc?"
     end
 

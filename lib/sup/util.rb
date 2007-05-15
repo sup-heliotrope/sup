@@ -1,3 +1,10 @@
+class Range
+  ## only valid for integer ranges (unless I guess it's exclusive)
+  def size 
+    last - first + (exclude_end? ? 0 : 1)
+  end
+end
+
 class Module
   def bool_reader *args
     args.each { |sym| class_eval %{ def #{sym}?; @#{sym}; end } }
