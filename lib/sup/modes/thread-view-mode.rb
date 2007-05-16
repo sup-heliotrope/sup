@@ -149,8 +149,12 @@ class ThreadViewMode < LineCursorMode
   def toggle_expanded
     chunk = @chunk_lines[curpos] or return
     case chunk
-    when Message, Message::Quote, Message::Signature
-      return if chunk.lines.length == 1 unless chunk.is_a? Message # too small to expand/close
+    when Message
+      l = @layout[chunk]
+      l.state = (l.state != :closed ? :closed : :open)
+      cursor_down if l.state == :closed
+    when Message::Quote, Message::Signature
+      return if chunk.lines.length == 1
       l = @chunk_layout[chunk]
       l.state = (l.state != :closed ? :closed : :open)
       cursor_down if l.state == :closed
