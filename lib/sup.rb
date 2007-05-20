@@ -160,6 +160,7 @@ else
       }
     },
     :editor => ENV["EDITOR"] || "/usr/bin/vi",
+    :thread_by_subject => false,
   }
   begin
     FileUtils.mkdir_p Redwood::BASE_DIR

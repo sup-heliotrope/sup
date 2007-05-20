@@ -455,7 +455,7 @@ protected
 private
 
   def initialize_threads
-    @ts = ThreadSet.new Index.instance
+    @ts = ThreadSet.new Index.instance, $config[:thread_by_subject]
     @ts_mutex = Mutex.new
     @hidden_threads = {}
   end

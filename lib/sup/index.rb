@@ -148,20 +148,19 @@ class Index
   end
 
   ## yield all messages in the thread containing 'm' by repeatedly
-  ## querying the index. uields pairs of message ids and
+  ## querying the index. yields pairs of message ids and
   ## message-building lambdas, so that building an unwanted message
   ## can be skipped in the block if desired.
   ##
   ## stops loading any thread if a message with a :killed flag is found.
-
   SAME_SUBJECT_DATE_LIMIT = 7
   def each_message_in_thread_for m, opts={}
+    Redwood::log "Building thread for #{m.id}: #{m.subj}"
     messages = {}
     searched = {}
     num_queries = 0
 
-    ## todo: make subject querying configurable
-    if true # do subject queries
+    if $config[:thread_by_subject] # do subject queries
       date_min = m.date - (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
       date_max = m.date + (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
 
@@ -196,14 +195,15 @@ class Index
         break if opts[:limit] && messages.size >= opts[:limit]
         break if @index[docid][:label].split(/\s+/).include? "killed" unless opts[:load_killed]
         mid = @index[docid][:message_id]
-        unless messages.member? mid
+        unless id == mid || messages.member?(mid)
+          Redwood::log "got #{mid} as a child of #{id}"
           messages[mid] ||= lambda { build_message docid }
           refs = @index[docid][:refs].split(" ")
           pending += refs
         end
       end
     end
-    Redwood::log "ran #{num_queries} queries to build thread of #{messages.size} messages for #{m.id}" if num_queries > 0
+    Redwood::log "ran #{num_queries} queries to build thread of #{messages.size + 1} messages for #{m.id}" if num_queries > 0
     messages.each { |mid, builder| yield mid, builder }
   end
 

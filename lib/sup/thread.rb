@@ -1,24 +1,28 @@
-## Herein is all the code responsible for threading messages. I use an
-## online version of the JWZ threading algorithm:
+## Herein lies all the code responsible for threading messages. It's
+## basically an online version of the JWZ threading algorithm:
 ## http://www.jwz.org/doc/threading.html
 ##
-## I certainly didn't implement it for efficiency, but thanks to our
-## search engine backend, it's typically not applied to very many
-## messages at once.
-
-## At the top level, we have a ThreadSet. A ThreadSet represents a set
-## of threads, e.g. a message folder or an inbox. Each ThreadSet
-## contains zero or more Threads. A Thread represents all the message
-## related to a particular subject. Each Thread has one or more
-## Containers. A Container is a recursive structure that holds the
-## tree structure as determined by the references: and in-reply-to:
-## headers. A Thread with multiple Containers occurs if they have the
-## same subject, but (most likely due to someone using a primitive
-## MUA) we don't have evidence from in-reply-to: or references:
-## headers, only subject: (and thus our tree is probably broken). A
-## Container holds zero or one message. In the case of no message, it
-## means we've seen a reference to the message but haven't seen the
-## message itself (yet).
+## I didn't implement it for efficiency, but thanks to our search
+## engine backend, it's typically not applied to very many messages at
+## once.
+##
+## At the top level, we have a ThreadSet, which represents a set of
+## threads, e.g. a message folder or an inbox. Each ThreadSet contains
+## zero or more Threads. A Thread represents all the message related
+## to a particular subject. Each Thread has one or more Containers.  A
+## Container is a recursive structure that holds the message tree as
+## determined by the references: and in-reply-to: headers. EAch
+## Container holds zero or one messages. In the case of zero messages,
+## it means we've seen a reference to the message but haven't (yet)
+## seen the message itself.
+##
+## A Thread can have multiple top-level Containers if we decide to
+## group them together independent of tree structure, typically if
+## (e.g. due to someone using a primitive MUA) the messages have the
+## same subject but we don't have evidence from in-reply-to: or
+## references: headers. In this case Thread#each can optionally yield
+## a faked root object tying them all together into one tree
+## structure.
 
 module Redwood
 
@@ -38,20 +42,20 @@ class Thread
   end
 
   def empty?; @containers.empty?; end
+  def empty!; @containers.clear; end
+  def drop c; @containers.delete(c) or raise "bad drop"; end
 
-  def drop c
-    raise "bad drop" unless @containers.member? c
-    @containers.delete c
+  ## unused
+  def dump f=$stdout
+    f.puts "=== start thread #{self} with #{@containers.length} trees ==="
+    @containers.each { |c| c.dump_recursive f }
+    f.puts "=== end thread ==="
   end
 
-  def dump
-    puts "=== start thread #{self} with #{@containers.length} trees ==="
-    @containers.each { |c| c.dump_recursive }
-    puts "=== end thread ==="
-  end
-
-  ## yields each message, its depth, and its parent.  note that the
-  ## message can be a Message object, or :fake_root, or nil.
+  ## yields each message, its depth, and its parent. the message yield
+  ## parameter can be a Message object, or :fake_root, or nil (no
+  ## message found but the presence of one induced from other
+  ## messages).
   def each fake_root=false
     adj = 0
     root = @containers.find_all { |c| !Message.subj_is_reply?(c) }.argmin { |c| c.date || 0 }
@@ -201,11 +205,11 @@ class Container
     ].compact.join(" ") + ">"
   end
 
-  def dump_recursive indent=0, root=true, parent=nil
+  def dump_recursive f=$stdout, indent=0, root=true, parent=nil
     raise "inconsistency" unless parent.nil? || parent.children.include?(self)
     unless root
-      print " " * indent
-      print "+->"
+      f.print " " * indent
+      f.print "+->"
     end
     line = #"[#{useful? ? 'U' : ' '}] " +
       if @message
@@ -214,22 +218,31 @@ class Container
         "<no message>"
       end
 
-    puts "#{id} #{line}"#[0 .. (105 - indent)]
+    f.puts "#{id} #{line}"#[0 .. (105 - indent)]
     indent += 3
-    @children.each { |c| c.dump_recursive indent, false, self }
+    @children.each { |c| c.dump_recursive f, indent, false, self }
   end
 end
 
-## a set of threads (so a forest). builds the thread structures by
-## reading messages from an index.
+## A set of threads (so a forest). Builds thread structures by reading
+## messages from an index.
+##
+## If 'thread_by_subj' is true, puts messages with the same subject in
+## one thread, even if they don't reference each other. This is
+## helpful for crappy MUAs that don't set In-reply-to: or References:
+## headers, but means that messages may be threaded unnecessarily.
 class ThreadSet
   attr_reader :num_messages
+  bool_reader :thread_by_subj
 
-  def initialize index
+  def initialize index, thread_by_subj=true
     @index = index
     @num_messages = 0
-    @messages = {} ## map from message ids to container objects
-    @subj_thread = {} ## map from subject strings to thread objects
+    ## map from message ids to container objects
+    @messages = SavingHash.new { |id| Container.new id }
+    ## map from subject strings or (or root message ids) to thread objects
+    @threads = SavingHash.new { Thread.new }
+    @thread_by_subj = thread_by_subj
   end
 
   def contains_id? id; @messages.member?(id) && !@messages[id].empty?; end
@@ -238,19 +251,20 @@ class ThreadSet
   end
 
   def delete_cruft
-    @subj_thread.each { |k, v| @subj_thread.delete(k) if v.empty? || v.subj != k }
+    @threads.each { |k, v| @threads.delete(k) if v.empty? }
   end
   private :delete_cruft
 
-  def threads; delete_cruft; @subj_thread.values; end
-  def size; delete_cruft; @subj_thread.size; end
+  def threads; delete_cruft; @threads.values; end
+  def size; delete_cruft; @threads.size; end
 
-  def dump
-    @subj_thread.each do |s, t|
-      puts "**********************"
-      puts "** for subject #{s} **"
-      puts "**********************"
-      t.dump
+  ## unused
+  def dump f
+    @threads.each do |s, t|
+      f.puts "**********************"
+      f.puts "** for subject #{s} **"
+      f.puts "**********************"
+      t.dump f
     end
   end
 
@@ -291,7 +305,7 @@ class ThreadSet
       m = builder.call
       add_message m
       load_thread_for_message m, :load_killed => opts[:load_killed]
-      yield @subj_thread.size if block_given?
+      yield @threads.size if block_given?
     end
   end
 
@@ -305,7 +319,7 @@ class ThreadSet
 
   ## merges in a pre-loaded thread
   def add_thread t
-    raise "duplicate" if @subj_thread.values.member? t
+    raise "duplicate" if @threads.values.member? t
     t.each { |m, *o| add_message m }
   end
 
@@ -313,11 +327,10 @@ class ThreadSet
     m.refs.any? { |ref_id| @messages[ref_id] }
   end
 
-  ## an "online" version of the jwz threading algorithm.
+  ## the heart of the threading code
   def add_message message
-    id = message.id
-    el = (@messages[id] ||= Container.new id)
-    return if @messages[id].message # we've seen it before
+    el = @messages[message.id]
+    return if el.message # we've seen it before
 
     el.message = message
     oldroot = el.root
@@ -325,8 +338,7 @@ class ThreadSet
     ## link via references:
     prev = nil
     message.refs.each do |ref_id|
-      raise "non-String ref id #{ref_id.inspect} (full: #{message.refs.inspect})" unless ref_id.is_a?(String)
-      ref = (@messages[ref_id] ||= Container.new ref_id)
+      ref = @messages[ref_id]
       link prev, ref if prev
       prev = ref
     end
@@ -334,81 +346,43 @@ class ThreadSet
 
     ## link via in-reply-to:
     message.replytos.each do |ref_id|
-      ref = (@messages[ref_id] ||= Container.new ref_id)
+      ref = @messages[ref_id]
       link ref, el, true
       break # only do the first one
     end
 
-    ## update subject grouping
     root = el.root
-    #    puts "> have #{el}, root #{root}, oldroot #{oldroot}"
-    #    el.dump_recursive
 
-    if root == oldroot
-      if oldroot.thread
-        ## check to see if the subject is still the same (in the case
-        ## that we first added a child message with a different
-        ## subject)
+    ## new root. need to drop old one and put this one in its place
+    if root != oldroot && oldroot.thread
+      oldroot.thread.drop oldroot
+      oldroot.thread = nil
+    end
 
-        ## this code is duplicated below. sorry! TODO: refactor
-        s = Message.normalize_subj(root.subj)
-        unless @subj_thread[s] == root.thread
-          ## Redwood::log "[1] moving thread to new subject #{root.subj}"
-          if @subj_thread[s]
-            @subj_thread[s] << root
-            root.thread = @subj_thread[s]
-          else
-            @subj_thread[s] = root.thread
-          end
-        end
-
+    key =
+      if thread_by_subj?
+        Message.normalize_subj root.subj
       else
-        ## to disable subject grouping, use the next line instead
-        ## (and the same for below)
-        #Redwood::log "[1] for #{root}, subject #{Message.normalize_subj(root.subj)} has #{@subj_thread[Message.normalize_subj(root.subj)] ? 'a' : 'no'} thread"
-        thread = (@subj_thread[Message.normalize_subj(root.subj)] ||= Thread.new)
-        #thread = (@subj_thread[root.id] ||= Thread.new)
+        root.id
+      end
 
-        thread << root
-        root.thread = thread
-        # Redwood::log "[1] added #{root} to #{thread}"
+    ## check to see if the subject is still the same (in the case
+    ## that we first added a child message with a different
+    ## subject)
+    if root.thread
+      unless @threads[key] == root.thread
+        if @threads[key]
+          root.thread.empty!
+          @threads[key] << root
+          root.thread = @threads[key]
+        else
+          @threads[key] = root.thread
+        end
       end
     else
-      if oldroot.thread
-        ## new root. need to drop old one and put this one in its place
-        oldroot.thread.drop oldroot
-        oldroot.thread = nil
-      end
-
-      if root.thread
-        ## check to see if the subject is still the same (in the case
-        ## that we first added a child message with a different
-        ## subject)
-        s = Message.normalize_subj(root.subj)
-        unless @subj_thread[s] == root.thread
-          # Redwood::log "[2] moving thread to new subject #{root.subj}"
-          if @subj_thread[s]
-            @subj_thread[s] << root
-            root.thread = @subj_thread[s]
-          else
-            @subj_thread[s] = root.thread
-          end
-        end
-
-      else
-        ## to disable subject grouping, use the next line instead
-        ## (and the same above)
-        
-        ## this code is duplicated above. sorry! TODO: refactor
-        # Redwood::log "[2] for #{root}, subject '#{Message.normalize_subj(root.subj)}' has #{@subj_thread[Message.normalize_subj(root.subj)] ? 'a' : 'no'} thread"
-
-        thread = (@subj_thread[Message.normalize_subj(root.subj)] ||= Thread.new)
-        #thread = (@subj_thread[root.id] ||= Thread.new)
-
-        thread << root
-        root.thread = thread
-        # Redwood::log "[2] added #{root} to #{thread}"
-      end
+      thread = @threads[key]
+      thread << root
+      root.thread = thread
     end
 
     ## last bit
