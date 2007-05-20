@@ -462,9 +462,11 @@ private
     success = a.view!
     BufferManager.erase_flash
     BufferManager.completely_redraw_screen
-    BufferManager.flash "Couldn't execute view command." unless success
+    unless success
+      BufferManager.spawn "Attachment: #{a.filename}", TextMode.new(a.to_s)
+      BufferManager.flash "Couldn't execute view command, viewing as text."
+    end
   end
-
 end
 
 end

@@ -44,8 +44,7 @@ class Message
         @file.close
       end
 
-      ## TODO: handle unknown mime-types
-      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{@file.path}"
+      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{@file.path} >& /dev/null"
       $? == 0
     end
 
@@ -74,10 +73,12 @@ class Message
     end
   end
 
+
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
   BLOCK_QUOTE_PATTERN = /^-----\s*Original Message\s*----+$/
   QUOTE_START_PATTERN = /(^\s*Excerpts from)|(^\s*In message )|(^\s*In article )|(^\s*Quoting )|((wrote|writes|said|says)\s*:\s*$)/
   SIG_PATTERN = /(^-- ?$)|(^\s*----------+\s*$)|(^\s*_________+\s*$)|(^\s*--~--~-)/
+
   MAX_SIG_DISTANCE = 15 # lines from the end
   DEFAULT_SUBJECT = "(missing subject)"
   DEFAULT_SENDER = "(missing sender)"
@@ -335,10 +336,7 @@ private
           state = newstate
         end
 
-      when :block_quote
-        chunk_lines << line
-
-      when :sig
+      when :block_quote, :sig
         chunk_lines << line
       end
  

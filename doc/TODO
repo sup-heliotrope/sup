@@ -1,5 +1,6 @@
 for 0.0.9
 ---------
+_ detect other sup instances and do something intelligent (because ferret crashes violently with more than one index writer open)
 _ bugfix: need a way to force an address to a particular name, for things like evite addresses
 _ bugfix: read before thread-index has finished loading then hides the thread?!? wtf. (on jamie)
 _ bugfix: ferret flakiness: just added message but can't find it.
@@ -10,6 +11,7 @@ _ bugfix: readlock
 _ split out threading & message chunk parsing to a separate library
 _ decode RFC 2047 ("encoded word") headers
   - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
+x view as text command if the mime view command fails for an attachment
 x bugfix: attachment filenames sometimes not detected (filename=)
 x bugfix: rmail multipart error
 x bugfix: sup-add not prompting for old accounts, i think? possibly because
