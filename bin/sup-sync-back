@@ -1,0 +1,124 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'uri'
+require 'tempfile'
+require 'trollop'
+require "sup"
+
+## save a message 'm' to an open file pointer 'fp'
+def save m, fp
+  m.source.each_raw_full_message_line(m.source_info) { |l| fp.print l }
+end
+
+opts = Trollop::options do
+  version "sup-sync-back (sup #{Redwood::VERSION})"
+  banner <<EOS
+Partially synchronizes a message source with the Sup index by deleting
+or moving any messages from the source that are marked as deleted or
+spam in the Sup index.
+
+Currently only works with mbox sources.
+
+Usage:
+  sup-sync-back [options] <source>*
+
+where <source>* is zero or more source URIs. If no sources are given,
+sync back all usual sources.
+
+You probably want to run sup-sync --changed after this command.
+
+Options include:
+EOS
+  opt :delete_deleted, "Delete deleted messages.", :default => false, :short => "d"
+  opt :move_deleted, "Move deleted messages to a local mbox file.", :type => String, :short => :none
+  opt :delete_spam, "Delete spam messages.", :default => false, :short => "s"
+  opt :move_spam, "Move spam messages to a local mbox file.", :type => String, :short => :none
+  opt :verbose, "Print message ids as they're processed."
+  opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
+  opt :version, "Show version information", :short => :none
+
+  conflicts :delete_deleted, :move_deleted
+  conflicts :delete_spam, :move_spam
+end
+
+Redwood::start
+index = Redwood::Index.new
+index.load
+
+sources = ARGV.map do |uri|
+  s = index.source_for(uri) or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+  s.is_a?(Redwood::MBox::Loader) or Trollop::die "#{uri} is not an mbox source."
+  s
+end
+
+unless opts[:dry_run]
+  deleted_fp = File.open(opts[:move_deleted], "a") if opts[:move_deleted] 
+  spam_fp = File.open(opts[:move_spam], "a") if opts[:move_spam]
+end
+
+begin
+  sources.each { |s| s.reset! }
+  
+  sources.each do |source|
+    $stderr.puts "Scanning #{source}..."
+    num_deleted = num_moved = num_scanned = 0
+    
+    out_fp = Tempfile.new "sup-sync-back-#{source.id}"
+    Redwood::PollManager.add_messages_from source do |m, offset, entry|
+      num_scanned += 1
+
+      if entry
+        labels = entry[:label].split.map { |x| x.intern }.to_boolean_h
+
+        if labels.member? :deleted
+          if opts[:delete_deleted]
+            puts "Dropping deleted message #{source}##{offset}" if opts[:verbose]
+            num_deleted += 1
+          elsif opts[:move_deleted] && labels.member?(:deleted)
+            puts "Moving deleted message #{source}##{offset}" if opts[:verbose]
+            save m, deleted_fp unless opts[:dry_run]
+            num_moved += 1
+          end
+
+        elsif labels.member? :spam
+          if opts[:delete_spam]
+            puts "Deleting spam message #{source}##{offset}" if opts[:verbose]
+            num_deleted += 1
+          elsif opts[:move_spam] && labels.member?(:spam)
+            puts "Moving spam message #{source}##{offset}" if opts[:verbose]
+            save m, spam_fp unless opts[:dry_run]
+            num_moved += 1
+          end
+        else
+          save m, out_fp unless opts[:dry_run]
+        end
+      else
+        save m, out_fp unless opts[:dry_run]
+      end
+
+      nil # don't actually add anything!
+    end
+    $stderr.puts "Scanned #{num_scanned}, deleted #{num_deleted}, moved #{num_moved} messages from #{source}."
+    out_fp.close unless opts[:dry_run]
+
+    unless opts[:dry_run]
+      deleted_fp.flush
+      spam_fp.flush
+      out_fp.close
+      FileUtils.mv out_fp.path, URI(source.uri).path
+    end
+  end
+
+  unless opts[:dry_run]
+    deleted_fp.close
+    spam_fp.close
+  end
+
+  $stderr.puts "Done. You should run sup-sync --changed #{sources.join(' ')}"
+rescue Exception => e
+  File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
+  raise
+ensure
+  Redwood::finish
+end

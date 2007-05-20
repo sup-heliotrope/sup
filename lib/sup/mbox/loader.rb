@@ -73,14 +73,24 @@ class Loader < Source
 
   def raw_full_message offset
     ret = ""
+    each_raw_full_message_line(offset) { |l| ret += l }
+    ret
+  end
+
+  ## apparently it's a million times faster to call this directly if
+  ## we're just moving messages around on disk, than reading things
+  ## into memory with raw_full_message.
+  ##
+  ## i hoped never to have to move shit around on disk but
+  ## sup-sync-back has to do it.
+  def each_raw_full_message_line offset
     @mutex.synchronize do
       @f.seek offset
-      @f.gets # skip mbox header
+      yield @f.gets
       until @f.eof? || (l = @f.gets) =~ BREAK_RE
-        ret += l
+        yield l
       end
     end
-    ret
   end
 
   def next

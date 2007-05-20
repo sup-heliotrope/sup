@@ -43,8 +43,8 @@ Usage:
   sup-sync [options] <source>*
 
 where <source>* is zero or more source URIs. If no sources are given,
-sync from all usual sources. All supported source URI schemes can
-be seen by running "sup-add --help".
+sync from all usual sources. Supported source URI schemes can be seen
+by running "sup-add --help".
 
 Options controlling WHICH messages sup-sync operates on:
 EOS
