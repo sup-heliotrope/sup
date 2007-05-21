@@ -143,8 +143,9 @@ class Index
 
   def num_results_for opts={}
     return 0 if @index.size == 0 # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
+
     q = build_query opts
-    index.search(q).total_hits
+    index.search(q, :limit => 1).total_hits
   end
 
   ## yield all messages in the thread containing 'm' by repeatedly

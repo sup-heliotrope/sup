@@ -11,6 +11,8 @@ _ bugfix: readlock
 _ split out threading & message chunk parsing to a separate library
 _ decode RFC 2047 ("encoded word") headers
   - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
+_ refactor all the *-search-results-mode classes into one.
+x autoload more threads when you go down
 x add a sync-back tool that at least works for mboxes
 x thread by subject configurable in config.yaml
 x view as text command if the mime view command fails for an attachment

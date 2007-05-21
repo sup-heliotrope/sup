@@ -2,7 +2,6 @@ require 'thread'
 module Redwood
 
 ## subclasses should implement load_threads
-
 class ThreadIndexMode < LineCursorMode
   DATE_WIDTH = Time::TO_NICE_S_MAX_LEN
   FROM_WIDTH = 15
@@ -35,13 +34,21 @@ class ThreadIndexMode < LineCursorMode
     @date_width = DATE_WIDTH
     @from_width = FROM_WIDTH
     @size_width = nil
-
+    @last_load_more_size = nil
+    
     @tags = Tagger.new self
     
     initialize_threads
     update
 
     UpdateManager.register self
+
+    to_load_more do |size|
+      next if @last_load_more_size == 0
+      load_threads :num => size,
+                   :when_done => lambda { |num| @last_load_more_size = num }
+      sleep 1.0 # give 'em a chance to load
+    end
   end
 
   def lines; @text.length; end
@@ -361,7 +368,7 @@ class ThreadIndexMode < LineCursorMode
 
   def status
     if (l = lines) == 0
-      ""
+      "line 0 of 0"
     else
       "line #{curpos + 1} of #{l} #{dirty? ? '*modified*' : ''}"
     end

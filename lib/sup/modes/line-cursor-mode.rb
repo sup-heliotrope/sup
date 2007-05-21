@@ -1,5 +1,6 @@
 module Redwood
 
+## extends ScrollMode to have a line-based cursor.
 class LineCursorMode < ScrollMode
   register_keymap do |k|
     ## overwrite scrollmode binding on arrow keys for cursor movement
@@ -14,6 +15,9 @@ class LineCursorMode < ScrollMode
   def initialize cursor_top=0, opts={}
     @cursor_top = cursor_top
     @curpos = cursor_top
+    @load_more_callbacks = []
+    @load_more_callbacks_m = Mutex.new
+    @load_more_callbacks_active = false
     super opts
   end
 
@@ -23,6 +27,11 @@ class LineCursorMode < ScrollMode
   end
 
 protected
+
+  ## callbacks when the cursor is asked to go beyond the bottom
+  def to_load_more &b
+    @load_more_callbacks << b
+  end
 
   def draw_line ln, opts={}
     if ln == @curpos
@@ -49,6 +58,7 @@ protected
 
   def line_down # overwrite scrollmode
     super
+    call_load_more_callbacks([topline + buffer.content_height - lines, 10].max) if topline + buffer.content_height > lines
     set_cursor_pos topline if @curpos < topline
   end
 
@@ -58,7 +68,9 @@ protected
   end
 
   def cursor_down
+    call_load_more_callbacks buffer.content_height if @curpos == lines - 1
     return false unless @curpos < lines - 1
+
     if @curpos >= botline - 1
       page_down
       set_cursor_pos topline
@@ -102,9 +114,21 @@ protected
     end
   end
 
+  ## more complicated than one might think. three behaviors.
   def page_down
-    if topline >= lines - buffer.content_height
+    ## if we're on the last page, and it's not a full page, just move
+    ## the cursor down to the bottom and assume we can't load anything
+    ## else via the callbacks.
+    if topline > lines - buffer.content_height
       set_cursor_pos(lines - 1)
+
+    ## if we're on the last page, and it's a full page, try and load
+    ## more lines via the callbacks and then shift the page down
+    elsif topline == lines - buffer.content_height
+      call_load_more_callbacks buffer.content_height
+      super
+
+    ## otherwise, just move down
     else
       relpos = @curpos - topline
       super
@@ -128,6 +152,22 @@ private
     l = lines
     @status = l > 0 ? "line #{@curpos + 1} of #{l}" : ""
   end
+
+  def call_load_more_callbacks size
+    go = 
+      @load_more_callbacks_m.synchronize do
+        if @load_more_callbacks_active
+          false
+        else
+          @load_more_callbacks_active = true
+        end
+    end
+
+    return unless go
+
+    @load_more_callbacks.each { |c| c.call size }
+    @load_more_callbacks_active = false
+  end    
 
 end
 

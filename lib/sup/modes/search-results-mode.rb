@@ -15,7 +15,7 @@ class SearchResultsMode < ThreadIndexMode
                                  :load_killed => true,
                                  :load_spam => false,
                                  :when_done =>(lambda do |num|
-      opts[:when_done].call if opts[:when_done]
+      opts[:when_done].call(num) if opts[:when_done]
       if num > 0
         BufferManager.flash "Found #{num} threads"
       else
