@@ -23,7 +23,7 @@ class PersonManager
     @names[email][0] = Time.now.to_i
   end
 
-  def save; File.open(@fn, "w") { |f| @names.each { |email, (time, name)| f.puts "#{email}: #{time} #{name}" } }; end
+  def save; File.open(@fn, "w") { |f| @names.each { |email, (time, name)| f.puts "#{email}: #{time} #{name}" unless email =~ /no\-?reply/ } }; end
 end
 
 class Person
