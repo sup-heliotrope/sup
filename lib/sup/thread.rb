@@ -305,7 +305,7 @@ class ThreadSet
       m = builder.call
       add_message m
       load_thread_for_message m, :load_killed => opts[:load_killed]
-      yield @threads.size if block_given?
+      yield size if block_given?
     end
   end
 

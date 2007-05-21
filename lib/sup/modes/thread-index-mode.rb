@@ -124,7 +124,7 @@ class ThreadIndexMode < LineCursorMode
 
   def update
     ## let's see you do THIS in python
-    @threads = @ts.threads.select { |t| !@hidden_threads[t] && !t.has_label?(:killed) }.sort_by { |t| t.date }.reverse
+    @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| t.date }.reverse
     @size_width = (@threads.map { |t| t.size }.max || 0).num_digits
     regen_text
   end
@@ -337,8 +337,8 @@ class ThreadIndexMode < LineCursorMode
   end
 
   def load_n_threads_background n=LOAD_MORE_THREAD_NUM, opts={}
-    return if @load_thread
-    @load_thread = Redwood::reporting_thread do 
+    return if @load_thread # todo: wrap in mutex
+    @load_thread = Redwood::reporting_thread do
       num = load_n_threads n, opts
       opts[:when_done].call(num) if opts[:when_done]
       @load_thread = nil
