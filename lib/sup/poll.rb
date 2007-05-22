@@ -94,7 +94,7 @@ class PollManager
       
       source.each do |offset, labels|
         if source.has_errors?
-          Redwood::log "error loading messages from #{source}: #{source.broken_msg}"
+          Redwood::log "error loading messages from #{source}: #{source.error.message}"
           return
         end
       
