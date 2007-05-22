@@ -196,7 +196,7 @@ class Index
         break if opts[:limit] && messages.size >= opts[:limit]
         break if @index[docid][:label].split(/\s+/).include? "killed" unless opts[:load_killed]
         mid = @index[docid][:message_id]
-        unless id == mid || messages.member?(mid)
+        unless messages.member?(mid)
           Redwood::log "got #{mid} as a child of #{id}"
           messages[mid] ||= lambda { build_message docid }
           refs = @index[docid][:refs].split(" ")
