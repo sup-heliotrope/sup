@@ -70,7 +70,7 @@ protected
     if label == :inbox
       BufferManager.raise_to_front BufferManager["inbox"]
     else
-      b = BufferManager.spawn_unless_exists(label) do
+      b = BufferManager.spawn_unless_exists("All threads with label '#{label}'") do
         mode = LabelSearchResultsMode.new [label]
       end
       b.mode.load_threads :num => b.content_height

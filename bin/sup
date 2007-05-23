@@ -114,7 +114,7 @@ begin
 
   log "initializing mail index buffer"
   imode = InboxMode.new
-  ibuf = bm.spawn "inbox", imode
+  ibuf = bm.spawn "Inbox", imode
 
   log "ready for interaction!"
   Logger.make_buf
@@ -184,7 +184,7 @@ begin
             bm.flash "Couldn't parse query."
           end
         when :list_labels
-          b = bm.spawn_unless_exists("Label List") { LabelListMode.new }
+          b = bm.spawn_unless_exists("Label list") { LabelListMode.new }
           b.mode.load_in_background
         when :compose
           mode = ComposeMode.new
