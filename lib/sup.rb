@@ -159,7 +159,7 @@ else
         :signature => File.join(ENV["HOME"], ".signature")
       }
     },
-    :editor => ENV["EDITOR"] || "/usr/bin/vi",
+    :editor => ENV["EDITOR"] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
     :thread_by_subject => false,
   }
   begin
