@@ -192,6 +192,8 @@ begin
     $stderr.puts "Scanned #{num_scanned}, added #{num_added}, updated #{num_updated} messages from #{source}."
     $stderr.puts "Restored state on #{num_restored} (#{100.0 * num_restored / num_scanned}%) messages." if num_restored > 0
   end
+rescue FatalSourceError => e
+  $stderr.puts "Sorry, I couldn't communicate with a source: #{e.message}"
 rescue Exception => e
   File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
   raise

@@ -204,7 +204,7 @@ begin
             BufferManager.spawn "Edit message", r
             r.edit
           else
-            b = BufferManager.spawn_unless_exists(:draft) do
+            b = BufferManager.spawn_unless_exists("All drafts") do
               mode = LabelSearchResultsMode.new [:draft]
             end
             b.mode.load_threads :num => b.content_height

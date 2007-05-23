@@ -7,7 +7,7 @@ _ bugfix: ferret flakiness: just added message but can't find it.
 _ bugfix: when one new message comes into an imap folder, we don't
    catch it until a reload (sometimes?)
 _ bugfix: add new message counts until keypress
-_ bugfix: readlock
+_ bugfix: deadlock
 _ split out threading & message chunk parsing to a separate library
 _ decode RFC 2047 ("encoded word") headers
   - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807

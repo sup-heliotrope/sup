@@ -196,6 +196,7 @@ class BufferManager
   def [] n; @name_map[n]; end
   def []= n, b
     raise ArgumentError, "duplicate buffer name" if b && @name_map.member?(n)
+    raise ArgumentError, "title must be a string" unless n.is_a? String
     @name_map[n] = b
   end
 
@@ -258,6 +259,7 @@ class BufferManager
   end
 
   def spawn title, mode, opts={}
+    raise ArgumentError, "title must be a string" unless title.is_a? String
     realtitle = title
     num = 2
     while @name_map.member? realtitle
