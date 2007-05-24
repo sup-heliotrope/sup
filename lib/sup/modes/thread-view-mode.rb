@@ -309,6 +309,8 @@ private
       end
       l = @layout[m]
 
+      next unless @layout[m].state # skip discarded drafts
+
       ## build the patina
       text = chunk_to_lines m, l.state, @text.length, depth, parent, l.color, l.star_color
       
