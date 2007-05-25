@@ -6,7 +6,7 @@ require 'rmail'
 
 ## fucking imap fucking sucks. what the FUCK kind of committee of
 ## dunces designed this shit.
-
+##
 ## imap talks about 'unique ids' for messages, to be used for
 ## cross-session identification. great---just what sup needs! except
 ## it turns out the uids can be invalidated every time the
@@ -19,13 +19,24 @@ require 'rmail'
 ## does. thus the so-called uids are absolutely useless and imap
 ## provides no cross-session way of uniquely identifying a
 ## message. but thanks for the "strong recommendation", guys!
-
+##
 ## so right now i'm using the 'internal date' and the size of each
 ## message to uniquely identify it, and i scan over the entire mailbox
 ## each time i open it to map those things to message ids. that can be
 ## slow for large mailboxes, and we'll just have to hope that there
 ## are no collisions. ho ho! a perfectly reasonable solution!
-
+##
+## and here's another thing. check out RFC2060 2.2.2 paragraph 5:
+##
+##   A client MUST be prepared to accept any server response at all times.
+##   This includes server data that was not requested.
+##
+## yeah. that totally makes a lot of sense. and once again, the idiocy
+## of the spec actually happens in practice. you'll request flags for
+## one message, and get it interspersed with a random bunch of flags
+## for some other messages, including a different set of flags for the
+## same message! totally ok by the imap spec. totally retarded.
+##
 ## fuck you, imap committee. you managed to design something nearly as
 ## shitty as mbox but goddamn THIRTY YEARS LATER.
 module Redwood
@@ -117,14 +128,7 @@ class IMAP < Source
 
     range = (@ids.length + 1) .. last_id
     Redwood::log "fetching IMAP headers #{range}"
-    values = safely { @imap.fetch range, ['RFC822.SIZE', 'INTERNALDATE'] }
-    relevant_values = values.find_all { |v| range.include? v.seqno }
-
-    if relevant_values.size != values.size
-      Redwood::log "You IMAP server is buggy: it returned #{values.size} headers for a request for #{range.size}. What are you using, Binc?"
-    end
-
-    relevant_values.each do |v|
+    fetch(range, ['RFC822.SIZE', 'INTERNALDATE']).each do |v|
       id = make_id v
       @ids << id
       @imap_ids[id] = v.seqno
@@ -163,6 +167,24 @@ class IMAP < Source
   def pct_done; 100.0 * (@ids.index(cur_offset) || 0).to_f / (@ids.length - 1).to_f; end
 
 private
+
+  def fetch ids, fields
+    results = safely { @imap.fetch ids, fields }
+    good_results = 
+      if ids.respond_to? :member?
+        results.find_all { |r| ids.member?(r.seqno) && fields.all? { |f| r.attr.member?(f) } }
+      else
+        results.find_all { |r| ids == r.seqno && fields.all? { |f| r.attr.member?(f) } }
+      end
+
+    if good_results.empty?
+      raise FatalSourceError, "no IMAP response for #{ids} containing all fields #{fields.join(', ')} (got #{results.size} results)"
+    elsif good_results.size < results.size
+      Redwood::log "Your IMAP server sucks. It sent #{results.size} results for a request for #{good_results.size} messages. What are you using, Binc?"
+    end
+
+    good_results
+  end
 
   def unsafe_connect
     say "Connecting to IMAP server #{host}:#{port}..."
@@ -228,11 +250,11 @@ private
     imap_id = @imap_ids[id] or raise OutOfSyncSourceError, "Unknown message id #{id}"
 
     retried = false
-    results = safely { @imap.fetch imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq }.first
-    got_id = make_id results
+    result = fetch(imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq).first
+    got_id = make_id result
     raise OutOfSyncSourceError, "IMAP message mismatch: requested #{id}, got #{got_id}." unless got_id == id
 
-    fields.map { |f| results.attr[f] or raise FatalSourceError, "empty response from IMAP server: #{f}" }
+    fields.map { |f| result.attr[f] or raise FatalSourceError, "empty response from IMAP server: #{f}" }
   end
 
   ## execute a block, connected if unconnected, re-connected up to 3
