@@ -324,7 +324,7 @@ class ThreadSet
   end
 
   def is_relevant? m
-    m.refs.any? { |ref_id| @messages[ref_id] }
+    m.refs.any? { |ref_id| @messages.member? ref_id }
   end
 
   ## the heart of the threading code
