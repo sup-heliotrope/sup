@@ -57,6 +57,7 @@ unless opts[:dry_run]
   spam_fp = File.open(opts[:move_spam], "a") if opts[:move_spam]
 end
 
+any_modified = false
 begin
   sources.each { |s| s.reset! }
   
@@ -100,22 +101,24 @@ begin
       nil # don't actually add anything!
     end
     $stderr.puts "Scanned #{num_scanned}, deleted #{num_deleted}, moved #{num_moved} messages from #{source}."
+    any_modified = true if num_deleted > 0 || num_moved > 0
     out_fp.close unless opts[:dry_run]
 
     unless opts[:dry_run]
-      deleted_fp.flush
-      spam_fp.flush
+      deleted_fp.flush if deleted_fp
+      spam_fp.flush if spam_fp
       out_fp.close
       FileUtils.mv out_fp.path, URI(source.uri).path
     end
   end
 
   unless opts[:dry_run]
-    deleted_fp.close
-    spam_fp.close
+    deleted_fp.close if deleted_fp
+    spam_fp.close if spam_fp
   end
 
-  $stderr.puts "Done. You should run sup-sync --changed #{sources.join(' ')}"
+  $stderr.puts "Done."
+  $stderr.puts "You should run sup-sync --changed #{sources.join(' ')}." if any_modified
 rescue Exception => e
   File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
   raise
