@@ -19,6 +19,7 @@ class Index
     sa = Ferret::Analysis::StandardAnalyzer.new Ferret::Analysis::FULL_ENGLISH_STOP_WORDS, true
     @analyzer = Ferret::Analysis::PerFieldAnalyzer.new wsa
     @analyzer[:body] = sa
+    @analyzer[:subject] = sa
     @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => @analyzer
 
     self.class.i_am_the_instance self
