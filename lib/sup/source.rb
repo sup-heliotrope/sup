@@ -8,7 +8,7 @@ class Source
   ## Implementing a new source is typically quite easy, because Sup
   ## only needs to be able to:
   ##  1. See how many messages it contains
-  ##  2. Get an arbirtrary message
+  ##  2. Get an arbitrary message
   ##  3. (optional) see whether the source has marked it read or not
   ##
   ## In particular, Sup doesn't need to move messages, mark them as
