@@ -35,7 +35,8 @@ require 'rmail'
 ## of the spec actually happens in practice. you'll request flags for
 ## one message, and get it interspersed with a random bunch of flags
 ## for some other messages, including a different set of flags for the
-## same message! totally ok by the imap spec. totally retarded.
+## same message! totally ok by the imap spec. totally retarded by any
+## other metric.
 ##
 ## fuck you, imap committee. you managed to design something nearly as
 ## shitty as mbox but goddamn THIRTY YEARS LATER.
@@ -48,6 +49,8 @@ class IMAP < Source
   RECOVERABLE_ERRORS = [ Errno::EPIPE, Errno::ETIMEDOUT, OpenSSL::SSL::SSLError ]
 
   attr_accessor :username, :password
+  yaml_properties :uri, :username, :password, :cur_offset, :usual,
+                  :archived, :id
 
   def initialize uri, username, password, last_idate=nil, usual=true, archived=false, id=nil
     raise ArgumentError, "username and password must be specified" unless username && password
@@ -281,7 +284,5 @@ private
   end
 
 end
-
-Redwood::register_yaml(IMAP, %w(uri username password cur_offset usual archived id))
 
 end

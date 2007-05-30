@@ -42,6 +42,7 @@ end
 
 class DraftLoader < Source
   attr_accessor :dir
+  yaml_properties :cur_offset
 
   def initialize cur_offset=0
     dir = Redwood::DRAFT_DIR
@@ -118,7 +119,5 @@ private
     Dir.entries(@dir).select { |x| x =~ /^\d+$/ }.map { |x| x.to_i }.sort
   end
 end
-
-Redwood::register_yaml(DraftLoader, %w(cur_offset))
 
 end

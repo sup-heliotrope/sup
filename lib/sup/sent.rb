@@ -30,6 +30,8 @@ class SentManager
 end
 
 class SentLoader < MBox::Loader
+  yaml_properties :cur_offset
+
   def initialize cur_offset=0
     filename = Redwood::SENT_FN
     File.open(filename, "w") { } unless File.exists? filename
@@ -41,7 +43,5 @@ class SentLoader < MBox::Loader
   def id; SentManager.source_id; end
   def labels; [:sent, :inbox]; end
 end
-
-Redwood::register_yaml(SentLoader, %w(cur_offset))
 
 end

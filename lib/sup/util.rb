@@ -344,6 +344,10 @@ end
 ## h2[:a].val # => 0
 ## h2[:a].val = 1
 ## h2[:a].val # => 1
+##
+## important note: you REALLY want to use #member? to test existence,
+## because just checking h[anything] will always evaluate to true
+## (except for degenerate constructor blocks that return nil or false)
 class SavingHash
   def initialize &b
     @constructor = b

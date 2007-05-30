@@ -12,6 +12,24 @@ class Object
   end
 end
 
+class Module
+  def yaml_properties *props
+    props = props.map { |p| p.to_s }
+    vars = props.map { |p| "@#{p}" }
+    klass = self
+    path = klass.name.gsub(/::/, "/")
+    
+    klass.instance_eval do
+      define_method(:to_yaml_properties) { vars }
+      define_method(:to_yaml_type) { "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}" }
+    end
+
+    YAML.add_domain_type("#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}", path) do |type, val|
+      klass.new(*props.map { |p| val[p] })
+    end
+  end
+end
+
 module Redwood
   VERSION = "0.0.8"
 
@@ -50,20 +68,6 @@ module Redwood
   module_function :reporting_thread
 
 ## one-stop shop for yamliciousness
-  def register_yaml klass, props
-    vars = props.map { |p| "@#{p}" }
-    path = klass.name.gsub(/::/, "/")
-    
-    klass.instance_eval do
-      define_method(:to_yaml_properties) { vars }
-      define_method(:to_yaml_type) { "!#{YAML_DOMAIN},#{YAML_DATE}/#{path}" }
-    end
-
-    YAML.add_domain_type("#{YAML_DOMAIN},#{YAML_DATE}", path) do |type, val|
-      klass.new(*props.map { |p| val[p] })
-    end
-  end
-
   def save_yaml_obj object, fn, compress=false
     if compress
       Zlib::GzipWriter.open(fn) { |f| f.puts object.to_yaml }
@@ -142,7 +146,7 @@ EOM
     end
   end
 
-  module_function :register_yaml, :save_yaml_obj, :load_yaml_obj, :start, :finish, :report_broken_sources
+  module_function :save_yaml_obj, :load_yaml_obj, :start, :finish, :report_broken_sources
 end
 
 ## set up default configuration file

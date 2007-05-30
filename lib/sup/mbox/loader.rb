@@ -5,6 +5,7 @@ module Redwood
 module MBox
 
 class Loader < Source
+  yaml_properties :uri, :cur_offset, :usual, :archived, :id
   def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil
     super
 
@@ -130,8 +131,6 @@ class Loader < Source
     [returned_offset, @labels.clone]
   end
 end
-
-Redwood::register_yaml(Loader, %w(uri cur_offset usual archived id))
 
 end
 end

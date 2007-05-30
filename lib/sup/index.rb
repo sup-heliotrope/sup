@@ -310,7 +310,7 @@ protected
         File.chmod 0600, fn
         FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(bakfn) > File.size(fn)
       end
-      Redwood::save_yaml_obj @sources.values, fn
+      Redwood::save_yaml_obj @sources.values.sort_by { |s| s.id.to_i }, fn
       File.chmod 0600, fn
     end
     @sources_dirty = false

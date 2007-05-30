@@ -6,6 +6,9 @@ module MBox
 class SSHLoader < Source
   attr_accessor :username, :password
 
+  yaml_properties :uri, :username, :password, :cur_offset, :usual, 
+                  :archived, :id
+
   def initialize uri, username=nil, password=nil, start_offset=nil, usual=true, archived=false, id=nil
     raise ArgumentError, "not an mbox+ssh uri: #{uri.inspect}" unless uri =~ %r!^mbox\+ssh://!
 
@@ -65,8 +68,6 @@ class SSHLoader < Source
     define_method(meth) { |*a| safely { @loader.send meth, *a } }
   end
 end
-
-Redwood::register_yaml(SSHLoader, %w(uri username password cur_offset usual archived id))
 
 end
 end

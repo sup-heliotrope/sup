@@ -5,15 +5,15 @@ class OutOfSyncSourceError < SourceError; end
 class FatalSourceError < SourceError; end
 
 class Source
-  ## Implementing a new source is typically quite easy, because Sup
-  ## only needs to be able to:
+  ## Implementing a new source should be easy, because Sup only needs
+  ## to be able to:
   ##  1. See how many messages it contains
   ##  2. Get an arbitrary message
   ##  3. (optional) see whether the source has marked it read or not
   ##
   ## In particular, Sup doesn't need to move messages, mark them as
-  ## read, delete them, or anything else. (Well, at some point it will
-  ## need to delete them, but that will be an optional capability.)
+  ## read, delete them, or anything else. (Well, it's nice to be able
+  ## to delete them, but that is optional.)
   ##
   ## On the other hand, Sup assumes that you can assign each message a
   ## unique integer id, such that newer messages have higher ids than
@@ -33,7 +33,8 @@ class Source
   ## - raw_header offset
   ## - raw_full_message offset
   ## - check
-  ## - next (or each, if you prefer)
+  ## - next (or each, if you prefer): should return a message and an
+  ##   array of labels.
   ##
   ## ... where "offset" really means unique id. (You can tell I
   ## started with mbox.)
@@ -46,7 +47,7 @@ class Source
   ## else (e.g. the imap server is down or the maildir is missing.)
   ##
   ## Finally, be sure the source is thread-safe, since it WILL be
-  ## pummeled from multiple threads at once.
+  ## pummelled from multiple threads at once.
   ##
   ## Examples for you to look at: mbox/loader.rb, imap.rb, and
   ## maildir.rb.
@@ -96,7 +97,5 @@ protected
     @dirty = true
   end
 end
-
-Redwood::register_yaml(Source, %w(uri cur_offset usual archived id))
 
 end

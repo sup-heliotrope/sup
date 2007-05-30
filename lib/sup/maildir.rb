@@ -11,6 +11,7 @@ module Redwood
 class Maildir < Source
   SCAN_INTERVAL = 30 # seconds
 
+  yaml_properties :uri, :cur_offset, :usual, :archived, :id
   def initialize uri, last_date=nil, usual=true, archived=false, id=nil
     super
     uri = URI(uri)
@@ -121,7 +122,5 @@ private
     end
   end
 end
-
-Redwood::register_yaml(Maildir, %w(uri cur_offset usual archived id))
 
 end

@@ -1,5 +1,6 @@
 for 0.0.9
 ---------
+_ add arbitrary labels to sources
 _ detect other sup instances and do something intelligent (because ferret crashes violently with more than one index writer open)
 _ bugfix: need a way to force an address to a particular name, for things like evite addresses
 _ bugfix: read before thread-index has finished loading then hides the thread?!? wtf. (on jamie)
