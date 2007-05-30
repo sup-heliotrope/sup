@@ -118,13 +118,20 @@ protected
       end
 
     acct = AccountManager.account_for(from_email) || AccountManager.default_account
-    SentManager.write_sent_message(date, from_email) { |f| write_message f, true, date }
     BufferManager.flash "Sending..."
 
-    IO.popen(acct.sendmail, "w") { |p| write_message p, true, date }
-
-    BufferManager.kill_buffer buffer
-    BufferManager.flash "Message sent!"
+    begin
+      IO.popen(acct.sendmail, "w") { |p| write_message p, true, date }
+    rescue SystemCallError
+    end
+    if $? == 0
+      SentManager.write_sent_message(date, from_email) { |f| write_message f, true, date }
+      BufferManager.kill_buffer buffer
+      BufferManager.flash "Message sent!"
+    else
+      Redwood::log "Non-zero return value in running sendmail command for #{acct.longname}: #{acct.sendmail.inspect}"
+      BufferManager.flash "Problem sending mail. See log for details."
+    end
   end
 
   def save_as_draft
