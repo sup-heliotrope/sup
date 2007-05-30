@@ -327,8 +327,6 @@ private
         if newstate
           if chunk_lines.empty?
             # nothing
-          elsif chunk_lines.size == 1
-            chunks << Text.new(chunk_lines) # forget about one-line quotes
           else
             chunks << Quote.new(chunk_lines)
           end
