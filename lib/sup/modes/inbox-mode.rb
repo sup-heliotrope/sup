@@ -15,6 +15,7 @@ class InboxMode < ThreadIndexMode
   def killable?; false; end
 
   def archive
+    return unless cursor_thread
     cursor_thread.remove_label :inbox
     hide_thread cursor_thread
     regen_text
