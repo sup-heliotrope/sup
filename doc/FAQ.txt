@@ -127,3 +127,11 @@ S: You need to install a package called libssl-ruby or something similar.
    Or, don't use imaps:// sources. Ruby's IMAP library otherwise fails in
    this somewhat uninformative manner.
 
+P: When I run Sup remotely and view an HTML attachment, an existing
+   Firefox on the *local* machine is redirected to the attachment
+   file, which it can't find (since it's on the remote machine). How do
+   I view HTML attachments in this environment?
+
+S: Put this in your ~/.mailcap on the machine you run Sup on:
+      text/html; /usr/bin/firefox -a sup '%s'; description=HTML Text; test=test -n "$DISPLAY";  nametemplate=%s.html
+
