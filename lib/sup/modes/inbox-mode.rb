@@ -9,10 +9,15 @@ class InboxMode < ThreadIndexMode
   end
 
   def initialize
-    super [:inbox], [:inbox]
+    super [:inbox, :sent], { :label => :inbox }
+    raise "can't have more than one!" if defined? @@instance
     @@instance = self
   end
 
+  def is_relevant? m; m.has_label? :inbox; end
+
+  ## label-list-mode wants to be able to raise us if the user selects
+  ## the "inbox" label, so we need to keep our singletonness around
   def self.instance; @@instance; end
   def killable?; false; end
 
@@ -46,17 +51,6 @@ class InboxMode < ThreadIndexMode
 
   def status
     super + "    #{Index.size} messages in index"
-  end
-
-  def is_relevant? m; m.has_label? :inbox; end
-
-  def load_threads opts={}
-    n = opts[:num] || ThreadIndexMode::LOAD_MORE_THREAD_NUM
-    load_n_threads_background n, :label => :inbox,
-                                 :when_done => (lambda do |num|
-      opts[:when_done].call(num) if opts[:when_done]
-      BufferManager.flash "Added #{num} threads."
-    end)
   end
 end
 

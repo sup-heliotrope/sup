@@ -1,7 +1,8 @@
-require 'thread'
 module Redwood
 
-## subclasses should implement load_threads
+## subclasses should implement:
+## - is_relevant?
+
 class ThreadIndexMode < LineCursorMode
   DATE_WIDTH = Time::TO_NICE_S_MAX_LEN
   FROM_WIDTH = 15
@@ -26,10 +27,10 @@ class ThreadIndexMode < LineCursorMode
     k.add :apply_to_tagged, "Apply next command to all tagged threads", ';'
   end
 
-  def initialize required_labels=[], hidden_labels=[]
+  def initialize hidden_labels=[], load_thread_opts={}
     super()
     @load_thread = nil
-    @required_labels = required_labels
+    @load_thread_opts = load_thread_opts
     @hidden_labels = hidden_labels + LabelManager::HIDDEN_LABELS
     @date_width = DATE_WIDTH
     @from_width = FROM_WIDTH
@@ -45,9 +46,9 @@ class ThreadIndexMode < LineCursorMode
 
     to_load_more do |size|
       next if @last_load_more_size == 0
-      load_threads :num => size,
+      load_threads :num => 1, :background => false
+      load_threads :num => (size - 1),
                    :when_done => lambda { |num| @last_load_more_size = num }
-      sleep 1.0 # give 'em a chance to load
     end
   end
 
@@ -371,6 +372,25 @@ class ThreadIndexMode < LineCursorMode
       "line 0 of 0"
     else
       "line #{curpos + 1} of #{l} #{dirty? ? '*modified*' : ''}"
+    end
+  end
+
+  def load_threads opts={}
+    n = opts[:num] || ThreadIndexMode::LOAD_MORE_THREAD_NUM
+
+    myopts = @load_thread_opts.merge({ :when_done => (lambda do |num|
+      opts[:when_done].call(num) if opts[:when_done]
+      if num > 0
+        BufferManager.flash "Found #{num} threads"
+      else
+        BufferManager.flash "No matches"
+      end
+    end)})
+
+    if opts[:background]
+      load_n_threads_background n, myopts
+    else
+      load_n_threads n, myopts
     end
   end
 
