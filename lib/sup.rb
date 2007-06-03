@@ -153,11 +153,21 @@ end
 if File.exists? Redwood::CONFIG_FN
   $config = Redwood::load_yaml_obj Redwood::CONFIG_FN
 else
+  require 'etc'
+  require 'socket'
+  name = Etc.getpwnam(ENV["USER"]).gecos.split(/,/).first
+  email = ENV["USER"] + "@" + 
+    begin
+      Socket.gethostbyname(Socket.gethostname).first
+    rescue SocketError
+      Socket.gethostname
+    end
+
   $config = {
     :accounts => {
       :default => {
-        :name => "Sup Rocks",
-        :email => "sup-rocks@reading-my-emails",
+        :name => name,
+        :email => email,
         :alternates => [],
         :sendmail => "/usr/sbin/sendmail -oem -ti",
         :signature => File.join(ENV["HOME"], ".signature")

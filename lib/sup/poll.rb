@@ -106,6 +106,9 @@ class PollManager
           if m.source_marked_read?
             m.remove_label :unread
             labels.delete :unread
+          else
+            m.add_label :unread
+            labels << :unread
           end
 
           docid, entry = Index.load_entry_for_id m.id

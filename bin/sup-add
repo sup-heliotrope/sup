@@ -37,6 +37,7 @@ Options are:
 EOS
   opt :archive, "Automatically archive all new messages from these sources."
   opt :unusual, "Do not automatically poll these sources for new messages."
+  opt :labels, "A comma-separated set of labels to apply to all messages from this source", :type => String
   opt :force_new, "Create a new account for this source, even if one already exists."
 end
 
@@ -80,6 +81,8 @@ index = Redwood::Index.new
 index.load
 
 ARGV.each do |uri|
+  labels = $opts[:labels] ? $opts[:labels].split(/\s*,\s*/).uniq : []
+
   if !$opts[:force_new] && index.source_for(uri) 
     say "Already know about #{uri}; skipping."
     next
@@ -94,14 +97,14 @@ ARGV.each do |uri|
       say "For SSH connections, if you will use public key authentication, you may leave the username and password blank."
       say ""
       username, password = get_login_info uri, index.sources
-      Redwood::MBox::SSHLoader.new uri, username, password, nil, !$opts[:unusual], $opts[:archive]
+      Redwood::MBox::SSHLoader.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
     when "imap", "imaps"
       username, password = get_login_info uri, index.sources
-      Redwood::IMAP.new uri, username, password, nil, !$opts[:unusual], $opts[:archive]
+      Redwood::IMAP.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
     when "maildir"
-      Redwood::Maildir.new uri, nil, !$opts[:unusual], $opts[:archive]
+      Redwood::Maildir.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
     when "mbox"
-      Redwood::MBox::Loader.new uri, nil, !$opts[:unusual], $opts[:archive]
+      Redwood::MBox::Loader.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
     else
       Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"      
     end

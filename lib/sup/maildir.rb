@@ -11,20 +11,23 @@ module Redwood
 class Maildir < Source
   SCAN_INTERVAL = 30 # seconds
 
-  yaml_properties :uri, :cur_offset, :usual, :archived, :id
-  def initialize uri, last_date=nil, usual=true, archived=false, id=nil
-    super
+  yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
+  def initialize uri, last_date=nil, usual=true, archived=false, id=nil, labels=[]
+    super uri, last_date, usual, archived, id
     uri = URI(uri)
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
 
     @dir = uri.path
+    @labels = (labels || []).freeze
     @ids = []
     @ids_to_fns = {}
     @last_scan = nil
     @mutex = Mutex.new
   end
+
+  def self.suggest_labels_for path; [] end
 
   def check
     scan_mailbox
@@ -90,7 +93,7 @@ class Maildir < Source
     start.upto(@ids.length - 1) do |i|         
       id = @ids[i]
       self.cur_offset = id
-      yield id, (@ids_to_fns[id] =~ /,.*R.*$/ ? [] : [:unread])
+      yield id, @labels + (@ids_to_fns[id] =~ /,.*R.*$/ ? [] : [:unread])
     end
   end
 

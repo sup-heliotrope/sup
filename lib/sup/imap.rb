@@ -50,9 +50,9 @@ class IMAP < Source
 
   attr_accessor :username, :password
   yaml_properties :uri, :username, :password, :cur_offset, :usual,
-                  :archived, :id
+                  :archived, :id, :labels
 
-  def initialize uri, username, password, last_idate=nil, usual=true, archived=false, id=nil
+  def initialize uri, username, password, last_idate=nil, usual=true, archived=false, id=nil, labels=[]
     raise ArgumentError, "username and password must be specified" unless username && password
     raise ArgumentError, "not an imap uri" unless uri =~ %r!imaps?://!
 
@@ -65,9 +65,17 @@ class IMAP < Source
     @imap_ids = {}
     @ids = []
     @last_scan = nil
-    @labels = [:unread]
-    @labels << mailbox.intern unless mailbox =~ /inbox/i
+    @labels = (labels || []).freeze
+    @say_id = nil
     @mutex = Mutex.new
+  end
+
+  def self.suggest_labels_for path
+    if path =~ /inbox/i
+      [path.intern]
+    else
+      []
+    end
   end
 
   def host; @parsed_uri.host; end
@@ -102,6 +110,7 @@ class IMAP < Source
   def raw_header id
     unsynchronized_scan_mailbox
     header, flags = get_imap_fields id, 'RFC822.HEADER', 'FLAGS'
+    ## very bad. this is very very bad. very bad bad bad.
     header = header + "Status: RO\n" if flags.include? :Seen # fake an mbox-style read header # TODO: improve source-marked-as-read reporting system
     header.gsub(/\r\n/, "\n")
   end
@@ -151,7 +160,7 @@ class IMAP < Source
     start.upto(ids.length - 1) do |i|         
       id = ids[i]
       self.cur_offset = id
-      yield id, @labels.clone
+      yield id, @labels
     end
   end
 

@@ -21,11 +21,11 @@ end #' stupid ruby-mode
 
 def axe q, default=nil
   ans = 
-  if default && !default.empty?
-    ask "#{q} (enter for \"#{default}\"): "
-  else
-    ask "#{q}: "
-  end
+    if default && !default.empty?
+      ask "#{q} (enter for \"#{default}\"): "
+    else
+      ask "#{q}: "
+    end
   ans.empty? ? default : ans
 end
 
@@ -42,7 +42,7 @@ def add_source
 
   say "Ok, adding a new source."
   choose do |menu|
-    menu.prompt = "What type of mail source is it?"
+    menu.prompt = "What type of mail source is it? "
     menu.choice("mbox file") { type = :mbox }
     menu.choice("maildir directory") { type = :maildir }
     menu.choice("remote mbox file (accessible via ssh)") { type = :mboxssh }
@@ -52,40 +52,57 @@ def add_source
   end
 
   while true do
-    say "Now for the details."
+    say "Ok, now for the details."
 
-    components = 
+    default_labels, components = 
       case type
       when :mbox
-        fn = axe "What's the full path to the mbox file?", ENV["MAIL"] #"srm
+        $last_fn ||= ENV["MAIL"]
+        fn = axe "What's the full path to the mbox file?", $last_fn #"srm
         return if fn.nil? || fn.empty?
-        { :scheme => "mbox", :path => fn }
+
+        $last_fn = fn
+        [Redwood::MBox::Loader.suggest_labels_for(fn),
+         { :scheme => "mbox", :path => fn }]
       when :maildir
-        fn = axe "What's the full path to the maildir directory?", ENV["MAIL"] #"srm
+        $last_fn ||= ENV["MAIL"]
+        fn = axe "What's the full path to the maildir directory?", $last_fn #"srm
         return if fn.nil? || fn.empty?
-        { :scheme => "maildir", :path => fn }
+
+        $last_fn = fn
+        [Redwood::Maildir.suggest_labels_for(fn),
+         { :scheme => "maildir", :path => fn }]
       when :mboxssh
+        $last_server ||= "localhost"
         srv = axe "What machine is the mbox file located on?", $last_server 
         return if srv.nil? || srv.empty?
         $last_server = srv
-        fn = axe "What's the full path to the mbox file?", ENV["MAIL"] #"srm
+
+        fn = axe "What's the full path to the mbox file?", $last_fn #" stupid ruby-mode
         return if fn.nil? || fn.empty?
+        $last_fn = fn
         fn = "/#{fn}" # lame
-        { :scheme => "mbox+ssh", :host => srv, :path => fn }
+        [Redwood::MBox::SSHLoader.suggest_labels_for(fn),
+         { :scheme => "mbox+ssh", :host => srv, :path => fn }]
       when :imap, :imaps
+        $last_server ||= "localhost"
         srv = axe "What is the IMAP server (host, or host:port notation)?", $last_server
         return if srv.nil? || srv.empty?
         $last_server = srv
-        fn = axe "What's the folder path?", "INBOX" #"srm 
-        return if fn.nil? || fn.empty?
-        fn = "/#{fn}" # lame
 
+        $last_folder ||= "INBOX"
+        fn = axe "What's the folder path?", $last_folder #"srm 
+        return if fn.nil? || fn.empty?
+        $last_folder = fn
+
+        fn = "/#{fn}" # lame
         if srv =~ /^(\w+):(\d+)$/
           host, port = $1, $2.to_i
         else
           host, port = srv, nil
         end
-        { :scheme => type.to_s, :host => host, :port => port, :path => fn }
+        [Redwood::IMAP.suggest_labels_for(fn),
+         { :scheme => type.to_s, :host => host, :port => port, :path => fn }]
       end
     
     uri = 
@@ -96,17 +113,27 @@ def add_source
         if axe_yes("Try again?") then next else return end
       end
 
-    say "I'm going to add this source: #{uri}."
+    say "I'm going to add this source: #{uri}"
     unless axe("Does that look right?", "y") =~ /^y|yes$/i
       if axe_yes("Try again?") then next else return end
     end
 
     usual = axe_yes "Does this source ever receive new messages?", "y"
-    archive = usual ? axe_yes("Should those new messages be automatically archived?") : false
+    archive = usual ? axe_yes("Should new messages be automatically archived? (I.e. not appear in your inbox, though still be accessible via search.)") : false
+
+    labels_str = axe("Enter any labels to be automatically added to all messages from this source, separated by spaces (or 'none')", default_labels.join(","))
+
+    labels =
+      if labels_str =~ /^\s*none\s*$/i
+        nil
+      else
+        labels_str.split(/\s+/)
+      end
     
     cmd = build_cmd "sup-add"
     cmd += " --unusual" unless usual
     cmd += " --archive" if archive
+    cmd += " --labels=#{labels.join(',')}" if labels
     cmd += " #{uri}"
 
     puts "Ok, trying to run \"#{cmd}\"..."
@@ -134,8 +161,7 @@ program. Get ready to be the envy of everyone in your internets
 with your amazing keyboarding skills! Jump from email to email with
 nary a click of the mouse!
 
-Just answer these simple questions and you'll be on your way! Press
-enter at any point to accept the default answer.
+Just answer these simple questions and you'll be on your way.
 
 EOS
 #' stupid ruby-mode
@@ -143,7 +169,7 @@ EOS
 account = $config[:accounts][:default]
 
 name = axe "What's your name?", account[:name]
-email = axe "What's your email address?", account[:email] #'srm
+email = axe "What's your (primary) email address?", account[:email] #'srm
 
 say "Ok, your header will look like this:"
 say "  From: #{name} <#{email}>"
@@ -178,7 +204,7 @@ until done
 
   say "\n"
   choose do |menu|
-    menu.prompt = "Your wish?"
+    menu.prompt = "Your wish? "
     menu.choice("Add a new source.") { add_source }
     menu.choice("Done adding sources!") { done = true }
   end
@@ -189,12 +215,6 @@ say <<EOS
 Ok. The final step is to import all your messages into the Sup index.
 Depending on how many messages are in the sources, this could take
 quite a while.
-
-IMPORTANT NOTE: this import will archive messages if the source is
-marked archival, and won't otherwise. It will preserve read/unread
-status as given by the source, and it will automatically add one label
-per source. All of this behavior can be controlled on per-source
-basis by running sup-sync manually.
 
 EOS
 #'
@@ -222,7 +242,7 @@ like you're ready to jack in to cyberspace there, cowboy.
 
 Just one last command:
 
-  sup
+  #{build_cmd "sup"}
 
 Have fun!
 EOS

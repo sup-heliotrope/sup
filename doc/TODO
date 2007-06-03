@@ -1,18 +1,20 @@
 for 0.0.9
 ---------
-_ add arbitrary labels to sources
+_ bugfix: when one new message comes into an imap folder, we don't
+   catch it until a reload (sometimes?)
+  message indicating they're loaded to inbox (imap only?)
+_ rss feed reading
 _ detect other sup instances and do something intelligent (because ferret crashes violently with more than one index writer open)
 _ bugfix: need a way to force an address to a particular name, for things like evite addresses
 _ bugfix: read before thread-index has finished loading then hides the thread?!? wtf. (on jamie)
 _ bugfix: ferret flakiness: just added message but can't find it.
-_ bugfix: when one new message comes into an imap folder, we don't
-   catch it until a reload (sometimes?)
 _ bugfix: add new message counts until keypress
-_ bugfix: deadlock
-_ split out threading & message chunk parsing to a separate library
+_ bugfix: deadlock (on rubyforge)
 _ decode RFC 2047 ("encoded word") headers
   - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
 _ refactor all the *-search-results-mode classes into one.
+x add arbitrary labels to sources
+x improve sup-config
 x autoload more threads when you go down
 x add a sync-back tool that at least works for mboxes
 x thread by subject configurable in config.yaml
@@ -54,6 +56,10 @@ be able to mark individual messages as spam in thread-view-mode
 toggle wrapping
 maybe: de-archived messages auto-added to inbox
 prune old entries from contacts.txt so that it doesn't arbitrarily
+
+maybe
+_ split out threading & message chunk parsing to a separate library
+
 
 done
 ----

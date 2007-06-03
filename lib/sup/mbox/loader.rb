@@ -5,24 +5,31 @@ module Redwood
 module MBox
 
 class Loader < Source
-  yaml_properties :uri, :cur_offset, :usual, :archived, :id
-  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil
-    super
+  yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
+  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=[]
+    super uri_or_fp, start_offset, usual, archived, id
 
     @mutex = Mutex.new
-    @labels = [:unread]
+    @labels = (labels || []).freeze
 
     case uri_or_fp
     when String
       uri = URI(uri_or_fp)
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
       raise ArgumentError, "mbox uri ('#{uri}') cannot have a host: #{uri.host}" if uri.host
-      ## heuristic: use the filename as a label, unless the file
-      ## has a path that probably represents an inbox.
-      @labels << File.basename(uri.path).intern unless File.dirname(uri.path) =~ /\b(var|usr|spool)\b/
       @f = File.open uri.path
     else
       @f = uri_or_fp
+    end
+  end
+
+  def self.suggest_labels_for path
+    ## heuristic: use the filename as a label, unless the file
+    ## has a path that probably represents an inbox.
+    if File.dirname(path) =~ /\b(var|usr|spool)\b/
+      []
+    else
+      [File.basename(path).intern]
     end
   end
 
@@ -128,7 +135,7 @@ class Loader < Source
     end
 
     self.cur_offset = next_offset
-    [returned_offset, @labels.clone]
+    [returned_offset, @labels]
   end
 end
 

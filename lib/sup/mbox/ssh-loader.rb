@@ -7,9 +7,9 @@ class SSHLoader < Source
   attr_accessor :username, :password
 
   yaml_properties :uri, :username, :password, :cur_offset, :usual, 
-                  :archived, :id
+                  :archived, :id, :labels
 
-  def initialize uri, username=nil, password=nil, start_offset=nil, usual=true, archived=false, id=nil
+  def initialize uri, username=nil, password=nil, start_offset=nil, usual=true, archived=false, id=nil, labels=[]
     raise ArgumentError, "not an mbox+ssh uri: #{uri.inspect}" unless uri =~ %r!^mbox\+ssh://!
 
     super uri, start_offset, usual, archived, id
@@ -19,6 +19,7 @@ class SSHLoader < Source
     @password = password
     @uri = uri
     @cur_offset = start_offset
+    @labels = (labels || []).freeze
 
     opts = {}
     opts[:username] = @username if @username
@@ -29,9 +30,9 @@ class SSHLoader < Source
     
     ## heuristic: use the filename as a label, unless the file
     ## has a path that probably represents an inbox.
-    @labels = [:unread]
-    @labels << File.basename(filename).intern unless File.dirname(filename) =~ /\b(var|usr|spool)\b/
   end
+
+  def self.suggest_labels_for path; Loader.suggest_labels_for(path) end
 
   def connect; safely { @f.connect }; end
   def host; @parsed_uri.host; end
