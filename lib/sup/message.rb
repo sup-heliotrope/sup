@@ -96,7 +96,7 @@ class Message
     @source_info = opts[:source_info] or raise ArgumentError, "source_info can't be nil"
     @snippet = opts[:snippet] || ""
     @have_snippet = !opts[:snippet].nil?
-    @labels = opts[:labels] || []
+    @labels = [] + (opts[:labels] || [])
     @dirty = false
     @chunks = nil
 
