@@ -10,8 +10,10 @@ class InboxMode < ThreadIndexMode
 
   def initialize
     super [:inbox], [:inbox]
+    @@instance = self
   end
 
+  def self.instance; @@instance; end
   def killable?; false; end
 
   def archive

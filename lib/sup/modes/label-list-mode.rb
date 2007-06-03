@@ -68,7 +68,7 @@ protected
   def view_results
     label = @labels[curpos]
     if label == :inbox
-      BufferManager.raise_to_front BufferManager["inbox"]
+      BufferManager.raise_to_front InboxMode.instance.buffer
     else
       b = BufferManager.spawn_unless_exists("All threads with label '#{label}'") do
         mode = LabelSearchResultsMode.new [label]
