@@ -78,39 +78,45 @@ end
 $terminal.wrap_at = :auto
 Redwood::start
 index = Redwood::Index.new
-index.load
 
-ARGV.each do |uri|
-  labels = $opts[:labels] ? $opts[:labels].split(/\s*,\s*/).uniq : []
+index.lock_or_die
 
-  if !$opts[:force_new] && index.source_for(uri) 
-    say "Already know about #{uri}; skipping."
-    next
-  end
+begin
+  index.load_sources
 
-  parsed_uri = URI(uri)
-  Trollop::die "no path component to uri: #{parsed_uri}" unless parsed_uri.path
+  ARGV.each do |uri|
+    labels = $opts[:labels] ? $opts[:labels].split(/\s*,\s*/).uniq : []
 
-  source = 
-    case parsed_uri.scheme
-    when "mbox+ssh"
-      say "For SSH connections, if you will use public key authentication, you may leave the username and password blank."
-      say ""
-      username, password = get_login_info uri, index.sources
-      Redwood::MBox::SSHLoader.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
-    when "imap", "imaps"
-      username, password = get_login_info uri, index.sources
-      Redwood::IMAP.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
-    when "maildir"
-      Redwood::Maildir.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
-    when "mbox"
-      Redwood::MBox::Loader.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
-    else
-      Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"      
+    if !$opts[:force_new] && index.source_for(uri) 
+      say "Already know about #{uri}; skipping."
+      next
     end
-  say "Adding #{source}..."
-  index.add_source source
-end
 
-index.save
-Redwood::finish
+    parsed_uri = URI(uri)
+    Trollop::die "no path component to uri: #{parsed_uri}" unless parsed_uri.path
+
+    source = 
+      case parsed_uri.scheme
+      when "mbox+ssh"
+        say "For SSH connections, if you will use public key authentication, you may leave the username and password blank."
+        say ""
+        username, password = get_login_info uri, index.sources
+        Redwood::MBox::SSHLoader.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
+      when "imap", "imaps"
+        username, password = get_login_info uri, index.sources
+        Redwood::IMAP.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
+      when "maildir"
+        Redwood::Maildir.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
+      when "mbox"
+        Redwood::MBox::Loader.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
+      else
+        Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"      
+      end
+    say "Adding #{source}..."
+    index.add_source source
+  end
+ensure
+  index.save
+  index.unlock
+  Redwood::finish
+end

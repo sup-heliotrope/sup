@@ -7,6 +7,14 @@ require 'ferret'
 module Redwood
 
 class Index
+  class LockError < StandardError
+    def initialize h
+      @h = h
+    end
+
+    def method_missing m; @h[m.to_s] end
+  end
+
   include Singleton
 
   attr_reader :index
@@ -21,8 +29,56 @@ class Index
     @analyzer[:body] = sa
     @analyzer[:subject] = sa
     @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => @analyzer
+    @lock = Lockfile.new lockfile, :retries => 0
 
     self.class.i_am_the_instance self
+  end
+
+  def lockfile; File.join @dir, "lock" end
+
+  def lock
+    Redwood::log "locking #{lockfile}..."
+    begin
+      @lock.lock
+    rescue Lockfile::MaxTriesLockError
+      raise LockError, @lock.lockinfo_on_disk
+    end
+  end
+
+  def start_lock_update_thread
+    Redwood::reporting_thread do
+      sleep 30
+      @lock.touch_yourself
+    end
+  end
+
+  def fancy_lock_error_message_for e
+    mins = (Time.now - e.mtime).to_i / 60
+
+    <<EOS
+Error: the sup index is locked by another process! User '#{e.user}' on
+host '#{e.host}' is running #{e.pname} with pid #{e.pid} (at least, as of #{mins}
+minutes ago).
+
+Wait for the process to finish, or, if the lockfile is stale, delete it
+manually.
+EOS
+  end
+
+  def lock_or_die
+    begin
+      lock
+    rescue LockError => e
+      $stderr.puts fancy_lock_error_message_for(e)
+      exit
+    end
+  end
+
+  def unlock
+    if @lock && @lock.locked?
+      Redwood::log "unlocking #{lockfile}..."
+      @lock.unlock
+    end
   end
 
   def load

@@ -55,17 +55,17 @@ def stop_cursing
 end
 module_function :start_cursing, :stop_cursing
 
+Index.new
 begin
-  Redwood::lock
-rescue LockError => e
+  Index.lock
+rescue Index::LockError => e
   require 'highline'
-  h = HighLine.new
-  h.say <<EOS
-Error: sup is already running! User #{e.user} on host #{e.host} was running sup
-with pid #{e.pid} as of #{e.time}.
-EOS
 
-  case h.ask("Should I try and kill that process? ")
+  h = HighLine.new
+  h.wrap_at = :auto
+  h.say Index.fancy_lock_error_message_for(e)
+
+  case h.ask("Should I ask that the process kill itself? ")
   when /^\s*y\s*$/i
     h.say "Ok, suggesting sepuku..."
     FileUtils.touch Redwood::SUICIDE_FN
@@ -74,13 +74,16 @@ EOS
     h.say "Let's try that again."
     retry
   else
-    h.say "Ok, see you later."
+    h.say <<EOS
+Ok, giving up. If the process crashed and left a stale lockfile, you
+can fix this by manually deleting #{Index.lockfile}.
+EOS
     exit
   end
 end
 
 Redwood::start
-Index.new.load
+Index.load
 
 if(s = Index.source_for DraftManager.source_name)
   DraftManager.source = s
@@ -168,83 +171,82 @@ begin
   unless $opts[:no_threads]
     PollManager.start_thread
     SuicideManager.start_thread
+    Index.start_lock_update_thread
   end
 
-  until $exception
-    bm.draw_screen
+  until $exception || SuicideManager.die?
     c = Ncurses.nonblocking_getch
-    bm.erase_flash
+    next unless c
 
-    if c == Ncurses::KEY_RESIZE
-      bm.handle_resize
-    elsif c
-      unless bm.handle_input(c)
-        x = global_keymap.action_for c
-        case x
-        when :quit
-          break if bm.kill_all_buffers_safely
-        when :help
-          curmode = bm.focus_buf.mode
-          bm.spawn_unless_exists("<help for #{curmode.name}>") { HelpMode.new curmode, global_keymap }
-        when :roll_buffers
-          bm.roll_buffers
-        when :roll_buffers_backwards
-          bm.roll_buffers_backwards
-        when :kill_buffer
-          bm.kill_buffer_safely bm.focus_buf
-        when :list_buffers
-          bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
-        when :list_contacts
-          b = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
-          b.mode.load_in_background
-        when :search
-          text = bm.ask :search, "query: "
-          next unless text && text !~ /^\s*$/
+    unless bm.handle_input(c)
+      x = global_keymap.action_for c
+      case x
+      when :quit
+        break if bm.kill_all_buffers_safely
+      when :help
+        curmode = bm.focus_buf.mode
+        bm.spawn_unless_exists("<help for #{curmode.name}>") { HelpMode.new curmode, global_keymap }
+      when :roll_buffers
+        bm.roll_buffers
+      when :roll_buffers_backwards
+        bm.roll_buffers_backwards
+      when :kill_buffer
+        bm.kill_buffer_safely bm.focus_buf
+      when :list_buffers
+        bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
+      when :list_contacts
+        b = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
+        b.mode.load_in_background
+      when :search
+        text = bm.ask :search, "query: "
+        next unless text && text !~ /^\s*$/
 
-          begin
-            qobj = Index.parse_user_query_string text
-            short_text = text.length < 20 ? text : text[0 ... 20] + "..."
-            log "built query from #{text.inspect}: #{qobj}"
-            mode = SearchResultsMode.new qobj
-            bm.spawn "search: \"#{short_text}\"", mode
-            mode.load_threads :num => mode.buffer.content_height
-          rescue Ferret::QueryParser::QueryParseException => e
-            bm.flash "Couldn't parse query."
-          end
-        when :list_labels
-          b = bm.spawn_unless_exists("Label list") { LabelListMode.new }
-          b.mode.load_in_background
-        when :compose
-          mode = ComposeMode.new
-          bm.spawn "New Message", mode
-          mode.edit
-        when :poll
-#          bm.raise_to_front PollManager.buffer
-          reporting_thread { PollManager.poll }
-        when :recall_draft
-          case Index.num_results_for :label => :draft
-          when 0
-            bm.flash "No draft messages."
-          when 1
-            m = nil
-            Index.each_id_by_date(:label => :draft) { |mid, builder| m = builder.call }
-            r = ResumeMode.new(m)
-            BufferManager.spawn "Edit message", r
-            r.edit
-          else
-            b = BufferManager.spawn_unless_exists("All drafts") do
-              mode = LabelSearchResultsMode.new [:draft]
-            end
-            b.mode.load_threads :num => b.content_height
-          end
-        when :nothing
-        when :redraw
-          bm.completely_redraw_screen
-        else
-          bm.flash "Unknown key press '#{c.to_character}' for #{bm.focus_buf.mode.name}."
+        begin
+          qobj = Index.parse_user_query_string text
+          short_text = text.length < 20 ? text : text[0 ... 20] + "..."
+          log "built query from #{text.inspect}: #{qobj}"
+          mode = SearchResultsMode.new qobj
+          bm.spawn "search: \"#{short_text}\"", mode
+          mode.load_threads :num => mode.buffer.content_height
+        rescue Ferret::QueryParser::QueryParseException => e
+          bm.flash "Couldn't parse query."
         end
+      when :list_labels
+        b = bm.spawn_unless_exists("Label list") { LabelListMode.new }
+        b.mode.load_in_background
+      when :compose
+        mode = ComposeMode.new
+        bm.spawn "New Message", mode
+        mode.edit
+      when :poll
+        #          bm.raise_to_front PollManager.buffer
+        reporting_thread { PollManager.poll }
+      when :recall_draft
+        case Index.num_results_for :label => :draft
+        when 0
+          bm.flash "No draft messages."
+        when 1
+          m = nil
+          Index.each_id_by_date(:label => :draft) { |mid, builder| m = builder.call }
+          r = ResumeMode.new(m)
+          BufferManager.spawn "Edit message", r
+          r.edit
+        else
+          b = BufferManager.spawn_unless_exists("All drafts") do
+            mode = LabelSearchResultsMode.new [:draft]
+          end
+          b.mode.load_threads :num => b.content_height
+        end
+      when :nothing
+      when :redraw
+        bm.completely_redraw_screen
+      else
+        bm.flash "Unknown key press '#{c.to_character}' for #{bm.focus_buf.mode.name}."
       end
     end
+
+    bm.draw_screen
+    bm.erase_flash
   end
 rescue Exception => e
   $exception ||= e
@@ -252,10 +254,11 @@ ensure
   Redwood::finish
   stop_cursing
 
-  case $exception
-  when SuicideException
+  if SuicideManager.die?
     Redwood::log "I've been asked to commit sepuku. I obey!"
-    exit
+  end
+
+  case $exception
   when nil
     Redwood::log "good night, sweet prince!"
     Index.save
@@ -263,7 +266,7 @@ ensure
     Redwood::log "oh crap, an exception"
   end
 
-  Redwood::unlock
+  Index.unlock
 end
 
 if $exception 

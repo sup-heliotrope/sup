@@ -3,29 +3,6 @@ require 'yaml'
 require 'zlib'
 require 'thread'
 require 'fileutils'
-require 'lockfile'
-
-## time for some monkeypatching!
-class Lockfile
-  def gen_lock_id
-    Hash[
-         'host' => "#{ Socket.gethostname }",
-         'pid' => "#{ Process.pid }",
-         'ppid' => "#{ Process.ppid }",
-         'time' => timestamp,
-         'user' => ENV["USER"]
-        ]
-  end
-
-  def dump_lock_id lock_id = @lock_id
-      "host: %s\npid: %s\nppid: %s\ntime: %s\nuser: %s\n" %
-        lock_id.values_at('host','pid','ppid','time','user')
-    end
-
-  def lockinfo_on_disk
-    load_lock_id IO.read(path)
-  end
-end
 
 class Object
   ## this is for debugging purposes because i keep calling #id on the
@@ -33,15 +10,6 @@ class Object
   def id
     raise "wrong id called on #{self.inspect}"
   end
-end
-
-class LockError < StandardError
-  def initialize h
-    super ""
-    @h = h
-  end
-
-  def method_missing m; @h[m.to_s] end
 end
 
 class Module
@@ -92,7 +60,7 @@ module Redwood
           File.open("sup-exception-log.txt", "w") do |f|
             f.puts "--- #{e.class.name} at #{Time.now}"
             f.puts e.message, e.backtrace
-          end unless e.is_a? SuicideException
+          end
           $exception ||= e
           raise
         end
@@ -139,23 +107,6 @@ module Redwood
     Redwood::BufferManager.deinstantiate!
   end
 
-  def lock
-    FileUtils.rm_f SUICIDE_FN
-
-    Redwood::log "locking #{LOCK_FN}..."
-    $lock = Lockfile.new LOCK_FN, :retries => 0
-      begin
-        $lock.lock
-      rescue Lockfile::MaxTriesLockError
-        raise LockError, $lock.lockinfo_on_disk
-      end
-  end
-
-  def unlock
-    Redwood::log "unlocking #{LOCK_FN}..."
-    $lock.unlock if $lock
-  end
-
   ## not really a good place for this, so I'll just dump it here.
   def report_broken_sources opts={}
     return unless BufferManager.instantiated?
@@ -199,7 +150,7 @@ EOM
   end
 
   module_function :save_yaml_obj, :load_yaml_obj, :start, :finish,
-                  :lock, :unlock, :report_broken_sources
+                  :report_broken_sources
 end
 
 ## set up default configuration file

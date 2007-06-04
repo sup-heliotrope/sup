@@ -16,24 +16,10 @@ module Ncurses
   def mutex; @mutex ||= Mutex.new; end
   def sync &b; mutex.synchronize(&b); end
 
-  ## aaahhh, user input. who would have though that such a simple
-  ## idea would be SO FUCKING COMPLICATED?! because apparently
-  ## Ncurses.getch (and Curses.getch), even in cbreak mode, BLOCKS
-  ## ALL THREAD ACTIVITY. as in, no threads anywhere will run while
-  ## it's waiting for input. ok, fine, so we wrap it in a select. Of
-  ## course we also rely on Ncurses.getch to tell us when an xterm
-  ## resize has occurred, which select won't catch, so we won't
-  ## resize outselves after a sigwinch until the user hits a key.
-  ## and installing our own sigwinch handler means that the screen
-  ## size returned by getmaxyx() DOESN'T UPDATE! and Kernel#trap
-  ## RETURNS NIL as the previous handler! 
-  ##
-  ## so basically, resizing with multi-threaded ruby Ncurses
-  ## applications will always be broken.
-  ##
-  ## i've coined a new word for this: lametarded.
+  ## magically, this stuff seems to work now. i could swear it didn't
+  ## before. hm.
   def nonblocking_getch
-    if IO.select([$stdin], nil, nil, nil)
+    if IO.select([$stdin], nil, nil, 1)
       Ncurses.getch
     else
       nil
@@ -208,14 +194,6 @@ class BufferManager
       Ncurses.clear
       draw_screen :sync => false
     end
-  end
-
-  def handle_resize
-    return if @shelled
-    rows, cols = Ncurses.rows, Ncurses.cols
-    @buffers.each { |b| b.resize rows - minibuf_lines, cols }
-    completely_redraw_screen
-    flash "Resized to #{rows}x#{cols}"
   end
 
   def draw_screen opts={}

@@ -89,7 +89,6 @@ op = [:asis, :restore, :discard].find { |x| opts[x] } || :asis
 
 Redwood::start
 index = Redwood::Index.new
-index.load
 
 restored_state =
   if opts[:restore]
@@ -106,15 +105,18 @@ restored_state =
     {}
   end
 
-sources = ARGV.map do |uri|
-  index.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
-end
-
-sources = index.usual_sources if sources.empty?
-sources = index.sources if opts[:all_sources]
-
 seen = {}
+index.lock_or_die
 begin
+  index.load
+
+  sources = ARGV.map do |uri|
+    index.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+  end
+  
+  sources = index.usual_sources if sources.empty?
+  sources = index.sources if opts[:all_sources]
+
   unless target == :new
     if opts[:start_at]
       sources.each { |s| s.seek_to! opts[:start_at] }
@@ -192,6 +194,41 @@ begin
     $stderr.puts "Scanned #{num_scanned}, added #{num_added}, updated #{num_updated} messages from #{source}."
     $stderr.puts "Restored state on #{num_restored} (#{100.0 * num_restored / num_scanned}%) messages." if num_restored > 0
   end
+
+  ## delete any messages in the index that claim they're from one of
+  ## these sources, but that we didn't see.
+  ##
+  ## kinda crappy code here, because we delve directly into the Ferret
+  ## API.
+  ##
+  ## TODO: move this to Index, i suppose.
+
+
+  if target == :all || target == :changed
+    $stderr.puts "Deleting missing messages from the index..."
+    num_del, num_scanned = 0, 0
+    sources.each do |source|
+      raise "no source id for #{source}" unless source.id
+      q = "+source_id:#{source.id}"
+      q += " +source_info: >= #{opts[:start_at]}" if opts[:start_at]
+      index.index.search_each(q, :limit => :all) do |docid, score|
+        num_scanned += 1
+        mid = index.index[docid][:message_id]
+        unless seen[mid]
+          puts "Deleting #{mid}" if opts[:verbose]
+          index.index.delete docid unless opts[:dry_run]
+          num_del += 1
+        end
+      end
+    end
+    $stderr.puts "Deleted #{num_del} / #{num_scanned} messages"
+  end
+
+  if opts[:optimize]
+    $stderr.puts "Optimizing index..."
+    optt = time { index.index.optimize unless opts[:dry_run] }
+    $stderr.puts "Optimized index of size #{index.size} in #{optt}s."
+  end
 rescue Redwood::FatalSourceError => e
   $stderr.puts "Sorry, I couldn't communicate with a source: #{e.message}"
 rescue Exception => e
@@ -200,37 +237,5 @@ rescue Exception => e
 ensure
   index.save
   Redwood::finish
-end
-
-## delete any messages in the index that claim they're from one of
-## these sources, but that we didn't see.
-##
-## kinda crappy code here, because we delve directly into the Ferret
-## API.
-##
-## TODO: move this to Index, i suppose.
-if target == :all || target == :changed
-  $stderr.puts "Deleting missing messages from the index..."
-  num_del, num_scanned = 0, 0
-  sources.each do |source|
-    raise "no source id for #{source}" unless source.id
-    q = "+source_id:#{source.id}"
-    q += " +source_info: >= #{opts[:start_at]}" if opts[:start_at]
-    index.index.search_each(q, :limit => :all) do |docid, score|
-      num_scanned += 1
-      mid = index.index[docid][:message_id]
-      unless seen[mid]
-        puts "Deleting #{mid}" if opts[:verbose]
-        index.index.delete docid unless opts[:dry_run]
-        num_del += 1
-      end
-    end
-  end
-  $stderr.puts "Deleted #{num_del} / #{num_scanned} messages"
-end
-
-if opts[:optimize]
-  $stderr.puts "Optimizing index..."
-  optt = time { index.index.optimize unless opts[:dry_run] }
-  $stderr.puts "Optimized index of size #{index.size} in #{optt}s."
+  index.unlock
 end

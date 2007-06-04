@@ -1,3 +1,34 @@
+require 'lockfile'
+
+## time for some monkeypatching!
+class Lockfile
+  def gen_lock_id
+    Hash[
+         'host' => "#{ Socket.gethostname }",
+         'pid' => "#{ Process.pid }",
+         'ppid' => "#{ Process.ppid }",
+         'time' => timestamp,
+         'pname' => $0,
+         'user' => ENV["USER"]
+        ]
+  end
+
+  def dump_lock_id lock_id = @lock_id
+      "host: %s\npid: %s\nppid: %s\ntime: %s\nuser: %s\npname: %s\n" %
+        lock_id.values_at('host','pid','ppid','time','user', 'pname')
+    end
+
+  def lockinfo_on_disk
+    h = load_lock_id IO.read(path)
+    h['mtime'] = File.stat(path).mtime
+    h
+  end
+
+  def touch_yourself
+    touch path
+  end
+end
+
 class Range
   ## only valid for integer ranges (unless I guess it's exclusive)
   def size 
