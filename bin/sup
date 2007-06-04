@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'ncurses'
+require 'fileutils'
 require 'trollop'
 require "sup"
 
@@ -53,6 +54,30 @@ def stop_cursing
   Ncurses.endwin
 end
 module_function :start_cursing, :stop_cursing
+
+begin
+  Redwood::lock
+rescue LockError => e
+  require 'highline'
+  h = HighLine.new
+  h.say <<EOS
+Error: sup is already running! User #{e.user} on host #{e.host} was running sup
+with pid #{e.pid} as of #{e.time}.
+EOS
+
+  case h.ask("Should I try and kill that process? ")
+  when /^\s*y\s*$/i
+    h.say "Ok, suggesting sepuku..."
+    FileUtils.touch Redwood::SUICIDE_FN
+    sleep SuicideManager::DELAY * 2
+    FileUtils.rm_f Redwood::SUICIDE_FN
+    h.say "Let's try that again."
+    retry
+  else
+    h.say "Ok, see you later."
+    exit
+  end
+end
 
 Redwood::start
 Index.new.load
@@ -140,7 +165,10 @@ begin
 
   imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread { sleep 1; PollManager.poll } }
 
-  PollManager.start_thread unless $opts[:no_threads]
+  unless $opts[:no_threads]
+    PollManager.start_thread
+    SuicideManager.start_thread
+  end
 
   until $exception
     bm.draw_screen
@@ -223,14 +251,20 @@ rescue Exception => e
 ensure
   Redwood::finish
   stop_cursing
-  if $exception
-    Redwood::log "oh crap, an exception"
-  else
-    Redwood::log "good night, sweet prince!"
-  end
-end
 
-Index.save unless $exception # TODO: think about this
+  case $exception
+  when SuicideException
+    Redwood::log "I've been asked to commit sepuku. I obey!"
+    exit
+  when nil
+    Redwood::log "good night, sweet prince!"
+    Index.save
+  else
+    Redwood::log "oh crap, an exception"
+  end
+
+  Redwood::unlock
+end
 
 if $exception 
   $stderr.puts <<EOS

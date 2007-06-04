@@ -57,6 +57,7 @@ lib/sup/person.rb
 lib/sup/poll.rb
 lib/sup/sent.rb
 lib/sup/source.rb
+lib/sup/suicide.rb
 lib/sup/tagger.rb
 lib/sup/textfield.rb
 lib/sup/thread.rb
