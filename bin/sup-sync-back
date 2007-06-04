@@ -44,21 +44,24 @@ end
 
 Redwood::start
 index = Redwood::Index.new
-index.load
+index.lock_or_die
 
-sources = ARGV.map do |uri|
-  s = index.source_for(uri) or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
-  s.is_a?(Redwood::MBox::Loader) or Trollop::die "#{uri} is not an mbox source."
-  s
-end
-
+deleted_fp, spam_fp = nil
 unless opts[:dry_run]
   deleted_fp = File.open(opts[:move_deleted], "a") if opts[:move_deleted] 
   spam_fp = File.open(opts[:move_spam], "a") if opts[:move_spam]
 end
 
-any_modified = false
 begin
+  index.load
+
+  sources = ARGV.map do |uri|
+    s = index.source_for(uri) or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+    s.is_a?(Redwood::MBox::Loader) or Trollop::die "#{uri} is not an mbox source."
+    s
+  end
+
+  any_modified = false
   sources.each { |s| s.reset! }
   
   sources.each do |source|
@@ -123,5 +126,7 @@ rescue Exception => e
   File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
   raise
 ensure
+  index.save
   Redwood::finish
+  index.unlock
 end
