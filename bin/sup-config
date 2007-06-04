@@ -78,7 +78,7 @@ def add_source
         return if srv.nil? || srv.empty?
         $last_server = srv
 
-        fn = axe "What's the full path to the mbox file?", $last_fn #" stupid ruby-mode
+        fn = axe "What's the path to the mbox file?", $last_fn #" stupid ruby-mode
         return if fn.nil? || fn.empty?
         $last_fn = fn
         fn = "/#{fn}" # lame
@@ -133,7 +133,7 @@ def add_source
     cmd = build_cmd "sup-add"
     cmd += " --unusual" unless usual
     cmd += " --archive" if archive
-    cmd += " --labels=#{labels.join(',')}" if labels
+    cmd += " --labels=#{labels.join(',')}" if labels && !labels.empty?
     cmd += " #{uri}"
 
     puts "Ok, trying to run \"#{cmd}\"..."
