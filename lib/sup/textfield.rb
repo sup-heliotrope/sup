@@ -75,7 +75,7 @@ class TextField
         c
       end
 
-    Ncurses::Form.form_driver @form, d
+    Ncurses::Form.form_driver @form, d if d
     Ncurses.refresh
 
     true
