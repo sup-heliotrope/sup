@@ -178,7 +178,7 @@ begin
         elapsed = last_info_time - start_time
         pctdone = source.respond_to?(:pct_done) ? source.pct_done : 100.0 * (source.cur_offset.to_f - source.start_offset).to_f / (source.end_offset - source.start_offset).to_f
         remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
-        $stderr.puts "## #{num_added + num_updated} (#{pctdone}%) read; #{elapsed.to_time_s} elapsed; #{remaining.to_time_s} remaining"
+        $stderr.puts "## #{num_scanned} (#{pctdone}%) read; #{elapsed.to_time_s} elapsed; #{remaining.to_time_s} remaining"
       end
 
       if index_state.nil?
