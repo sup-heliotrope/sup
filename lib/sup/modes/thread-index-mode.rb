@@ -387,7 +387,7 @@ class ThreadIndexMode < LineCursorMode
       end
     end)})
 
-    if opts[:background]
+    if opts[:background] || opts[:background].nil?
       load_n_threads_background n, myopts
     else
       load_n_threads n, myopts
