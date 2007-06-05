@@ -350,7 +350,7 @@ class BufferManager
     done = false
     @shelled = true
     until done
-      key = Ncurses.nonblocking_getch
+      key = Ncurses.nonblocking_getch or next
       if key == Ncurses::KEY_CANCEL
         done = true
       elsif (accept && accept.member?(key)) || !accept
