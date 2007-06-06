@@ -20,13 +20,11 @@ class Lockfile
 
   def lockinfo_on_disk
     h = load_lock_id IO.read(path)
-    h['mtime'] = File.stat(path).mtime
+    h['mtime'] = File.mtime path
     h
   end
 
-  def touch_yourself
-    touch path
-  end
+  def touch_yourself; touch path end
 end
 
 class Range

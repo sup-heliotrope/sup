@@ -29,7 +29,7 @@ class Index
     @analyzer[:body] = sa
     @analyzer[:subject] = sa
     @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => @analyzer
-    @lock = Lockfile.new lockfile, :retries => 0
+    @lock = Lockfile.new lockfile, :retries => 0, :max_age => nil
 
     self.class.i_am_the_instance self
   end
@@ -47,21 +47,27 @@ class Index
 
   def start_lock_update_thread
     Redwood::reporting_thread do
-      sleep 30
-      @lock.touch_yourself
+      while true
+        sleep 30
+        @lock.touch_yourself
+      end
     end
   end
 
   def fancy_lock_error_message_for e
-    mins = (Time.now - e.mtime).to_i / 60
+    secs = Time.now - e.mtime
+    mins = secs.to_i / 60
+    time =
+      if mins == 0
+        "#{secs.to_i} seconds"
+      else
+        "#{mins} minutes"
+      end
 
     <<EOS
 Error: the sup index is locked by another process! User '#{e.user}' on
-host '#{e.host}' is running #{e.pname} with pid #{e.pid} (at least, as of #{mins}
-minutes ago).
-
-Wait for the process to finish, or, if the lockfile is stale, delete it
-manually.
+host '#{e.host}' is running #{e.pname} with pid #{e.pid}. The process was alive
+as of #{time} ago.
 EOS
   end
 
@@ -70,6 +76,11 @@ EOS
       lock
     rescue LockError => e
       $stderr.puts fancy_lock_error_message_for(e)
+      $stderr.puts <<EOS
+
+You can wait for the process to finish, or, if it crashed and left a
+stale lock file behind, you can manually delete #{@lock.path}.
+EOS
       exit
     end
   end

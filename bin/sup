@@ -65,7 +65,7 @@ rescue Index::LockError => e
   h.wrap_at = :auto
   h.say Index.fancy_lock_error_message_for(e)
 
-  case h.ask("Should I ask that the process kill itself? ")
+  case h.ask("Should I ask that process to kill itself? ")
   when /^\s*y\s*$/i
     h.say "Ok, suggesting sepuku..."
     FileUtils.touch Redwood::SUICIDE_FN
