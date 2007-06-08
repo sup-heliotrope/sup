@@ -101,10 +101,10 @@ module Redwood
   end
 
   def finish
-    Redwood::LabelManager.save
-    Redwood::ContactManager.save
-    Redwood::PersonManager.save
-    Redwood::BufferManager.deinstantiate!
+    Redwood::LabelManager.save if Redwood::LabelManager.instantiated?
+    Redwood::ContactManager.save if Redwood::ContactManager.instantiated?
+    Redwood::PersonManager.save if Redwood::PersonManager.instantiated?
+    Redwood::BufferManager.deinstantiate! if Redwood::BufferManager.instantiated?
   end
 
   ## not really a good place for this, so I'll just dump it here.
