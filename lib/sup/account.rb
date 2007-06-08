@@ -36,7 +36,7 @@ class AccountManager
     a = Account.new hash
     @accounts[a] = true
     @email_map[email] = a
-    hash[:alternates].each { |aa| @alternate_map[aa] = a }
+    hash[:alternates].each { |aa| @alternate_map[aa] = a } if hash[:alternates]
     if default
       raise ArgumentError, "multiple default accounts" if @default_account
       @default_account = a 
