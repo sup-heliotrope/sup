@@ -46,9 +46,11 @@ def start_cursing
   Ncurses.stdscr.keypad 1
   Ncurses.curs_set 0
   Ncurses.start_color
+  $cursing = true
 end
 
 def stop_cursing
+  return unless $cursing
   Ncurses.curs_set 1
   Ncurses.echo
   Ncurses.endwin
@@ -82,22 +84,22 @@ EOS
   end
 end
 
-Redwood::start
-Index.load
-
-if(s = Index.source_for DraftManager.source_name)
-  DraftManager.source = s
-else
-  Index.add_source DraftManager.new_source
-end
-
-if(s = Index.source_for SentManager.source_name)
-  SentManager.source = s
-else
-  Index.add_source SentManager.new_source
-end
-
 begin
+  Redwood::start
+  Index.load
+
+  if(s = Index.source_for DraftManager.source_name)
+    DraftManager.source = s
+  else
+    Index.add_source DraftManager.new_source
+  end
+
+  if(s = Index.source_for SentManager.source_name)
+    SentManager.source = s
+  else
+    Index.add_source SentManager.new_source
+  end
+
   log "starting curses"
   start_cursing
 
@@ -254,7 +256,7 @@ ensure
   Redwood::finish
   stop_cursing
 
-  if SuicideManager.die?
+  if SuicideManager.instantiated? && SuicideManager.die?
     Redwood::log "I've been asked to commit sepuku. I obey!"
   end
 
