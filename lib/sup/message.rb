@@ -119,17 +119,17 @@ class Message
     end
 
     @subj = header.member?("subject") ? header["subject"].gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
-    @from = Person.for header["from"]
-    @to = Person.for_several header["to"]
-    @cc = Person.for_several header["cc"]
-    @bcc = Person.for_several header["bcc"]
+    @from = PersonManager.person_for header["from"]
+    @to = PersonManager.people_for header["to"]
+    @cc = PersonManager.people_for header["cc"]
+    @bcc = PersonManager.people_for header["bcc"]
     @id = header["message-id"]
     @refs = (header["references"] || "").gsub(/[<>]/, "").split(/\s+/).flatten
     @replytos = (header["in-reply-to"] || "").scan(/<(.*?)>/).flatten
-    @replyto = Person.for header["reply-to"]
+    @replyto = PersonManager.person_for header["reply-to"]
     @list_address =
       if header["list-post"]
-        @list_address = Person.for header["list-post"].gsub(/^<mailto:|>$/, "")
+        @list_address = PersonManager.person_for header["list-post"].gsub(/^<mailto:|>$/, "")
       else
         nil
       end

@@ -330,11 +330,9 @@ EOS
       t = @index[docid][:to]
 
       if AccountManager.is_account_email? f
-        t.split(" ").each { |e| #Redwood::log "adding #{e} because there's a message to him from account email #{f}"; 
-          contacts[Person.for(e)] = true }
+        t.split(" ").each { |e| contacts[PersonManager.person_for(e)] = true }
       else
-        #Redwood::log "adding from #{f} because there's a message from him to #{t}"
-        contacts[Person.for(f)] = true
+        contacts[PersonManager.person_for(f)] = true
       end
     end
 

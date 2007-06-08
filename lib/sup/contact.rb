@@ -12,7 +12,7 @@ class ContactManager
       IO.foreach(fn) do |l|
         l =~ /^(\S+): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
         aalias, addr = $1, $2
-        p = Person.for addr
+        p = PersonManager.person_for addr, :definitive => true
         @p2a[p] = aalias
         @a2p[aalias] = p
       end

@@ -5,42 +5,85 @@ class PersonManager
 
   def initialize fn
     @fn = fn
-    @names = {}
-    IO.readlines(fn).map { |l| l =~ /^(.*)?:\s+(\d+)\s+(.*)$/ && @names[$1] = [$2.to_i, $3] } if File.exists? fn
+    @@people = {}
+
+    ## read in stored people
+    IO.readlines(fn).map do |l|
+      l =~ /^(.*)?:\s+(\d+)\s+(.*)$/ or raise "can't parse: #{l}"
+      email, time, name = $1, $2, $3
+      @@people[email] = Person.new name, email, time, false
+    end if File.exists? fn
+
     self.class.i_am_the_instance self
   end
 
-  def name_for email; @names.member?(email) ? @names[email][1] : nil; end
-  def register email, name
-    return unless name
-
-    name = name.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ").gsub(/^['"]|['"]$/, "")
-
-    ## all else being equal, prefer longer names, unless the prior name
-    ## doesn't contain any capitalization
-    oldcount, oldname = @names[email]
-    @names[email] = [0, name] if oldname.nil? || oldname.length < name.length || (oldname !~ /[A-Z]/ && name =~ /[A-Z]/)
-    @names[email][0] = Time.now.to_i
+  def save
+    File.open(@fn, "w") do |f|
+      @@people.each do |email, p|
+        f.puts "#{p.email}: #{p.timestamp} #{p.name}"
+      end
+    end
   end
 
-  def save; File.open(@fn, "w") { |f| @names.each { |email, (time, name)| f.puts "#{email}: #{time} #{name}" unless email =~ /no\-?reply/ } }; end
+  def self.people_for s, opts={}
+    return [] if s.nil?
+    s.split_on_commas.map { |ss| self.person_for ss, opts }
+  end
+
+  def self.person_for s, opts={}
+    p = Person.from_address(s) or return nil
+    p.definitive = true if opts[:definitive]
+    oldp = @@people[p.email]
+
+    if oldp.nil? || p.better_than?(oldp)
+      @@people[p.email] = p
+    end
+
+    @@people[p.email].touch!
+    @@people[p.email]
+  end
 end
 
-class Person
-  @@email_map = {}
+## don't create these by hand. rather, go through personmanager, to
+## ensure uniqueness and overriding.
+class Person 
+  attr_accessor :name, :email, :timestamp
+  bool_accessor :definitive
 
-  attr_accessor :name, :email
-
-  def initialize name, email
+  def initialize name, email, timestamp=0, definitive=false
     raise ArgumentError, "email can't be nil" unless email
+    
+    if name
+      @name = name.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ")
+      if @name =~ /^(['"]\s*)(.*?)(\s*["'])$/
+        @name = $2
+      end
+    end
+
     @email = email.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ").downcase
-    PersonManager.register @email, name
-    @name = PersonManager.name_for @email
+    @definitive = definitive
+    @timestamp = timestamp
   end
 
-  def == o; o && o.email == email; end
-  alias :eql? :==
-  def hash; [name, email].hash; end
+  ## heuristic: whether the name attached to this email is "real", i.e. 
+  ## we should bother to store it.
+  def generic?
+    @email =~ /no\-?reply/
+  end
+
+  def better_than? o
+    return false if o.definitive? || generic?
+    return true if definitive?
+    o.name.nil? || (name && name.length > o.name.length && name =~ /[a-z]/)
+  end
+
+  def to_s; "#@name <#@email>" end
+
+  def touch!; @timestamp = Time.now.to_i end
+
+#   def == o; o && o.email == email; end
+#   alias :eql? :==
+#   def hash; [name, email].hash; end
 
   def shortname
     case @name
@@ -93,7 +136,7 @@ class Person
     end.downcase
   end
 
-  def self.for s
+  def self.from_address s
     return nil if s.nil?
 
     ## try and parse an email address and name
@@ -110,13 +153,7 @@ class Person
         [nil, s]
       end
 
-    @@email_map[email] ||= Person.new name, email
-  end
-
-  def self.for_several s
-    return [] if s.nil?
-
-    s.split_on_commas.map { |ss| self.for ss }
+    Person.new name, email
   end
 end
 
