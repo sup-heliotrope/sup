@@ -433,11 +433,15 @@ protected
   end
   
   def author_text_for_thread t
-    if t.authors.size == 1
-      t.authors.first.mediumname
-    else
-      t.authors.map { |p| AccountManager.is_account?(p) ? "me" : p.shortname }.join ", "
-    end
+    t.authors.map do |p|
+      if AccountManager.is_account?(p)
+        "me"
+      elsif t.authors.size == 1
+        p.mediumname
+      else
+        p.shortname
+      end
+    end.join ","
   end
 
   def text_for_thread t

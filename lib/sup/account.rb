@@ -26,7 +26,7 @@ class AccountManager
   end
 
   def user_accounts; @accounts.keys; end
-  def user_emails; (@email_map.keys + @alternate_map.keys).uniq.select { |e| String === e }; end
+  def user_emails; @email_map.keys.select { |e| String === e }; end
 
   def add_account hash, default=false
     main_email = hash[:email]
