@@ -33,6 +33,10 @@ class PersonManager
   def self.person_for s, opts={}
     p = Person.from_address(s) or return nil
     p.definitive = true if opts[:definitive]
+    register p
+  end
+  
+  def self.register p
     oldp = @@people[p.email]
 
     if oldp.nil? || p.better_than?(oldp)

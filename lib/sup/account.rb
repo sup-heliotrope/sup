@@ -3,8 +3,8 @@ module Redwood
 class Account < Person
   attr_accessor :sendmail, :sig_file
 
-  def initialize h
-    super h[:name], h[:email]
+  def initialize email, h
+    super h[:name], email, 0, true
     @sendmail = h[:sendmail]
     @sig_file = h[:signature]
   end
@@ -17,7 +17,6 @@ class AccountManager
 
   def initialize accounts
     @email_map = {}
-    @alternate_map = {}
     @accounts = {}
     @default_account = nil
 
@@ -30,24 +29,25 @@ class AccountManager
   def user_emails; (@email_map.keys + @alternate_map.keys).uniq.select { |e| String === e }; end
 
   def add_account hash, default=false
-    email = hash[:email]
+    main_email = hash[:email]
 
-    next if @email_map.member? email
-    a = Account.new hash
-    @accounts[a] = true
-    @email_map[email] = a
-    hash[:alternates].each { |aa| @alternate_map[aa] = a } if hash[:alternates]
+    ([hash[:email]] + (hash[:alternates] || [])).each do |email|
+      next if @email_map.member? email
+      a = Account.new email, hash
+      PersonManager.register a
+      @accounts[a] = true
+      @email_map[email] = a
+    end
+
     if default
       raise ArgumentError, "multiple default accounts" if @default_account
-      @default_account = a 
+      @default_account = @email_map[main_email]
     end
   end
 
-  def is_account? p; @email_map.member?(p.email); end
-  def account_for email
-    @email_map[email] || @alternate_map[email] || @alternate_map.argfind { |k, v| k === email && v }
-  end
-  def is_account_email? email; !account_for(email).nil?; end
+  def is_account? p; is_account_email? p.email end
+  def account_for email; @email_map[email] end
+  def is_account_email? email; !account_for(email).nil? end
 end
 
 end
