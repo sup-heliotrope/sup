@@ -43,7 +43,7 @@ class AccountManager
     end
   end
 
-  def is_account? p; @accounts.member? p; end
+  def is_account? p; @email_map.member?(p.email); end
   def account_for email
     @email_map[email] || @alternate_map[email] || @alternate_map.argfind { |k, v| k === email && v }
   end
