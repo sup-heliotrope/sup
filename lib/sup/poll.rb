@@ -9,6 +9,7 @@ class PollManager
 
   def initialize
     @mutex = Mutex.new
+    @thread = nil
     @last_poll = nil
     
     self.class.i_am_the_instance self
@@ -29,13 +30,18 @@ class PollManager
     [num, numi]
   end
 
-  def start_thread
-    Redwood::reporting_thread do
+  def start
+    @thread = Redwood::reporting_thread do
       while true
         sleep DELAY / 2
         poll if @last_poll.nil? || (Time.now - @last_poll) >= DELAY
       end
     end
+  end
+
+  def stop
+    @thread.kill if @thread
+    @thread = nil
   end
 
   def do_poll

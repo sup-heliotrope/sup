@@ -70,9 +70,12 @@ module Redwood
   module_function :reporting_thread
 
 ## one-stop shop for yamliciousness
-  def save_yaml_obj object, fn, compress=false
-    if compress
-      Zlib::GzipWriter.open(fn) { |f| f.puts object.to_yaml }
+  def save_yaml_obj object, fn, safe=false
+    if safe
+      safe_fn = "safe_#{fn}"
+      mode = File.stat(fn) if File.exists? fn
+      File.open(safe_fn, "w", mode) { |f| f.puts object.to_yaml }
+      FileUtils.mv safe_fn, fn
     else
       File.open(fn, "w") { |f| f.puts object.to_yaml }
     end
@@ -101,6 +104,7 @@ module Redwood
   end
 
   def finish
+    Redwood::PollManager.stop
     Redwood::LabelManager.save if Redwood::LabelManager.instantiated?
     Redwood::ContactManager.save if Redwood::ContactManager.instantiated?
     Redwood::PersonManager.save if Redwood::PersonManager.instantiated?

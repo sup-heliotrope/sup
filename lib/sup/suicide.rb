@@ -8,14 +8,15 @@ class SuicideManager
   def initialize fn
     @fn = fn
     @die = false
+    @thread = nil
     self.class.i_am_the_instance self
     FileUtils.rm_f @fn
   end
 
   bool_reader :die
 
-  def start_thread
-    Redwood::reporting_thread do
+  def start
+    @thread = Redwood::reporting_thread do
       while true
         sleep DELAY
         if File.exists? @fn
@@ -24,6 +25,11 @@ class SuicideManager
         end
       end
     end
+  end
+
+  def stop
+    @thread.kill if @thread
+    @thread = nil
   end
 end
 

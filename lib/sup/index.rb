@@ -46,12 +46,17 @@ class Index
   end
 
   def start_lock_update_thread
-    Redwood::reporting_thread do
+    @lock_update_thread = Redwood::reporting_thread do
       while true
         sleep 30
         @lock.touch_yourself
       end
     end
+  end
+
+  def stop_lock_update_thread
+    @lock_update_thread.kill if @lock_update_thread
+    @lock_update_thread = nil
   end
 
   def fancy_lock_error_message_for e
@@ -373,9 +378,9 @@ protected
       bakfn = fn + ".bak"
       if File.exists? fn
         File.chmod 0600, fn
-        FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(bakfn) > File.size(fn)
+        FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(fn) == 0
       end
-      Redwood::save_yaml_obj @sources.values.sort_by { |s| s.id.to_i }, fn
+      Redwood::save_yaml_obj @sources.values.sort_by { |s| s.id.to_i }, fn, true
       File.chmod 0600, fn
     end
     @sources_dirty = false

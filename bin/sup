@@ -171,8 +171,8 @@ begin
   imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread { sleep 1; PollManager.poll } }
 
   unless $opts[:no_threads]
-    PollManager.start_thread
-    SuicideManager.start_thread
+    PollManager.start
+    SuicideManager.start
     Index.start_lock_update_thread
   end
 
@@ -253,6 +253,12 @@ begin
 rescue Exception => e
   $exception ||= e
 ensure
+  unless $opts[:no_threads]
+    PollManager.stop
+    SuicideManager.stop
+    Index.stop_lock_update_thread
+  end
+
   Redwood::finish
   stop_cursing
 
@@ -284,7 +290,7 @@ Sincerely,
 William
 ----------------------------------------------------------------
 
-The problem was: #{$exception.message} (error type #{$exception.class.name})
+The problem was: '#{$exception.message}' (error type #{$exception.class.name})
 A backtrace follows:
 EOS
   raise $exception
