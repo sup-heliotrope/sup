@@ -33,7 +33,7 @@ class AccountManager
 
     ([hash[:email]] + (hash[:alternates] || [])).each do |email|
       next if @email_map.member? email
-      a = Account.new email, hash
+      a = Account.new main_email, hash
       PersonManager.register a
       @accounts[a] = true
       @email_map[email] = a
