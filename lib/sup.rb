@@ -72,7 +72,7 @@ module Redwood
 ## one-stop shop for yamliciousness
   def save_yaml_obj object, fn, safe=false
     if safe
-      safe_fn = "safe_#{fn}"
+      safe_fn = "#{File.dirname fn}/safe_#{File.basename fn}"
       mode = File.stat(fn) if File.exists? fn
       File.open(safe_fn, "w", mode) { |f| f.puts object.to_yaml }
       FileUtils.mv safe_fn, fn
