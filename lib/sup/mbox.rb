@@ -22,12 +22,12 @@ module MBox
         /^(Bcc):\s+(.*?)\s*$/i,
         /^(Subject):\s+(.*?)\s*$/i,
         /^(Date):\s+(.*?)\s*$/i,
-        /^(Message-Id):\s+<(.*?)>\s*$/i,
         /^(References):\s+(.*?)\s*$/i,
         /^(In-Reply-To):\s+(.*?)\s*$/i,
         /^(Reply-To):\s+(.*?)\s*$/i,
         /^(List-Post):\s+(.*?)\s*$/i,
         /^(Status):\s+(.*?)\s*$/i: header[last = $1] = $2
+      when /^(Message-Id):\s+(.*?)\s*$/i: header[mid_field = last = $1] = $2
 
       ## these next three can occur multiple times, and we want the
       ## first one
@@ -41,6 +41,11 @@ module MBox
         header[last] += " " + line.chomp.gsub(/^\s+/, "") if last
       end
     end
+
+    if mid_field && header[mid_field] && header[mid_field] =~ /<(.*?)>/
+      header[mid_field] = $1
+    end
+
     header
   end
   
