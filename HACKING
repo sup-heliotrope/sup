@@ -4,12 +4,17 @@ Invoke it like this:
 
 ruby -I lib -w bin/sup
 
+You'll have to install all gems mentioned in the Rakefile (look for the line
+setting p.extra_deps). If you're on a Debian or Debian-based system (e.g.
+Ubuntu), you'll have to make sure you have a complete Ruby installation,
+especially libssl-ruby.
+
 Coding standards
 ----------------
 
 - Don't wrap code unless it really benefits from it. The days of
   80-column displays are long over. But do wrap comments and other
   text at whatever Emacs meta-Q does.
-- Use as few parentheses as possible.
+- I like poetry mode.
 - Use {} for one-liner blocks and do/end for multi-line blocks.
 

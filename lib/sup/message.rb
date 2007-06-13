@@ -12,9 +12,6 @@ class MessageFormatError < StandardError; end
 ## i would like, for example, to be able to add in a ruby-talk
 ## specific module that would detect and link to /ruby-talk:\d+/
 ## sequences in the text of an email. (how sweet would that be?)
-##
-## TODO: integrate with user's addressbook to render names
-## appropriately.
 class Message
   SNIPPET_LEN = 80
   WRAP_LEN = 80 # wrap at this width
