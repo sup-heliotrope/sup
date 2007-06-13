@@ -29,13 +29,13 @@ class ThreadIndexMode < LineCursorMode
 
   def initialize hidden_labels=[], load_thread_opts={}
     super()
+    @mutex = Mutex.new
     @load_thread = nil
     @load_thread_opts = load_thread_opts
     @hidden_labels = hidden_labels + LabelManager::HIDDEN_LABELS
     @date_width = DATE_WIDTH
     @from_width = FROM_WIDTH
     @size_width = nil
-    @last_load_more_size = nil
     
     @tags = Tagger.new self
     
@@ -44,6 +44,7 @@ class ThreadIndexMode < LineCursorMode
 
     UpdateManager.register self
 
+    @last_load_more_size = nil
     to_load_more do |size|
       next if @last_load_more_size == 0
       load_threads :num => 1, :background => false
@@ -366,6 +367,7 @@ class ThreadIndexMode < LineCursorMode
     BufferManager.draw_screen
     @ts.size - orig_size
   end
+  synchronized :load_n_threads
 
   def status
     if (l = lines) == 0
