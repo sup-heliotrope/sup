@@ -444,7 +444,7 @@ class BufferManager
   ## a little tricky because we can't just delete_at id because ids
   ## are relative (they're positions into the array).
   def clear id
-    next unless id # not sure why this happens---thread stuff?
+    return unless id # not sure why this happens---thread stuff?
     @minibuf_mutex.synchronize do
       @minibuf_stack[id] = nil
       if id == @minibuf_stack.length - 1
