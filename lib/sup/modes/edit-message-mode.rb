@@ -147,11 +147,11 @@ protected
     BufferManager.flash "Saved for later editing."
   end
 
-  def write_message f, full_header=true, date=Time.now
+  def write_message f, full=true, date=Time.now
     raise ArgumentError, "no pre-defined date: header allowed" if header["Date"]
     f.puts header_lines(header)
     f.puts "Date: #{date.rfc2822}"
-    if full_header
+    if full
       f.puts <<EOS
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -162,7 +162,7 @@ EOS
 
     f.puts
     f.puts body.map { |l| l =~ /^From / ? ">#{l}" : l }
-    f.puts sig_lines
+    f.puts sig_lines if full
   end  
 
 private
