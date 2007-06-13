@@ -441,7 +441,7 @@ protected
       else
         p.shortname
       end
-    end.join ","
+    end.uniq.join ","
   end
 
   def text_for_thread t
