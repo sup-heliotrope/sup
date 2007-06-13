@@ -149,7 +149,7 @@ begin
 
       ## skip if we're operating on restored messages, and this one
       ## ain't.
-      next if target == :restored && (!restored_state[m.id] || restored_state[m.id].sort_by { |s| s.to_s } == index_state.sort_by { |s| s.to_s })
+      next if target == :restored && (!restored_state[m.id] || (index_state && restored_state[m.id].sort_by { |s| s.to_s } == index_state.sort_by { |s| s.to_s }))
 
       ## m.labels is the default source labels. tweak these according
       ## to default source state modification flags.
