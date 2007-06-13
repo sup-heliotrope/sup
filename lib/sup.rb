@@ -104,7 +104,6 @@ module Redwood
   end
 
   def finish
-    Redwood::PollManager.stop
     Redwood::LabelManager.save if Redwood::LabelManager.instantiated?
     Redwood::ContactManager.save if Redwood::ContactManager.instantiated?
     Redwood::PersonManager.save if Redwood::PersonManager.instantiated?

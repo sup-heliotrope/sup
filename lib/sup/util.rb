@@ -310,6 +310,13 @@ module Singleton
     def deinstantiate!; @instance = nil; end
     def method_missing meth, *a, &b
       raise "no instance defined!" unless defined? @instance
+
+      ## if we've been deinstantiated, just drop all calls. this is
+      ## useful because threads that might be active during the
+      ## cleanup process (e.g. polling) would otherwise have to
+      ## special-case every call to a Singleton object
+      return nil if @instance.nil?
+
       @instance.send meth, *a, &b
     end
     def i_am_the_instance o
