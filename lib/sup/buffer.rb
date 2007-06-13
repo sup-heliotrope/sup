@@ -271,8 +271,8 @@ class BufferManager
   def kill_all_buffers_safely
     until @buffers.empty?
       ## inbox mode always claims it's unkillable. we'll ignore it.
-      return false unless @buffers.first.mode.is_a?(InboxMode) || @buffers.first.mode.killable?
-      kill_buffer @buffers.first
+      return false unless @buffers.last.mode.is_a?(InboxMode) || @buffers.last.mode.killable?
+      kill_buffer @buffers.last
     end
     true
   end
