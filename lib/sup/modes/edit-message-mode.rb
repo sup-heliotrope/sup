@@ -23,6 +23,9 @@ class EditMessageMode < LineCursorMode
     @edited = false
   end
 
+  def lines; @text.length; end
+  def [] i; @text[i]; end
+
   def edit
     @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
     @file.puts header_lines(header - NON_EDITABLE_HEADERS)
@@ -55,6 +58,10 @@ protected
   def update
     regen_text
     buffer.mark_dirty
+  end
+
+  def regen_text
+    @text = header_lines(header - NON_EDITABLE_HEADERS) + [""] + body + sig_lines
   end
 
   def parse_file fn
@@ -140,17 +147,6 @@ protected
     BufferManager.flash "Saved for later editing."
   end
 
-  def sig_lines
-    sigfn = (AccountManager.account_for(header["From"]) || 
-             AccountManager.default_account).sig_file
-
-    if sigfn && File.exists?(sigfn)
-      ["", "-- "] + File.readlines(sigfn).map { |l| l.chomp }
-    else
-      []
-    end
-  end
-
   def write_message f, full_header=true, date=Time.now
     raise ArgumentError, "no pre-defined date: header allowed" if header["Date"]
     f.puts header_lines(header)
@@ -165,8 +161,24 @@ EOS
     end
 
     f.puts
-    f.puts @body.map { |l| l =~ /^From / ? ">#{l}" : l }
+    f.puts body.map { |l| l =~ /^From / ? ">#{l}" : l }
+    f.puts sig_lines
   end  
+
+private
+
+
+  def sig_lines
+    p = PersonManager.person_for header["From"]
+    sigfn = (AccountManager.account_for(p.email) || 
+             AccountManager.default_account).signature
+
+    if sigfn && File.exists?(sigfn)
+      ["", "-- "] + File.readlines(sigfn).map { |l| l.chomp }
+    else
+      []
+    end
+  end
 end
 
 end

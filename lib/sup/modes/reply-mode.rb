@@ -22,7 +22,7 @@ class ReplyMode < EditMessageMode
     ## it's important to put this early because it forces a read of
     ## the full headers (most importantly the list-post header, if
     ## any)
-    @body = reply_body_lines(message)
+    @body = reply_body_lines message
 
     from =
       if @m.recipient_email
@@ -89,7 +89,6 @@ class ReplyMode < EditMessageMode
         :recipient
       end
 
-    @body += sig_lines
     regen_text
   end
 
@@ -131,10 +130,6 @@ protected
       @selected_type = :user
       @headers[:user] = new_header
     end
-  end
-
-  def regen_text
-    @text = header_lines(header - NON_EDITABLE_HEADERS) + [""] + body
   end
 
   def gen_references

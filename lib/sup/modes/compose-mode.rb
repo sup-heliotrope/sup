@@ -15,22 +15,15 @@ class ComposeMode < EditMessageMode
     @header["Bcc"] = opts[:bcc].map { |p| p.full_address }.join(", ") if opts[:bcc]
     @header["Subject"] = opts[:subj] if opts[:subj]
 
-    @body = (opts[:body] || []) + sig_lines
+    @body = opts[:body] || []
     regen_text
   end
-
-  def lines; @text.length; end
-  def [] i; @text[i]; end
 
 protected
 
   def handle_new_text new_header, new_body
     @header = new_header
     @body = new_body
-  end
-
-  def regen_text
-    @text = header_lines(@header - EditMessageMode::NON_EDITABLE_HEADERS) + [""] + @body
   end
 end
 

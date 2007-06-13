@@ -10,12 +10,9 @@ class ForwardMode < EditMessageMode
       "Subject" => "Fwd: #{m.subj}",
       "Message-Id" => gen_message_id,
     }
-    @body = forward_body_lines(m) + sig_lines
+    @body = forward_body_lines m
     regen_text
   end
-
-  def lines; @text.length; end
-  def [] i; @text[i]; end
 
 protected
 
@@ -28,10 +25,6 @@ protected
   def handle_new_text new_header, new_body
     @header = new_header
     @body = new_body
-  end
-
-  def regen_text
-    @text = header_lines(@header - NON_EDITABLE_HEADERS) + [""] + @body
   end
 end
 

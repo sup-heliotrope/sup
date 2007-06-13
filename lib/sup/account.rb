@@ -1,12 +1,12 @@
 module Redwood
 
 class Account < Person
-  attr_accessor :sendmail, :sig_file
+  attr_accessor :sendmail, :signature
 
   def initialize email, h
     super h[:name], email, 0, true
     @sendmail = h[:sendmail]
-    @sig_file = h[:signature]
+    @signature = h[:signature]
   end
 end
 
@@ -20,7 +20,8 @@ class AccountManager
     @accounts = {}
     @default_account = nil
 
-    accounts.each { |k, v| add_account v, k == :default }
+    add_account accounts[:default], true
+    accounts.each { |k, v| add_account v unless k == :default }
 
     self.class.i_am_the_instance self
   end
@@ -28,10 +29,17 @@ class AccountManager
   def user_accounts; @accounts.keys; end
   def user_emails; @email_map.keys.select { |e| String === e }; end
 
+  ## must be called first with the default account. fills in missing
+  ## values from the default account.
   def add_account hash, default=false
-    main_email = hash[:email]
+    raise ArgumentError, "no email specified for account" unless hash[:email]
+    unless default
+      [:name, :sendmail, :signature].each { |k| hash[k] ||= @default_account.send(k) }
+    end
+    hash[:alternates] ||= []
 
-    ([hash[:email]] + (hash[:alternates] || [])).each do |email|
+    main_email = hash[:email]
+    ([hash[:email]] + hash[:alternates]).each do |email|
       next if @email_map.member? email
       a = Account.new main_email, hash
       PersonManager.register a
