@@ -60,6 +60,7 @@ begin
     s.is_a?(Redwood::MBox::Loader) or Trollop::die "#{uri} is not an mbox source."
     s
   end
+  sources = index.usual_sources if sources.empty?
 
   any_modified = false
   sources.each { |s| s.reset! }
