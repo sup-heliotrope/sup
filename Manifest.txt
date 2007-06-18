@@ -55,6 +55,7 @@ lib/sup/modes/thread-index-mode.rb
 lib/sup/modes/thread-view-mode.rb
 lib/sup/person.rb
 lib/sup/poll.rb
+lib/sup/rfc2047.rb
 lib/sup/sent.rb
 lib/sup/source.rb
 lib/sup/suicide.rb

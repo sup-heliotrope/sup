@@ -1,10 +1,14 @@
 require "sup/mbox/loader"
 require "sup/mbox/ssh-file"
 require "sup/mbox/ssh-loader"
+require "sup/rfc2047"
 
 module Redwood
 
-## some utility functions
+## some utility functions. actually these are not mbox-specific at all
+## and should be moved somewhere else.
+##
+## TODO: move functionality to somewhere better, like message.rb
 module MBox
   BREAK_RE = /^From \S+/
 
@@ -46,6 +50,16 @@ module MBox
       header[mid_field] = $1
     end
 
+    header.each do |k, v|
+      next unless Rfc2047.is_encoded? v
+      header[k] =
+        begin
+          Rfc2047.decode_to $encoding, v
+        rescue Errno::EINVAL, Icon::InvalidEncoding, Iconv::IllegalSequence => e
+          Redwood::log "warning: error decoding RFC 2047 header: #{e.message}"
+          v
+        end
+    end
     header
   end
   

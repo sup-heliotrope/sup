@@ -1,5 +1,6 @@
 require 'tempfile'
 require 'time'
+require 'iconv'
 
 module Redwood
 
@@ -268,7 +269,21 @@ private
     else
       case m.header.content_type
       when "text/plain", nil
+        charset = 
+          if m.header.field?("content-type") && m.header.fetch("content-type") =~ /charset=(.*?)(;|$)/
+            $1
+          end
+
         m.body && body = m.decode or raise MessageFormatError, "For some bizarre reason, RubyMail was unable to parse this message."
+
+        if charset
+          begin
+            body = Iconv.iconv($encoding, charset, body).join
+          rescue Errno::EINVAL, Icon::InvalidEncoding, Iconv::IllegalSequence => e
+            Redwood::log "warning: error decoding message body from #{charset}: #{e.message}"
+          end
+        end
+
         text_to_chunks(body.normalize_whitespace.split("\n"))
       when /^multipart\//
         []

@@ -47,6 +47,16 @@ module Redwood
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
 
+## determine encoding and character set
+## probably a better way to do this
+  $ctype = ENV["LC_CTYPE"] || ENV["LANG"] || "en-US.utf-8"
+  $encoding =
+    if $ctype =~ /\.(.*)?/
+      $1
+    else
+      "utf-8"
+    end
+
 ## record exceptions thrown in threads nicely
   $exception = nil
   def reporting_thread
