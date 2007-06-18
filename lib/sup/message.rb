@@ -279,7 +279,7 @@ private
         if charset
           begin
             body = Iconv.iconv($encoding, charset, body).join
-          rescue Errno::EINVAL, Icon::InvalidEncoding, Iconv::IllegalSequence => e
+          rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
             Redwood::log "warning: error decoding message body from #{charset}: #{e.message}"
           end
         end
