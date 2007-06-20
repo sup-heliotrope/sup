@@ -18,7 +18,7 @@ class ThreadViewMode < LineCursorMode
     k.add :show_header, "Show full message header", 'H'
     k.add :toggle_expanded, "Expand/collapse item", :enter
     k.add :expand_all_messages, "Expand/collapse all messages", 'E'
-    k.add :edit_message, "Edit message (drafts only)", 'e'
+    k.add :edit_draft, "Edit draft", 'e'
     k.add :expand_all_quotes, "Expand/collapse all quotes in a message", 'o'
     k.add :jump_to_next_open, "Jump to next open message", 'n'
     k.add :jump_to_prev_open, "Jump to previous open message", 'p'
@@ -184,11 +184,12 @@ class ThreadViewMode < LineCursorMode
     end
   end
 
-  def edit_message
+  def edit_draft
     m = @message_lines[curpos] or return
     if m.is_draft?
       mode = ResumeMode.new m
       BufferManager.spawn "Edit message", mode
+      BufferManager.kill_buffer self.buffer
       mode.edit
     else
       BufferManager.flash "Not a draft message!"

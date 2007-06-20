@@ -447,8 +447,8 @@ protected
   end
 
   def text_for_thread t
-    date = t.date.to_nice_s(Time.now)
-    from = author_text_for_thread(t)
+    date = t.date.to_nice_s
+    from = author_text_for_thread t
     if from.length > @from_width
       from = from[0 ... (@from_width - 1)]
       from += "." unless from[-1] == ?\s
