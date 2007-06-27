@@ -122,7 +122,7 @@ begin
   end
 
   $stderr.puts "Done."
-  $stderr.puts "You should run sup-sync --changed #{sources.join(' ')}." if any_modified
+  $stderr.puts "You should now run: sup-sync --changed #{sources.join(' ')}" if any_modified
 rescue Exception => e
   File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
   raise
