@@ -16,13 +16,12 @@ class ReplyMode < EditMessageMode
   end
 
   def initialize message
-    super 2, :twiddles => false
     @m = message
 
     ## it's important to put this early because it forces a read of
     ## the full headers (most importantly the list-post header, if
     ## any)
-    @body = reply_body_lines message
+    body = reply_body_lines message
 
     from =
       if @m.recipient_email
@@ -65,7 +64,6 @@ class ReplyMode < EditMessageMode
     } if @m.is_list_message?
 
     refs = gen_references
-    mid = gen_message_id
     @headers.each do |k, v|
       @headers[k] = {
                "To" => "",
@@ -73,7 +71,6 @@ class ReplyMode < EditMessageMode
                "Bcc" => "",
                "In-Reply-To" => "<#{@m.id}>",
                "Subject" => Message.reify_subj(@m.subj),
-               "Message-Id" => mid,
                "References" => refs,
              }.merge v
     end
@@ -88,31 +85,26 @@ class ReplyMode < EditMessageMode
         :recipient
       end
 
-    regen_text
+    super :header => @headers[@selected_type], :body => body,
+          :skip_top_rows => 2, :twiddles => false
   end
 
-  def lines; @text.length + 2; end
+  def lines; super + 2; end
   def [] i
     case i
     when 0
-      lame = []
-      @type_labels.each do |t|
-        lame << [(t == @selected_type ? :none_highlight : :none), 
-          "#{TYPE_DESCRIPTIONS[t]}"]
-        lame << [:none, "  "]
-      end
-      lame + [[:none, ""]]
+      @type_labels.inject([]) do |array, t|
+        array + [[(t == @selected_type ? :none_highlight : :none), 
+          "#{TYPE_DESCRIPTIONS[t]}"], [:none, "  "]]
+      end + [[:none, ""]]
     when 1
       ""
     else
-      @text[i - 2]
+      super(i - 2)
     end
   end
 
 protected
-
-  def body; @body; end
-  def header; @headers[@selected_type]; end
 
   def reply_body_lines m
     lines = ["Excerpts from #{@m.from.name}'s message of #{@m.date}:"] + 
@@ -122,12 +114,11 @@ protected
   end
 
   def handle_new_text new_header, new_body
-    @body = new_body
-
-    if new_header.size != header.size ||
-        header.any? { |k, v| new_header[k] != v }
+    old_header = @headers[@selected_type]
+    if new_header.size != old_header.size || old_header.any? { |k, v| new_header[k] != v }
       @selected_type = :user
-      @headers[:user] = new_header
+      self.header = @headers[:user] = new_header
+      update
     end
   end
 
@@ -138,12 +129,14 @@ protected
   def move_cursor_left
     i = @type_labels.index @selected_type
     @selected_type = @type_labels[(i - 1) % @type_labels.length]
+    self.header = @headers[@selected_type]
     update
   end
 
   def move_cursor_right
     i = @type_labels.index @selected_type
     @selected_type = @type_labels[(i + 1) % @type_labels.length]
+    self.header = @headers[@selected_type]
     update
   end
 end

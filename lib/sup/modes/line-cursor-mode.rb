@@ -12,9 +12,8 @@ class LineCursorMode < ScrollMode
 
   attr_reader :curpos
 
-  def initialize cursor_top=0, opts={}
-    @cursor_top = cursor_top
-    @curpos = cursor_top
+  def initialize opts={}
+    @cursor_top = @curpos = opts[:skip_top_rows] || 0
     @load_more_callbacks = []
     @load_more_callbacks_m = Mutex.new
     @load_more_callbacks_active = false

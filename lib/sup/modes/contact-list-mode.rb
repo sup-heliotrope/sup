@@ -23,7 +23,7 @@ class ContactListMode < LineCursorMode
     k.add :search, "Search for messages from particular people", 'S'
   end
 
-  def initialize mode = :regular
+  def initialize mode=:regular
     @mode = mode
     @tags = Tagger.new self
     @num = nil

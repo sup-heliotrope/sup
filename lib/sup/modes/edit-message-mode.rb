@@ -9,6 +9,7 @@ class EditMessageMode < LineCursorMode
   NON_EDITABLE_HEADERS = %w(Message-Id Date)
 
   attr_reader :status
+  attr_accessor :body, :header
   bool_reader :edited
 
   register_keymap do |k|
@@ -17,20 +18,27 @@ class EditMessageMode < LineCursorMode
     k.add :save_as_draft, "Save as draft", 'P'
   end
 
-  def initialize *a
-    super
+  def initialize opts={}
+    @header = opts.delete(:header) || {} 
+    @body = opts.delete(:body) || []
+    @body += sig_lines if $config[:edit_signature]
     @attachments = []
     @edited = false
+    super opts
+    update
   end
 
-  def lines; @text.length; end
-  def [] i; @text[i]; end
+  def lines; @text.length end
+  def [] i; @text[i] end
+
+  ## a hook
+  def handle_new_text header, body; end
 
   def edit
     @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
-    @file.puts header_lines(header - NON_EDITABLE_HEADERS)
+    @file.puts header_lines(@header - NON_EDITABLE_HEADERS)
     @file.puts
-    @file.puts body
+    @file.puts @body
     @file.close
 
     editor = $config[:editor] || ENV['EDITOR'] || "/usr/bin/vi"
@@ -39,9 +47,9 @@ class EditMessageMode < LineCursorMode
     BufferManager.shell_out "#{editor} #{@file.path}"
     @edited = true if File.mtime(@file.path) > mtime
 
-    new_header, new_body = parse_file(@file.path)
-    NON_EDITABLE_HEADERS.each { |h| new_header[h] = header[h] if header[h] }
-    handle_new_text new_header, new_body
+    header, @body = parse_file @file.path
+    @header = header - NON_EDITABLE_HEADERS
+    handle_new_text @header, @body
     update
   end
 
@@ -57,11 +65,12 @@ protected
 
   def update
     regen_text
-    buffer.mark_dirty
+    buffer.mark_dirty if buffer
   end
 
   def regen_text
-    @text = header_lines(header - NON_EDITABLE_HEADERS) + [""] + body + sig_lines
+    @text = header_lines(@header - NON_EDITABLE_HEADERS) + [""] + @body 
+    @text += sig_lines unless $config[:edit_signature]
   end
 
   def parse_file fn
@@ -115,10 +124,9 @@ protected
   def send_message
     return unless edited? || BufferManager.ask_yes_or_no("Message unedited. Really send?")
 
-    raise "no message id!" unless header["Message-Id"]
     date = Time.now
     from_email = 
-      if header["From"] =~ /<?(\S+@(\S+?))>?$/
+      if @header["From"] =~ /<?(\S+@(\S+?))>?$/
         $1
       else
         AccountManager.default_account.email
@@ -147,10 +155,15 @@ protected
     BufferManager.flash "Saved for later editing."
   end
 
+  ## this is going to change soon: draft messages (currently written
+  ## with full=false) will be output as yaml.
   def write_message f, full=true, date=Time.now
-    raise ArgumentError, "no pre-defined date: header allowed" if header["Date"]
-    f.puts header_lines(header)
-    f.puts "Date: #{date.rfc2822}"
+    raise ArgumentError, "no pre-defined date: header allowed" if @header["Date"]
+    f.puts header_lines(@header)
+    f.puts <<EOS
+Date: #{date.rfc2822}
+Message-Id: #{gen_message_id}
+EOS
     if full
       f.puts <<EOS
 Mime-Version: 1.0
@@ -161,15 +174,14 @@ EOS
     end
 
     f.puts
-    f.puts body.map { |l| l =~ /^From / ? ">#{l}" : l }
-    f.puts sig_lines if full
+    f.puts @body.map { |l| l =~ /^From / ? ">#{l}" : l }
+    f.puts sig_lines if full unless $config[:edit_signature]
   end  
 
 private
 
-
   def sig_lines
-    p = PersonManager.person_for header["From"]
+    p = PersonManager.person_for @header["From"]
     sigfn = (AccountManager.account_for(p.email) || 
              AccountManager.default_account).signature
 

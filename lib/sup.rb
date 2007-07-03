@@ -192,6 +192,7 @@ else
     },
     :editor => ENV["EDITOR"] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
     :thread_by_subject => false,
+    :edit_signature => false,
   }
   begin
     FileUtils.mkdir_p Redwood::BASE_DIR
