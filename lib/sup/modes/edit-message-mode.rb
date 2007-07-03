@@ -23,6 +23,8 @@ class EditMessageMode < LineCursorMode
     @body = opts.delete(:body) || []
     @body += sig_lines if $config[:edit_signature]
     @attachments = []
+    @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
+
     @edited = false
     super opts
     update
@@ -58,10 +60,6 @@ class EditMessageMode < LineCursorMode
   end
 
 protected
-
-  def gen_message_id
-    "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
-  end
 
   def update
     regen_text
@@ -162,7 +160,7 @@ protected
     f.puts header_lines(@header)
     f.puts <<EOS
 Date: #{date.rfc2822}
-Message-Id: #{gen_message_id}
+Message-Id: #{@message_id}
 EOS
     if full
       f.puts <<EOS
