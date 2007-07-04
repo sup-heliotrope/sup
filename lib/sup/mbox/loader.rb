@@ -23,6 +23,8 @@ class Loader < Source
     end
   end
 
+  def file_path; URI(uri).path end
+
   def self.suggest_labels_for path
     ## heuristic: use the filename as a label, unless the file
     ## has a path that probably represents an inbox.

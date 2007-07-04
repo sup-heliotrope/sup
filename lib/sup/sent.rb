@@ -33,10 +33,12 @@ class SentLoader < MBox::Loader
   yaml_properties :cur_offset
 
   def initialize cur_offset=0
-    filename = Redwood::SENT_FN
-    File.open(filename, "w") { } unless File.exists? filename
-    super "mbox://" + filename, cur_offset, true, true
+    @filename = Redwood::SENT_FN
+    File.open(@filename, "w") { } unless File.exists? @filename
+    super "mbox://" + @filename, cur_offset, true, true
   end
+
+  def file_path; @filename end
 
   def uri; SentManager.source_name; end
   def to_s; SentManager.source_name; end

@@ -71,6 +71,8 @@ class Source
     @dirty = false
   end
 
+  def file_path; nil end
+
   def to_s; @uri.to_s; end
   def seek_to! o; self.cur_offset = o; end
   def reset!; seek_to! start_offset; end

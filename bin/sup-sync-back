@@ -60,13 +60,13 @@ begin
     s.is_a?(Redwood::MBox::Loader) or Trollop::die "#{uri} is not an mbox source."
     s
   end
-  sources = index.usual_sources if sources.empty?
+  sources = index.usual_sources.select { |s| s.is_a? Redwood::MBox::Loader } if sources.empty?
 
   any_modified = false
-  sources.each { |s| s.reset! }
   
   sources.each do |source|
     $stderr.puts "Scanning #{source}..."
+    source.reset!
     num_deleted = num_moved = num_scanned = 0
     
     out_fp = Tempfile.new "sup-sync-back-#{source.id}"
@@ -108,11 +108,11 @@ begin
     any_modified = true if num_deleted > 0 || num_moved > 0
     out_fp.close unless opts[:dry_run]
 
-    unless opts[:dry_run]
+    unless opts[:dry_run] || !any_modified
       deleted_fp.flush if deleted_fp
       spam_fp.flush if spam_fp
       out_fp.close
-      FileUtils.mv out_fp.path, URI(source.uri).path
+      FileUtils.mv out_fp.path, source.file_path
     end
   end
 
