@@ -1,14 +1,14 @@
 module Redwood
 
-class ResumeMode < ComposeMode
+class ResumeMode < EditMessageMode
   def initialize m
-    super()
     @id = m.id
-    @header, @body = parse_file m.draft_filename
-    @header.delete "Date"
-    @header["Message-Id"] = gen_message_id # generate a new'n
-    regen_text
     @safe = false
+
+    header, body = parse_file m.draft_filename
+    header.delete "Date"
+
+    super :header => header, :body => body
   end
 
   def killable?
