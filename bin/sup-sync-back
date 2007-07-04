@@ -112,6 +112,7 @@ begin
       deleted_fp.flush if deleted_fp
       spam_fp.flush if spam_fp
       out_fp.close
+      $stderr.puts "Moving #{out_fp.path} to #{source.file_path}"
       FileUtils.mv out_fp.path, source.file_path
     end
   end
