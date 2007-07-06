@@ -432,7 +432,7 @@ private
       message_patina_lines(chunk, state, start, parent, prefix, color, star_color) +
         (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. To edit, hit 'e'. <<<"]]] : [])
     when Message::Attachment
-      [[[:mime_color, "#{prefix}+ MIME attachment #{chunk.content_type}#{chunk.desc ? ' (' + chunk.desc + ')': ''}"]]]
+      [[[:attachment_color, "#{prefix}+ Attachment: #{chunk.content_type}#{chunk.desc ? ' (' + chunk.desc + ')': ''}"]]]
     when Message::Text
       t = chunk.lines
       if t.last =~ /^\s*$/ && t.length > 1

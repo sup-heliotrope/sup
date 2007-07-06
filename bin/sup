@@ -119,7 +119,7 @@ begin
     c.add :message_patina_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_GREEN
     c.add :alternate_patina_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_BLUE
     c.add :missing_message_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_RED
-    c.add :mime_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
+    c.add :attachment_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
     c.add :quote_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
     c.add :sig_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
     c.add :quote_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
@@ -137,6 +137,8 @@ begin
           Ncurses::A_BOLD
     c.add :draft_notification_color, Ncurses::COLOR_RED, Ncurses::COLOR_BLACK,
           Ncurses::A_BOLD
+    c.add :completion_character_color, Ncurses::COLOR_WHITE,
+          Ncurses::COLOR_BLACK, Ncurses::A_BOLD
   end
 
   log "initializing buffer manager"
@@ -261,14 +263,15 @@ ensure
 
   Redwood::finish
   stop_cursing
+  Redwood::log "stopped cursing"
 
   if SuicideManager.instantiated? && SuicideManager.die?
-    Redwood::log "I've been asked to commit sepuku. I obey!"
+    Redwood::log "I've been ordered to commit sepuku. I obey!"
   end
 
   case $exception
   when nil
-    Redwood::log "good night, sweet prince!"
+    Redwood::log "no fatal errors. good job, william."
     Index.save
   else
     Redwood::log "oh crap, an exception"

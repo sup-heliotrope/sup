@@ -189,7 +189,7 @@ EOS
   end
 
   def save_index fn=File.join(@dir, "ferret")
-    # don't have to do anything,  apparently
+    # don't have to do anything, apparently
   end
 
   def contains_id? id

@@ -1,5 +1,7 @@
 require 'tempfile'
 require 'socket' # just for gethostname!
+require 'pathname'
+require 'rmail'
 
 module Redwood
 
@@ -16,6 +18,8 @@ class EditMessageMode < LineCursorMode
     k.add :send_message, "Send message", 'y'
     k.add :edit, "Edit message", 'e', :enter
     k.add :save_as_draft, "Save as draft", 'P'
+    k.add :attach_file, "Attach a file", 'a'
+    k.add :delete_attachment, "Delete an attachment", 'd'
   end
 
   def initialize opts={}
@@ -23,11 +27,13 @@ class EditMessageMode < LineCursorMode
     @body = opts.delete(:body) || []
     @body += sig_lines if $config[:edit_signature]
     @attachments = []
+    @attachment_lines = {}
     @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
 
     @edited = false
+    @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
     super opts
-    update
+    regen_text
   end
 
   def lines; @text.length end
@@ -59,6 +65,20 @@ class EditMessageMode < LineCursorMode
     !edited? || BufferManager.ask_yes_or_no("Discard message?")
   end
 
+  def attach_file
+    fn = BufferManager.ask_for_filenames :attachment, "File name (enter for browser): "
+    fn.each { |f| @attachments << Pathname.new(f) }
+    update
+  end
+
+  def delete_attachment
+    i = curpos - @top_lines
+    if i >= 0 && i < @attachments.size && BufferManager.ask_yes_or_no("Delete attachment #{@attachments[i]}?")
+      @attachments.delete_at i
+      update
+    end
+  end
+
 protected
 
   def update
@@ -67,7 +87,10 @@ protected
   end
 
   def regen_text
-    @text = header_lines(@header - NON_EDITABLE_HEADERS) + [""] + @body 
+    top = header_lines(@header - NON_EDITABLE_HEADERS) + [""]
+    @text = top + @body + 
+      @attachments.map { |f| [[:attachment_color, "+ Attachment: #{f} (#{f.human_size})"]] }
+    @top_lines = top.size
     @text += sig_lines unless $config[:edit_signature]
   end
 
@@ -134,7 +157,7 @@ protected
     BufferManager.flash "Sending..."
 
     begin
-      IO.popen(acct.sendmail, "w") { |p| write_message p, true, date }
+      IO.popen(acct.sendmail, "w") { |p| write_full_message_to p }
     rescue SystemCallError
     end
     if $? == 0
@@ -151,6 +174,28 @@ protected
     DraftManager.write_draft { |f| write_message f, false }
     BufferManager.kill_buffer buffer
     BufferManager.flash "Saved for later editing."
+  end
+
+  def write_full_message_to f
+    m = RMail::Message.new
+    @header.each { |k, v| m.header[k] = v.to_s unless v.to_s.empty? }
+    m.header["Date"] = Time.now.rfc2822
+    m.header["Message-Id"] = @message_id
+    m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
+    if @attachments.empty?
+      m.header["Content-Disposition"] = "inline"
+      m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
+      m.body = @body.join "\n"
+      m.body += sig_lines.join("\n") unless $config[:edit_signature]
+    else
+      body_m = RMail::Message.new
+      body_m.body = @body.join "\n"
+      body_m.body += sig_lines.join("\n") unless $config[:edit_signature]
+      
+      m.add_part body_m
+      @attachments.each { |fn| m.add_attachment fn.to_s }
+    end
+    f.puts m.to_s
   end
 
   ## this is going to change soon: draft messages (currently written

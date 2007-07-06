@@ -244,6 +244,8 @@ require "sup/modes/inbox-mode"
 require "sup/modes/buffer-list-mode"
 require "sup/modes/log-mode"
 require "sup/modes/poll-mode"
+require "sup/modes/file-browser-mode"
+require "sup/modes/completion-mode"
 require "sup/logger"
 require "sup/sent"
 

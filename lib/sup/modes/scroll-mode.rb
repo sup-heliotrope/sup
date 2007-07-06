@@ -21,7 +21,7 @@ class ScrollMode < Mode
     k.add :col_right, "Right one column", :right, 'l'
     k.add :page_down, "Down one page", :page_down, 'n', ' '
     k.add :page_up, "Up one page", :page_up, 'p', :backspace
-    k.add :jump_to_home, "Jump to top", :home, '^', '1'
+    k.add :jump_to_start, "Jump to top", :home, '^', '1'
     k.add :jump_to_end, "Jump to bottom", :end, '$', '0'
     k.add :jump_to_left, "Jump to the left", '['
   end
@@ -76,17 +76,18 @@ class ScrollMode < Mode
     buffer.mark_dirty
   end
 
+  def at_top?; @topline == 0 end
+  def at_bottom?; @botline == lines end
+
   def line_down; jump_to_line @topline + 1; end
   def line_up;  jump_to_line @topline - 1; end
   def page_down; jump_to_line @topline + buffer.content_height - @slip_rows; end
   def page_up; jump_to_line @topline - buffer.content_height + @slip_rows; end
-  def jump_to_home; jump_to_line 0; end
+  def jump_to_start; jump_to_line 0; end
   def jump_to_end; jump_to_line lines - buffer.content_height; end
 
-
   def ensure_mode_validity
-    @topline = @topline.clamp 0, lines - 1
-    @topline = 0 if @topline < 0 # empty 
+    @topline = @topline.clamp 0, [lines - 1, 0].max
     @botline = [@topline + buffer.content_height, lines].min
   end
 

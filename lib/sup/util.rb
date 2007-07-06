@@ -1,4 +1,6 @@
 require 'lockfile'
+require 'mime/types'
+require 'pathname'
 
 ## time for some monkeypatching!
 class Lockfile
@@ -25,6 +27,63 @@ class Lockfile
   end
 
   def touch_yourself; touch path end
+end
+
+class Pathname
+  def human_size
+    s =
+      begin
+        size
+      rescue SystemCallError
+        return "?"
+      end
+
+    if s < 1024
+      s.to_s + "b"
+    elsif s < (1024 * 1024)
+      (s / 1024).to_s + "k"
+    elsif s < (1024 * 1024 * 1024)
+      (s / 1024 / 1024).to_s + "m"
+    else
+      (s / 1024 / 1024 / 1024).to_s + "g"
+    end
+  end
+
+  def human_time
+    begin
+      ctime.strftime("%Y-%m-%d %H:%M")
+    rescue SystemCallError
+      "?"
+    end
+  end
+end
+
+## more monkeypatching!
+module RMail
+  class EncodingUnsupportedError < StandardError; end
+
+  class Message
+    def add_attachment fn
+      bfn = File.basename fn
+      a = Message.new
+      t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first
+
+      a.header.add "Content-Disposition", "attachment; filename=#{bfn}"
+      a.header.add "Content-Type", "#{t.content_type}; name=#{bfn}"
+      a.header.add "Content-Transfer-Encoding", t.encoding
+      a.body =
+        case t.encoding
+        when "base64"
+          [IO.read(fn)].pack "m"
+        when "quoted-printable"
+          [IO.read(fn)].pack "M"
+        else
+          raise EncodingUnsupportedError, t.encoding
+        end
+
+      add_part a
+    end
+  end
 end
 
 class Range
@@ -77,6 +136,8 @@ class Object
   ##
   ## i'm sure there's pithy comment i could make here about the
   ## superiority of lisp, but fuck lisp.
+  ##
+  ## addendum: apparently this is a "k combinator". whoda thunk it?
   def returning x; yield x; x; end
 
   ## clone of java-style whole-method synchronization
@@ -213,6 +274,20 @@ module Enumerable
     end
     best
   end
+
+  ## returns the maximum shared prefix of an array of strings
+  ## optinally excluding a prefix
+  def shared_prefix exclude=""
+    return "" if empty?
+    prefix = ""
+    (0 ... first.length).each do |i|
+      c = first[i]
+      break unless all? { |s| s[i] == c }
+      next if exclude[i] == c
+      prefix += c.chr
+    end
+    prefix
+  end
 end
 
 class Array
@@ -224,6 +299,8 @@ class Array
   def rest; self[1..-1]; end
 
   def to_boolean_h; Hash[*map { |x| [x, true] }.flatten]; end
+
+  def last= e; self[-1] = e end
 end
 
 class Time

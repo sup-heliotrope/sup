@@ -1,3 +1,4 @@
+require 'etc'
 require 'thread'
 
 module Ncurses
@@ -28,7 +29,9 @@ module Ncurses
 
   module_function :rows, :cols, :nonblocking_getch, :mutex, :sync
 
-  KEY_CANCEL = "\a"[0] # ctrl-g
+  KEY_ENTER = 10
+  KEY_CANCEL = ?\a # ctrl-g
+  KEY_TAB = 9
 end
 
 module Redwood
@@ -204,19 +207,22 @@ class BufferManager
     ## disabling this for the time being, to help with debugging
     ## (currently we only have one buffer visible at a time).
     ## TODO: reenable this if we allow multiple buffers
-    false && @buffers.inject(@dirty) do |dirty, buf|
+    true && @buffers.inject(@dirty) do |dirty, buf|
       buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
-      @dirty ? buf.draw : buf.redraw
+      #dirty ? buf.draw : buf.redraw
+      buf.draw
+      dirty
     end
 
     ## quick hack
-    if true
+    if false
       buf = @buffers.last
       buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
       @dirty ? buf.draw : buf.redraw
     end
 
     draw_minibuf :sync => false unless opts[:skip_minibuf]
+
     @dirty = false
     Ncurses.doupdate
     Ncurses.refresh if opts[:refresh]
@@ -268,6 +274,24 @@ class BufferManager
     b
   end
 
+  ## requires the mode to have #done? and #value methods
+  def spawn_modal title, mode, opts={}
+    b = spawn title, mode, opts
+    draw_screen
+
+    until mode.done?
+      c = Ncurses.nonblocking_getch
+      next unless c # getch timeout
+      break if c == Ncurses::KEY_CANCEL
+      mode.handle_input c
+      draw_screen
+      erase_flash
+    end
+
+    kill_buffer b
+    mode.value
+  end
+
   def kill_all_buffers_safely
     until @buffers.empty?
       ## inbox mode always claims it's unkillable. we'll ignore it.
@@ -302,20 +326,56 @@ class BufferManager
     end
   end
 
-  ## not really thread safe.
-  def ask domain, question, default=nil
+  ## returns an ARRAY of filenames!
+  def ask_for_filenames domain, question, default=nil
+    answer = ask domain, question, default do |s|
+      if s =~ /(~([^\s\/]*))/ # twiddle directory expansion
+        full = $1
+        name = $2.empty? ? Etc.getlogin : $2
+        dir = Etc.getpwnam(name).dir rescue nil
+        if dir
+          [[s.sub(full, dir), "~#{name}"]]
+        else
+          users.select { |u| u =~ /^#{name}/ }.map do |u|
+            [s.sub("~#{name}", "~#{u}"), "~#{u}"]
+          end
+        end
+      else # regular filename completion
+        Dir["#{s}*"].sort.map do |fn|
+          suffix = File.directory?(fn) ? "/" : ""
+          [fn + suffix, File.basename(fn) + suffix]
+        end
+      end
+    end
+
+    if answer
+      if answer.empty?
+        spawn_modal "file browser", FileBrowserMode.new
+      elsif File.directory?(answer)
+        spawn_modal "file browser", FileBrowserMode.new(answer)
+      else
+        [answer]
+      end
+    else
+      []
+    end
+  end
+
+  def ask domain, question, default=nil, &block
     raise "impossible!" if @asking
+    @asking = true
 
     @textfields[domain] ||= TextField.new Ncurses.stdscr, Ncurses.rows - 1, 0, Ncurses.cols
     tf = @textfields[domain]
+    completion_buf = nil
 
-    ## this goddamn ncurses form shit is a fucking 1970's
-    ## nightmare. jesus christ. the exact sequence of ncurses events
-    ## that needs to happen in order to display a form and have the
-    ## entire screen not disappear and have the cursor in the right
-    ## place is TOO FUCKING COMPLICATED.
+    ## this goddamn ncurses form shit is a fucking 1970's nightmare.
+    ## jesus christ. the exact sequence of ncurses events that needs
+    ## to happen in order to display a form and have the entire screen
+    ## not disappear and have the cursor in the right place is TOO
+    ## FUCKING COMPLICATED.
     Ncurses.sync do
-      tf.activate question, default
+      tf.activate question, default, &block
       @dirty = true
       draw_screen :skip_minibuf => true, :sync => false
     end
@@ -324,15 +384,42 @@ class BufferManager
     tf.position_cursor
     Ncurses.sync { Ncurses.refresh }
 
-    @asking = true
-    while tf.handle_input(Ncurses.nonblocking_getch); end
-    @asking = false
+    while true
+      c = Ncurses.nonblocking_getch
+      next unless c  # getch timeout
+      break unless tf.handle_input c # process keystroke
 
-    ret = tf.value
+      if tf.new_completions?
+        kill_buffer completion_buf if completion_buf
+        
+        prefix_len =
+          if tf.value =~ /\/$/
+            0
+          else
+            File.basename(tf.value).length
+          end
+
+        mode = CompletionMode.new tf.completions.map { |full, short| short }, :header => "Possible completions for \"#{tf.value}\": ", :prefix_len => prefix_len
+        completion_buf = spawn "<completions>", mode, :height => 10
+
+        draw_screen :skip_minibuf => true
+        tf.position_cursor
+      elsif tf.roll_completions?
+        completion_buf.mode.roll
+
+        draw_screen :skip_minibuf => true
+        tf.position_cursor
+      end
+
+      Ncurses.sync { Ncurses.refresh }
+    end
+    
     Ncurses.sync { tf.deactivate }
+    kill_buffer completion_buf if completion_buf
     @dirty = true
-
-    ret
+    @asking = false
+    draw_screen
+    tf.value
   end
 
   ## some pretty lame code in here!
@@ -466,6 +553,18 @@ class BufferManager
       Ncurses.curs_set 0
     end
     @shelled = false
+  end
+
+private
+
+  def users
+    unless @users
+      @users = []
+      while(u = Etc.getpwent)
+        @users << u.name
+      end
+    end
+    @users
   end
 end
 end

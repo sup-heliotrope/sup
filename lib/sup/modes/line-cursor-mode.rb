@@ -13,7 +13,7 @@ class LineCursorMode < ScrollMode
   attr_reader :curpos
 
   def initialize opts={}
-    @cursor_top = @curpos = opts[:skip_top_rows] || 0
+    @cursor_top = @curpos = opts.delete(:skip_top_rows) || 0
     @load_more_callbacks = []
     @load_more_callbacks_m = Mutex.new
     @load_more_callbacks_active = false
@@ -135,7 +135,7 @@ protected
     end
   end
 
-  def jump_to_home
+  def jump_to_start
     super
     set_cursor_pos @cursor_top
   end

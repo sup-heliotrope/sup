@@ -1,5 +1,6 @@
 for 0.0.9
 ---------
+_ bugfix: screwing the headers when editing causes a crash
 _ bugfix: when one new message comes into an imap folder, we don't
    catch it until a reload (sometimes?)
   message indicating they're loaded to inbox (imap only?)
