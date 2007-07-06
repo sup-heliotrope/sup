@@ -151,7 +151,9 @@ class ThreadViewMode < LineCursorMode
     chunk = @chunk_lines[curpos] or return
     case chunk
     when Message
-      toggle_chunk_expansion chunk
+      l = @layout[chunk]
+      l.state = (l.state != :closed ? :closed : :open)
+      cursor_down if l.state == :closed
     when Message::Quote, Message::Signature
       return if chunk.lines.length == 1
       toggle_chunk_expansion chunk
