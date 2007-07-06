@@ -29,9 +29,8 @@ class EditMessageMode < LineCursorMode
     @attachments = []
     @attachment_lines = {}
     @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
-
     @edited = false
-    @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
+
     super opts
     regen_text
   end

@@ -26,27 +26,30 @@ class Message
   end
 
   class Attachment
-    attr_reader :content_type, :desc, :filename
-    def initialize content_type, desc, part
+    attr_reader :content_type, :filename, :content, :lines
+    def initialize content_type, filename, content
       @content_type = content_type
-      @desc = desc
-      @part = part
-      @file = nil
-      desc =~ /filename="?(.*?)("|$)/ && @filename = $1
+      @filename = filename
+      @content = content
+
+      if inlineable?
+        @lines = to_s.split("\n")
+      end
     end
 
     def view!
-      unless @file
-        @file = Tempfile.new "redwood.attachment"
-        @file.print self
-        @file.close
-      end
+      file = Tempfile.new "redwood.attachment"
+      file.print raw_content
+      file.close
 
-      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{@file.path} >& /dev/null"
+      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{file.path} >& /dev/null"
       $? == 0
     end
 
-    def to_s; @part.decode; end
+    def to_s; Message.decode_and_convert @content; end
+    def raw_content; @content.decode end
+
+    def inlineable?; @content_type =~ /^text\/plain/ end
   end
 
   class Text
@@ -262,36 +265,72 @@ EOS
 
 private
 
-  ## (almost) everything rmail-specific goes here
+  ## here's where we handle decoding mime attachments. unfortunately
+  ## but unsurprisingly, the world of mime attachments is a bit of a
+  ## mess. as an empiricist, i'm basing the following behavior on
+  ## observed mail rather than on interpretations of rfcs, so probably
+  ## this will have to be tweaked.
+  ##
+  ## the general behavior i want is: ignore content-disposition, at
+  ## least in so far as it suggests something being inline vs being an
+  ## attachment. (because really, that should be the recipient's
+  ## decision to make.) if a mime part is text/plain, then decode it
+  ## and display it inline. if it has associated filename, then make
+  ## it collapsable and individually saveable; otherwise, treat it as
+  ## regular body text.
+  ##
+  ## so, in contrast to mutt, the user is not exposed to the workings
+  ## of the gruesome slaughterhouse and sausage factory that is a
+  ## mime-encoded message, but need only see the delicious end
+  ## product.
   def message_to_chunks m
     if m.multipart?
-      m.body.map { |p| message_to_chunks p }.flatten.compact
+      m.body.map { |p| message_to_chunks p }.flatten.compact # recurse
     else
-      case m.header.content_type
-      when "text/plain", nil
-        charset = 
-          if m.header.field?("content-type") && m.header.fetch("content-type") =~ /charset=(.*?)(;|$)/
-            $1
-          end
+      filename =
+        ## first, paw through the headers looking for a filename
+        if m.header["Content-Disposition"] &&
+            m.header["Content-Disposition"] =~ /filename="(.*?[^\\])"/
+          $1
+        elsif m.header["Content-Type"] &&
+            m.header["Content-Type"] =~ /name=(.*?)(;|$)/
+          $1
 
-        m.body && body = m.decode or raise MessageFormatError, "For some bizarre reason, RubyMail was unable to parse this message."
-
-        if charset
-          begin
-            body = Iconv.iconv($encoding, charset, body).join
-          rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
-            Redwood::log "warning: error decoding message body from #{charset}: #{e.message}"
-          end
+        ## haven't found one, but it's a non-text message. fake
+        ## it.
+        elsif m.header["Content-Type"] && m.header["Content-Type"] !~ /^text\/plain/
+          "sup-attachment-#{Time.now.to_i}-#{rand 10000}"
         end
 
-        text_to_chunks(body.normalize_whitespace.split("\n"))
-      when /^multipart\//
-        []
+      ## if there's a filename, we'll treat it as an attachment.
+      if filename
+        [Attachment.new(m.header.content_type, filename, m)]
+
+      ## otherwise, it's body text
       else
-        disp = m.header["Content-Disposition"] || ""
-        [Attachment.new(m.header.content_type, disp.gsub(/[\s\n]+/, " "), m)]
+        body = Message.decode_and_convert m
+
+        text_to_chunks body.normalize_whitespace.split("\n")
       end
     end
+  end
+
+  def self.decode_and_convert m
+    charset =
+      if m.header.field?("content-type") && m.header.fetch("content-type") =~ /charset=(.*?)(;|$)/
+        $1
+      end
+
+    m.body && body = m.decode or raise MessageFormatError, "For some bizarre reason, RubyMail was unable to parse this message."
+
+    if charset
+      begin
+        body = Iconv.iconv($encoding, charset, body).join
+      rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
+        Redwood::log "warning: error decoding message body from #{charset}: #{e.message}"
+      end
+    end
+    body
   end
 
   ## parse the lines of text into chunk objects.  the heuristics here

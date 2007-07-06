@@ -51,6 +51,7 @@ class ThreadViewMode < LineCursorMode
     earliest, latest = nil, nil
     latest_date = nil
     altcolor = false
+
     @thread.each do |m, d, p|
       next unless m
       earliest ||= m
@@ -150,16 +151,16 @@ class ThreadViewMode < LineCursorMode
     chunk = @chunk_lines[curpos] or return
     case chunk
     when Message
-      l = @layout[chunk]
-      l.state = (l.state != :closed ? :closed : :open)
-      cursor_down if l.state == :closed
+      toggle_chunk_expansion chunk
     when Message::Quote, Message::Signature
       return if chunk.lines.length == 1
-      l = @chunk_layout[chunk]
-      l.state = (l.state != :closed ? :closed : :open)
-      cursor_down if l.state == :closed
+      toggle_chunk_expansion chunk
     when Message::Attachment
-      view_attachment chunk
+      if chunk.inlineable?
+        toggle_chunk_expansion chunk
+      else
+        view_attachment chunk
+      end
     end
     update
   end
@@ -176,7 +177,7 @@ class ThreadViewMode < LineCursorMode
     case chunk
     when Message::Attachment
       fn = BufferManager.ask :filename, "Save attachment to file: ", chunk.filename
-      save_to_file(fn) { |f| f.print chunk } if fn
+      save_to_file(fn) { |f| f.print chunk.raw_content } if fn
     else
       m = @message_lines[curpos]
       fn = BufferManager.ask :filename, "Save message to file: "
@@ -280,6 +281,12 @@ class ThreadViewMode < LineCursorMode
 
 private 
 
+  def toggle_chunk_expansion chunk
+    l = @chunk_layout[chunk]
+    l.state = (l.state != :closed ? :closed : :open)
+    cursor_down if l.state == :closed
+  end
+
   def initial_state_for m
     if m.has_label?(:starred) || m.has_label?(:unread)
       :open
@@ -310,6 +317,7 @@ private
       end
       l = @layout[m]
 
+      ## is this still necessary?
       next unless @layout[m].state # skip discarded drafts
 
       ## build the patina
@@ -335,7 +343,15 @@ private
       if l.state != :closed
         m.chunks.each do |c|
           cl = @chunk_layout[c]
-          cl.state ||= :closed
+
+          ## set the default state for chunks
+          cl.state ||=
+            if c.is_a?(Message::Attachment) && c.inlineable?
+              :open
+            else
+              :closed
+            end
+
           text = chunk_to_lines c, cl.state, @text.length, depth
           (0 ... text.length).each do |i|
             @chunk_lines[@text.length + i] = c
@@ -432,7 +448,13 @@ private
       message_patina_lines(chunk, state, start, parent, prefix, color, star_color) +
         (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. To edit, hit 'e'. <<<"]]] : [])
     when Message::Attachment
-      [[[:attachment_color, "#{prefix}+ Attachment: #{chunk.content_type}#{chunk.desc ? ' (' + chunk.desc + ')': ''}"]]]
+      return [[[:attachment_color, "#{prefix}x Attachment: #{chunk.filename} (#{chunk.content_type})"]]] unless chunk.inlineable?
+      case state
+      when :closed
+        [[[:attachment_color, "#{prefix}+ Attachment: #{chunk.filename} (#{chunk.lines.length} lines)"]]]
+      when :open
+        [[[:attachment_color, "#{prefix}- Attachment: #{chunk.filename} (#{chunk.lines.length} lines)"]]] + chunk.lines.map { |line| [[:none, "#{prefix}#{line}"]] }
+      end
     when Message::Text
       t = chunk.lines
       if t.last =~ /^\s*$/ && t.length > 1
