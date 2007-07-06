@@ -160,11 +160,11 @@ protected
     BufferManager.flash "Sending..."
 
     begin
-      IO.popen(acct.sendmail, "w") { |p| write_full_message_to p }
+      IO.popen(acct.sendmail, "w") { |p| write_full_message_to p, date }
     rescue SystemCallError
     end
     if $? == 0
-      SentManager.write_sent_message(date, from_email) { |f| write_message f, true, date }
+      SentManager.write_sent_message(date, from_email) { |f| write_full_message_to f, date }
       BufferManager.kill_buffer buffer
       BufferManager.flash "Message sent!"
     else
@@ -179,10 +179,10 @@ protected
     BufferManager.flash "Saved for later editing."
   end
 
-  def write_full_message_to f
+  def write_full_message_to f, date=Time.now
     m = RMail::Message.new
     @header.each { |k, v| m.header[k] = v.to_s unless v.to_s.empty? }
-    m.header["Date"] = Time.now.rfc2822
+    m.header["Date"] = date.rfc2822
     m.header["Message-Id"] = @message_id
     m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
     if @attachments.empty?
