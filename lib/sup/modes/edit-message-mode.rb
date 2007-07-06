@@ -72,7 +72,7 @@ class EditMessageMode < LineCursorMode
   end
 
   def delete_attachment
-    i = curpos - @top_lines
+    i = curpos - @attachment_lines_offset
     if i >= 0 && i < @attachments.size && BufferManager.ask_yes_or_no("Delete attachment #{@attachments[i]}?")
       @attachments.delete_at i
       update
@@ -88,10 +88,14 @@ protected
 
   def regen_text
     top = header_lines(@header - NON_EDITABLE_HEADERS) + [""]
-    @text = top + @body + 
-      @attachments.map { |f| [[:attachment_color, "+ Attachment: #{f} (#{f.human_size})"]] }
-    @top_lines = top.size
+    @text = top + @body
     @text += sig_lines unless $config[:edit_signature]
+
+    unless @attachments.empty?
+      @text += [""]
+      @attachment_lines_offset = @text.length
+      @text += @attachments.map { |f| [[:attachment_color, "+ Attachment: #{f} (#{f.human_size})"]] }
+    end
   end
 
   def parse_file fn
