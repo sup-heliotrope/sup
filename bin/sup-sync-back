@@ -66,6 +66,12 @@ begin
   
   sources.each do |source|
     $stderr.puts "Scanning #{source}..."
+
+    unless ((opts[:delete_deleted] || opts[:move_deleted]) && index.has_any_from_source_with_label?(source, :deleted)) || ((opts[:delete_spam] || opts[:move_spam]) && index.has_any_from_source_with_label?(source, :spam))
+      $stderr.puts "Nothing to do from this source; skipping"
+      next
+    end
+
     source.reset!
     num_deleted = num_moved = num_scanned = 0
     
