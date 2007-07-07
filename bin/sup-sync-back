@@ -60,7 +60,14 @@ begin
     s.is_a?(Redwood::MBox::Loader) or Trollop::die "#{uri} is not an mbox source."
     s
   end
-  sources = index.usual_sources.select { |s| s.is_a? Redwood::MBox::Loader } if sources.empty?
+
+  using_usual_sources =
+    if sources.empty?
+      sources = index.usual_sources.select { |s| s.is_a? Redwood::MBox::Loader } 
+      true
+    else
+      false
+    end
 
   any_modified = false
   
@@ -129,7 +136,13 @@ begin
   end
 
   $stderr.puts "Done."
-  $stderr.puts "You should now run: sup-sync --changed #{sources.join(' ')}" if any_modified
+  if any_modified
+    if using_usual_sources
+      $stderr.puts "You should now run: sup-sync --changed #{sources.join(' ')}"
+    else
+      $stderr.puts "You should now run: sup-sync --changed"
+    end
+  end
 rescue Exception => e
   File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
   raise

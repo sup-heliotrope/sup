@@ -354,7 +354,7 @@ EOS
     q = Ferret::Search::BooleanQuery.new
     q.add_query Ferret::Search::TermQuery.new("source_id", source.id.to_s), :must
     q.add_query Ferret::Search::TermQuery.new("label", label.to_s), :must
-    num_results_for(:qobj => q) > 0
+    index.search(q, :limit => 1).total_hits > 0
   end
 
 protected
