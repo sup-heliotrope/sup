@@ -138,9 +138,9 @@ begin
   $stderr.puts "Done."
   if any_modified
     if using_usual_sources
-      $stderr.puts "You should now run: sup-sync --changed #{sources.join(' ')}"
-    else
       $stderr.puts "You should now run: sup-sync --changed"
+    else
+      $stderr.puts "You should now run: sup-sync --changed #{sources.join(' ')}"
     end
   end
 rescue Exception => e
