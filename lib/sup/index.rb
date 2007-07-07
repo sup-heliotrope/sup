@@ -24,11 +24,11 @@ class Index
     @sources_dirty = false
 
     wsa = Ferret::Analysis::WhiteSpaceAnalyzer.new false
-    sa = Ferret::Analysis::StandardAnalyzer.new Ferret::Analysis::FULL_ENGLISH_STOP_WORDS, true
+    sa = Ferret::Analysis::StandardAnalyzer.new [], true
     @analyzer = Ferret::Analysis::PerFieldAnalyzer.new wsa
     @analyzer[:body] = sa
     @analyzer[:subject] = sa
-    @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => @analyzer
+    @qparser ||= Ferret::QueryParser.new :default_field => :body, :analyzer => @analyzer, :or_default => false
     @lock = Lockfile.new lockfile, :retries => 0, :max_age => nil
 
     self.class.i_am_the_instance self
