@@ -5,6 +5,8 @@ require 'rmail'
 
 module Redwood
 
+class SendmailCommandFailed < StandardError; end
+
 class EditMessageMode < LineCursorMode
   FORCE_HEADERS = %w(From To Cc Bcc Subject)
   MULTI_HEADERS = %w(To Cc Bcc)
@@ -161,15 +163,13 @@ protected
 
     begin
       IO.popen(acct.sendmail, "w") { |p| write_full_message_to p, date }
-    rescue SystemCallError
-    end
-    if $? == 0
+      raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
       SentManager.write_sent_message(date, from_email) { |f| write_full_message_to f, date }
       BufferManager.kill_buffer buffer
       BufferManager.flash "Message sent!"
-    else
-      Redwood::log "Non-zero return value in running sendmail command for #{acct.longname}: #{acct.sendmail.inspect}"
-      BufferManager.flash "Problem sending mail. See log for details."
+    rescue SystemCallError, SendmailCommandFailed => e
+      Redwood::log "Problem sending mail: #{e.message}"
+      BufferManager.flash "Problem sending mail: #{e.message}"
     end
   end
 
