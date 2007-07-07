@@ -207,7 +207,7 @@ class BufferManager
     ## disabling this for the time being, to help with debugging
     ## (currently we only have one buffer visible at a time).
     ## TODO: reenable this if we allow multiple buffers
-    true && @buffers.inject(@dirty) do |dirty, buf|
+    false && @buffers.inject(@dirty) do |dirty, buf|
       buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
       #dirty ? buf.draw : buf.redraw
       buf.draw
@@ -215,7 +215,7 @@ class BufferManager
     end
 
     ## quick hack
-    if false
+    if true
       buf = @buffers.last
       buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
       @dirty ? buf.draw : buf.redraw
