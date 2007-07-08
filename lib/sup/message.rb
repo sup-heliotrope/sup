@@ -290,7 +290,7 @@ private
       filename =
         ## first, paw through the headers looking for a filename
         if m.header["Content-Disposition"] &&
-            m.header["Content-Disposition"] =~ /filename="(.*?[^\\])"/
+            m.header["Content-Disposition"] =~ /filename="?(.*?[^\\])("|;|$)/
           $1
         elsif m.header["Content-Type"] &&
             m.header["Content-Type"] =~ /name=(.*?)(;|$)/
@@ -309,7 +309,6 @@ private
       ## otherwise, it's body text
       else
         body = Message.decode_and_convert m
-
         text_to_chunks body.normalize_whitespace.split("\n")
       end
     end
