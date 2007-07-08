@@ -349,16 +349,17 @@ class BufferManager
     end
 
     if answer
-      if answer.empty?
-        spawn_modal "file browser", FileBrowserMode.new
-      elsif File.directory?(answer)
-        spawn_modal "file browser", FileBrowserMode.new(answer)
-      else
-        [answer]
-      end
-    else
-      []
+      answer = 
+        if answer.empty?
+          spawn_modal "file browser", FileBrowserMode.new
+        elsif File.directory?(answer)
+          spawn_modal "file browser", FileBrowserMode.new(answer)
+        else
+          [answer]
+        end
     end
+
+    answer || []
   end
 
   def ask domain, question, default=nil, &block
