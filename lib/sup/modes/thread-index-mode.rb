@@ -32,7 +32,7 @@ class ThreadIndexMode < LineCursorMode
     @mutex = Mutex.new
     @load_thread = nil
     @load_thread_opts = load_thread_opts
-    @hidden_labels = hidden_labels + LabelManager::HIDDEN_LABELS
+    @hidden_labels = hidden_labels + LabelManager::HIDDEN_RESERVED_LABELS
     @date_width = DATE_WIDTH
     @from_width = FROM_WIDTH
     @size_width = nil
@@ -127,7 +127,7 @@ class ThreadIndexMode < LineCursorMode
   def update
     ## let's see you do THIS in python
     @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| t.date }.reverse
-    @size_width = (@threads.map { |t| t.size }.max || 0).num_digits
+    @size_width = (@threads.max_of { |t| t.size } || 0).num_digits
     regen_text
   end
 

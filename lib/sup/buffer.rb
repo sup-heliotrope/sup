@@ -326,6 +326,12 @@ class BufferManager
     end
   end
 
+  def ask_with_completions domain, question, completions, default=nil
+    ask domain, question, default do |s|
+      completions.select { |x| x =~ /^#{s}/i }.map { |x| [x, x] }
+    end
+  end
+
   ## returns an ARRAY of filenames!
   def ask_for_filenames domain, question, default=nil
     answer = ask domain, question, default do |s|

@@ -288,6 +288,10 @@ module Enumerable
     end
     prefix
   end
+
+  def max_of
+    map { |e| yield e }.max
+  end
 end
 
 class Array

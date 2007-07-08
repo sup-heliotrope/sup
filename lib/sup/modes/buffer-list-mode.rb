@@ -23,7 +23,7 @@ protected
 
   def regen_text
     @bufs = BufferManager.buffers.sort_by { |name, buf| name }
-    width = @bufs.map { |name, buf| buf.mode.name.length }.max
+    width = @bufs.max_of { |name, buf| buf.mode.name.length }
     @text = @bufs.map do |name, buf|
       sprintf "%#{width}s  %s", buf.mode.name, name
     end

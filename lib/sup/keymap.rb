@@ -81,7 +81,7 @@ class Keymap
       next if valid_keys.empty?
       [valid_keys.map { |k| keysym_to_string k }.join(", "), help]
     end.compact
-    llen = lines.map { |a, b| a.length }.max
+    llen = lines.max_of { |a, b| a.length }
     lines.map { |a, b| sprintf " %#{llen}s : %s", a, b }.join("\n")
   end
 end

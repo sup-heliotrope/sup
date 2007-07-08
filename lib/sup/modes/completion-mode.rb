@@ -27,7 +27,7 @@ private
 
   def update_lines
     width = buffer.content_width
-    max_length = @list.map { |s| s.length }.max
+    max_length = @list.max_of { |s| s.length }
     num_per = buffer.content_width / (max_length + INTERSTITIAL.length)
     @lines = [@header].compact
     @list.each_with_index do |s, i|

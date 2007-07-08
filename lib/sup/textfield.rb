@@ -74,7 +74,7 @@ class TextField
       @value = nil
       return false
     when Ncurses::KEY_TAB # completion
-      break unless @completion_block
+      return true unless @completion_block
       if @completions.empty?
         v = get_cur_value
         c = @completion_block.call v
