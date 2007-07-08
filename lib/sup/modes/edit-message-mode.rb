@@ -188,11 +188,11 @@ protected
     if @attachments.empty?
       m.header["Content-Disposition"] = "inline"
       m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
-      m.body = @body.join "\n"
+      m.body = @body.join
       m.body += sig_lines.join("\n") unless $config[:edit_signature]
     else
       body_m = RMail::Message.new
-      body_m.body = @body.join "\n"
+      body_m.body = @body.join
       body_m.body += sig_lines.join("\n") unless $config[:edit_signature]
       
       m.add_part body_m
