@@ -181,10 +181,21 @@ protected
 
   def write_full_message_to f, date=Time.now
     m = RMail::Message.new
-    @header.each { |k, v| m.header[k] = v.to_s unless v.to_s.empty? }
+    @header.each do |k, v|
+      next if v.nil? || v.empty?
+      m.header[k] = 
+        case v
+        when String
+          v
+        when Array
+          v.join ", "
+        end
+    end
+
     m.header["Date"] = date.rfc2822
     m.header["Message-Id"] = @message_id
     m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
+
     if @attachments.empty?
       m.header["Content-Disposition"] = "inline"
       m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
