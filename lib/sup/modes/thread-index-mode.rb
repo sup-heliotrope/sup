@@ -201,9 +201,10 @@ class ThreadIndexMode < LineCursorMode
   end
 
   def jump_to_next_new
-    n = ((curpos + 1) ... lines).find { |i| @threads[i].has_label? :unread }
-    n = (0 ... curpos).find { |i| @threads[i].has_label? :unread } unless n
+    n = ((curpos + 1) ... lines).find { |i| @threads[i].has_label? :unread } || (0 ... curpos).find { |i| @threads[i].has_label? :unread }
     if n
+      ## jump there if necessary
+      jump_to_line n unless n >= topline && n < botline
       set_cursor_pos n
     else
       BufferManager.flash "No new messages"
