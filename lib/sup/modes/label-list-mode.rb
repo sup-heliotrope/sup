@@ -44,7 +44,7 @@ protected
     counts.map do |label, string, total, unread|
       if total == 0 && !LabelManager::RESERVED_LABELS.include?(label)
         Redwood::log "no hits for label #{label}, deleting"
-        LabelManager.delete t
+        LabelManager.delete label
         next
       end
 

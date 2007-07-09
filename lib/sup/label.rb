@@ -22,6 +22,7 @@ class LabelManager
         []
       end
     @labels = {}
+    @modified = false
     labels.each { |t| @labels[t] = true }
 
     self.class.i_am_the_instance self
@@ -40,9 +41,21 @@ class LabelManager
     string.downcase.intern
   end
   
-  def << t; @labels[t] = true unless @labels.member?(t) || RESERVED_LABELS.member?(t); end
-  def delete t; @labels.delete t; end
+  def << t
+    unless @labels.member?(t) || RESERVED_LABELS.member?(t)
+      @labels[t] = true
+      @modified = true
+    end
+  end
+
+  def delete t
+    if @labels.delete t
+      @modified = true
+    end
+  end
+
   def save
+    return unless @modified
     File.open(@fn, "w") { |f| f.puts @labels.keys }
   end
 end
