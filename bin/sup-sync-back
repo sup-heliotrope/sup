@@ -61,16 +61,11 @@ begin
     s
   end
 
-  using_usual_sources =
-    if sources.empty?
-      sources = index.usual_sources.select { |s| s.is_a? Redwood::MBox::Loader } 
-      true
-    else
-      false
-    end
+  if sources.empty?
+    sources = index.usual_sources.select { |s| s.is_a? Redwood::MBox::Loader } 
+  end
 
-  any_modified = false
-  
+  modified_sources = []
   sources.each do |source|
     $stderr.puts "Scanning #{source}..."
 
@@ -118,13 +113,12 @@ begin
       nil # don't actually add anything!
     end
     $stderr.puts "Scanned #{num_scanned}, deleted #{num_deleted}, moved #{num_moved} messages from #{source}."
-    any_modified = true if num_deleted > 0 || num_moved > 0
+    modified_sources << source if num_deleted > 0 || num_moved > 0
     out_fp.close unless opts[:dry_run]
 
-    unless opts[:dry_run] || !any_modified
+    unless opts[:dry_run] || (num_deleted == 0 && num_moved == 0)
       deleted_fp.flush if deleted_fp
       spam_fp.flush if spam_fp
-      out_fp.close
       $stderr.puts "Moving #{out_fp.path} to #{source.file_path}"
       FileUtils.mv out_fp.path, source.file_path
     end
@@ -136,12 +130,8 @@ begin
   end
 
   $stderr.puts "Done."
-  if any_modified
-    if using_usual_sources
-      $stderr.puts "You should now run: sup-sync --changed"
-    else
-      $stderr.puts "You should now run: sup-sync --changed #{sources.join(' ')}"
-    end
+  unless modified_sources.empty?
+    $stderr.puts "You should now run: sup-sync --changed #{modified_sources.join(' ')}"
   end
 rescue Exception => e
   File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
