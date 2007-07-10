@@ -1,19 +1,22 @@
-for 0.0.9
+for 0.1
 ---------
+_ tab completion for contacts
 _ bugfix: screwing the headers when editing causes a crash
 _ bugfix: when one new message comes into an imap folder, we don't
-   catch it until a reload (sometimes?)
-  message indicating they're loaded to inbox (imap only?)
-_ rss feed reading
-_ detect other sup instances and do something intelligent (because ferret crashes violently with more than one index writer open)
+   catch it until a reload. but we do see a message indicating they're
+   loaded to inbox (sometimes? imap only?)
 _ bugfix: need a way to force an address to a particular name, for things like evite addresses
-_ bugfix: read before thread-index has finished loading then hides the thread?!? wtf. (on jamie)
-_ bugfix: ferret flakiness: just added message but can't find it.
+_ bugfix: ferret flakiness: just added message but can't find it[
 _ bugfix: add new message counts until keypress
 _ bugfix: deadlock (on rubyforge)
-_ decode RFC 2047 ("encoded word") headers
+_ bugfix: ferret problem at index.c:901
+_ bugfix: read before thread-index has finished loading then hides the thread?!? wtf. (on jamie)
+x detect other sup instances and do something intelligent (because
+x refactor all the *-search-results-mode classes
+x decode RFC 2047 ("encoded word") headers
   - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
-_ refactor all the *-search-results-mode classes into one.
+   ferret crashes violently with more than one index writer open)
+x create attachments
 x add arbitrary labels to sources
 x improve sup-config
 x autoload more threads when you go down
@@ -24,31 +27,31 @@ x bugfix: attachment filenames sometimes not detected (filename=)
 x bugfix: rmail multipart error
 x bugfix: sup-add not prompting for old accounts, i think? possibly because
     sources no longer respond_to? :username due to Recoverable wrapping
+x wide character support
+x i18n support
+x tab completion on labels
 
-near future
+for next next release
 -----------
-_ create attachments
+_ bugfix: width in index-mode needs to be determined per-character
+   rather than per-byte
+_ search results: highlight relevant snippets and open to relevant portion of thread
+_ within-buffer search
+_ rss feed reading
 _ forward attachments
 _ select all, starred, to me, etc
 _ undo
 _ gmail
 _ warnings: top-posting, missing attachment, ruby-talk:XXXX detection
 _ mboxz, mboxbz
+_ Net::SMTP support
 
 future
 ------
-Net::SMTP support
-search results: highlight relevant snippets and open to relevant portion of thread
-email address to name mapping needs some work. automatic email addresses (noreply@...) are often assigned to something screwy.
 swappable keymappings
-within-buffer search
 bugfix: when returning from a shelling out, ncurses is crazy 
 more control character support in buffer line editing
-wide character support
-i18n support
-batch deletion
-tab completion on labels, contacts
-contact selector in edit-message-mode
+better batch deletion (extend to non-mbox sources)
 maybe: filters
 maybe: rangefilter on the initial inbox to only consider the most recent 1000 messages
 annotations on messages
@@ -56,7 +59,7 @@ pop
 be able to mark individual messages as spam in thread-view-mode
 toggle wrapping
 maybe: de-archived messages auto-added to inbox
-prune old entries from contacts.txt so that it doesn't arbitrarily
+prune old entries from contacts.txt so that it doesn't grow without bound
 
 maybe
 _ split out threading & message chunk parsing to a separate library
