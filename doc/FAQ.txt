@@ -1,22 +1,31 @@
 Sup FAQ
 -------
 
+Q: What is Sup?
+A: Sup is a console-based email client for people with a lot of email.
+   It supports tagging, very fast full-text search, automatic
+   contact-list management, and more. If you're the type of person
+   who subscribed to high-volume mailing lists and never deletes any
+   email, Sup is for you.
+
 Q: What does Sup stand for?
-A: It stands for "what's up?", which is more or less the question in
-   mind when I fire up my mail client.
+A: "What's up?"
+
+Q: Sup looks a lot like a text-based Gmail.
+A: I stole a lot of their ideas. And improved upon them, of course.
 
 Q: If you love Gmail so much, why not just use it?
 A: I hate ads, I hate using a mouse, and I hate non-programmability
    and non-extensibility.
 
-   Also, Gmail encourages top-posting. THIS CANNOT BE TOLERATED!
-
    Also, Gmail doesn't let you use a monospace font, which is just
    plain lame.
 
+   Also, Gmail encourages top-posting. THIS CANNOT BE TOLERATED!
+
 Q: Why the console?
-A: Because a keystroke is worth a hundred mouse clicks (as any Unix
-   user knows). Because you don't need web browser. Because you get
+A: Because a keystroke is worth a hundred mouse clicks, as any Unix
+   user knows. Because you don't need web browser. Because you get
    instantaneous response and a simple interface.
 
 Q: How does Sup deal with spam?
@@ -32,9 +41,8 @@ A: Ok, press the 'd' key.
 
 Q: But I want to delete it for real, not just add a 'deleted' flag in
    the index. I want it gone from disk!
-A: Ok, at some point I plan to have a batch deletion tool that will
-   run through a source and delete all messages that have a 'spam' or
-   'deleted' tags. But that doesn't exist yet.
+A: Currently, for mbox sources, there is a batch deletion tool that
+   will strip out all messages marked as spam or deleted.
 
 Q: I got some error message about needing to run sup-sync --changed
    when I tried to read a message. What's that about?
@@ -44,10 +52,6 @@ A: If messages have been moved, deleted, or altered in a source, Sup
    every file on disk. Rather than rescanning every time, Sup assumes
    sources don't change except by having new messages added. If that
    assumption is violated, you'll have to sync the index.
-
-   The alternative is to rescan every source when Sup starts up.
-   Because Sup is designed to work with arbitrarily large mbox files,
-   this would not be a good idea.
 
 Q: How do I back up my index?
 Q: How do I make a state dump?
@@ -65,6 +69,8 @@ A: Run:
 
 Q: I upgraded Ferret and the index format changed. I need to
    completely rebuild my index. How do I do this?
+Q: Ferret crashed and I can't read my index. Luckily I made a state
+   dump. What should I do?
 A: First, you'll need a complete state dump. If you haven't made
    one, you'll need to downgrade Ferret and make a state dump as
    above. Then run these commands:
@@ -125,7 +131,7 @@ P: I see this error:
      /usr/lib/ruby/1.8/net/imap.rb:204: uninitialized constant Net::IMAP::SSL (NameError)
 S: You need to install a package called libssl-ruby or something similar.
    Or, don't use imaps:// sources. Ruby's IMAP library otherwise fails in
-   this somewhat uninformative manner.
+   this completely uninformative manner.
 
 P: When I run Sup remotely and view an HTML attachment, an existing
    Firefox on the *local* machine is redirected to the attachment
@@ -133,4 +139,3 @@ P: When I run Sup remotely and view an HTML attachment, an existing
    I view HTML attachments in this environment?
 S: Put this in your ~/.mailcap on the machine you run Sup on:
       text/html; /usr/bin/firefox -a sup '%s'; description=HTML Text; test=test -n "$DISPLAY";  nametemplate=%s.html
-
