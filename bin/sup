@@ -181,6 +181,7 @@ begin
   until $exception || SuicideManager.die?
     c = Ncurses.nonblocking_getch
     next unless c
+    bm.erase_flash
 
     unless bm.handle_input(c)
       x = global_keymap.action_for c
@@ -264,7 +265,6 @@ begin
     end
 
     bm.draw_screen
-    bm.erase_flash
   end
 rescue Exception => e
   $exception ||= e

@@ -1,6 +1,6 @@
 for 0.1
 -------
-_ bugfix: any interactive prompt after "No new messages." flash has an
+x bugfix: any interactive prompt after "No new messages." flash has an
    empty line above it.
 x detect other sup instances and do something intelligent (because
 x refactor all the *-search-results-mode classes
