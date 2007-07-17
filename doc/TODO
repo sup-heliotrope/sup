@@ -39,7 +39,7 @@ _ bugfix: need a better way to force an address to a particular name,
 _ bugfix: ferret flakiness: just added message but can't find it
 _ add new message counts until keypress
 _ bugfix: deadlock (on rubyforge)
-_ bugfix: ferret corrupt index problem at index.c:901
+_ bugfix: ferret corrupt index problem at index.c:901. see http://ferret.davebalmain.com/trac/ticket/279
 _ bugfix: read before thread-index has finished loading then hides the
    thread?!? wtf. (on jamie)_ bugfix: width in index-mode needs to be
    determined per-character rather than per-byte
