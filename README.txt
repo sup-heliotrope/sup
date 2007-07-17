@@ -4,9 +4,10 @@ sup
 
 == DESCRIPTION:
 
-Sup is a console-based email client that combines the best
-features of GMail, mutt, and emacs. Sup matches the power of GMail
-with the speed and simplicity of a console interface.
+Sup is a console-based email client for people with a lot of email.
+It supports tagging, very fast full-text search, automatic contact-
+list management, and more. If you're the type of person who treats
+email as an extension of your long-term memory, Sup is for you.
 
 Sup makes it easy to:
 - Handle massive amounts of email.
@@ -84,24 +85,15 @@ Current limitations which will be fixed:
 
 == SYNOPSYS:
 
-  1. sup-import <source>+
-  2. sup
-  3. edit ~/.sup/config.yaml for the (very few) settings sup has
-
-  Where <source> is a filename (for mbox files), an imap or imaps URI,
-  or a mbox+ssh URI (for remote mbox files). You will be prompted for
-  a username and password if required.
-
-  sup-import has several options which control whether you want
-  messages from particular mailboxes not to be added to the inbox, or
-  not to be marked as new, so run it with -h for help.
+  0. sup-config
+  1. sup
 
   Note that Sup never changes the contents of any mailboxes; it only
   indexes in to them. So it shouldn't ever corrupt your mail. The flip
   side is that if you change a mailbox (e.g. delete messages, or, in
   the case of mbox files, read an unread message) then Sup will be
   unable to load messages from that source and will ask you to run
-  sup-import --rebuild.
+  sup-sync --changed.
 
 == REQUIREMENTS:
 
@@ -109,8 +101,10 @@ Current limitations which will be fixed:
 * ncurses
 * rmail
 * highline
-* trollop
 * net-ssh
+* trollop >= 1.7
+* lockfile
+* mime-types
 
 == INSTALL:
 

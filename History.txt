@@ -1,3 +1,14 @@
+== 0.1 / 2007-07-17
+* MIME attachment creation.
+* i18n support: character set conversion and rfc2047 header decoding.
+* Better MIME handling.
+* Multiple account support.
+* Locking and concurrent Sup process detection and killation.
+* Thread autoloading when you scroll down.
+* Batch deletion of messages marked deleted or spam from message
+  sources via sup-sync-back tool (mbox only).
+* Millions of bugfixes.
+
 == 0.0.8 / 2007-04-01
 
 * Maildir support!

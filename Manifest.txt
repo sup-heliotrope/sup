@@ -38,6 +38,7 @@ lib/sup/modes/completion-mode.rb
 lib/sup/modes/compose-mode.rb
 lib/sup/modes/contact-list-mode.rb
 lib/sup/modes/edit-message-mode.rb
+lib/sup/modes/file-browser-mode.rb
 lib/sup/modes/forward-mode.rb
 lib/sup/modes/help-mode.rb
 lib/sup/modes/inbox-mode.rb
@@ -54,7 +55,6 @@ lib/sup/modes/search-results-mode.rb
 lib/sup/modes/text-mode.rb
 lib/sup/modes/thread-index-mode.rb
 lib/sup/modes/thread-view-mode.rb
-lib/sup/modes/file-browser-mode.rb
 lib/sup/person.rb
 lib/sup/poll.rb
 lib/sup/rfc2047.rb

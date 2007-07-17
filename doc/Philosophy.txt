@@ -1,41 +1,41 @@
 Should an email client have a philosophy? For many people, email is
-one of our primary means of communication. Something so important
-ought to warrant a little thought.
+one of our primary means of communication, and email archives are an
+integral part of our long-term memory. Something so important ought to
+warrant a little thought.
 
 Here's Sup's philosophy.
 
 Using "traditional" email clients today is increasingly problematic.
 Anyone who's on a high-traffic mailing list knows this. My ruby-talk
 folder is 430 megs and Mutt sits there for 60 seconds while it opens
-it. Keeping up with the all the new traffic is painful, even with
+it. Keeping up with the all the new traffic is impossible, even with
 Mutt's excellent threading features, simply because there's so much of
 it. A single thread can span several pages in the folder index view
-alone! And Mutt is probably the fastest email client out there, and
-certainly most featureful and in terms of threading and mailing list
-support. God help me if I try and throw Thunderbird at that.
+alone! And Mutt is probably the fastest, most mailing-list aware email
+client out there. God help me if I try and use Thunderbird.
 
-The principle problem with traditional clients is that they deal with
+The problem with traditional clients like Mutt is that they deal with
 individual pieces of email. This places a high mental cost on the user
 for each incoming email, by forcing them to ask: Should I keep this
-email, or delete it? If I keep it, where should I file it? For
-example, I've spent the last 10 years of my life laboriously
-hand-filing every email message I received and feeling a mild sense of
-panic every time an email was both "from Mom" and "about school". The
-massive amounts of email that many people receive, and the cheap cost
-of storage, have made these questions both more costly and less useful
-to answer.
+email, or delete it? If I keep it, where should I file it? I've spent
+the last 10 years of my life laboriously hand-filing every email
+message I received and feeling a mild sense of panic every time an
+email was both "from Mom" and "about school". The massive amounts of
+email that many people receive, and the cheap cost of storage, have
+made these questions both more costly and less useful to answer.
 
-I think Gmail has taken the right approach. As a long-time Mutt user,
-I was pretty much blown away when I first saw people use Gmail,
-because I saw them treat email differently from how I ever had. I saw
-that making certain operations quantitatively easier (namely, search)
-resulted in a qualitative difference in usage. You didn't have to
-worry about filing things into folders correctly, because you could
-just find things later by searching for them. I also saw how
-thread-centrism was advantageous over message-centrism when message
-volume was high: if nothing else, there's simply less of them.
+Contrast that with using Gmail. As a long-time Mutt user, I was blown
+away when I first saw someone use Gmail. They treated their email
+differently from how I ever had. They never filed email and they never
+deleted it. They relied on an immediate, global, full-text search, and
+thread-level tagging, to do everything I'd ever done with Mutt, but
+with a trivial cost to the user at message receipt time.
 
-Much of the inspiration for Sup was based on Gmail. I think it's to
+From Gmail I learned that making certain operations quantitatively
+easier (namely, search) resulted in a qualitative improvement in
+usage. I also learned how thread-centrism was advantageous over
+message-centrism when message volume was high: most of the time, a
+message and its context deserve the same treatment. I think it's to
 the Gmail designers' credit that they started with a somewhat ad-hoc
 idea (hey, we're really good at search engines, so maybe we can build
 an email client on top of one) and managed to build something that was
@@ -43,15 +43,16 @@ actually better than everything else out there. At least, that's how I
 imagine in happened. Maybe they knew what they were doing from the
 start.
 
-But ultimately, Gmail wasn't right for me (fuck top posting and HTML
-mail), which is why the idea for Sup was born.
+Unfortunately, there's a lot to Gmail I can't tolerate (top posting,
+HTML mail, one-level threads, and ads come to mind, never mind the
+fact that it's not FOSS). Thus Sup was born.
 
 Sup is based on the following principles, which I stole directly from
 Gmail:
 
 - An immediately accessible and fast search capability over the entire
-  email archive eliminates most of the need for folders, and
-  eliminates the necessity of having to ever delete email.
+  email archive eliminates most of the need for folders, and most of
+  the necessity of deleting email.
 
 - Labels eliminate what little need for folders search doesn't cover.
 
@@ -65,4 +66,4 @@ do with the fantastic productivity of a console- and keyboard-based
 application, the usefulness of multiple buffers, the necessity of
 handling multiple email accounts, etc. But those are just details!
 
-Let me know what you think.
+Try it and let me know what you think.

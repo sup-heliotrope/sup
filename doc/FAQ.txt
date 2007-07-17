@@ -3,10 +3,9 @@ Sup FAQ
 
 Q: What is Sup?
 A: Sup is a console-based email client for people with a lot of email.
-   It supports tagging, very fast full-text search, automatic
-   contact-list management, and more. If you're the type of person
-   who subscribed to high-volume mailing lists and never deletes any
-   email, Sup is for you.
+   It supports tagging, very fast full-text search, automatic contact-
+   list management, and more. If you're the type of person who treats
+   email as an extension of your long-term memory, Sup is for you.
 
 Q: What does Sup stand for?
 A: "What's up?"
