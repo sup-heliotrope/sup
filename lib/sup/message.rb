@@ -74,7 +74,6 @@ class Message
     end
   end
 
-
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
   BLOCK_QUOTE_PATTERN = /^-----\s*Original Message\s*----+$/
   QUOTE_START_PATTERN = /(^\s*Excerpts from)|(^\s*In message )|(^\s*In article )|(^\s*Quoting )|((wrote|writes|said|says)\s*:\s*$)/
@@ -90,8 +89,8 @@ class Message
 
   bool_reader :dirty, :source_marked_read
 
-  ## if you specify a :header, will use values from that. otherwise, will try and
-  ## load the header from the source.
+  ## if you specify a :header, will use values from that. otherwise,
+  ## will try and load the header from the source.
   def initialize opts
     @source = opts[:source] or raise ArgumentError, "source can't be nil"
     @source_info = opts[:source_info] or raise ArgumentError, "source_info can't be nil"
@@ -101,30 +100,40 @@ class Message
     @dirty = false
     @chunks = nil
 
-    read_header(opts[:header] || @source.load_header(@source_info))
+    parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
-  def read_header header
+  def parse_header header
     header.each { |k, v| header[k.downcase] = v }
 
-    %w(message-id date).each do |f|
-      raise MessageFormatError, "no #{f} field in header #{header.inspect} (source #@source offset #@source_info)" unless header.include? f
-      raise MessageFormatError, "nil #{f} field in header #{header.inspect} (source #@source offset #@source_info)" unless header[f]
+    @from = PersonManager.person_for header["from"]
+
+    @id = header["message-id"]
+    unless @id
+      @id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
+      Redwood::log "faking message-id for message from #@from: #@id"
     end
 
-    begin
-      date = header["date"]
-      @date = Time === date ? date : Time.parse(header["date"])
-    rescue ArgumentError => e
-      raise MessageFormatError, "unparsable date #{header['date']}: #{e.message}"
-    end
+    date = header["date"]
+    @date =
+      case date
+      when Time
+        date
+      when String
+        begin
+          Time.parse date
+        rescue ArgumentError => e
+          raise MessageFormatError, "unparsable date #{header['date']}: #{e.message}"
+        end
+      else
+        Redwood::log "faking date header for #{@id}"
+        Time.now
+      end
 
     @subj = header.member?("subject") ? header["subject"].gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
-    @from = PersonManager.person_for header["from"]
     @to = PersonManager.people_for header["to"]
     @cc = PersonManager.people_for header["cc"]
     @bcc = PersonManager.people_for header["bcc"]
-    @id = header["message-id"]
     @refs = (header["references"] || "").gsub(/[<>]/, "").split(/\s+/).flatten
     @replytos = (header["in-reply-to"] || "").scan(/<(.*?)>/).flatten
     @replyto = PersonManager.person_for header["reply-to"]
@@ -138,7 +147,7 @@ class Message
     @recipient_email = header["envelope-to"] || header["x-original-to"] || header["delivered-to"]
     @source_marked_read = header["status"] == "RO"
   end
-  private :read_header
+  private :parse_header
 
   def snippet; @snippet || chunks && @snippet; end
   def is_list_message?; !@list_address.nil?; end
@@ -189,7 +198,7 @@ class Message
           ## bloat the index.
           ## actually, it's also the differentiation between to/cc/bcc,
           ## so i will keep this.
-          read_header @source.load_header(@source_info)
+          parse_header @source.load_header(@source_info)
           message_to_chunks @source.load_message(@source_info)
         rescue SourceError, SocketError, MessageFormatError => e
           Redwood::log "problem getting messages from #{@source}: #{e.message}"
