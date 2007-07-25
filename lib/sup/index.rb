@@ -359,7 +359,20 @@ EOS
 
 protected
 
-  def parse_user_query_string str; @qparser.parse str; end
+  def parse_user_query_string str
+    str2 = str.gsub(/(to|from):(\S+)/) do
+      field, name = $1, $2
+      if(p = ContactManager.person_with(name))
+        [field, p.email]
+      else
+        [field, name]
+      end.join(":")
+    end
+    
+    Redwood::log "translated #{str} to #{str2}" unless str2 == str
+    @qparser.parse str2
+  end
+
   def build_query opts
     query = Ferret::Search::BooleanQuery.new
     query.add_query opts[:qobj], :must if opts[:qobj]
