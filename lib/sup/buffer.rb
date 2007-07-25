@@ -393,20 +393,16 @@ class BufferManager
 
     while true
       c = Ncurses.nonblocking_getch
-      next unless c  # getch timeout
+      next unless c # getch timeout
       break unless tf.handle_input c # process keystroke
 
       if tf.new_completions?
         kill_buffer completion_buf if completion_buf
         
-        prefix_len =
-          if tf.value =~ /\/$/
-            0
-          else
-            File.basename(tf.value).length
-          end
+        shorts = tf.completions.map { |full, short| short }
+        prefix_len = shorts.shared_prefix.length
 
-        mode = CompletionMode.new tf.completions.map { |full, short| short }, :header => "Possible completions for \"#{tf.value}\": ", :prefix_len => prefix_len
+        mode = CompletionMode.new shorts, :header => "Possible completions for \"#{tf.value}\": ", :prefix_len => prefix_len
         completion_buf = spawn "<completions>", mode, :height => 10
 
         draw_screen :skip_minibuf => true
