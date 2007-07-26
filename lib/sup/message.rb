@@ -325,7 +325,7 @@ private
 
   def self.decode_and_convert m
     charset =
-      if m.header.field?("content-type") && m.header.fetch("content-type") =~ /charset=(.*?)(;|$)/
+      if m.header.field?("content-type") && m.header.fetch("content-type") =~ /charset="?(.*?)"?(;|$)/
         $1
       end
 
