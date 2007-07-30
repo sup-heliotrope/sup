@@ -1,12 +1,12 @@
 for next release
 ----------------
+_ mailing list subscribe/unsubscribe
 _ BufferManager#ask_for_labels opens up label-list-mode if empty
 _ tab completion for mid-text cursors
 _ forward attachments
 _ messages as attachments
 _ individual labeling in thread-view-mode
 _ tab completion for to: and cc: in compose-mode
-_ translate aliases in queries on to: and from: fields
 _ use trac or something. this file is getting a little silly.
 _ gpg integration
 _ user-defined hooks
@@ -33,6 +33,7 @@ _ undo
 _ gmail support
 _ warnings: top-posting, missing attachment, ruby-talk:XXXX detection
 _ Net::SMTP support
+x translate aliases in queries on to: and from: fields
 x tab completion on labeling
 
 future

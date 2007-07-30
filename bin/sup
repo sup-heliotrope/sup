@@ -221,14 +221,13 @@ begin
         user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
         user_label = bm.spawn_modal("Label list", LabelListMode.new) if user_label && user_label.empty?
         
-        label = LabelManager.label_for user_label if user_label
-        case label
+        case user_label
         when nil
         when :inbox
           BufferManager.raise_to_front InboxMode.instance.buffer
         else
           b = BufferManager.spawn_unless_exists("All threads with label '#{user_label}'") do
-            mode = LabelSearchResultsMode.new([label])
+            mode = LabelSearchResultsMode.new([user_label])
           end
           b.mode.load_threads :num => b.content_height
         end
