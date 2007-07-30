@@ -1,5 +1,7 @@
 for next release
 ----------------
+_ BufferManager#ask_for_labels opens up label-list-mode if empty
+_ tab completion for mid-text cursors
 _ forward attachments
 _ messages as attachments
 _ individual labeling in thread-view-mode

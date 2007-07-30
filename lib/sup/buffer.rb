@@ -392,6 +392,28 @@ class BufferManager
     answer || []
   end
 
+  ## returns an array of labels
+  def ask_for_labels domain, question, default_labels, forbidden_labels=[]
+    default = default_labels.join(" ")
+    default += " " unless default.empty?
+
+    applyable_labels = (LabelManager.applyable_labels - forbidden_labels).map { |l| LabelManager.string_for l }.sort_by { |s| s.downcase }
+
+    answer = BufferManager.ask_many_with_completions domain, question, applyable_labels, default
+
+    return unless answer
+
+    user_labels = answer.split(/\s+/).map { |l| l.intern }
+    user_labels.each do |l|
+      if forbidden_labels.include?(l) || LabelManager::RESERVED_LABELS.include?(l)
+        BufferManager.flash "'#{l}' is a reserved label!"
+        return
+      end
+    end
+    user_labels
+  end
+
+
   def ask domain, question, default=nil, &block
     raise "impossible!" if @asking
     @asking = true

@@ -288,23 +288,12 @@ class ThreadIndexMode < LineCursorMode
     thread = @threads[curpos] or return
     speciall = (@hidden_labels + LabelManager::RESERVED_LABELS).uniq
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
-    cur_label_string = modifyl.join(" ")
-    cur_label_string += " " unless cur_label_string.empty?
 
-    applyable_labels = (LabelManager.applyable_labels - @hidden_labels).map { |l| LabelManager.string_for l }.sort_by { |s| s.downcase }
+    user_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", modifyl, @hidden_labels
 
-    answer = BufferManager.ask_many_with_completions :label, "Labels for thread: ", applyable_labels, cur_label_string
-
-    return unless answer
-    user_labels = answer.split(/\s+/).map { |l| l.intern }
-    
-    hl = user_labels.select { |l| speciall.member? l }
-    if hl.empty?
-      thread.labels = keepl + user_labels
-      user_labels.each { |l| LabelManager << l }
-    else
-      BufferManager.flash "'#{hl}' is a reserved label!"
-    end
+    return unless user_labels
+    thread.labels = keepl + user_labels
+    user_labels.each { |l| LabelManager << l }
     update_text_for_line curpos
   end
 
