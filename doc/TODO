@@ -3,7 +3,6 @@ for next release
 _ forward attachments
 _ messages as attachments
 _ individual labeling in thread-view-mode
-_ tab completion on labeling
 _ tab completion for to: and cc: in compose-mode
 _ translate aliases in queries on to: and from: fields
 _ use trac or something. this file is getting a little silly.
@@ -11,15 +10,14 @@ _ gpg integration
 _ user-defined hooks
 _ saved searches
 _ bugfix: missing sources should be handled better
-_ tab completion for contacts
-_ bugfix: screwing the headers when editing causes a crash
+_ bugfix: screwing with the headers when editing causes a crash
 _ bugfix: sometimes, when one new message comes into an imap folder,
    we don't catch it until a reload. but we do see a message
    indicating they're loaded to inbox (imap only? hard to reproduce.)
 _ bugfix: need a better way to force an address to a particular name,
    for things like evite addresses
-_ bugfix: ferret flakiness: just added message but can't find it
-_ add new message counts until keypress
+_ bugfix: ferret flakiness: just added message but can't find it (? still relevant ?)
+_ for new message flashes, add new message counts until keypress
 _ bugfix: deadlock (on rubyforge)
 _ bugfix: ferret corrupt index problem at index.c:901. see http://ferret.davebalmain.com/trac/ticket/279
 _ bugfix: read before thread-index has finished loading then hides the
@@ -33,6 +31,7 @@ _ undo
 _ gmail support
 _ warnings: top-posting, missing attachment, ruby-talk:XXXX detection
 _ Net::SMTP support
+x tab completion on labeling
 
 future
 ------

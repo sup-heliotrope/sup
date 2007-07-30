@@ -30,16 +30,16 @@ protected
   
   def regen_text
     @text = []
-    @labels = LabelManager.listable_label_strings
+    @labels = LabelManager.listable_labels
 
-    counts = @labels.map do |string|
-      label = LabelManager.label_for string
+    counts = @labels.map do |label|
+      string = LabelManager.string_for label
       total = Index.num_results_for :label => label
       unread = Index.num_results_for :labels => [label, :unread]
       [label, string, total, unread]
-    end      
+    end.sort_by { |l, s, t, u| s.downcase }
 
-    width = @labels.max_of { |string| string.length }
+    width = counts.max_of { |l, s, t, u| s.length }
 
     counts.map do |label, string, total, unread|
       if total == 0 && !LabelManager::RESERVED_LABELS.include?(label)

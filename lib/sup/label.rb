@@ -28,17 +28,27 @@ class LabelManager
     self.class.i_am_the_instance self
   end
 
-  ## all listable (user-defined and system listable) labels, ordered
+  ## all listable (just user-defined at the moment) labels, ordered
   ## nicely and converted to pretty strings. use #label_for to recover
   ## the original label.
-  def listable_label_strings
-    LISTABLE_RESERVED_LABELS.sort_by { |l| l.to_s }.map { |l| l.to_s.ucfirst } +
-      @labels.keys.map { |l| l.to_s }.sort
+  def listable_labels
+    LISTABLE_RESERVED_LABELS + @labels.keys
+  end
+
+  ## all apply-able (user-defined and system listable) labels, ordered
+  ## nicely and converted to pretty strings. use #label_for to recover
+  ## the original label.
+  def applyable_labels
+    @labels.keys
   end
 
   ## reverse the label->string mapping, for convenience!
-  def label_for string
-    string.downcase.intern
+  def string_for l
+    if RESERVED_LABELS.include? l
+      l.to_s.ucfirst
+    else
+      l.to_s
+    end
   end
   
   def << t

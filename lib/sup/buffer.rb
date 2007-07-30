@@ -14,6 +14,12 @@ module Ncurses
     lamer.first
   end
 
+  def curx
+    lame, lamer = [], []
+    stdscr.getyx lame, lamer
+    lamer.first
+  end
+
   def mutex; @mutex ||= Mutex.new; end
   def sync &b; mutex.synchronize(&b); end
 
@@ -27,7 +33,7 @@ module Ncurses
     end
   end
 
-  module_function :rows, :cols, :nonblocking_getch, :mutex, :sync
+  module_function :rows, :cols, :curx, :nonblocking_getch, :mutex, :sync
 
   KEY_ENTER = 10
   KEY_CANCEL = ?\a # ctrl-g
@@ -332,6 +338,24 @@ class BufferManager
     end
   end
 
+  def ask_many_with_completions domain, question, completions, default=nil, sep=" "
+    ask domain, question, default do |partial|
+      prefix, target = 
+        case partial.gsub(/#{sep}+/, sep)
+        when /^\s*$/
+          ["", ""]
+        when /^(.+#{sep})$/
+          [$1, ""]
+        when /^(.*#{sep})?(.+?)$/
+          [$1 || "", $2]
+        else
+          raise "william screwed up completion: #{partial.inspect}"
+        end
+
+      completions.select { |x| x =~ /^#{target}/i }.map { |x| [prefix + x, x] }
+    end
+  end
+
   ## returns an ARRAY of filenames!
   def ask_for_filenames domain, question, default=nil
     answer = ask domain, question, default do |s|
@@ -409,7 +433,6 @@ class BufferManager
         tf.position_cursor
       elsif tf.roll_completions?
         completion_buf.mode.roll
-
         draw_screen :skip_minibuf => true
         tf.position_cursor
       end

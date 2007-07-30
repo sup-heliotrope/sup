@@ -4,12 +4,16 @@ module Redwood
 
 ## a fully-functional text field supporting completions, expansions,
 ## history--everything!
+## 
+## writing this fucking sucked. if you thought ncurses was some 1970s
+## before-people-knew-how-to-program bullshit, wait till you see
+## ncurses forms.
 ##
-## completion is done emacs-style, and mostly depends on outside
-## support, as we merely signal the existence of a new set of
-## completions to show (#new_completions?)  or that the current list
-## of completions should be rolled if they're too large to fill the
-## screen (#roll_completions?).
+## completion comments: completion is done emacs-style, and mostly
+## depends on outside support, as we merely signal the existence of a
+## new set of completions to show (#new_completions?)  or that the
+## current list of completions should be rolled if they're too large
+## to fill the screen (#roll_completions?).
 ##
 ## in sup, completion support is implemented through BufferManager#ask
 ## and CompletionMode.
@@ -27,22 +31,16 @@ class TextField
   bool_reader :new_completions, :roll_completions
   attr_reader :completions
 
-  ## when the user presses enter, we store the value in @value and
-  ## clean up all the ncurses cruft. before @value is set, we can
-  ## get the current value from ncurses.
-  def value; @field ? get_cur_value : @value end
+  def value; @value || get_cursed_value end
 
   def activate question, default=nil, &block
     @question = question
-    @value = nil
     @completion_block = block
     @field = Ncurses::Form.new_field 1, @width - question.length,
                                      @y, @x + question.length, 0, 0
     @form = Ncurses::Form.new_form [@field]
-
-    @history[@i = @history.size] = default || ""
     Ncurses::Form.post_form @form
-    set_cur_value @history[@i]
+    set_cursed_value default if default
   end
 
   def position_cursor
@@ -50,7 +48,7 @@ class TextField
     @w.mvaddstr @y, 0, @question
     Ncurses.curs_set 1
     Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_NEXT_CHAR if @history[@i] =~ / $/ # fucking RETARDED!!!!
+    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_NEXT_CHAR if @value && @value =~ / $/ # fucking RETARDED!!!!
   end
 
   def deactivate
@@ -66,20 +64,21 @@ class TextField
     ## short-circuit exit paths
     case c
     when Ncurses::KEY_ENTER # submit!
-      @value = @history[@i] = get_cur_value
+      @value = get_cursed_value
+      @history.push @value
       return false
     when Ncurses::KEY_CANCEL # cancel
-      @history.delete_at @i
-      @i = @history.empty? ? nil : (@i - 1) % @history.size 
       @value = nil
       return false
     when Ncurses::KEY_TAB # completion
       return true unless @completion_block
       if @completions.empty?
-        v = get_cur_value
+        v = get_cursed_value
         c = @completion_block.call v
         if c.size > 0
-          set_cur_value c.map { |full, short| full }.shared_prefix
+          @value = c.map { |full, short| full }.shared_prefix(true)
+          set_cursed_value @value
+          position_cursor
         end
         if c.size > 1
           @completions = c
@@ -94,6 +93,7 @@ class TextField
     end
 
     reset_completion_state
+    @value = nil
 
     d =
       case c
@@ -108,13 +108,17 @@ class TextField
       when ?\005
         Ncurses::Form::REQ_END_FIELD
       when Ncurses::KEY_UP
-        @history[@i] = @field.field_buffer 0
+        @i ||= @history.size
+        @history[@i] = get_cursed_value
         @i = (@i - 1) % @history.size
-        set_cur_value @history[@i]
+        @value = @history[@i]
+        set_cursed_value @value
       when Ncurses::KEY_DOWN
-        @history[@i] = @field.field_buffer 0
+        @i ||= @history.size
+        @history[@i] = get_cursed_value
         @i = (@i + 1) % @history.size
-        set_cur_value @history[@i]
+        @value = @history[@i]
+        set_cursed_value @value
       else
         c
       end
@@ -131,16 +135,25 @@ private
   end
 
   ## ncurses inanity wrapper
-  def get_cur_value
+  ##
+  ## DO NOT READ THIS CODE. YOU WILL GO MAD.
+  def get_cursed_value
+    return nil unless @field
+
+    x = Ncurses.curx
     Ncurses::Form.form_driver @form, Ncurses::Form::REQ_VALIDATION
-    @field.field_buffer(0).gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ")
-  end
-  
-  ## ncurses inanity wrapper
-  def set_cur_value v
-    @field.set_field_buffer 0, v
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
+    v = @field.field_buffer(0).gsub(/^\s+|\s+$/, "")
+
+    ## cursor <= end of text
+    if x - @question.length - v.length <= 0
+      v
+    else # trailing spaces
+      v + (" " * (x - @question.length - v.length))
+    end
   end
 
+  def set_cursed_value v
+    @field.set_field_buffer 0, v
+  end
 end
 end

@@ -217,7 +217,7 @@ begin
           bm.flash "Couldn't parse query."
         end
       when :list_labels
-        labels = LabelManager.listable_label_strings
+        labels = LabelManager.listable_labels.map { |l| LabelManager.string_for l }
         user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
         user_label = bm.spawn_modal("Label list", LabelListMode.new) if user_label && user_label.empty?
         

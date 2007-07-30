@@ -277,14 +277,14 @@ module Enumerable
 
   ## returns the maximum shared prefix of an array of strings
   ## optinally excluding a prefix
-  def shared_prefix exclude=""
+  def shared_prefix caseless=false, exclude=""
     return "" if empty?
     prefix = ""
     (0 ... first.length).each do |i|
-      c = first[i]
-      break unless all? { |s| s[i] == c }
+      c = (caseless ? first.downcase : first)[i]
+      break unless all? { |s| (caseless ? s.downcase : s)[i] == c }
       next if exclude[i] == c
-      prefix += c.chr
+      prefix += first[i].chr
     end
     prefix
   end
