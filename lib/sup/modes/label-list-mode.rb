@@ -3,7 +3,7 @@ module Redwood
 class LabelListMode < LineCursorMode
   register_keymap do |k|
     k.add :select_label, "Select label", :enter
-    k.add :reload, "Discard label list and reload", 'D'
+    k.add :reload, "Discard label list and reload", '@'
   end
 
   bool_reader :done

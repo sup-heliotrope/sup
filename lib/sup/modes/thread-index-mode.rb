@@ -10,7 +10,7 @@ class ThreadIndexMode < LineCursorMode
 
   register_keymap do |k|
     k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
-    k.add :reload, "Discard threads and reload", 'D'
+    k.add :reload, "Discard threads and reload", '@'
     k.add :toggle_archived, "Toggle archived status", 'a'
     k.add :toggle_starred, "Star or unstar all messages in thread", '*'
     k.add :toggle_new, "Toggle new/read status of all messages in thread", 'N'
@@ -104,6 +104,12 @@ class ThreadIndexMode < LineCursorMode
   end
 
   def handle_archived_update *a; handle_read_update(*a); end
+
+  def handle_deleted_update sender, t
+    handle_read_update sender, t
+    hide_thread t
+    regen_text
+  end
 
   ## overwrite me!
   def is_relevant? m; false; end

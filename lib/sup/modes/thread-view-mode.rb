@@ -14,7 +14,7 @@ class ThreadViewMode < LineCursorMode
   INDENT_SPACES = 2 # how many spaces to indent child messages
 
   register_keymap do |k|
-    k.add :toggle_detailed_header, "Toggle detailed header", 'd'
+    k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
     k.add :toggle_expanded, "Expand/collapse item", :enter
     k.add :expand_all_messages, "Expand/collapse all messages", 'E'
@@ -27,12 +27,13 @@ class ThreadViewMode < LineCursorMode
     k.add :collapse_non_new_messages, "Collapse all but new messages", 'N'
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message", 'f'
-    k.add :alias, "Edit alias/nickname for a person", 'a'
+    k.add :alias, "Edit alias/nickname for a person", 'i'
     k.add :edit_as_new, "Edit message as new", 'D'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
     k.add :search, "Search for messages from particular people", 'S'
     k.add :compose, "Compose message to person", 'm'
-    k.add :archive_and_kill, "Archive thread and kill buffer", 'A'
+    k.add :archive_and_kill, "Archive thread and kill buffer", 'a'
+    k.add :delete_and_kill, "Delete thread and kill buffer", 'd'
   end
 
   ## there are a couple important instance variables we hold to format
@@ -291,6 +292,12 @@ class ThreadViewMode < LineCursorMode
   def archive_and_kill
     @thread.remove_label :inbox
     UpdateManager.relay self, :archived, @thread
+    BufferManager.kill_buffer_safely buffer
+  end
+
+  def delete_and_kill
+    @thread.apply_label :deleted
+    UpdateManager.relay self, :deleted, @thread
     BufferManager.kill_buffer_safely buffer
   end
 
