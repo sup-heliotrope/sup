@@ -394,6 +394,7 @@ class BufferManager
 
   ## returns an array of labels
   def ask_for_labels domain, question, default_labels, forbidden_labels=[]
+    default_labels = default_labels - forbidden_labels - LabelManager::RESERVED_LABELS
     default = default_labels.join(" ")
     default += " " unless default.empty?
 

@@ -90,7 +90,7 @@ class ThreadIndexMode < LineCursorMode
     threads.each { |t| select t }
   end
   
-  def handle_starred_update sender, m
+  def handle_label_update sender, m
     t = @ts.thread_for(m) or return
     l = @lines[t] or return
     update_text_for_line l

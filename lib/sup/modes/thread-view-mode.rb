@@ -19,6 +19,7 @@ class ThreadViewMode < LineCursorMode
     k.add :toggle_expanded, "Expand/collapse item", :enter
     k.add :expand_all_messages, "Expand/collapse all messages", 'E'
     k.add :edit_draft, "Edit draft", 'e'
+    k.add :edit_labels, "Edit or add labels for a thread", 'l'
     k.add :expand_all_quotes, "Expand/collapse all quotes in a message", 'o'
     k.add :jump_to_next_open, "Jump to next open message", 'n'
     k.add :jump_to_prev_open, "Jump to previous open message", 'p'
@@ -134,6 +135,18 @@ class ThreadViewMode < LineCursorMode
     mode.edit
   end    
 
+  def edit_labels
+    m = @message_lines[curpos] or return
+    new_labels = BufferManager.ask_for_labels :label, "Labels for message: ", m.labels
+
+    return unless new_labels
+    m.labels = new_labels
+    new_labels.each { |l| LabelManager << l }
+    ## TODO: don't recalculate EVERYTHING
+    update
+    UpdateManager.relay self, :label, m
+  end
+
   def toggle_starred
     m = @message_lines[curpos] or return
     if m.has_label? :starred
@@ -144,7 +157,7 @@ class ThreadViewMode < LineCursorMode
     ## TODO: don't recalculate EVERYTHING just to add a stupid little
     ## star to the display
     update
-    UpdateManager.relay self, :starred, m
+    UpdateManager.relay self, :label, m
   end
 
   def toggle_expanded
@@ -281,7 +294,7 @@ class ThreadViewMode < LineCursorMode
     BufferManager.kill_buffer_safely buffer
   end
 
-private 
+private
 
   def toggle_chunk_expansion chunk
     l = @chunk_layout[chunk]
