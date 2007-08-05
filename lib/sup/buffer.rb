@@ -35,6 +35,9 @@ module Ncurses
 
   module_function :rows, :cols, :curx, :nonblocking_getch, :mutex, :sync
 
+  remove_const :KEY_ENTER
+  remove_const :KEY_CANCEL
+
   KEY_ENTER = 10
   KEY_CANCEL = ?\a # ctrl-g
   KEY_TAB = 9
