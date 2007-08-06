@@ -35,7 +35,7 @@ class ContactManager
       @a2p.delete aalias
     end
   end    
-  def person_with aalias; @a2p[aalias]; end
+  def contact_for aalias; @a2p[aalias]; end
   def alias_for person; @p2a[person]; end
   def is_contact? person; @p2a.member? person; end
   def save

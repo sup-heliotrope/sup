@@ -233,9 +233,13 @@ begin
         end
 
       when :compose
-        mode = ComposeMode.new
+        to = BufferManager.ask_for_contacts(:people, "To: ") or next
+        cc = BufferManager.ask_for_contacts(:people, "Cc: ") or next if $config[:ask_for_cc]
+        bcc = BufferManager.ask_for_contacts(:people, "Bcc: ") or next if $config[:ask_for_bcc]
+
+        mode = ComposeMode.new :to => to, :cc => cc, :bcc => bcc
         bm.spawn "New Message", mode
-        mode.edit
+        mode.edit_message
       when :poll
         #          bm.raise_to_front PollManager.buffer
         reporting_thread { PollManager.poll }

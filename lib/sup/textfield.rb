@@ -103,10 +103,12 @@ class TextField
         Ncurses::Form::REQ_NEXT_CHAR
       when Ncurses::KEY_BACKSPACE
         Ncurses::Form::REQ_DEL_PREV
-      when ?\001
+      when 1 #ctrl-a
         Ncurses::Form::REQ_BEG_FIELD
-      when ?\005
+      when 5 #ctrl-e
         Ncurses::Form::REQ_END_FIELD
+      when 11 # ctrl-k
+        Ncurses::Form::REQ_CLR_EOF
       when Ncurses::KEY_UP
         @i ||= @history.size
         @history[@i] = get_cursed_value

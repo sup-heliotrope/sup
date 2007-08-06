@@ -18,7 +18,8 @@ class EditMessageMode < LineCursorMode
 
   register_keymap do |k|
     k.add :send_message, "Send message", 'y'
-    k.add :edit, "Edit message", 'e', :enter
+    k.add :edit_field, "Edit field", 'e'
+    k.add :edit_message, "Edit message", :enter
     k.add :save_as_draft, "Save as draft", 'P'
     k.add :attach_file, "Attach a file", 'a'
     k.add :delete_attachment, "Delete an attachment", 'd'
@@ -26,10 +27,12 @@ class EditMessageMode < LineCursorMode
 
   def initialize opts={}
     @header = opts.delete(:header) || {} 
+    @header_lines = []
+
     @body = opts.delete(:body) || []
     @body += sig_lines if $config[:edit_signature]
+
     @attachments = []
-    @attachment_lines = {}
     @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
     @edited = false
 
@@ -43,9 +46,36 @@ class EditMessageMode < LineCursorMode
   ## a hook
   def handle_new_text header, body; end
 
-  def edit
+  def edit_field
+    if curpos >= @header_lines.length
+      edit_message
+    else
+      case(field = @header_lines[curpos])
+      when "Subject"
+        text = BufferManager.ask :subject, "Subject: ", @header[field]
+        @header[field] = parse_header field, text if text
+      else
+        default =
+          case field
+          when *MULTI_HEADERS
+            @header[field].join(", ")
+          else
+            @header[field]
+          end
+
+        contacts = BufferManager.ask_for_contacts :people, "#{field}: ", default
+        if contacts
+          text = contacts.map { |s| s.longname }.join(", ")
+          @header[field] = parse_header field, text
+        end
+      end
+      update
+    end
+  end
+
+  def edit_message
     @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
-    @file.puts header_lines(@header - NON_EDITABLE_HEADERS)
+    @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
     @file.puts @body
     @file.close
@@ -90,8 +120,8 @@ protected
   end
 
   def regen_text
-    top = header_lines(@header - NON_EDITABLE_HEADERS) + [""]
-    @text = top + @body
+    header, @header_lines = format_headers(@header - NON_EDITABLE_HEADERS) + [""]
+    @text = header + [""] + @body
     @text += sig_lines unless $config[:edit_signature]
 
     unless @attachments.empty?
@@ -107,24 +137,30 @@ protected
       body = f.readlines
 
       header.delete_if { |k, v| NON_EDITABLE_HEADERS.member? k }
-      header.each do |k, v|
-        next unless MULTI_HEADERS.include?(k) && !v.empty?
-        header[k] = v.split_on_commas.map do |name|
-          (p = ContactManager.person_with(name)) && p.full_address || name
-        end
-      end
+      header.each { |k, v| header[k] = parse_header k, v }
 
       [header, body]
     end
   end
 
-  def header_lines header
-    force_headers = FORCE_HEADERS.map { |h| make_lines "#{h}:", header[h] }
-    other_headers = (header.keys - FORCE_HEADERS).map do |h|
-      make_lines "#{h}:", header[h]
+  def parse_header k, v
+    if MULTI_HEADERS.include?(k)
+      v.split_on_commas.map do |name|
+        (p = ContactManager.contact_for(name)) && p.full_address || name
+      end
+    else
+      v
     end
+  end
 
-    (force_headers + other_headers).flatten.compact
+  def format_headers header
+    header_lines = []
+    headers = (FORCE_HEADERS + (header.keys - FORCE_HEADERS)).map do |h|
+      lines = make_lines "#{h}:", header[h]
+      lines.length.times { header_lines << h }
+      lines
+    end.flatten.compact
+    [headers, header_lines]
   end
 
   def make_lines header, things

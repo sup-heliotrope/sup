@@ -39,7 +39,7 @@ module Ncurses
   remove_const :KEY_CANCEL
 
   KEY_ENTER = 10
-  KEY_CANCEL = ?\a # ctrl-g
+  KEY_CANCEL = 7 # ctrl-g
   KEY_TAB = 9
 end
 
@@ -344,7 +344,7 @@ class BufferManager
   def ask_many_with_completions domain, question, completions, default=nil, sep=" "
     ask domain, question, default do |partial|
       prefix, target = 
-        case partial.gsub(/#{sep}+/, sep)
+        case partial#.gsub(/#{sep}+/, sep)
         when /^\s*$/
           ["", ""]
         when /^(.+#{sep})$/
@@ -403,7 +403,7 @@ class BufferManager
 
     applyable_labels = (LabelManager.applyable_labels - forbidden_labels).map { |l| LabelManager.string_for l }.sort_by { |s| s.downcase }
 
-    answer = BufferManager.ask_many_with_completions domain, question, applyable_labels, default
+    answer = ask_many_with_completions domain, question, applyable_labels, default
 
     return unless answer
 
@@ -415,6 +415,19 @@ class BufferManager
       end
     end
     user_labels
+  end
+
+  def ask_for_contacts domain, question, default_contacts=[]
+    default = default_contacts.map { |s| s.to_s }.join(" ")
+    default += " " unless default.empty?
+
+    all_contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.longname, c.email] }.flatten.uniq.sort
+
+    answer = BufferManager.ask_many_with_completions domain, question, all_contacts, default, /\s*,\s*/
+
+    if answer
+      answer.split_on_commas.map { |x| ContactManager.contact_for(x.downcase) || PersonManager.person_for(x) }
+    end
   end
 
 

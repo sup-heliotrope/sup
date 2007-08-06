@@ -362,7 +362,7 @@ protected
   def parse_user_query_string str
     str2 = str.gsub(/(to|from):(\S+)/) do
       field, name = $1, $2
-      if(p = ContactManager.person_with(name))
+      if(p = ContactManager.contact_for(name))
         [field, p.email]
       else
         [field, name]
