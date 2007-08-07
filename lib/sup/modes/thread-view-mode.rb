@@ -107,7 +107,7 @@ class ThreadViewMode < LineCursorMode
     m = @message_lines[curpos] or return
     mode = ForwardMode.new m
     BufferManager.spawn "Forward of #{m.subj}", mode
-    mode.edit
+    mode.edit_message
   end
 
   include CanAliasContacts
@@ -133,7 +133,7 @@ class ThreadViewMode < LineCursorMode
         ComposeMode.new
       end
     BufferManager.spawn "Compose message", mode
-    mode.edit
+    mode.edit_message
   end    
 
   def edit_labels
@@ -185,7 +185,7 @@ class ThreadViewMode < LineCursorMode
     m = @message_lines[curpos] or return
     mode = ComposeMode.new(:body => m.basic_body_lines, :to => m.to, :cc => m.cc, :subj => m.subj, :bcc => m.bcc)
     BufferManager.spawn "edit as new", mode
-    mode.edit
+    mode.edit_message
   end
 
   def save_to_disk
@@ -207,7 +207,7 @@ class ThreadViewMode < LineCursorMode
       mode = ResumeMode.new m
       BufferManager.spawn "Edit message", mode
       BufferManager.kill_buffer self.buffer
-      mode.edit
+      mode.edit_message
     else
       BufferManager.flash "Not a draft message!"
     end
