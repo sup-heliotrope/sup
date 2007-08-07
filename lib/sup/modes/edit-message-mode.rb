@@ -254,7 +254,7 @@ protected
   ## with full=false) will be output as yaml.
   def write_message f, full=true, date=Time.now
     raise ArgumentError, "no pre-defined date: header allowed" if @header["Date"]
-    f.puts header_lines(@header)
+    f.puts format_headers(@header).first
     f.puts <<EOS
 Date: #{date.rfc2822}
 Message-Id: #{@message_id}
