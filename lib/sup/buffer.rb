@@ -1,5 +1,6 @@
 require 'etc'
 require 'thread'
+require 'ncurses'
 
 module Ncurses
   def rows
