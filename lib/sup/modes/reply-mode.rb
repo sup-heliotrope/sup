@@ -66,9 +66,9 @@ class ReplyMode < EditMessageMode
     refs = gen_references
     @headers.each do |k, v|
       @headers[k] = {
-               "To" => "",
-               "Cc" => "",
-               "Bcc" => "",
+               "To" => [],
+               "Cc" => [],
+               "Bcc" => [],
                "In-Reply-To" => "<#{@m.id}>",
                "Subject" => Message.reify_subj(@m.subj),
                "References" => refs,
@@ -124,6 +124,13 @@ protected
 
   def gen_references
     (@m.refs + [@m.id]).map { |x| "<#{x}>" }.join(" ")
+  end
+
+  def edit_field
+    @selected_type = :user
+    self.header = @headers[:user]
+    update
+    super
   end
   
   def move_cursor_left

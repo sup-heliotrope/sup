@@ -35,6 +35,7 @@ class EditMessageMode < LineCursorMode
     @attachments = []
     @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
     @edited = false
+    @skip_top_rows = opts[:skip_top_rows] || 0
 
     super opts
     regen_text
@@ -47,10 +48,10 @@ class EditMessageMode < LineCursorMode
   def handle_new_text header, body; end
 
   def edit_field
-    if curpos >= @header_lines.length
+    if (curpos - @skip_top_rows) >= @header_lines.length
       edit_message
     else
-      case(field = @header_lines[curpos])
+      case(field = @header_lines[curpos - @skip_top_rows])
       when "Subject"
         text = BufferManager.ask :subject, "Subject: ", @header[field]
         @header[field] = parse_header field, text if text
@@ -105,7 +106,7 @@ class EditMessageMode < LineCursorMode
   end
 
   def delete_attachment
-    i = curpos - @attachment_lines_offset
+    i = (curpos - @skip_top_rows) - @attachment_lines_offset
     if i >= 0 && i < @attachments.size && BufferManager.ask_yes_or_no("Delete attachment #{@attachments[i]}?")
       @attachments.delete_at i
       update

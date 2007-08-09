@@ -69,7 +69,7 @@ class PollManager
           end
           m
         end
-        yield "Found #{num} messages, #{numi} to inbox" unless num == 0
+        yield "Found #{num} messages, #{numi} to inbox." unless num == 0
         total_num += num
         total_numi += numi
       end
