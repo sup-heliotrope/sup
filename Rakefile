@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'hoe'
-require 'sup'
+require './lib/sup'
 
 class Hoe
   def extra_deps; @extra_deps.reject { |x| Array(x).first == "hoe" } end
