@@ -30,8 +30,6 @@ class ReplyMode < EditMessageMode
         (@m.to + @m.cc).find { |p| AccountManager.is_account? p }
       end || AccountManager.default_account
 
-    from_email = from.email
-
     ## ignore reply-to for list messages because it's typically set to
     ## the list address, which we explicitly treat with :list
     to = @m.is_list_message? ? @m.from : (@m.replyto || @m.from)
@@ -39,33 +37,28 @@ class ReplyMode < EditMessageMode
 
     @headers = {}
     @headers[:sender] = {
-      "From" => "#{from.name} <#{from_email}>",
       "To" => [to.full_address],
     } unless AccountManager.is_account? to
 
     @headers[:recipient] = {
-      "From" => "#{from.name} <#{from_email}>",
       "To" => cc.map { |p| p.full_address },
     } unless cc.empty? || @m.is_list_message?
 
-    @headers[:user] = {
-      "From" => "#{from.name} <#{from_email}>",
-    }
+    @headers[:user] = {}
 
     @headers[:all] = {
-      "From" => "#{from.name} <#{from_email}>",
       "To" => [to.full_address],
       "Cc" => cc.select { |p| !AccountManager.is_account?(p) }.map { |p| p.full_address },
     } unless cc.empty?
 
     @headers[:list] = {
-      "From" => "#{from.name} <#{from_email}>",
       "To" => [@m.list_address.full_address],
     } if @m.is_list_message?
 
     refs = gen_references
     @headers.each do |k, v|
       @headers[k] = {
+               "From" => "#{from.name} <#{from.email}>",
                "To" => [],
                "Cc" => [],
                "Bcc" => [],
