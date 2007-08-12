@@ -334,7 +334,7 @@ class ThreadIndexMode < LineCursorMode
     m.load_from_source!
     mode = ForwardMode.new m
     BufferManager.spawn "Forward of #{m.subj}", mode
-    mode.edit
+    mode.edit_message
   end
 
   def load_n_threads_background n=LOAD_MORE_THREAD_NUM, opts={}
