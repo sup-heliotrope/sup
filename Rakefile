@@ -2,7 +2,8 @@
 
 require 'rubygems'
 require 'hoe'
-require './lib/sup'
+$:.unshift 'lib' # force loading from ./lib/ if it exists
+require 'sup'
 
 class Hoe
   def extra_deps; @extra_deps.reject { |x| Array(x).first == "hoe" } end

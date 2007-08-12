@@ -31,7 +31,7 @@ class Module
 end
 
 module Redwood
-  VERSION = "0"
+  VERSION = "0.1"
 
   BASE_DIR   = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
   CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
