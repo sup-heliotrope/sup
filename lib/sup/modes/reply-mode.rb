@@ -24,11 +24,13 @@ class ReplyMode < EditMessageMode
     body = reply_body_lines message
 
     from =
-      if @m.recipient_email
-        AccountManager.account_for @m.recipient_email
+      if @m.recipient_email && (a = AccountManager.account_for(@m.recipient_email))
+        a
+      elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
+        b
       else
-        (@m.to + @m.cc).find { |p| AccountManager.is_account? p }
-      end || AccountManager.default_account
+        AccountManager.default_account
+      end
 
     ## ignore reply-to for list messages because it's typically set to
     ## the list address, which we explicitly treat with :list
