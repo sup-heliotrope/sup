@@ -43,6 +43,7 @@ module Redwood
   SENT_FN    = File.join(BASE_DIR, "sent.mbox")
   LOCK_FN    = File.join(BASE_DIR, "lock")
   SUICIDE_FN = File.join(BASE_DIR, "please-kill-yourself")
+  HOOK_DIR   = File.join(BASE_DIR, "hooks")
 
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
@@ -205,6 +206,13 @@ else
 end
 
 require "sup/util"
+require "sup/hook"
+
+## we have to initialize this guy first, because other classes must
+## reference it in order to register hooks, and they do that at parse
+## time.
+Redwood::HookManager.new Redwood::HOOK_DIR
+
 require "sup/update"
 require "sup/suicide"
 require "sup/message"

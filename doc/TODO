@@ -1,15 +1,14 @@
 for next release
 ----------------
+_ imap "add all folders on this server" option in sup-add
 _ mailing list subscribe/unsubscribe
 _ BufferManager#ask_for_labels opens up label-list-mode if empty
 _ tab completion for mid-text cursors
+_ ncurses text entry horizontal scrolling
 _ forward attachments
 _ messages as attachments
-_ individual labeling in thread-view-mode
-_ tab completion for to: and cc: in compose-mode
 _ use trac or something. this file is getting a little silly.
 _ gpg integration
-_ user-defined hooks
 _ saved searches
 _ bugfix: missing sources should be handled better
 _ bugfix: screwing with the headers when editing causes a crash
@@ -20,10 +19,10 @@ _ bugfix: need a better way to force an address to a particular name,
    for things like evite addresses
 _ bugfix: ferret flakiness: just added message but can't find it (? still relevant ?)
 _ for new message flashes, add new message counts until keypress
-_ bugfix: deadlock (on rubyforge)
+_ bugfix: deadlock (on rubyforge) (? still valid ?)
 _ bugfix: ferret corrupt index problem at index.c:901. see http://ferret.davebalmain.com/trac/ticket/279
 _ bugfix: read before thread-index has finished loading then hides the
-   thread?!? wtf. (on jamie)
+   thread?!? wtf. (on jamie) (? still valid ?)
 _ bugfix: width in index-mode needs to be determined per-character
    rather than per-byte
 _ search results: highlight relevant snippets and open to relevant
@@ -33,6 +32,9 @@ _ undo
 _ gmail support
 _ warnings: top-posting, missing attachment, ruby-talk:XXXX detection
 _ Net::SMTP support
+x user-defined hooks
+x tab completion for to: and cc: in compose-mode
+x individual labeling in thread-view-mode
 x translate aliases in queries on to: and from: fields
 x tab completion on labeling
 

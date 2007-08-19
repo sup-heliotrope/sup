@@ -21,6 +21,7 @@ lib/sup/buffer.rb
 lib/sup/colormap.rb
 lib/sup/contact.rb
 lib/sup/draft.rb
+lib/sup/hook.rb
 lib/sup/imap.rb
 lib/sup/index.rb
 lib/sup/keymap.rb

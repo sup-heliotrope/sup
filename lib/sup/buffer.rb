@@ -2,6 +2,7 @@ require 'etc'
 require 'thread'
 require 'ncurses'
 
+if defined? Ncurses
 module Ncurses
   def rows
     lame, lamer = [], []
@@ -42,6 +43,7 @@ module Ncurses
   KEY_ENTER = 10
   KEY_CANCEL = 7 # ctrl-g
   KEY_TAB = 9
+end
 end
 
 module Redwood

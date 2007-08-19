@@ -382,9 +382,9 @@ class ThreadIndexMode < LineCursorMode
     myopts = @load_thread_opts.merge({ :when_done => (lambda do |num|
       opts[:when_done].call(num) if opts[:when_done]
       if num > 0
-        BufferManager.flash "Found #{num} threads"
+        BufferManager.flash "Found #{num} threads."
       else
-        BufferManager.flash "No matches"
+        BufferManager.flash "No matches."
       end
     end)})
 
