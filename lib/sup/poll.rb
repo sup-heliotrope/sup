@@ -13,10 +13,12 @@ EOS
   HookManager.register "after-poll", <<EOS
 Executes immediately before a poll for new messages commences.
 Variables:
-            num: the total number of new messages
-      num_inbox: the number of new messages appearing in the inbox (i.e. not
-                 auto-archived).
-  from_and_subj: an array of (from email address, subject) pairs
+                  num: the total number of new messages
+            num_inbox: the number of new messages appearing in the inbox (i.e.
+                       not auto-archived).
+        from_and_subj: an array of (from email address, subject) pairs
+  from_and_subj_inbox: an array of (from email address, subject) pairs for
+                       messages appearing in the inbox
 EOS
 
   DELAY = 300
@@ -37,14 +39,14 @@ EOS
     HookManager.run "before-poll"
 
     BufferManager.flash "Polling for new messages..."
-    num, numi, from_and_subj = buffer.mode.poll
+    num, numi, from_and_subj, from_and_subj_inbox = buffer.mode.poll
     if num > 0
       BufferManager.flash "Loaded #{num} new messages, #{numi} to inbox." 
     else
       BufferManager.flash "No new messages." 
     end
 
-    HookManager.run "after-poll", :num => num, :num_inbox => numi, :from_and_subj => from_and_subj
+    HookManager.run "after-poll", :num => num, :num_inbox => numi, :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox
 
     [num, numi]
   end
@@ -66,6 +68,7 @@ EOS
   def do_poll
     total_num = total_numi = 0
     from_and_subj = []
+    from_and_subj_inbox = []
 
     @mutex.synchronize do
       Index.usual_sources.each do |source|
@@ -86,8 +89,11 @@ EOS
           yield "Found message at #{offset} with labels {#{m.labels * ', '}}"
           unless entry
             num += 1
-            numi += 1 if m.labels.include? :inbox
             from_and_subj << [m.from.longname, m.subj]
+            if m.labels.include? :inbox
+              from_and_subj_inbox << [m.from.longname, m.subj]
+              numi += 1 
+            end
           end
           m
         end
@@ -100,7 +106,7 @@ EOS
       @last_poll = Time.now
       @polling = false
     end
-    [total_num, total_numi, from_and_subj]
+    [total_num, total_numi, from_and_subj, from_and_subj_inbox]
   end
 
   ## this is the main mechanism for adding new messages to the
