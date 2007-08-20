@@ -229,7 +229,7 @@ EOS
   ## stops loading any thread if a message with a :killed flag is found.
   SAME_SUBJECT_DATE_LIMIT = 7
   def each_message_in_thread_for m, opts={}
-    Redwood::log "Building thread for #{m.id}: #{m.subj}"
+    #Redwood::log "Building thread for #{m.id}: #{m.subj}"
     messages = {}
     searched = {}
     num_queries = 0
@@ -270,14 +270,14 @@ EOS
         break if @index[docid][:label].split(/\s+/).include? "killed" unless opts[:load_killed]
         mid = @index[docid][:message_id]
         unless messages.member?(mid)
-          Redwood::log "got #{mid} as a child of #{id}"
+          #Redwood::log "got #{mid} as a child of #{id}"
           messages[mid] ||= lambda { build_message docid }
           refs = @index[docid][:refs].split(" ")
           pending += refs
         end
       end
     end
-    Redwood::log "ran #{num_queries} queries to build thread of #{messages.size + 1} messages for #{m.id}" if num_queries > 0
+    Redwood::log "ran #{num_queries} queries to build thread of #{messages.size + 1} messages for #{m.id}: #{m.subj}" if num_queries > 0
     messages.each { |mid, builder| yield mid, builder }
   end
 
