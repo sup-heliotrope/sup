@@ -1,20 +1,25 @@
 module Redwood
 
 class HookManager
-
   ## there's probably a better way to do this, but to evaluate a hook
   ## with a bunch of pre-set "local variables" i define a function
   ## per variable and then instance_evaluate the code.
+  ##
+  ## how does rails do it, when you pass :locals into a partial?
   ##
   ## i don't bother providing setters, since i'm pretty sure the
   ## charade will fall apart pretty quickly with respect to scoping.
   ## this is basically fail-fast.
   class HookContext
-    def initialize name, hash
+    def initialize name
       @__name = name
-      hash.each do |k, v|
-        self.class.instance_eval { define_method(k) { v } }
-      end
+      @__locals = {}
+    end
+
+    attr_writer :__locals
+
+    def method_missing m, *a
+      @__locals[m] || super
     end
 
     def say s
@@ -40,6 +45,8 @@ class HookManager
     @dir = dir
     @hooks = {}
     @descs = {}
+    @contexts = {}
+    
     Dir.mkdir dir unless File.exists? dir
 
     self.class.i_am_the_instance self
@@ -47,16 +54,18 @@ class HookManager
 
   def run name, locals={}
     hook = hook_for(name) or return
-    context = HookContext.new name, locals
-
+    context = @contexts[hook] ||= HookContext.new(name)
+    context.__locals = locals
+    
     begin
-      result = eval @hooks[name], context.__binding, fn_for(name)
+      result = context.instance_eval @hooks[name], fn_for(name)
       if result.is_a? String
         log "got return value: #{result.inspect}"
         BufferManager.flash result 
       end
     rescue Exception => e
       log "error running hook: #{e.message}"
+      log e.backtrace.join("\n")
       BufferManager.flash "Error running hook: #{e.message}"
     end
     context.__cleanup
