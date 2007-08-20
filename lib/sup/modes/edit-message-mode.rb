@@ -187,7 +187,7 @@ protected
   end
 
   def send_message
-    return if edited? && !BufferManager.ask_yes_or_no("Message unedited. Really send?")
+    return if !edited? && !BufferManager.ask_yes_or_no("Message unedited. Really send?")
     return if $config[:confirm_no_attachments] && mentions_attachments? && @attachments.size == 0 && !BufferManager.ask_yes_or_no("You haven't added any attachments. Really send?")#" stupid ruby-mode
     return if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no("You're top posting. That makes you a bad person. Really send?") #" stupid ruby-mode
 
