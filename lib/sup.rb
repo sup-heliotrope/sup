@@ -195,7 +195,9 @@ else
     :thread_by_subject => false,
     :edit_signature => false,
     :ask_for_cc => true,
-    :ask_for_bcc => false
+    :ask_for_bcc => false,
+    :confirm_no_attachments => true,
+    :confirm_top_posting => true,
   }
   begin
     FileUtils.mkdir_p Redwood::BASE_DIR
