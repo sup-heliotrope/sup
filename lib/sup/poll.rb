@@ -27,6 +27,7 @@ EOS
     @mutex = Mutex.new
     @thread = nil
     @last_poll = nil
+    @polling = false
     
     self.class.i_am_the_instance self
   end
@@ -36,6 +37,8 @@ EOS
   end
 
   def poll
+    return if @polling
+    @polling = true
     HookManager.run "before-poll"
 
     BufferManager.flash "Polling for new messages..."
@@ -48,6 +51,7 @@ EOS
 
     HookManager.run "after-poll", :num => num, :num_inbox => numi, :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox
 
+    @polling = false
     [num, numi]
   end
 
