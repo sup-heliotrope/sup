@@ -25,7 +25,18 @@ class Logger
   def log s
 #    $stderr.puts s
     make_buf
-    @mode << "#{Time.now}: #{s.chomp}\n"
+    prefix = "#{Time.now}: "
+    padding = " " * prefix.length
+    first = true
+    s.split(/[\r\n]/).each do |l|
+      l = l.chomp
+      if first
+        first = false
+        @mode << "#{prefix}#{l}\n"
+      else
+        @mode << "#{padding}#{l}\n"
+      end
+    end
     $stderr.puts "[#{Time.now}] #{s.chomp}" unless BufferManager.instantiated? && @mode.buffer
   end
   
