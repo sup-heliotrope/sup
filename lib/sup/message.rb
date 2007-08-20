@@ -80,7 +80,7 @@ class Message
   SIG_PATTERN = /(^-- ?$)|(^\s*----------+\s*$)|(^\s*_________+\s*$)|(^\s*--~--~-)/
 
   MAX_SIG_DISTANCE = 15 # lines from the end
-  DEFAULT_SUBJECT = "(missing subject)"
+  DEFAULT_SUBJECT = ""
   DEFAULT_SENDER = "(missing sender)"
 
   attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :source,
