@@ -30,6 +30,10 @@ class HookManager
       Redwood::log "hook[#@__name]: #{s}"
     end
 
+    def ask_yes_or_no q
+      BufferManager.ask_yes_or_no q
+    end
+
     def __binding 
       binding
     end
