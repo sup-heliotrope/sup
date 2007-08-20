@@ -87,12 +87,14 @@ class EditMessageMode < LineCursorMode
     BufferManager.shell_out "#{editor} #{@file.path}"
     @edited = true if File.mtime(@file.path) > mtime
 
-    BufferManager.kill_buffer self.buffer unless @edited
+    return @edited unless @edited
 
     header, @body = parse_file @file.path
     @header = header - NON_EDITABLE_HEADERS
     handle_new_text @header, @body
     update
+
+    @edited
   end
 
   def killable?

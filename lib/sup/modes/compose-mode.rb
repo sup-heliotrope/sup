@@ -13,6 +13,12 @@ class ComposeMode < EditMessageMode
 
     super :header => header, :body => (opts[:body] || [])
   end
+
+  def edit_message
+    edited = super
+    BufferManager.kill_buffer self.buffer unless edited
+    edited
+  end
 end
 
 end
