@@ -11,7 +11,7 @@ No variables.
 EOS
 
   HookManager.register "after-poll", <<EOS
-Executes immediately before a poll for new messages commences.
+Executes immediately after a poll for new messages completes.
 Variables:
                   num: the total number of new messages
             num_inbox: the number of new messages appearing in the inbox (i.e.
