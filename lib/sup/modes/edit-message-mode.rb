@@ -289,7 +289,7 @@ private
   end
 
   def sig_lines
-    p = PersonManager.person_for @header["From"]
+    p = PersonManager.person_for(@header["From"]) or return []
     sigfn = (AccountManager.account_for(p.email) || 
              AccountManager.default_account).signature
 
