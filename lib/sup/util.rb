@@ -77,6 +77,8 @@ module RMail
           [IO.read(fn)].pack "m"
         when "quoted-printable"
           [IO.read(fn)].pack "M"
+        when "7bit", "8bit"
+          IO.read(fn)
         else
           raise EncodingUnsupportedError, t.encoding
         end
