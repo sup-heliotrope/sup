@@ -24,6 +24,7 @@ class HookManager
 
     def say s
       @__say_id = BufferManager.say s, @__say_id
+      BufferManager.draw_screen
     end
 
     def log s
