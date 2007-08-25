@@ -362,8 +362,7 @@ class BufferManager
     end
   end
 
-  ## returns an ARRAY of filenames!
-  def ask_for_filenames domain, question, default=nil
+  def ask_for_filename domain, question, default=nil
     answer = ask domain, question, default do |s|
       if s =~ /(~([^\s\/]*))/ # twiddle directory expansion
         full = $1
@@ -391,11 +390,11 @@ class BufferManager
         elsif File.directory?(answer)
           spawn_modal "file browser", FileBrowserMode.new(answer)
         else
-          [answer]
+          answer
         end
     end
 
-    answer || []
+    answer
   end
 
   ## returns an array of labels

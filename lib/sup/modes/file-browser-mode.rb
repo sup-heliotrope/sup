@@ -65,7 +65,7 @@ protected
       end
     else
       begin
-        @value = [f.realpath.to_s]
+        @value = f.realpath.to_s
         @done = true
       rescue SystemCallError => e
         BufferManager.flash e.message

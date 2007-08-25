@@ -102,8 +102,8 @@ class EditMessageMode < LineCursorMode
   end
 
   def attach_file
-    fn = BufferManager.ask_for_filenames :attachment, "File name (enter for browser): "
-    fn.each { |f| @attachments << Pathname.new(f) }
+    fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
+    @attachments << Pathname.new(fn)
     update
   end
 

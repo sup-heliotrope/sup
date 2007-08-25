@@ -38,7 +38,7 @@ class LogMode < TextMode
   end
 
   def save_to_disk
-    fn = BufferManager.ask :filename, "Save log to file: "
+    fn = BufferManager.ask_for_filename :filename, "Save log to file: "
     save_to_file(fn) { |f| f.puts text } if fn
   end
 

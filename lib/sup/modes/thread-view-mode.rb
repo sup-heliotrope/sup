@@ -192,11 +192,11 @@ class ThreadViewMode < LineCursorMode
     chunk = @chunk_lines[curpos] or return
     case chunk
     when Message::Attachment
-      fn = BufferManager.ask :filename, "Save attachment to file: ", chunk.filename
+      fn = BufferManager.ask_for_filename :filename, "Save attachment to file: ", chunk.filename
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn
     else
       m = @message_lines[curpos]
-      fn = BufferManager.ask :filename, "Save message to file: "
+      fn = BufferManager.ask_for_filename :filename, "Save message to file: "
       save_to_file(fn) { |f| f.print m.raw_full_message } if fn
     end
   end
