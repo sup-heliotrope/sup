@@ -17,7 +17,18 @@ class Message
   SNIPPET_LEN = 80
   WRAP_LEN = 80 # wrap at this width
   RE_PATTERN = /^((re|re[\[\(]\d[\]\)]):\s*)+/i
-    
+
+  HookManager.register "mime-decode", <<EOS
+Executes when decoding a MIME attachment.
+Variables:
+  content_type: the context-type of the message
+      filename: the filename of the attachment as saved to disk (generated
+                on the fly, so don't call more than once)
+Return value:
+  The decoded text of the attachment, or nil if not decoded.
+EOS
+#' stupid ruby-mode
+
   ## some utility methods
   class << self
     def normalize_subj s; s.gsub(RE_PATTERN, ""); end
@@ -26,30 +37,46 @@ class Message
   end
 
   class Attachment
-    attr_reader :content_type, :filename, :content, :lines
-    def initialize content_type, filename, content
+    ## encoded_content is still possible MIME-encoded
+    ##
+    ## raw_content is after decoding but before being turned into
+    ## inlineable text.
+    ##
+    ## lines is array of inlineable text.
+
+    attr_reader :content_type, :filename, :lines, :raw_content
+
+    def initialize content_type, filename, encoded_content
       @content_type = content_type
       @filename = filename
-      @content = content
+      @raw_content = encoded_content.decode
+      charset = encoded_content.charset
 
-      if inlineable?
-        @lines = to_s.split("\n")
+      if @content_type =~ /^text\/plain\b/
+        @lines = Message.convert_from(@raw_content, charset).split("\n")
+      else
+        text = HookManager.run "mime-decode", :content_type => content_type,
+          :filename => lambda { write_to_disk }
+        @lines = text.split("\n") if text
       end
     end
 
-    def view!
-      file = Tempfile.new "redwood.attachment"
-      file.print raw_content
-      file.close
+    def inlineable?; !@lines.nil? end
 
-      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{file.path} >& /dev/null"
+    def view!
+      path = write_to_disk
+      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{path} >& /dev/null"
       $? == 0
     end
+    
+  private
 
-    def to_s; Message.decode_and_convert @content; end
-    def raw_content; @content.decode end
-
-    def inlineable?; @content_type =~ /^text\/plain/ end
+    def write_to_disk
+      file = Tempfile.new "redwood.attachment"
+      file.print @raw_content
+      file.close
+      file.path
+    end
   end
 
   class Text
@@ -283,10 +310,14 @@ private
   ## the general behavior i want is: ignore content-disposition, at
   ## least in so far as it suggests something being inline vs being an
   ## attachment. (because really, that should be the recipient's
-  ## decision to make.) if a mime part is text/plain, then decode it
-  ## and display it inline. if it has associated filename, then make
-  ## it collapsable and individually saveable; otherwise, treat it as
-  ## regular body text.
+  ## decision to make.) if a mime part is text/plain, OR if the user
+  ## decoding hook converts it, then decode it and display it
+  ## inline. for these decoded attachments, if it has associated
+  ## filename, then make it collapsable and individually saveable;
+  ## otherwise, treat it as regular body text.
+  ##
+  ## everything else is just an attachment and is not displayed
+  ## inline.
   ##
   ## so, in contrast to mutt, the user is not exposed to the workings
   ## of the gruesome slaughterhouse and sausage factory that is a
@@ -317,28 +348,22 @@ private
 
       ## otherwise, it's body text
       else
-        body = Message.decode_and_convert m
+        body = Message.convert_from m.body, m.charset
         text_to_chunks body.normalize_whitespace.split("\n")
       end
     end
   end
 
-  def self.decode_and_convert m
-    charset =
-      if m.header.field?("content-type") && m.header.fetch("content-type") =~ /charset="?(.*?)"?(;|$)/
-        $1
-      end
+  def self.convert_from body, charset
+    return body unless charset
 
-    m.body && body = m.decode or raise MessageFormatError, "For some bizarre reason, RubyMail was unable to parse this message."
-
-    if charset
-      begin
-        body = Iconv.iconv($encoding, charset, body).join
-      rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
-        Redwood::log "warning: error decoding message body from #{charset}: #{e.message}"
-      end
+    begin
+      Iconv.iconv($encoding, charset, body).join
+    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
+      Redwood::log "warning: error (#{e.class.name}) decoding message body from #{charset}: #{e.message}"
+      File.open("sup-unable-to-decode.txt", "w") { |f| f.write body }
+      body
     end
-    body
   end
 
   ## parse the lines of text into chunk objects.  the heuristics here

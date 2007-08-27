@@ -19,7 +19,14 @@ class HookManager
     attr_writer :__locals
 
     def method_missing m, *a
-      @__locals[m] || super
+      case @__locals[m]
+      when Proc
+        @__locals[m].call(*a)
+      when nil
+        super
+      else
+        @__locals[m]
+      end
     end
 
     def say s
@@ -61,19 +68,17 @@ class HookManager
     hook = hook_for(name) or return
     context = @contexts[hook] ||= HookContext.new(name)
     context.__locals = locals
-    
+
+    result = nil
     begin
       result = context.instance_eval @hooks[name], fn_for(name)
-      if result.is_a? String
-        log "got return value: #{result.inspect}"
-        BufferManager.flash result 
-      end
     rescue Exception => e
       log "error running hook: #{e.message}"
       log e.backtrace.join("\n")
       BufferManager.flash "Error running hook: #{e.message}"
     end
     context.__cleanup
+    result
   end
 
   def register name, desc
@@ -106,6 +111,7 @@ private
             log "read '#{name}' from #{fn_for(name)}"
           end
         rescue SystemCallError => e
+          log "disabled hook for '#{name}': #{e.message}"
           nil
         end
     end
