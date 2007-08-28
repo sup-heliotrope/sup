@@ -21,9 +21,12 @@ class Message
   HookManager.register "mime-decode", <<EOS
 Executes when decoding a MIME attachment.
 Variables:
-  content_type: the context-type of the message
-      filename: the filename of the attachment as saved to disk (generated
-                on the fly, so don't call more than once)
+   content_type: the content-type of the message
+       filename: the filename of the attachment as saved to disk (generated
+                 on the fly, so don't call more than once)
+  sibling_types: if this attachment is part of a multipart MIME attachment,
+                 an array of content-types for all attachments. Otherwise,
+                 the empty array.
 Return value:
   The decoded text of the attachment, or nil if not decoded.
 EOS
@@ -46,7 +49,7 @@ EOS
 
     attr_reader :content_type, :filename, :lines, :raw_content
 
-    def initialize content_type, filename, encoded_content
+    def initialize content_type, filename, encoded_content, sibling_types
       @content_type = content_type
       @filename = filename
       @raw_content = encoded_content.decode
@@ -56,7 +59,7 @@ EOS
         @lines = Message.convert_from(@raw_content, charset).split("\n")
       else
         text = HookManager.run "mime-decode", :content_type => content_type,
-          :filename => lambda { write_to_disk }
+          :filename => lambda { write_to_disk }, :sibling_types => sibling_types
         @lines = text.split("\n") if text
       end
     end
@@ -323,9 +326,10 @@ private
   ## of the gruesome slaughterhouse and sausage factory that is a
   ## mime-encoded message, but need only see the delicious end
   ## product.
-  def message_to_chunks m
+  def message_to_chunks m, sibling_types=[]
     if m.multipart?
-      m.body.map { |p| message_to_chunks p }.flatten.compact # recurse
+      sibling_types = m.body.map { |p| p.header.content_type }
+      m.body.map { |p| message_to_chunks p, sibling_types }.flatten.compact # recurse
     else
       filename =
         ## first, paw through the headers looking for a filename
@@ -344,7 +348,7 @@ private
 
       ## if there's a filename, we'll treat it as an attachment.
       if filename
-        [Attachment.new(m.header.content_type, filename, m)]
+        [Attachment.new(m.header.content_type, filename, m, sibling_types)]
 
       ## otherwise, it's body text
       else
