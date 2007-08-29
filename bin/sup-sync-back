@@ -14,8 +14,7 @@ end
 opts = Trollop::options do
   version "sup-sync-back (sup #{Redwood::VERSION})"
   banner <<EOS
-Partially synchronizes a message source with the Sup index by deleting
-or moving any messages from the source that are marked as deleted or
+Drop or move messages from Sup sources that are marked as deleted or
 spam in the Sup index.
 
 Currently only works with mbox sources.
@@ -26,20 +25,26 @@ Usage:
 where <source>* is zero or more source URIs. If no sources are given,
 sync back all usual sources.
 
-You probably want to run sup-sync --changed after this command.
+You almost certainly want to run sup-sync --changed after this command.
+Running this does not change the index.
 
 Options include:
 EOS
-  opt :delete_deleted, "Delete deleted messages.", :default => false, :short => "d"
+  opt :drop_deleted, "Drop deleted messages.", :default => false, :short => "d"
   opt :move_deleted, "Move deleted messages to a local mbox file.", :type => String, :short => :none
-  opt :delete_spam, "Delete spam messages.", :default => false, :short => "s"
+  opt :drop_spam, "Drop spam messages.", :default => false, :short => "s"
   opt :move_spam, "Move spam messages to a local mbox file.", :type => String, :short => :none
   opt :verbose, "Print message ids as they're processed."
   opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
   opt :version, "Show version information", :short => :none
 
-  conflicts :delete_deleted, :move_deleted
-  conflicts :delete_spam, :move_spam
+  conflicts :drop_deleted, :move_deleted
+  conflicts :drop_spam, :move_spam
+end
+
+unless opts[:drop_deleted] || opts[:move_deleted] || opts[:drop_spam] || opts[:move_spam]
+  puts "Nothing to do."
+  exit
 end
 
 Redwood::start
@@ -69,7 +74,7 @@ begin
   sources.each do |source|
     $stderr.puts "Scanning #{source}..."
 
-    unless ((opts[:delete_deleted] || opts[:move_deleted]) && index.has_any_from_source_with_label?(source, :deleted)) || ((opts[:delete_spam] || opts[:move_spam]) && index.has_any_from_source_with_label?(source, :spam))
+    unless ((opts[:drop_deleted] || opts[:move_deleted]) && index.has_any_from_source_with_label?(source, :deleted)) || ((opts[:drop_spam] || opts[:move_spam]) && index.has_any_from_source_with_label?(source, :spam))
       $stderr.puts "Nothing to do from this source; skipping"
       next
     end
@@ -85,7 +90,7 @@ begin
         labels = entry[:label].split.map { |x| x.intern }.to_boolean_h
 
         if labels.member? :deleted
-          if opts[:delete_deleted]
+          if opts[:drop_deleted]
             puts "Dropping deleted message #{source}##{offset}" if opts[:verbose]
             num_dropped += 1
           elsif opts[:move_deleted] && labels.member?(:deleted)
@@ -95,7 +100,7 @@ begin
           end
 
         elsif labels.member? :spam
-          if opts[:delete_spam]
+          if opts[:drop_spam]
             puts "Dropping spam message #{source}##{offset}" if opts[:verbose]
             num_dropped += 1
           elsif opts[:move_spam] && labels.member?(:spam)
