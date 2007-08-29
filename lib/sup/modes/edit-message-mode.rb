@@ -247,6 +247,7 @@ protected
       body_m = RMail::Message.new
       body_m.body = @body.join
       body_m.body += sig_lines.join("\n") unless $config[:edit_signature]
+      body_m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
       body_m.header["Content-Disposition"] = "inline"
       
       m.add_part body_m

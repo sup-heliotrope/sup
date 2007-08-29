@@ -68,8 +68,8 @@ module RMail
       a = Message.new
       t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first
 
-      a.header.add "Content-Disposition", "attachment; filename=#{bfn}"
-      a.header.add "Content-Type", "#{t.content_type}; name=#{bfn}"
+      a.header.add "Content-Disposition", "attachment; filename=#{bfn.to_s.inspect}"
+      a.header.add "Content-Type", "#{t.content_type}; name=#{bfn.to_s.inspect}"
       a.header.add "Content-Transfer-Encoding", t.encoding
       a.body =
         case t.encoding
