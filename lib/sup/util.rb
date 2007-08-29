@@ -63,7 +63,7 @@ module RMail
   class EncodingUnsupportedError < StandardError; end
 
   class Message
-    def add_attachment fn
+    def add_file_attachment fn
       bfn = File.basename fn
       a = Message.new
       t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first

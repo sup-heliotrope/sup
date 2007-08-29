@@ -72,6 +72,11 @@ EOS
       $? == 0
     end
     
+    ## used when viewing the attachment as text
+    def to_s
+      @lines || @raw_content
+    end
+
   private
 
     def write_to_disk

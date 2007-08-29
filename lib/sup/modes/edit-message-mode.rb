@@ -240,7 +240,6 @@ protected
     m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
 
     if @attachments.empty?
-      m.header["Content-Disposition"] = "inline"
       m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
       m.body = @body.join
       m.body += sig_lines.join("\n") unless $config[:edit_signature]
@@ -248,9 +247,10 @@ protected
       body_m = RMail::Message.new
       body_m.body = @body.join
       body_m.body += sig_lines.join("\n") unless $config[:edit_signature]
+      body_m.header["Content-Disposition"] = "inline"
       
       m.add_part body_m
-      @attachments.each { |fn| m.add_attachment fn.to_s }
+      @attachments.each { |fn| m.add_file_attachment fn.to_s }
     end
     f.puts m.to_s
   end
