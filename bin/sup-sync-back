@@ -112,7 +112,7 @@ begin
 
       nil # don't actually add anything!
     end
-    $stderr.puts "Scanned #{num_scanned}, deleted #{num_deleted}, moved #{num_moved} messages from #{source}."
+    $stderr.puts "Scanned #{num_scanned}, dropped #{num_deleted}, moved #{num_moved} messages from #{source}."
     modified_sources << source if num_deleted > 0 || num_moved > 0
     out_fp.close unless opts[:dry_run]
 
