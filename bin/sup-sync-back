@@ -10,6 +10,10 @@ require "sup"
 def save m, fp
   m.source.each_raw_full_message_line(m.source_info) { |l| fp.print l }
 end
+def die msg
+  $stderr.puts "Error: #{msg}"
+  exit(-1)
+end
 
 opts = Trollop::options do
   version "sup-sync-back (sup #{Redwood::VERSION})"
@@ -34,6 +38,10 @@ EOS
   opt :move_deleted, "Move deleted messages to a local mbox file.", :type => String, :short => :none
   opt :drop_spam, "Drop spam messages.", :default => false, :short => "s"
   opt :move_spam, "Move spam messages to a local mbox file.", :type => String, :short => :none
+
+  opt :with_dotlockfile, "Specific dotlockfile location (mbox files only).", :default => "/usr/bin/dotlockfile", :short => :none
+  opt :dont_use_dotlockfile, "Don't use dotlockfile to lock mbox files. Dangerous if other processes modify them concurrently.", :default => false, :short => :none
+
   opt :verbose, "Print message ids as they're processed."
   opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
   opt :version, "Show version information", :short => :none
@@ -57,17 +65,27 @@ unless opts[:dry_run]
   spam_fp = File.open(opts[:move_spam], "a") if opts[:move_spam]
 end
 
+dotlockfile = opts[:with_dotlockfile] || "/usr/bin/dotlockfile"
+
 begin
   index.load
 
   sources = ARGV.map do |uri|
-    s = index.source_for(uri) or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
-    s.is_a?(Redwood::MBox::Loader) or Trollop::die "#{uri} is not an mbox source."
+    s = index.source_for(uri) or die "unknown source: #{uri}. Did you add it with sup-add first?"
+    s.is_a?(Redwood::MBox::Loader) or die "#{uri} is not an mbox source."
     s
   end
 
   if sources.empty?
     sources = index.usual_sources.select { |s| s.is_a? Redwood::MBox::Loader } 
+  end
+
+  unless sources.all? { |s| s.file_path.nil? } || File.executable?(dotlockfile) || opts[:dont_use_dotlockfile]
+    die <<EOS
+can't execute dotlockfile binary: #{dotlockfile}. Specify --with-dotlockfile
+if it's in a nonstandard location, or, if you want to live dangerously, try
+--dont-use-dotlockfile
+EOS
   end
 
   modified_sources = []
@@ -124,8 +142,14 @@ begin
     unless opts[:dry_run] || (num_dropped == 0 && num_moved == 0)
       deleted_fp.flush if deleted_fp
       spam_fp.flush if spam_fp
-      $stderr.puts "Moving #{out_fp.path} to #{source.file_path}"
-      FileUtils.mv out_fp.path, source.file_path
+      unless opts[:dont_use_dotlockfile]
+        puts "Locking #{source.file_path}..."
+        system "#{opts[:dotlockfile]} -l #{source.file_path}"
+        puts "Writing #{source.file_path}..."
+        FileUtils.cp out_fp.path, source.file_path
+        puts "Unlocking #{source.file_path}..."
+        system "#{opts[:dotlockfile]} -u #{source.file_path}"
+      end
     end
   end
 
