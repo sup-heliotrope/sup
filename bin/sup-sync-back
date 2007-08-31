@@ -166,7 +166,6 @@ rescue Exception => e
   File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
   raise
 ensure
-  index.save
   Redwood::finish
   index.unlock
 end
