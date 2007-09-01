@@ -12,6 +12,18 @@ class EditMessageMode < LineCursorMode
   MULTI_HEADERS = %w(To Cc Bcc)
   NON_EDITABLE_HEADERS = %w(Message-Id Date)
 
+  HookManager.register "signature", <<EOS
+Generates a signature for a message.
+Variables:
+      header: an object that supports string-to-string hashtable-style access
+              to the raw headers for the message. E.g., header["From"],
+              header["To"], etc.
+  from_email: the email part of the From: line, or nil if empty
+Return value:
+  A string (multi-line ok) containing the text of the signature, or nil to
+  use the default signature.
+EOS
+
   attr_reader :status
   attr_accessor :body, :header
   bool_reader :edited
@@ -290,8 +302,16 @@ private
   end
 
   def sig_lines
-    p = PersonManager.person_for(@header["From"]) or return []
-    sigfn = (AccountManager.account_for(p.email) || 
+    p = PersonManager.person_for(@header["From"])
+    from_email = p && p.email
+
+    ## first run the hook
+    hook_sig = HookManager.run "signature", :header => @header, :from_email => from_email
+    return ["", "-- "] + hook_sig.split("\n") if hook_sig
+
+    ## no hook, do default signature generation based on config.yaml
+    return [] unless from_email
+    sigfn = (AccountManager.account_for(from_email) || 
              AccountManager.default_account).signature
 
     if sigfn && File.exists?(sigfn)
