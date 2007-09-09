@@ -264,22 +264,26 @@ The error message was:
 EOS
   end
 
-  def raw_header
+  def with_source_errors_handled
     begin
-      @source.raw_header @source_info
+      yield
     rescue SourceError => e
       Redwood::log "problem getting messages from #{@source}: #{e.message}"
       error_message e.message
     end
   end
 
+  def raw_header
+    with_source_errors_handled { @source.raw_header @source_info }
+  end
+
   def raw_full_message
-    begin
-      @source.raw_full_message @source_info
-    rescue SourceError => e
-      Redwood::log "problem getting messages from #{@source}: #{e.message}"
-      error_message(e.message)
-    end
+    with_source_errors_handled { @source.raw_full_message @source_info }
+  end
+
+  ## much faster than raw_full_message
+  def each_raw_full_message_line &b
+    with_source_errors_handled { @source.each_raw_full_message_line(@source_info, &b) }
   end
 
   def content
