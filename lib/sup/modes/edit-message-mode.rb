@@ -201,9 +201,9 @@ protected
   end
 
   def send_message
-    return if !edited? && !BufferManager.ask_yes_or_no("Message unedited. Really send?")
-    return if $config[:confirm_no_attachments] && mentions_attachments? && @attachments.size == 0 && !BufferManager.ask_yes_or_no("You haven't added any attachments. Really send?")#" stupid ruby-mode
-    return if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no("You're top posting. That makes you a bad person. Really send?") #" stupid ruby-mode
+    return false if !edited? && !BufferManager.ask_yes_or_no("Message unedited. Really send?")
+    return false if $config[:confirm_no_attachments] && mentions_attachments? && @attachments.size == 0 && !BufferManager.ask_yes_or_no("You haven't added any attachments. Really send?")#" stupid ruby-mode
+    return false if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no("You're top posting. That makes you a bad person. Really send?") #" stupid ruby-mode
 
     date = Time.now
     from_email = 
@@ -222,9 +222,11 @@ protected
       SentManager.write_sent_message(date, from_email) { |f| write_full_message_to f, date }
       BufferManager.kill_buffer buffer
       BufferManager.flash "Message sent!"
+      true
     rescue SystemCallError, SendmailCommandFailed => e
       Redwood::log "Problem sending mail: #{e.message}"
       BufferManager.flash "Problem sending mail: #{e.message}"
+      false
     end
   end
 
