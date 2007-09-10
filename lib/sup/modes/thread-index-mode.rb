@@ -254,6 +254,7 @@ class ThreadIndexMode < LineCursorMode
       hide_thread t
     end
     regen_text
+    BufferManager.flash "Thread#{threads.size == 1 ? '' : 's'} killed."
   end
 
   def save
