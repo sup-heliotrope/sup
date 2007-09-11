@@ -197,7 +197,7 @@ class ThreadViewMode < LineCursorMode
     else
       m = @message_lines[curpos]
       fn = BufferManager.ask_for_filename :filename, "Save message to file: "
-      next unless fn
+      return unless fn
       save_to_file(fn) do |f|
         m.each_raw_full_message_line { |l| f.print l }
       end
