@@ -39,6 +39,7 @@ class TextField
     @field = Ncurses::Form.new_field 1, @width - question.length,
                                      @y, @x + question.length, 0, 0
     @form = Ncurses::Form.new_form [@field]
+    @value = nil
     Ncurses::Form.post_form @form
     set_cursed_value default if default
   end

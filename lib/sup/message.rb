@@ -53,15 +53,18 @@ EOS
       @content_type = content_type
       @filename = filename
       @raw_content = encoded_content.decode
-      charset = encoded_content.charset
 
-      if @content_type =~ /^text\/plain\b/
-        @lines = Message.convert_from(@raw_content, charset).split("\n")
-      else
-        text = HookManager.run "mime-decode", :content_type => content_type,
-          :filename => lambda { write_to_disk }, :sibling_types => sibling_types
-        @lines = text.split("\n") if text
-      end
+      @lines = 
+        case @content_type
+        when /^text\/plain\b/
+          Message.convert_from(@raw_content, encoded_content.charset).split("\n")
+        else
+          text = HookManager.run "mime-decode", :content_type => content_type,
+                                 :filename => lambda { write_to_disk },
+                                 :sibling_types => sibling_types
+          text.split("\n") if text
+          
+        end
     end
 
     def inlineable?; !@lines.nil? end
