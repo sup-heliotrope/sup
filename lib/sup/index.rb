@@ -265,9 +265,13 @@ EOS
       q = build_query :qobj => q, :load_killed => true
 
       num_queries += 1
+      killed = false
       @index.search_each(q, :limit => :all) do |docid, score|
         break if opts[:limit] && messages.size >= opts[:limit]
-        break if @index[docid][:label].split(/\s+/).include? "killed" unless opts[:load_killed]
+        if @index[docid][:label].split(/\s+/).include?("killed") && !opts[:load_killed]
+          killed = true
+          break
+        end
         mid = @index[docid][:message_id]
         unless messages.member?(mid)
           #Redwood::log "got #{mid} as a child of #{id}"
@@ -277,8 +281,12 @@ EOS
         end
       end
     end
-    Redwood::log "ran #{num_queries} queries to build thread of #{messages.size + 1} messages for #{m.id}: #{m.subj}" if num_queries > 0
-    messages.each { |mid, builder| yield mid, builder }
+    if killed
+      Redwood::log "thread for #{m.id} is killed, ignoring"
+    else
+      Redwood::log "ran #{num_queries} queries to build thread of #{messages.size + 1} messages for #{m.id}: #{m.subj}" if num_queries > 0
+      messages.each { |mid, builder| yield mid, builder }
+    end
   end
 
   ## builds a message object from a ferret result
