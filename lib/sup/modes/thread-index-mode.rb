@@ -80,7 +80,6 @@ class ThreadIndexMode < LineCursorMode
       ## the first draw_screen is needed before topline and botline
       ## are set, and the second to show the cursor having moved
 
-      t.remove_label :unread
       update_text_for_line curpos
       UpdateManager.relay self, :read, t
     end

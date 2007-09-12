@@ -24,7 +24,8 @@ class ThreadViewMode < LineCursorMode
     k.add :jump_to_next_open, "Jump to next open message", 'n'
     k.add :jump_to_prev_open, "Jump to previous open message", 'p'
     k.add :toggle_starred, "Star or unstar message", '*'
-    k.add :collapse_non_new_messages, "Collapse all but new messages", 'N'
+    k.add :toggle_new, "Toggle new/read status of message", 'N'
+#    k.add :collapse_non_new_messages, "Collapse all but new messages", 'N'
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message", 'f'
     k.add :alias, "Edit alias/nickname for a person", 'i'
@@ -60,7 +61,7 @@ class ThreadViewMode < LineCursorMode
       @layout[m].state = initial_state_for m
       @layout[m].color = altcolor ? :alternate_patina_color : :message_patina_color
       @layout[m].star_color = altcolor ? :alternate_starred_patina_color : :starred_patina_color
-      @layout[m].orig_new = m.has_label? :unread
+      @layout[m].orig_new = m.has_label? :read
       altcolor = !altcolor
       if latest_date.nil? || m.date > latest_date
         latest_date = m.date
@@ -71,6 +72,7 @@ class ThreadViewMode < LineCursorMode
     @layout[latest].state = :open if @layout[latest].state == :closed
     @layout[earliest].state = :detailed if earliest.has_label?(:unread) || @thread.size == 1
 
+    @thread.remove_label :unread
     regen_text
   end
 
@@ -150,10 +152,19 @@ class ThreadViewMode < LineCursorMode
 
   def toggle_starred
     m = @message_lines[curpos] or return
-    if m.has_label? :starred
-      m.remove_label :starred
+    toggle_label m, :starred
+  end
+
+  def toggle_new
+    m = @message_lines[curpos] or return
+    toggle_label m, :unread
+  end
+
+  def toggle_label m, label
+    if m.has_label? label
+      m.remove_label label
     else
-      m.add_label :starred
+      m.add_label label
     end
     ## TODO: don't recalculate EVERYTHING just to add a stupid little
     ## star to the display
@@ -393,14 +404,10 @@ private
 
   def message_patina_lines m, state, start, parent, prefix, color, star_color
     prefix_widget = [color, prefix]
-    widget = 
-      case state
-      when :closed
-        [color, "+ "]
-      when :open, :detailed
-        [color, "- "]
-      end
-    imp_widget = 
+
+    open_widget = [color, (state == :closed ? "+ " : "- ")]
+    new_widget = [color, (m.has_label?(:unread) ? "N" : " ")]
+    starred_widget = 
       if m.has_label?(:starred)
         [star_color, "* "]
       else
@@ -410,19 +417,20 @@ private
     case state
     when :open
       @person_lines[start] = m.from
-      [[prefix_widget, widget, imp_widget,
+      [[prefix_widget, open_widget, new_widget, starred_widget,
         [color, 
             "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
 
     when :closed
       @person_lines[start] = m.from
-      [[prefix_widget, widget, imp_widget,
+      [[prefix_widget, open_widget, new_widget, starred_widget,
         [color, 
         "#{m.from ? m.from.mediumname : '?'}, #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})  #{m.snippet}"]]]
 
     when :detailed
       @person_lines[start] = m.from
-      from = [[prefix_widget, widget, imp_widget, [color, "From: #{m.from ? format_person(m.from) : '?'}"]]]
+      from = [[prefix_widget, open_widget, new_widget, starred_widget,
+          [color, "From: #{m.from ? format_person(m.from) : '?'}"]]]
 
       rest = []
       unless m.to.empty?
