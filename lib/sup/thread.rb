@@ -298,22 +298,26 @@ class ThreadSet
 
   ## load in (at most) num number of threads from the index
   def load_n_threads num, opts={}
+    Redwood::log "xx each_id_by_date #{opts.inspect}"
     @index.each_id_by_date opts do |mid, builder|
       break if size >= num
       next if contains_id? mid
 
       m = builder.call
-      load_thread_for_message m, :load_killed => opts[:load_killed]
+      load_thread_for_message m, :load_killed => opts[:load_killed], :load_deleted => opts[:load_deleted], :load_spam => opts[:load_spam]
       yield size if block_given?
     end
   end
 
   ## loads in all messages needed to thread m
+  ## may do nothing if m's thread is killed
   def load_thread_for_message m, opts={}
-    @index.each_message_in_thread_for m, opts.merge({:limit => 100}) do |mid, builder|
+    good = @index.each_message_in_thread_for m, opts do |mid, builder|
+      Redwood::log "  > got #{mid}"
       next if contains_id? mid
       add_message builder.call
     end
+    add_message m if good
   end
 
   ## merges in a pre-loaded thread

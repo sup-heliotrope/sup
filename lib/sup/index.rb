@@ -262,6 +262,8 @@ EOS
       q.add_query Ferret::Search::TermQuery.new(:message_id, id), :should
       q.add_query Ferret::Search::TermQuery.new(:refs, id), :should
 
+      ## load_killed is true so that we can abort if any message in
+      ## the thread has the killed label.
       q = build_query :qobj => q, :load_killed => true
 
       num_queries += 1
@@ -283,9 +285,11 @@ EOS
     end
     if killed
       Redwood::log "thread for #{m.id} is killed, ignoring"
+      false
     else
       Redwood::log "ran #{num_queries} queries to build thread of #{messages.size + 1} messages for #{m.id}: #{m.subj}" if num_queries > 0
       messages.each { |mid, builder| yield mid, builder }
+      true
     end
   end
 
