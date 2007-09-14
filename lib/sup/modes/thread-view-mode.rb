@@ -514,9 +514,9 @@ private
       color = chunk.valid? ? :valid_cryptosig_color : :invalid_cryptosig_color
       case state
       when :closed
-        [[[color, "#{prefix}+ Cryptographic signature: #{chunk.description}"]]] 
+        [[[color, "#{prefix}+ #{chunk.description}"]]] 
       when :open
-        [[[color, "#{prefix}- Cryptographic signature: #{chunk.description}"]]] +
+        [[[color, "#{prefix}- #{chunk.description}"]]] +
           chunk.lines.map { |line| [[color, "#{prefix}#{line}"]] }
         end
     else

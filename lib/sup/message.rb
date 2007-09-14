@@ -146,7 +146,7 @@ EOS
         if gpg_output =~ /^gpg: (.* signature from .*$)/
           $1
         else
-          "Unable to determine signature validity"
+          "Unable to determine validity of cryptographic signature"
         end
 
       @status = ($? == 0 ? :valid : :invalid)
