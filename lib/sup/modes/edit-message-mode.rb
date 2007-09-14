@@ -204,7 +204,7 @@ protected
   def send_message
     return false if !edited? && !BufferManager.ask_yes_or_no("Message unedited. Really send?")
     return false if $config[:confirm_no_attachments] && mentions_attachments? && @attachments.size == 0 && !BufferManager.ask_yes_or_no("You haven't added any attachments. Really send?")#" stupid ruby-mode
-    return false if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no("You're top posting. That makes you a bad person. Really send?") #" stupid ruby-mode
+    return false if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no("You're top-posting. That makes you a bad person. Really send?") #" stupid ruby-mode
 
     date = Time.now
     from_email = 
@@ -301,7 +301,7 @@ private
   end
 
   def top_posting?
-    @body.join =~ /(\S+)\s*Excerpts from /
+    @body.join =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
   end
 
   def sig_lines
