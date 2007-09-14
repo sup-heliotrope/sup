@@ -342,7 +342,7 @@ EOS
     num = h[:num] || 20
     @index.search_each(q, :sort => "date DESC", :limit => :all) do |docid, score|
       break if contacts.size >= num
-      #Redwood::log "got message with to: #{@index[docid][:to].inspect} and from: #{@index[docid][:from].inspect}"
+      #Redwood::log "got message #{docid} to: #{@index[docid][:to].inspect} and from: #{@index[docid][:from].inspect}"
       f = @index[docid][:from]
       t = @index[docid][:to]
 

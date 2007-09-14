@@ -422,10 +422,14 @@ class BufferManager
   def ask_for_contacts domain, question, default_contacts=[]
     default = default_contacts.map { |s| s.to_s }.join(" ")
     default += " " unless default.empty?
+    
+    recent = Index.load_contacts(AccountManager.user_emails, :num => 10).map { |c| [c.longname, c.email] }
+    contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.longname, c.email] }
 
-    all_contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.longname, c.email] }.flatten.uniq.sort
+    Redwood::log "recent: #{recent.inspect}"
 
-    answer = BufferManager.ask_many_with_completions domain, question, all_contacts, default, /\s*,\s*/
+    completions = (recent + contacts).flatten.uniq.sort
+    answer = BufferManager.ask_many_with_completions domain, question, completions, default, /\s*,\s*/
 
     if answer
       answer.split_on_commas.map { |x| ContactManager.contact_for(x.downcase) || PersonManager.person_for(x) }
