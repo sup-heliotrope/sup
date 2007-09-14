@@ -27,6 +27,7 @@ class Maildir < Source
     @mutex = Mutex.new
   end
 
+  def file_path; @dir end
   def self.suggest_labels_for path; [] end
 
   def check
@@ -93,7 +94,7 @@ class Maildir < Source
     start.upto(@ids.length - 1) do |i|         
       id = @ids[i]
       self.cur_offset = id
-      yield id, @labels + (@ids_to_fns[id] =~ /,.*R.*$/ ? [] : [:unread])
+      yield id, @labels + (seen?(id) ? [] : [:unread]) + (trashed?(id) ? [:deleted] : [])
     end
   end
 
@@ -109,6 +110,20 @@ class Maildir < Source
 
   def pct_done; 100.0 * (@ids.index(cur_offset) || 0).to_f / (@ids.length - 1).to_f; end
 
+  def draft? msg; maildir_data(msg)[2].include? "D"; end
+  def flagged? msg; maildir_data(msg)[2].include? "F"; end
+  def passed? msg; maildir_data(msg)[2].include? "P"; end
+  def replied? msg; maildir_data(msg)[2].include? "R"; end
+  def seen? msg; maildir_data(msg)[2].include? "S"; end
+  def trashed? msg; maildir_data(msg)[2].include? "T"; end
+
+  def mark_draft msg; maildir_mark_file msg, "D" unless draft? msg; end
+  def mark_flagged msg; maildir_mark_file msg, "F" unless flagged? msg; end
+  def mark_passed msg; maildir_mark_file msg, "P" unless passed? msg; end
+  def mark_replied msg; maildir_mark_file msg, "R" unless replied? msg; end
+  def mark_seen msg; maildir_mark_file msg, "S" unless seen? msg; end
+  def mark_trashed msg; maildir_mark_file msg, "T" unless trashed? msg; end
+
 private
 
   def make_id fn
@@ -123,6 +138,29 @@ private
     rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
     end
+  end
+
+  def maildir_data msg
+    fn = File.basename @ids_to_fns[msg]
+    fn =~ %r{^([^:,]+):([12]),([DFPRST]*)$}
+    [($1 || fn), ($2 || "2"), ($3 || "")]
+  end
+
+  ## not thread-safe on msg
+  def maildir_mark_file msg, flag
+    orig_path = @ids_to_fns[msg]
+    orig_base, orig_fn = File.split(orig_path)
+    new_base = orig_base.slice(0..-4) + 'cur'
+    tmp_base = orig_base.slice(0..-4) + 'tmp'
+    md_base, md_ver, md_flags = maildir_data msg
+    md_flags += flag; md_flags = md_flags.split(//).sort.join.squeeze
+    new_path = File.join new_base, "#{md_base}:#{md_ver},#{md_flags}"
+    tmp_path = File.join tmp_base, "#{md_base}:#{md_ver},#{md_flags}"
+    File.link orig_path, tmp_path
+    File.unlink orig_path
+    File.link tmp_path, new_path
+    File.unlink tmp_path
+    @ids_to_fns[msg] = new_path
   end
 end
 
