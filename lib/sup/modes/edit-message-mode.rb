@@ -115,6 +115,7 @@ EOS
 
   def attach_file
     fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
+    return unless fn
     @attachments << Pathname.new(fn)
     update
   end
