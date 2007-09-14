@@ -126,8 +126,9 @@ begin
     c.add :alternate_patina_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_BLUE
     c.add :missing_message_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_RED
     c.add :attachment_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
-    c.add :valid_cryptosig_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, Ncurses::A_BOLD
-    c.add :invalid_cryptosig_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_RED, Ncurses::A_BOLD
+    c.add :cryptosig_valid_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, Ncurses::A_BOLD
+    c.add :cryptosig_unknown_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
+    c.add :cryptosig_invalid_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_RED, Ncurses::A_BOLD
     c.add :quote_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
     c.add :sig_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
     c.add :quote_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK

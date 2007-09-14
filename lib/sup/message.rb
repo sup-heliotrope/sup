@@ -123,10 +123,19 @@ EOS
       @lines = []
     end
 
-    def valid?; status == :valid end
-
     def status
-      return @status if @status
+      @status, @description = verify unless @status
+      @status
+    end
+
+    def description
+      @status, @description = verify unless @status
+      @description
+    end
+
+private
+
+    def verify
       payload = Tempfile.new "redwood.payload"
       signature = Tempfile.new "redwood.signature"
 
@@ -142,14 +151,11 @@ EOS
       #Redwood::log "got output: #{gpg_output.inspect}"
       @lines = gpg_output.split(/\n/)
 
-      @description =
-        if gpg_output =~ /^gpg: (.* signature from .*$)/
-          $1
-        else
-          "Unable to determine validity of cryptographic signature"
-        end
-
-      @status = ($? == 0 ? :valid : :invalid)
+      if gpg_output =~ /^gpg: (.* signature from .*$)/
+        $? == 0 ? [:valid, $1] : [:invalid, $1]
+      else
+        [:unknown, "Unable to determine validity of cryptographic signature"]
+      end
     end
   end
 

@@ -511,7 +511,12 @@ private
         [[[:sig_patina_color, "#{prefix}- (#{chunk.lines.length}-line signature)"]]] + chunk.lines.map { |line| [[:sig_color, "#{prefix}#{line}"]] }
       end
     when Message::CryptoSignature
-      color = chunk.valid? ? :valid_cryptosig_color : :invalid_cryptosig_color
+      color = 
+        case chunk.status
+          when :valid: :cryptosig_valid_color
+          when :invalid: :cryptosig_invalid_color
+          else :cryptosig_unknown_color
+        end
       case state
       when :closed
         [[[color, "#{prefix}+ #{chunk.description}"]]] 
