@@ -68,7 +68,7 @@ messages together into threads: each line in the inbox is a thread,
 and the number in parentheses is the number of messages in that
 thread. (If there's no number, there's just one message in the
 thread.) In Sup, most operations are on threads, not individual
-messages. The ideais that you rarely want to operate on a message
+messages. The idea is that you rarely want to operate on a message
 independent of its context. You typically want to view, archive, kill,
 or label all the messages in a thread at one time.
 
@@ -238,7 +238,7 @@ Here's what I recommend:
    on, and with a label corresponding to the mailing list name.
    (E.g.: sup-add mbox:/home/me/Mail/ruby-talk -a -l ruby-talk)
 3. Voila! Sup will load new messages into the index but not into the
-   inbox, and you can browse the mailing list traffice at any point by
+   inbox, and you can browse the mailing list traffic at any point by
    searching for that label.
 
 
