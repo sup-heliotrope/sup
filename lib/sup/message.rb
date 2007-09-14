@@ -112,6 +112,47 @@ EOS
     end
   end
 
+  class CryptoSignature
+    attr_reader :lines, :description
+
+    def initialize payload, signature
+      @payload = payload
+      @signature = signature
+      @status = nil
+      @description = nil
+      @lines = []
+    end
+
+    def valid?; status == :valid end
+
+    def status
+      return @status if @status
+      payload = Tempfile.new "redwood.payload"
+      signature = Tempfile.new "redwood.signature"
+
+      payload.write @payload.to_s.gsub(/(^|[^\r])\n/, "\\1\r\n")
+      payload.close
+
+      signature.write @signature.decode
+      signature.close
+
+      cmd = "gpg --quiet --batch --no-verbose --verify --logger-fd 1 #{signature.path} #{payload.path}"
+      #Redwood::log "gpg: running: #{cmd}"
+      gpg_output = `#{cmd}`
+      #Redwood::log "got output: #{gpg_output.inspect}"
+      @lines = gpg_output.split(/\n/)
+
+      @description =
+        if gpg_output =~ /^gpg: (.* signature from .*$)/
+          $1
+        else
+          "Unable to determine signature validity"
+        end
+
+      @status = ($? == 0 ? :valid : :invalid)
+    end
+  end
+
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
   BLOCK_QUOTE_PATTERN = /^-----\s*Original Message\s*----+$/
   QUOTE_START_PATTERN = /(^\s*Excerpts from)|(^\s*In message )|(^\s*In article )|(^\s*Quoting )|((wrote|writes|said|says)\s*:\s*$)/
@@ -338,10 +379,41 @@ private
   ## of the gruesome slaughterhouse and sausage factory that is a
   ## mime-encoded message, but need only see the delicious end
   ## product.
+
+  def multipart_signed_to_chunks m
+#    Redwood::log ">> multipart SIGNED: #{m.header['Content-Type']}: #{m.body.size}"
+    if m.body.size != 2
+      Redwood::log "warning: multipart/signed with #{m.body.size} parts (expecting 2)"
+      return
+    end
+
+    payload, signature = m.body
+    if payload.multipart? || signature.multipart?
+      Redwood::log "warning: multipart/signed with payload multipart #{payload.multipart?} and signature multipart #{signature.multipart?}"
+      return
+    end
+
+    if payload.header.content_type == "application/pgp-signature"
+      Redwood::log "warning: multipart/signed with payload content type #{payload.header.content_type}"
+      return
+    end
+
+    if signature.header.content_type != "application/pgp-signature"
+      Redwood::log "warning: multipart/signed with signature content type #{signature.header.content_type}"
+      return
+    end
+
+    [CryptoSignature.new(payload, signature), message_to_chunks(payload)].flatten
+  end
+        
   def message_to_chunks m, sibling_types=[]
     if m.multipart?
-      sibling_types = m.body.map { |p| p.header.content_type }
-      m.body.map { |p| message_to_chunks p, sibling_types }.flatten.compact # recurse
+      chunks = multipart_signed_to_chunks(m) if m.header.content_type == "multipart/signed"
+      unless chunks
+        sibling_types = m.body.map { |p| p.header.content_type }
+        chunks = m.body.map { |p| message_to_chunks p, sibling_types }.flatten.compact
+      end
+      chunks
     else
       filename =
         ## first, paw through the headers looking for a filename

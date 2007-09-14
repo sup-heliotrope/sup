@@ -179,7 +179,7 @@ class ThreadViewMode < LineCursorMode
       l = @layout[chunk]
       l.state = (l.state != :closed ? :closed : :open)
       cursor_down if l.state == :closed
-    when Message::Quote, Message::Signature
+    when Message::Quote, Message::Signature, Message::CryptoSignature
       return if chunk.lines.length == 1
       toggle_chunk_expansion chunk
     when Message::Attachment
@@ -510,6 +510,15 @@ private
       when :open
         [[[:sig_patina_color, "#{prefix}- (#{chunk.lines.length}-line signature)"]]] + chunk.lines.map { |line| [[:sig_color, "#{prefix}#{line}"]] }
       end
+    when Message::CryptoSignature
+      color = chunk.valid? ? :valid_cryptosig_color : :invalid_cryptosig_color
+      case state
+      when :closed
+        [[[color, "#{prefix}+ Cryptographic signature: #{chunk.description}"]]] 
+      when :open
+        [[[color, "#{prefix}- Cryptographic signature: #{chunk.description}"]]] +
+          chunk.lines.map { |line| [[color, "#{prefix}#{line}"]] }
+        end
     else
       raise "unknown chunk type #{chunk.class.name}"
     end
