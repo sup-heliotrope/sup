@@ -78,7 +78,7 @@ class Source
   def reset!; seek_to! start_offset; end
   def == o; o.uri == uri; end
   def done?; (self.cur_offset ||= start_offset) >= end_offset; end
-  def is_source_for? uri; URI(self.uri) == URI(uri); end
+  def is_source_for? uri; uri == URI(uri); end
 
   ## check should throw a FatalSourceError or an OutOfSyncSourcError
   ## if it can detect a problem. it is called when the sup starts up
@@ -96,6 +96,10 @@ class Source
 
 protected
   
+  def Source.expand_filesystem_uri uri
+    uri.gsub "~", File.expand_path("~")
+  end
+
   def cur_offset= o
     @cur_offset = o
     @dirty = true

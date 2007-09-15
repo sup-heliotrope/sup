@@ -11,8 +11,10 @@ module Redwood
 class Maildir < Source
   SCAN_INTERVAL = 30 # seconds
 
+  ## remind me never to use inheritance again.
   yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
   def initialize uri, last_date=nil, usual=true, archived=false, id=nil, labels=[]
+    uri = Source.expand_filesystem_uri uri
     super uri, last_date, usual, archived, id
     uri = URI(uri)
 
@@ -29,6 +31,7 @@ class Maildir < Source
 
   def file_path; @dir end
   def self.suggest_labels_for path; [] end
+  def is_source_for? uri; super || (URI(Source.expand_filesystem_uri(uri)) == URI(self.uri)); end
 
   def check
     scan_mailbox

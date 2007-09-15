@@ -6,14 +6,15 @@ module MBox
 
 class Loader < Source
   yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
-  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=[]
-    super uri_or_fp, start_offset, usual, archived, id
 
+  ## uri_or_fp is horrific. need to refactor.
+  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=[]
     @mutex = Mutex.new
     @labels = (labels || []).freeze
 
     case uri_or_fp
     when String
+      uri_or_fp = Source.expand_filesystem_uri uri_or_fp
       uri = URI(uri_or_fp)
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
       raise ArgumentError, "mbox uri ('#{uri}') cannot have a host: #{uri.host}" if uri.host
@@ -21,9 +22,12 @@ class Loader < Source
     else
       @f = uri_or_fp
     end
+
+    super uri_or_fp, start_offset, usual, archived, id
   end
 
   def file_path; URI(uri).path end
+  def is_source_for? uri; super || (URI(Source.expand_filesystem_uri(uri)) == URI(self.uri)); end
 
   def self.suggest_labels_for path
     ## heuristic: use the filename as a label, unless the file
