@@ -15,12 +15,11 @@ class CryptoManager
   def verify payload, signature # both RubyMail::Message objects
     return unknown unless @cmd
 
-    payload_fn = File.open("payload", "w") # Tempfile.new "redwood.payload"
-    signature_fn = File.open("signature", "w") #Tempfile.new "redwood.signature"
-
+    payload_fn = Tempfile.new "redwood.payload"
     payload_fn.write payload.to_s.gsub(/(^|[^\r])\n/, "\\1\r\n").gsub(/^MIME-Version: .*\r\n/, "")
     payload_fn.close
 
+    signature_fn = Tempfile.new "redwood.signature"
     signature_fn.write signature.decode
     signature_fn.close
 
