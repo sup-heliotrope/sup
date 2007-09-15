@@ -124,38 +124,19 @@ EOS
     end
 
     def status
-      @status, @description = verify unless @status
+      verify
       @status
     end
 
     def description
-      @status, @description = verify unless @status
+      verify
       @description
     end
 
 private
 
     def verify
-      payload = Tempfile.new "redwood.payload"
-      signature = Tempfile.new "redwood.signature"
-
-      payload.write @payload.to_s.gsub(/(^|[^\r])\n/, "\\1\r\n")
-      payload.close
-
-      signature.write @signature.decode
-      signature.close
-
-      cmd = "gpg --quiet --batch --no-verbose --verify --logger-fd 1 #{signature.path} #{payload.path} 2> /dev/null"
-      #Redwood::log "gpg: running: #{cmd}"
-      gpg_output = `#{cmd}`
-      #Redwood::log "got output: #{gpg_output.inspect}"
-      @lines = gpg_output.split(/\n/)
-
-      if gpg_output =~ /^gpg: (.* signature from .*$)/
-        $? == 0 ? [:valid, $1] : [:invalid, $1]
-      else
-        [:unknown, "Unable to determine validity of cryptographic signature"]
-      end
+      @status, @description, @lines = CryptoManager.verify(@payload, @signature) unless @status
     end
   end
 
@@ -394,7 +375,7 @@ private
     end
 
     payload, signature = m.body
-    if payload.multipart? || signature.multipart?
+    if signature.multipart?
       Redwood::log "warning: multipart/signed with payload multipart #{payload.multipart?} and signature multipart #{signature.multipart?}"
       return
     end

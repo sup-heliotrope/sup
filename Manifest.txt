@@ -20,6 +20,7 @@ lib/sup/account.rb
 lib/sup/buffer.rb
 lib/sup/colormap.rb
 lib/sup/contact.rb
+lib/sup/crypto.rb
 lib/sup/draft.rb
 lib/sup/hook.rb
 lib/sup/imap.rb

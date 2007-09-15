@@ -112,6 +112,7 @@ module Redwood
     Redwood::UpdateManager.new
     Redwood::PollManager.new
     Redwood::SuicideManager.new Redwood::SUICIDE_FN
+    Redwood::CryptoManager.new
   end
 
   def finish
@@ -236,6 +237,7 @@ require "sup/contact"
 require "sup/tagger"
 require "sup/draft"
 require "sup/poll"
+require "sup/crypto"
 require "sup/modes/scroll-mode"
 require "sup/modes/text-mode"
 require "sup/modes/line-cursor-mode"
