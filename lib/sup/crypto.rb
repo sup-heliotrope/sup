@@ -34,14 +34,14 @@ class CryptoManager
     if gpg_output =~ /^gpg: (.* signature from .*$)/
       $? == 0 ? [:valid, $1, lines] : [:invalid, $1, lines]
     else
-      unknown
+      unknown lines
     end
   end
 
 private
 
-  def unknown
-    [:unknown, "Unable to determine validity of cryptographic signature", []]
+  def unknown lines=[]
+    [:unknown, "Unable to determine validity of cryptographic signature", lines]
   end
 end
 end
