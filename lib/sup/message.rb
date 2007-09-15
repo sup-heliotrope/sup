@@ -145,7 +145,7 @@ private
       signature.write @signature.decode
       signature.close
 
-      cmd = "gpg --quiet --batch --no-verbose --verify --logger-fd 1 #{signature.path} #{payload.path}"
+      cmd = "gpg --quiet --batch --no-verbose --verify --logger-fd 1 #{signature.path} #{payload.path} 2> /dev/null"
       #Redwood::log "gpg: running: #{cmd}"
       gpg_output = `#{cmd}`
       #Redwood::log "got output: #{gpg_output.inspect}"
