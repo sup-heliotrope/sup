@@ -14,9 +14,8 @@ class Maildir < Source
   ## remind me never to use inheritance again.
   yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
   def initialize uri, last_date=nil, usual=true, archived=false, id=nil, labels=[]
-    uri = Source.expand_filesystem_uri uri
     super uri, last_date, usual, archived, id
-    uri = URI(uri)
+    uri = URI(Source.expand_filesystem_uri(uri))
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host

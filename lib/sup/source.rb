@@ -78,7 +78,7 @@ class Source
   def reset!; seek_to! start_offset; end
   def == o; o.uri == uri; end
   def done?; start_offset.nil? || (self.cur_offset ||= start_offset) >= end_offset; end
-  def is_source_for? uri; uri == URI(uri); end
+  def is_source_for? uri; uri == @uri; end
 
   ## check should throw a FatalSourceError or an OutOfSyncSourcError
   ## if it can detect a problem. it is called when the sup starts up

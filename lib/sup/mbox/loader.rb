@@ -14,20 +14,21 @@ class Loader < Source
 
     case uri_or_fp
     when String
-      uri_or_fp = Source.expand_filesystem_uri uri_or_fp
-      uri = URI(uri_or_fp)
+      uri = URI(Source.expand_filesystem_uri(uri_or_fp))
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
       raise ArgumentError, "mbox uri ('#{uri}') cannot have a host: #{uri.host}" if uri.host
       @f = File.open uri.path
+      @path = uri.path
     else
       @f = uri_or_fp
+      @path = uri_or_fp.path
     end
 
     super uri_or_fp, start_offset, usual, archived, id
   end
 
-  def file_path; URI(uri).path end
-  def is_source_for? uri; super || (URI(Source.expand_filesystem_uri(uri)) == URI(self.uri)); end
+  def file_path; @path end
+  def is_source_for? uri; super || (URI(Source.expand_filesystem_uri(uri)).path == @path); end
 
   def self.suggest_labels_for path
     ## heuristic: use the filename as a label, unless the file
