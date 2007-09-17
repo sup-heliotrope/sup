@@ -77,7 +77,7 @@ class Source
   def seek_to! o; self.cur_offset = o; end
   def reset!; seek_to! start_offset; end
   def == o; o.uri == uri; end
-  def done?; (self.cur_offset ||= start_offset) >= end_offset; end
+  def done?; start_offset.nil? || (self.cur_offset ||= start_offset) >= end_offset; end
   def is_source_for? uri; uri == URI(uri); end
 
   ## check should throw a FatalSourceError or an OutOfSyncSourcError

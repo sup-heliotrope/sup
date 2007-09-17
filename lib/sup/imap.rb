@@ -87,6 +87,8 @@ class IMAP < Source
   def ssl?; @parsed_uri.scheme == 'imaps' end
 
   def check
+    return unless start_offset
+
     ids = 
       @mutex.synchronize do
         unsynchronized_scan_mailbox
@@ -149,6 +151,8 @@ class IMAP < Source
   synchronized :scan_mailbox
 
   def each
+    return unless start_offset
+
     ids = 
       @mutex.synchronize do
         unsynchronized_scan_mailbox

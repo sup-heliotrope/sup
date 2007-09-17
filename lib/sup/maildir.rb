@@ -35,6 +35,8 @@ class Maildir < Source
 
   def check
     scan_mailbox
+    return unless start_offset
+
     start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
   end
 
@@ -92,6 +94,8 @@ class Maildir < Source
 
   def each
     scan_mailbox
+    return unless start_offset
+
     start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
 
     start.upto(@ids.length - 1) do |i|         
