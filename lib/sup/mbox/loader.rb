@@ -28,7 +28,7 @@ class Loader < Source
   end
 
   def file_path; @path end
-  def is_source_for? uri; super || (URI(Source.expand_filesystem_uri(uri)).path == @path); end
+  def is_source_for? uri; super || (self.uri.is_a?(String) && (URI(Source.expand_filesystem_uri(uri)) == URI(Source.expand_filesystem_uri(self.uri)))) end
 
   def self.suggest_labels_for path
     ## heuristic: use the filename as a label, unless the file
