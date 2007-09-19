@@ -114,7 +114,7 @@ class Person
 
   def full_address
     if @name && @email
-      if @name =~ /"/
+      if @name =~ /[",]/
         "#{@name.inspect} <#@email>" # escape quotes
       else
         "#@name <#@email>"
