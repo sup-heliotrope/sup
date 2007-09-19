@@ -31,7 +31,7 @@ class Source
   ## - load_header offset
   ## - load_message offset
   ## - raw_header offset
-  ## - raw_full_message offset
+  ## - raw_message offset
   ## - check
   ## - next (or each, if you prefer): should return a message and an
   ##   array of labels.

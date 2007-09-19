@@ -65,7 +65,7 @@ class SSHLoader < Source
     end
   end
 
-  [:start_offset, :load_header, :load_message, :raw_header, :raw_full_message].each do |meth|
+  [:start_offset, :load_header, :load_message, :raw_header, :raw_message].each do |meth|
     define_method(meth) { |*a| safely { @loader.send meth, *a } }
   end
 end

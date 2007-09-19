@@ -308,13 +308,13 @@ EOS
     with_source_errors_handled { @source.raw_header @source_info }
   end
 
-  def raw_full_message
-    with_source_errors_handled { @source.raw_full_message @source_info }
+  def raw_message
+    with_source_errors_handled { @source.raw_message @source_info }
   end
 
-  ## much faster than raw_full_message
-  def each_raw_full_message_line &b
-    with_source_errors_handled { @source.each_raw_full_message_line(@source_info, &b) }
+  ## much faster than raw_message
+  def each_raw_message_line &b
+    with_source_errors_handled { @source.each_raw_message_line(@source_info, &b) }
   end
 
   def content

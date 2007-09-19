@@ -106,7 +106,7 @@ class IMAP < Source
   end
 
   def load_message id
-    RMail::Parser.read raw_full_message(id)
+    RMail::Parser.read raw_message(id)
   end
 
   def raw_header id
@@ -118,11 +118,11 @@ class IMAP < Source
   end
   synchronized :raw_header
 
-  def raw_full_message id
+  def raw_message id
     unsynchronized_scan_mailbox
     get_imap_fields(id, 'RFC822').first.gsub(/\r\n/, "\n")
   end
-  synchronized :raw_full_message
+  synchronized :raw_message
 
   def connect
     return if @imap

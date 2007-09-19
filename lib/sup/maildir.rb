@@ -60,7 +60,7 @@ class Maildir < Source
     ret
   end
 
-  def raw_full_message id
+  def raw_message id
     scan_mailbox
     with_file_for(id) { |f| f.readlines.join }
   end

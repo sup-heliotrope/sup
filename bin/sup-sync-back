@@ -8,7 +8,7 @@ require "sup"
 
 ## save a message 'm' to an open file pointer 'fp'
 def save m, fp
-  m.source.each_raw_full_message_line(m.source_info) { |l| fp.print l }
+  m.source.each_raw_message_line(m.source_info) { |l| fp.print l }
 end
 def die msg
   $stderr.puts "Error: #{msg}"

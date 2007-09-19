@@ -99,7 +99,7 @@ class DraftLoader < Source
     ret
   end
 
-  def raw_full_message offset
+  def raw_message offset
     IO.readlines(fn_for_offset(offset)).join
   end
 
