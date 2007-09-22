@@ -159,6 +159,9 @@ class Person
 
     Person.new name, email
   end
+
+  def eql? o; email.eql? o.email end
+  def hash; email.hash end
 end
 
 end
