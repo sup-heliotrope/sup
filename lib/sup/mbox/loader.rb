@@ -10,7 +10,7 @@ class Loader < Source
   ## uri_or_fp is horrific. need to refactor.
   def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=[]
     @mutex = Mutex.new
-    @labels = ((labels || []) + [:unread]).freeze
+    @labels = ((labels || []) - LabelManager::RESERVED_LABELS).uniq.freeze
 
     case uri_or_fp
     when String
@@ -142,7 +142,7 @@ class Loader < Source
     end
 
     self.cur_offset = next_offset
-    [returned_offset, @labels]
+    [returned_offset, (@labels + [:unread]).uniq]
   end
 end
 

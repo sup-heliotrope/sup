@@ -62,10 +62,10 @@ class IMAP < Source
     @username = username
     @password = password
     @imap = nil
-    @imap_ids = {}
+    @imap_state = {}
     @ids = []
     @last_scan = nil
-    @labels = (labels || []).freeze
+    @labels = ((labels || []) - LabelManager::RESERVED_LABELS).uniq.freeze
     @say_id = nil
     @mutex = Mutex.new
   end
@@ -111,9 +111,7 @@ class IMAP < Source
 
   def raw_header id
     unsynchronized_scan_mailbox
-    header, flags = get_imap_fields id, 'RFC822.HEADER', 'FLAGS'
-    ## very bad. this is very very bad. very bad bad bad.
-    header = header + "Status: RO\n" if flags.include? :Seen # fake an mbox-style read header # TODO: improve source-marked-as-read reporting system
+    header, flags = get_imap_fields id, 'RFC822.HEADER'
     header.gsub(/\r\n/, "\n")
   end
   synchronized :raw_header
@@ -142,10 +140,10 @@ class IMAP < Source
 
     range = (@ids.length + 1) .. last_id
     Redwood::log "fetching IMAP headers #{range}"
-    fetch(range, ['RFC822.SIZE', 'INTERNALDATE']).each do |v|
+    fetch(range, ['RFC822.SIZE', 'INTERNALDATE', 'FLAGS']).each do |v|
       id = make_id v
       @ids << id
-      @imap_ids[id] = v.seqno
+      @imap_state[id] = { :id => v.seqno, :flags => v.attr["FLAGS"] }
     end
   end
   synchronized :scan_mailbox
@@ -161,10 +159,18 @@ class IMAP < Source
 
     start = ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}."
 
-    start.upto(ids.length - 1) do |i|         
+    start.upto(ids.length - 1) do |i|
       id = ids[i]
-      self.cur_offset = id
-      yield id, @labels
+      state = @mutex.synchronize { @imap_state[id] } or next
+      self.cur_offset = id 
+      labels = { :Seen => :unread, 
+                 :Flagged => :starred,
+                 :Deleted => :deleted
+               }.inject(@labels) do |cur, (imap, sup)|
+        cur + (state[:flags].include?(imap) ? [sup] : [])
+      end
+
+      yield id, labels
     end
   end
 
@@ -263,7 +269,7 @@ private
   end
 
   def get_imap_fields id, *fields
-    imap_id = @imap_ids[id] or raise OutOfSyncSourceError, "Unknown message id #{id}"
+    imap_id = @imap_state[id][:id] or raise OutOfSyncSourceError, "Unknown message id #{id}"
 
     retried = false
     result = fetch(imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq).first
