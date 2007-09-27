@@ -109,7 +109,7 @@ class CryptoManager
           end
         end
 
-      notice = CryptoDecryptedNotice.new :valid, "This message has been decrypted for display."
+      notice = CryptoDecryptedNotice.new :valid, "This message has been decrypted for display"
       [RMail::Parser.read(decrypted_payload), sig, notice]
     else
       notice = CryptoDecryptedNotice.new :invalid, "This message could not be decrypted", gpg_output.split("\n")
