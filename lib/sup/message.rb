@@ -112,34 +112,6 @@ EOS
     end
   end
 
-  class CryptoSignature
-    attr_reader :lines, :description
-
-    def initialize payload, signature
-      @payload = payload
-      @signature = signature
-      @status = nil
-      @description = nil
-      @lines = []
-    end
-
-    def status
-      verify
-      @status
-    end
-
-    def description
-      verify
-      @description
-    end
-
-private
-
-    def verify
-      @status, @description, @lines = CryptoManager.verify(@payload, @signature) unless @status
-    end
-  end
-
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
   BLOCK_QUOTE_PATTERN = /^-----\s*Original Message\s*----+$/
   QUOTE_START_PATTERN = /(^\s*Excerpts from)|(^\s*In message )|(^\s*In article )|(^\s*Quoting )|((wrote|writes|said|says)\s*:\s*$)/
@@ -390,16 +362,52 @@ private
       return
     end
 
-    [CryptoSignature.new(payload, signature), message_to_chunks(payload)].flatten
+    [CryptoManager.verify(payload, signature), message_to_chunks(payload)]
   end
-        
+
+  def multipart_encrypted_to_chunks m
+    Redwood::log ">> multipart ENCRYPTED: #{m.header['Content-Type']}: #{m.body.size}"
+    if m.body.size != 2
+      Redwood::log "warning: multipart/encrypted with #{m.body.size} parts (expecting 2)"
+      return
+    end
+
+    control, payload = m.body
+    if control.multipart?
+      Redwood::log "warning: multipart/encrypted with control multipart #{control.multipart?} and payload multipart #{payload.multipart?}"
+      return
+    end
+
+    if payload.header.content_type != "application/octet-stream"
+      Redwood::log "warning: multipart/encrypted with payload content type #{payload.header.content_type}"
+      return
+    end
+
+    if control.header.content_type != "application/pgp-encrypted"
+      Redwood::log "warning: multipart/encrypted with control content type #{signature.header.content_type}"
+      return
+    end
+
+    decryptedm, sig, notice = CryptoManager.decrypt payload
+    children = message_to_chunks(decryptedm) if decryptedm
+    [notice, sig, children].flatten.compact
+  end
+
   def message_to_chunks m, sibling_types=[]
     if m.multipart?
-      chunks = multipart_signed_to_chunks(m) if m.header.content_type == "multipart/signed"
+      chunks =
+        case m.header.content_type
+        when "multipart/signed"
+          multipart_signed_to_chunks m
+        when "multipart/encrypted"
+          multipart_encrypted_to_chunks m
+        end
+
       unless chunks
         sibling_types = m.body.map { |p| p.header.content_type }
         chunks = m.body.map { |p| message_to_chunks p, sibling_types }.flatten.compact
       end
+
       chunks
     else
       filename =

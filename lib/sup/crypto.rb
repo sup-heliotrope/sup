@@ -1,5 +1,25 @@
 module Redwood
 
+class CryptoSignature
+  attr_reader :lines, :status, :description
+
+  def initialize status, description, lines
+    @status = status
+    @description = description
+    @lines = lines
+  end
+end
+
+class CryptoDecryptedNotice
+  attr_reader :lines, :status, :description
+
+  def initialize status, description, lines=[]
+    @status = status
+    @description = description
+    @lines = lines
+  end
+end
+
 class CryptoManager
   include Singleton
 
@@ -7,13 +27,21 @@ class CryptoManager
     @mutex = Mutex.new
     self.class.i_am_the_instance self
 
-    @cmd = `which gpg`.chomp
-    @cmd = `which pgp`.chomp unless @cmd =~ /\S/
-    @cmd = nil unless @cmd =~ /\S/
+    bin = `which gpg`.chomp
+    bin = `which pgp`.chomp unless bin =~ /\S/
+
+    @cmd =
+      case bin
+      when /\S/
+        "#{bin} --quiet --batch --no-verbose --logger-fd 1 --use-agent"
+      else
+        nil
+      end
   end
 
+  # returns a cryptosignature
   def verify payload, signature # both RubyMail::Message objects
-    return unknown unless @cmd
+    return unknown_status(cant_find_binary) unless @cmd
 
     payload_fn = Tempfile.new "redwood.payload"
     payload_fn.write payload.to_s.gsub(/(^|[^\r])\n/, "\\1\r\n").gsub(/^MIME-Version: .*\r\n/, "")
@@ -23,24 +51,87 @@ class CryptoManager
     signature_fn.write signature.decode
     signature_fn.close
 
-    cmd = "#{@cmd} --quiet --batch --no-verbose --verify --logger-fd 1 #{signature_fn.path} #{payload_fn.path} 2> /dev/null"
+    cmd = "#{@cmd} --verify #{signature_fn.path} #{payload_fn.path} 2> /dev/null"
 
     #Redwood::log "gpg: running: #{cmd}"
     gpg_output = `#{cmd}`
     #Redwood::log "got output: #{gpg_output.inspect}"
-    lines = gpg_output.split(/\n/)
+    output_lines = gpg_output.split(/\n/)
 
     if gpg_output =~ /^gpg: (.* signature from .*$)/
-      $? == 0 ? [:valid, $1, lines] : [:invalid, $1, lines]
+      if $? == 0
+        CryptoSignature.new :valid, $1, output_lines
+      else
+        CryptoSignature.new :invalid, $1, output_lines
+      end
     else
-      unknown lines
+      unknown_status output_lines
+    end
+  end
+
+  # returns decrypted_message, status, desc, lines
+  def decrypt payload # RubyMail::Message objects
+    return unknown_status(cant_find_binary) unless @cmd
+
+#    cmd = "#{@cmd} --decrypt 2> /dev/null"
+
+#    Redwood::log "gpg: running: #{cmd}"
+
+#    gpg_output =
+#      IO.popen(cmd, "a+") do |f|
+#        f.puts payload.to_s
+#        f.gets
+#      end
+
+    payload_fn = Tempfile.new "redwood.payload"
+    payload_fn.write payload.to_s
+    payload_fn.close
+
+    cmd = "#{@cmd} --decrypt #{payload_fn.path} 2> /dev/null"
+    Redwood::log "gpg: running: #{cmd}"
+    gpg_output = `#{cmd}`
+    Redwood::log "got output: #{gpg_output.inspect}"
+
+    if $? == 0 # successful decryption
+      decrypted_payload, sig_lines =
+        if gpg_output =~ /\A(.*?)((^gpg: .*$)+)\Z/m
+          [$1, $2]
+        else
+          [gpg_output, nil]
+        end
+      
+      sig = 
+        if sig_lines # encrypted & signed
+          if sig_lines =~ /^gpg: (Good signature from .*$)/
+            CryptoSignature.new :valid, $1, sig_lines.split("\n")
+          else
+            CryptoSignature.new :invalid, $1, sig_lines.split("\n")
+          end
+        end
+
+      notice = CryptoDecryptedNotice.new :valid, "This message has been decrypted for display."
+      [RMail::Parser.read(decrypted_payload), sig, notice]
+    else
+      notice = CryptoDecryptedNotice.new :invalid, "This message could not be decrypted", gpg_output.split("\n")
+      [nil, nil, notice]
     end
   end
 
 private
 
-  def unknown lines=[]
-    [:unknown, "Unable to determine validity of cryptographic signature", lines]
+  def unknown_status lines=[]
+    CryptoSignature.new :unknown, "Unable to determine validity of cryptographic signature", lines
+  end
+  
+  def cant_find_binary
+    ["Can't find gpg or pgp binary in path"]
   end
 end
 end
+
+
+## to check:
+## failed decryption
+## decription but failed signature
+## no gpg found
+## multiple private keys

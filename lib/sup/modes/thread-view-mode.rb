@@ -179,8 +179,8 @@ class ThreadViewMode < LineCursorMode
       l = @layout[chunk]
       l.state = (l.state != :closed ? :closed : :open)
       cursor_down if l.state == :closed
-    when Message::Quote, Message::Signature, Message::CryptoSignature
-      return if chunk.lines.length == 1
+    when Message::Quote, Message::Signature, CryptoSignature, CryptoDecryptedNotice
+      return if chunk.lines.length <= 1
       toggle_chunk_expansion chunk
     when Message::Attachment
       if chunk.inlineable?
@@ -435,22 +435,22 @@ private
       rest = []
       unless m.to.empty?
         m.to.each_with_index { |p, i| @person_lines[start + rest.length + from.length + i] = p }
-        rest += format_person_list "  To: ", m.to
+        rest += format_person_list "   To: ", m.to
       end
       unless m.cc.empty?
         m.cc.each_with_index { |p, i| @person_lines[start + rest.length + from.length + i] = p }
-        rest += format_person_list "  Cc: ", m.cc
+        rest += format_person_list "   Cc: ", m.cc
       end
       unless m.bcc.empty?
         m.bcc.each_with_index { |p, i| @person_lines[start + rest.length + from.length + i] = p }
-        rest += format_person_list "  Bcc: ", m.bcc
+        rest += format_person_list "   Bcc: ", m.bcc
       end
 
       rest += [
-        "  Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})",
-        "  Subject: #{m.subj}",
-        (parent ? "  In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil),
-        m.labels.empty? ? nil : "  Labels: #{m.labels.join(', ')}",
+        "   Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})",
+        "   Subject: #{m.subj}",
+        (parent ? "   In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil),
+        m.labels.empty? ? nil : "    Labels: #{m.labels.join(', ')}",
       ].compact
       
       from + rest.map { |l| [[color, prefix + "  " + l]] }
@@ -510,18 +510,19 @@ private
       when :open
         [[[:sig_patina_color, "#{prefix}- (#{chunk.lines.length}-line signature)"]]] + chunk.lines.map { |line| [[:sig_color, "#{prefix}#{line}"]] }
       end
-    when Message::CryptoSignature
+    when CryptoSignature, CryptoDecryptedNotice
       color = 
         case chunk.status
           when :valid: :cryptosig_valid_color
           when :invalid: :cryptosig_invalid_color
           else :cryptosig_unknown_color
         end
+      widget = chunk.lines.empty? ? "x" : (state == :closed ? "+" : "-")
       case state
       when :closed
-        [[[color, "#{prefix}+ #{chunk.description}"]]] 
+        [[[color, "#{prefix}#{widget} #{chunk.description}"]]] 
       when :open
-        [[[color, "#{prefix}- #{chunk.description}"]]] +
+        [[[color, "#{prefix}#{widget} #{chunk.description}"]]] +
           chunk.lines.map { |line| [[color, "#{prefix}#{line}"]] }
         end
     else
