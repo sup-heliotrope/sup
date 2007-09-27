@@ -450,7 +450,7 @@ private
         "   Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})",
         "   Subject: #{m.subj}",
         (parent ? "   In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil),
-        m.labels.empty? ? nil : "    Labels: #{m.labels.join(', ')}",
+        m.labels.empty? ? nil : "   Labels: #{m.labels.join(', ')}",
       ].compact
       
       from + rest.map { |l| [[color, prefix + "  " + l]] }
