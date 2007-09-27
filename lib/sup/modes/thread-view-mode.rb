@@ -172,6 +172,10 @@ class ThreadViewMode < LineCursorMode
     UpdateManager.relay self, :label, m
   end
 
+  ## a little overly complicated. for quotes and signatures, if it's
+  ## one line, we just display it and don't allow for
+  ## collapsing/expanding. for crypto notices, we allow
+  ## expanding/collapsing iff the # of notice lines is > 0.
   def toggle_expanded
     chunk = @chunk_lines[curpos] or return
     case chunk
@@ -179,7 +183,10 @@ class ThreadViewMode < LineCursorMode
       l = @layout[chunk]
       l.state = (l.state != :closed ? :closed : :open)
       cursor_down if l.state == :closed
-    when Message::Quote, Message::Signature, CryptoSignature, CryptoDecryptedNotice
+    when CryptoSignature, CryptoDecryptedNotice
+      return if chunk.lines.empty?
+      toggle_chunk_expansion chunk
+    when Message::Quote, Message::Signature
       return if chunk.lines.length <= 1
       toggle_chunk_expansion chunk
     when Message::Attachment

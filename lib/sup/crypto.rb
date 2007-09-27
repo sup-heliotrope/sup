@@ -132,6 +132,6 @@ end
 
 ## to check:
 ## failed decryption
-## decription but failed signature
+## decryption but failed signature
 ## no gpg found
 ## multiple private keys
