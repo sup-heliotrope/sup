@@ -16,7 +16,7 @@ class ThreadViewMode < LineCursorMode
   register_keymap do |k|
     k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
-    k.add :toggle_expanded, "Expand/collapse item", :enter
+    k.add :activate_chunk, "Expand/collapse or activate item", :enter
     k.add :expand_all_messages, "Expand/collapse all messages", 'E'
     k.add :edit_draft, "Edit draft", 'e'
     k.add :edit_labels, "Edit or add labels for a thread", 'l'
@@ -172,31 +172,25 @@ class ThreadViewMode < LineCursorMode
     UpdateManager.relay self, :label, m
   end
 
-  ## a little overly complicated. for quotes and signatures, if it's
-  ## one line, we just display it and don't allow for
-  ## collapsing/expanding. for crypto notices, we allow
-  ## expanding/collapsing iff the # of notice lines is > 0.
-  def toggle_expanded
+  ## called when someone presses enter when the cursor is highlighting
+  ## a chunk. for expandable chunks (including messages) we toggle
+  ## open/closed state; for viewable chunks (like attachments) we
+  ## view.
+  def activate_chunk
     chunk = @chunk_lines[curpos] or return
-    case chunk
-    when Message
-      l = @layout[chunk]
-      l.state = (l.state != :closed ? :closed : :open)
-      cursor_down if l.state == :closed
-    when CryptoSignature, CryptoDecryptedNotice
-      return if chunk.lines.empty?
-      toggle_chunk_expansion chunk
-    when Message::Quote, Message::Signature
-      return if chunk.lines.length <= 1
-      toggle_chunk_expansion chunk
-    when Message::Attachment
-      if chunk.inlineable?
-        toggle_chunk_expansion chunk
-      else
-        view_attachment chunk
+    layout = 
+      if chunk.is_a?(Message)
+        @layout[chunk]
+      elsif chunk.expandable?
+        @chunk_layout[chunk]
       end
+    if layout
+      layout.state = (layout.state != :closed ? :closed : :open)
+      #cursor_down if layout.state == :closed # too annoying
+      update
+    elsif chunk.viewable?
+      view chunk
     end
-    update
   end
 
   def edit_as_new
@@ -209,7 +203,7 @@ class ThreadViewMode < LineCursorMode
   def save_to_disk
     chunk = @chunk_lines[curpos] or return
     case chunk
-    when Message::Attachment
+    when Chunk::Attachment
       fn = BufferManager.ask_for_filename :filename, "Save attachment to file: ", chunk.filename
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn
     else
@@ -298,7 +292,7 @@ class ThreadViewMode < LineCursorMode
 
   def expand_all_quotes
     if(m = @message_lines[curpos])
-      quotes = m.chunks.select { |c| (c.is_a?(Message::Quote) || c.is_a?(Message::Signature)) && c.lines.length > 1 }
+      quotes = m.chunks.select { |c| (c.is_a?(Chunk::Quote) || c.is_a?(Chunk::Signature)) && c.lines.length > 1 }
       numopen = quotes.inject(0) { |s, c| s + (@chunk_layout[c].state == :open ? 1 : 0) }
       newstate = numopen > quotes.length / 2 ? :closed : :open
       quotes.each { |c| @chunk_layout[c].state = newstate }
@@ -323,12 +317,6 @@ class ThreadViewMode < LineCursorMode
   end
 
 private
-
-  def toggle_chunk_expansion chunk
-    l = @chunk_layout[chunk]
-    l.state = (l.state != :closed ? :closed : :open)
-    cursor_down if l.state == :closed
-  end
 
   def initial_state_for m
     if m.has_label?(:starred) || m.has_label?(:unread)
@@ -389,7 +377,7 @@ private
 
           ## set the default state for chunks
           cl.state ||=
-            if c.is_a?(Message::Attachment) && c.inlineable?
+            if c.is_a?(Chunk::Attachment) && c.expandable?
               :open
             else
               :closed
@@ -477,6 +465,7 @@ private
     p.longname + (ContactManager.is_contact?(p) ? " (#{ContactManager.alias_for p})" : "")
   end
 
+  ## todo: check arguments on this overly complex function
   def chunk_to_lines chunk, state, start, depth, parent=nil, color=nil, star_color=nil
     prefix = " " * INDENT_SPACES * depth
     case chunk
@@ -487,63 +476,30 @@ private
     when Message
       message_patina_lines(chunk, state, start, parent, prefix, color, star_color) +
         (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. To edit, hit 'e'. <<<"]]] : [])
-    when Message::Attachment
-      return [[[:attachment_color, "#{prefix}x Attachment: #{chunk.filename} (#{chunk.content_type})"]]] unless chunk.inlineable?
-      case state
-      when :closed
-        [[[:attachment_color, "#{prefix}+ Attachment: #{chunk.filename} (#{chunk.lines.length} lines)"]]]
-      when :open
-        [[[:attachment_color, "#{prefix}- Attachment: #{chunk.filename} (#{chunk.lines.length} lines)"]]] + chunk.lines.map { |line| [[:none, "#{prefix}#{line}"]] }
-      end
-    when Message::Text
-      t = chunk.lines
-      if t.last =~ /^\s*$/ && t.length > 1
-        t.pop while t[-2] =~ /^\s*$/ # pop until only one file empty line
-      end
-      t.map { |line| [[:none, "#{prefix}#{line}"]] }
-    when Message::Quote
-      return [[[:quote_color, "#{prefix}#{chunk.lines.first}"]]] if chunk.lines.length == 1
-      case state
-      when :closed
-        [[[:quote_patina_color, "#{prefix}+ (#{chunk.lines.length} quoted lines)"]]]
-      when :open
-        [[[:quote_patina_color, "#{prefix}- (#{chunk.lines.length} quoted lines)"]]] + chunk.lines.map { |line| [[:quote_color, "#{prefix}#{line}"]] }
-      end
-    when Message::Signature
-      return [[[:sig_patina_color, "#{prefix}#{chunk.lines.first}"]]] if chunk.lines.length == 1
-      case state
-      when :closed
-        [[[:sig_patina_color, "#{prefix}+ (#{chunk.lines.length}-line signature)"]]]
-      when :open
-        [[[:sig_patina_color, "#{prefix}- (#{chunk.lines.length}-line signature)"]]] + chunk.lines.map { |line| [[:sig_color, "#{prefix}#{line}"]] }
-      end
-    when CryptoSignature, CryptoDecryptedNotice
-      color = 
-        case chunk.status
-          when :valid: :cryptosig_valid_color
-          when :invalid: :cryptosig_invalid_color
-          else :cryptosig_unknown_color
-        end
-      widget = chunk.lines.empty? ? "x" : (state == :closed ? "+" : "-")
-      case state
-      when :closed
-        [[[color, "#{prefix}#{widget} #{chunk.description}"]]] 
-      when :open
-        [[[color, "#{prefix}#{widget} #{chunk.description}"]]] +
-          chunk.lines.map { |line| [[color, "#{prefix}#{line}"]] }
-        end
+
     else
-      raise "unknown chunk type #{chunk.class.name}"
+      if chunk.inlineable?
+        chunk.lines.map { |line| [[chunk.color, "#{prefix}#{line}"]] }
+      elsif chunk.expandable?
+        case state
+        when :closed
+          [[[chunk.patina_color, "#{prefix}+ #{chunk.patina_text}"]]]
+        when :open
+          [[[chunk.patina_color, "#{prefix}- #{chunk.patina_text}"]]] + chunk.lines.map { |line| [[chunk.color, "#{prefix}#{line}"]] }
+        end
+      else
+        [[[chunk.patina_color, "#{prefix}x #{chunk.patina_text}"]]]
+      end
     end
   end
 
-  def view_attachment a
-    BufferManager.flash "viewing #{a.content_type} attachment..."
-    success = a.view!
+  def view chunk
+    BufferManager.flash "viewing #{chunk.content_type} attachment..."
+    success = chunk.view!
     BufferManager.erase_flash
     BufferManager.completely_redraw_screen
     unless success
-      BufferManager.spawn "Attachment: #{a.filename}", TextMode.new(a.to_s)
+      BufferManager.spawn "Attachment: #{chunk.filename}", TextMode.new(chunk.to_s)
       BufferManager.flash "Couldn't execute view command, viewing as text."
     end
   end

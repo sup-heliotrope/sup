@@ -34,6 +34,7 @@ lib/sup/mbox/loader.rb
 lib/sup/mbox/ssh-file.rb
 lib/sup/mbox/ssh-loader.rb
 lib/sup/message.rb
+lib/sup/message-chunks.rb
 lib/sup/mode.rb
 lib/sup/modes/buffer-list-mode.rb
 lib/sup/modes/completion-mode.rb

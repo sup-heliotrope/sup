@@ -218,6 +218,7 @@ Redwood::HookManager.new Redwood::HOOK_DIR
 
 require "sup/update"
 require "sup/suicide"
+require "sup/message-chunks"
 require "sup/message"
 require "sup/source"
 require "sup/mbox"

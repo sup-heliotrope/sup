@@ -15,101 +15,13 @@ class MessageFormatError < StandardError; end
 ## sequences in the text of an email. (how sweet would that be?)
 class Message
   SNIPPET_LEN = 80
-  WRAP_LEN = 80 # wrap at this width
   RE_PATTERN = /^((re|re[\[\(]\d[\]\)]):\s*)+/i
-
-  HookManager.register "mime-decode", <<EOS
-Executes when decoding a MIME attachment.
-Variables:
-   content_type: the content-type of the message
-       filename: the filename of the attachment as saved to disk (generated
-                 on the fly, so don't call more than once)
-  sibling_types: if this attachment is part of a multipart MIME attachment,
-                 an array of content-types for all attachments. Otherwise,
-                 the empty array.
-Return value:
-  The decoded text of the attachment, or nil if not decoded.
-EOS
-#' stupid ruby-mode
 
   ## some utility methods
   class << self
     def normalize_subj s; s.gsub(RE_PATTERN, ""); end
     def subj_is_reply? s; s =~ RE_PATTERN; end
     def reify_subj s; subj_is_reply?(s) ? s : "Re: " + s; end
-  end
-
-  class Attachment
-    ## encoded_content is still possible MIME-encoded
-    ##
-    ## raw_content is after decoding but before being turned into
-    ## inlineable text.
-    ##
-    ## lines is array of inlineable text.
-
-    attr_reader :content_type, :filename, :lines, :raw_content
-
-    def initialize content_type, filename, encoded_content, sibling_types
-      @content_type = content_type
-      @filename = filename
-      @raw_content = encoded_content.decode
-
-      @lines = 
-        case @content_type
-        when /^text\/plain\b/
-          Message.convert_from(@raw_content, encoded_content.charset).split("\n")
-        else
-          text = HookManager.run "mime-decode", :content_type => content_type,
-                                 :filename => lambda { write_to_disk },
-                                 :sibling_types => sibling_types
-          text.split("\n") if text
-          
-        end
-    end
-
-    def inlineable?; !@lines.nil? end
-
-    def view!
-      path = write_to_disk
-      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{path} >& /dev/null"
-      $? == 0
-    end
-    
-    ## used when viewing the attachment as text
-    def to_s
-      @lines || @raw_content
-    end
-
-  private
-
-    def write_to_disk
-      file = Tempfile.new "redwood.attachment"
-      file.print @raw_content
-      file.close
-      file.path
-    end
-  end
-
-  class Text
-    attr_reader :lines
-    def initialize lines
-      ## do some wrapping
-      @lines = lines.map { |l| l.chomp.wrap WRAP_LEN }.flatten
-    end
-  end
-
-  class Quote
-    attr_reader :lines
-    def initialize lines
-      @lines = lines
-    end
-  end
-
-  class Signature
-    attr_reader :lines
-    def initialize lines
-      @lines = lines
-    end
   end
 
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
@@ -225,7 +137,7 @@ EOS
   def load_from_source!
     @chunks ||=
       if @source.has_errors?
-        [Text.new(error_message(@source.error.message.split("\n")))]
+        [Chunk::Text.new(error_message(@source.error.message.split("\n")))]
       else
         begin
           ## we need to re-read the header because it contains information
@@ -243,7 +155,7 @@ EOS
           ## we need force_to_top here otherwise this window will cover
           ## up the error message one
           Redwood::report_broken_sources :force_to_top => true
-          [Text.new(error_message(e.message))]
+          [Chunk::Text.new(error_message(e.message))]
         end
       end
   end
@@ -296,13 +208,13 @@ EOS
       to.map { |p| "#{p.name} #{p.email}" },
       cc.map { |p| "#{p.name} #{p.email}" },
       bcc.map { |p| "#{p.name} #{p.email}" },
-      chunks.select { |c| c.is_a? Text }.map { |c| c.lines },
+      chunks.select { |c| c.is_a? Chunk::Text }.map { |c| c.lines },
       Message.normalize_subj(subj),
     ].flatten.compact.join " "
   end
 
   def basic_body_lines
-    chunks.find_all { |c| c.is_a?(Text) || c.is_a?(Quote) }.map { |c| c.lines }.flatten
+    chunks.find_all { |c| c.is_a?(Chunk::Text) || c.is_a?(Chunk::Quote) }.map { |c| c.lines }.flatten
   end
 
   def basic_header_lines
@@ -427,7 +339,7 @@ private
 
       ## if there's a filename, we'll treat it as an attachment.
       if filename
-        [Attachment.new(m.header.content_type, filename, m, sibling_types)]
+        [Chunk::Attachment.new(m.header.content_type, filename, m, sibling_types)]
 
       ## otherwise, it's body text
       else
@@ -473,7 +385,7 @@ private
         end
 
         if newstate
-          chunks << Text.new(chunk_lines) unless chunk_lines.empty?
+          chunks << Chunk::Text.new(chunk_lines) unless chunk_lines.empty?
           chunk_lines = [line]
           state = newstate
         else
@@ -495,7 +407,7 @@ private
           if chunk_lines.empty?
             # nothing
           else
-            chunks << Quote.new(chunk_lines)
+            chunks << Chunk::Quote.new(chunk_lines)
           end
           chunk_lines = [line]
           state = newstate
@@ -515,11 +427,11 @@ private
     ## final object
     case state
     when :quote, :block_quote
-      chunks << Quote.new(chunk_lines) unless chunk_lines.empty?
+      chunks << Chunk::Quote.new(chunk_lines) unless chunk_lines.empty?
     when :text
-      chunks << Text.new(chunk_lines) unless chunk_lines.empty?
+      chunks << Chunk::Text.new(chunk_lines) unless chunk_lines.empty?
     when :sig
-      chunks << Signature.new(chunk_lines) unless chunk_lines.empty?
+      chunks << Chunk::Signature.new(chunk_lines) unless chunk_lines.empty?
     end
     chunks
   end

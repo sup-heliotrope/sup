@@ -1,25 +1,5 @@
 module Redwood
 
-class CryptoSignature
-  attr_reader :lines, :status, :description
-
-  def initialize status, description, lines
-    @status = status
-    @description = description
-    @lines = lines
-  end
-end
-
-class CryptoDecryptedNotice
-  attr_reader :lines, :status, :description
-
-  def initialize status, description, lines=[]
-    @status = status
-    @description = description
-    @lines = lines
-  end
-end
-
 class CryptoManager
   include Singleton
 
@@ -60,9 +40,9 @@ class CryptoManager
 
     if gpg_output =~ /^gpg: (.* signature from .*$)/
       if $? == 0
-        CryptoSignature.new :valid, $1, output_lines
+        Chunk::CryptoNotice.new :valid, $1, output_lines
       else
-        CryptoSignature.new :invalid, $1, output_lines
+        Chunk::CryptoNotice.new :invalid, $1, output_lines
       end
     else
       unknown_status output_lines
@@ -103,16 +83,16 @@ class CryptoManager
       sig = 
         if sig_lines # encrypted & signed
           if sig_lines =~ /^gpg: (Good signature from .*$)/
-            CryptoSignature.new :valid, $1, sig_lines.split("\n")
+            Chunk::CryptoNotice.new :valid, $1, sig_lines.split("\n")
           else
-            CryptoSignature.new :invalid, $1, sig_lines.split("\n")
+            Chunk::CryptoNotice.new :invalid, $1, sig_lines.split("\n")
           end
         end
 
-      notice = CryptoDecryptedNotice.new :valid, "This message has been decrypted for display"
+      notice = Chunk::CryptoNotice.new :valid, "This message has been decrypted for display"
       [RMail::Parser.read(decrypted_payload), sig, notice]
     else
-      notice = CryptoDecryptedNotice.new :invalid, "This message could not be decrypted", gpg_output.split("\n")
+      notice = Chunk::CryptoNotice.new :invalid, "This message could not be decrypted", gpg_output.split("\n")
       [nil, nil, notice]
     end
   end
@@ -120,7 +100,7 @@ class CryptoManager
 private
 
   def unknown_status lines=[]
-    CryptoSignature.new :unknown, "Unable to determine validity of cryptographic signature", lines
+    Chunk::CryptoNotice.new :unknown, "Unable to determine validity of cryptographic signature", lines
   end
   
   def cant_find_binary
@@ -128,10 +108,3 @@ private
   end
 end
 end
-
-
-## to check:
-## failed decryption
-## decryption but failed signature
-## no gpg found
-## multiple private keys
