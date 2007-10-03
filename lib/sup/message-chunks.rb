@@ -77,13 +77,18 @@ EOS
     def expandable?; !viewable? end
     def viewable?; @lines.nil? end
     def view!
+      path = write_to_disk
+      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{path} >& /dev/null"
+      $? == 0
+    end
+
+    def write_to_disk
       file = Tempfile.new "redwood.attachment"
       file.print @raw_content
       file.close
-      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{file.path} >& /dev/null"
-      $? == 0
+      file.path
     end
-    
+
     ## used when viewing the attachment as text
     def to_s
       @lines || @raw_content
