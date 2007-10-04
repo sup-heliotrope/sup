@@ -274,7 +274,7 @@ private
       return
     end
 
-    [CryptoManager.verify(payload, signature), message_to_chunks(payload)]
+    [CryptoManager.verify(payload, signature), message_to_chunks(payload)].flatten.compact
   end
 
   def multipart_encrypted_to_chunks m
