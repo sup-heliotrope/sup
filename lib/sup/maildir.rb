@@ -19,6 +19,7 @@ class Maildir < Source
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
+    raise ArgumentError, "mbox URI must have a path component" unless uri.path
 
     @dir = uri.path
     @labels = (labels || []).freeze

@@ -16,7 +16,8 @@ class Loader < Source
     when String
       uri = URI(Source.expand_filesystem_uri(uri_or_fp))
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
-      raise ArgumentError, "mbox uri ('#{uri}') cannot have a host: #{uri.host}" if uri.host
+      raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
+      raise ArgumentError, "mbox URI must have a path component" unless uri.path
       @f = File.open uri.path
       @path = uri.path
     else
