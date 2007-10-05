@@ -1,57 +1,54 @@
-for next release
-----------------
-_ imap "add all folders on this server" option in sup-add
+for 0.2
+-------
 _ mailing list subscribe/unsubscribe
-_ BufferManager#ask_for_labels opens up label-list-mode if empty
-_ tab completion for mid-text cursors
-_ ncurses text entry horizontal scrolling
 _ forward attachments
 _ messages as attachments
-_ use trac or something. this file is getting a little silly.
 _ gpg integration
-_ saved searches
-_ bugfix: missing sources should be handled better
+_ mbox: don't keep filehandles open, and protect all reads with dotlockfile
 _ bugfix: screwing with the headers when editing causes a crash
-_ bugfix: sometimes, when one new message comes into an imap folder,
-   we don't catch it until a reload. but we do see a message
-   indicating they're loaded to inbox (imap only? hard to reproduce.)
 _ bugfix: need a better way to force an address to a particular name,
-   for things like evite addresses
-_ bugfix: ferret flakiness: just added message but can't find it (? still relevant ?)
+  for things like evite addresses
+_ pressing A in thread-view-mode should jump to next message
+_ imap "add all folders on this server" option in sup-add
 _ for new message flashes, add new message counts until keypress
-_ bugfix: deadlock (on rubyforge) (? still valid ?)
-_ bugfix: ferret corrupt index problem at index.c:901. see http://ferret.davebalmain.com/trac/ticket/279
-_ bugfix: read before thread-index has finished loading then hides the
-   thread?!? wtf. (on jamie) (? still valid ?)
-_ bugfix: width in index-mode needs to be determined per-character
-   rather than per-byte
-_ search results: highlight relevant snippets and open to relevant
-   portion of thread
-_ select all, starred, to me, etc
-_ undo
-_ gmail support
-_ warnings: top-posting, missing attachment, ruby-talk:XXXX detection
-_ Net::SMTP support
-x user-defined hooks
-x tab completion for to: and cc: in compose-mode
-x individual labeling in thread-view-mode
-x translate aliases in queries on to: and from: fields
-x tab completion on labeling
+x warnings: top-posting, missing attachment
+x hookability
 
 future
 ------
+_ notes
+_ tab completion for mid-text cursors
+_ ncurses text entry horizontal scrolling
+_ use trac or something. this file is getting a little silly.
+_ saved searches
+_ bugfix: missing sources should be handled better
+_ bugfix: sometimes, when one new message comes into an imap folder,
+  we don't catch it until a reload. but we do see a message
+  indicating they're loaded to inbox (imap only? hard to reproduce.)
+_ bugfix: ferret flakiness: just added message but can't find it (? still relevant ?)
+_ bugfix: read before thread-index has finished loading then hides the
+  thread?!? wtf. (on jamie) (? still valid ?)
+_ bugfix: width in index-mode needs to be determined per-character
+  rather than per-byte
+_ search results: highlight relevant snippets and open to relevant
+  portion of thread
+_ select all, starred, to me, etc
+_ undo
+_ gmail support
+_ Net::SMTP support
+_ ruby-talk:XXXX detection (via hooks?)
 _ more control character support in buffer line editing
 _ mboxz, mboxbz
 _ swappable keymappings
 _ bugfix: when returning from a shelling out, sometime ncurses is
-   crazy and refuses to interpret any keystrokes
+  crazy and refuses to interpret any keystrokes
 _ configurable colors
 _ better batch deletion (extend to non-mbox sources)
 _ annotations on messages
-_ pop
-_ toggle wrapping
+_ pop support
+_ toggleble wrapping of text
 _ maybe: de-archived messages auto-added to inbox
-_ prune old entries from contacts.txt so that it doesn't grow without
+_ prune old entries from people.txt so that it doesn't grow without
    bound
 _ maildir+ssh
 
@@ -67,6 +64,13 @@ x rss feed reading: use rss2email
 
 done
 ----
+x bugfix: deadlock (on rubyforge) (? still valid ?)
+x bugfix: ferret corrupt index problem at index.c:901. see http://ferret.davebalmain.com/trac/ticket/279
+x user-defined hooks
+x tab completion for to: and cc: in compose-mode
+x individual labeling in thread-view-mode
+x translate aliases in queries on to: and from: fields
+x tab completion on labeling
 x bugfix: any interactive prompt after "No new messages." flash has an
    empty line above it.
 x detect other sup instances and do something intelligent (because
