@@ -154,11 +154,10 @@ EOS
     docid, entry = load_entry_for_id m.id unless docid && entry
 
     raise "no source info for message #{m.id}" unless m.source && m.source_info
-    raise "trying deleting non-corresponding entry #{docid}" if docid && @index[docid][:message_id] != m.id
+    raise "trying to delete non-corresponding entry #{docid}" if docid && @index[docid][:message_id] != m.id
 
     source_id = 
       if m.source.is_a? Integer
-        raise "Debugging: integer source set"
         m.source
       else
         m.source.id or raise "unregistered source #{m.source} (id #{m.source.id.inspect})"
@@ -184,7 +183,7 @@ EOS
     
     docid, entry = load_entry_for_id m.id
     ## this hasn't been triggered in a long time. TODO: decide whether it's still a problem.
-    raise "just added message #{m.id} but couldn't find it in a search" unless docid
+    raise "just added message #{m.id.inspect} but couldn't find it in a search" unless docid
     true
   end
 

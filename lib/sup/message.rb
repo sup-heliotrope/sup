@@ -58,7 +58,7 @@ class Message
 
     @from = PersonManager.person_for header["from"]
 
-    @id = header["message-id"]
+    @id = header["message-id"].gsub(/^\s+|\s+$/, "")
     unless @id
       @id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
       Redwood::log "faking message-id for message from #@from: #@id"
