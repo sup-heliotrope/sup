@@ -13,11 +13,10 @@ cryptic messages. You can also press '?' at any point to get a list of
 keyboard commands, but in the absence of any email, these will be
 mostly useless. When you get bored, press 'q' to quit.
 
-To actually use Sup for email, we need to load messages into the
-index. The index is where Sup stores all message state (e.g. read or
-unread, any message labels), and all information necessary for
-searching and for threading messages. Sup only knows about messages in
-its index.
+To use Sup for email, we need to load messages into the index. The
+index is where Sup stores all message state (e.g. read or unread, any
+message labels), and all information necessary for searching and for
+threading messages. Sup only knows about messages in its index.
 
 We can add messages to the index by telling Sup about the "source"
 where the messages reside. Sources are things like IMAP folders, mbox
@@ -168,15 +167,15 @@ can figure out how to:
  - Star an individual message, not just a thread
 
 There's one last thing to be aware of when using Sup: how it interacts
-with other email programs. As I described at the beginning of the
-document, Sup stores data about messages in the index, but doesn't
-duplicate the message contents themselves. The messages remain on the
-source. If the index and the source every fall out of sync, e.g. due
-to another email client modifying the source, then Sup will be unable
-to operate on that source. For example, for mbox files, Sup stores a
-byte offset into the file for each message. If a message deleted from
-that file by another client, or even marked as read (yeah, mbox
-sucks), all succeeding offsets will be wrong.
+with other email programs. As I described above, Sup stores data about
+messages in the index, but doesn't duplicate the message contents
+themselves. The messages remain on the source. If the index and the
+source every fall out of sync, e.g. due to another email client
+modifying the source, then Sup will be unable to operate on that
+source. For example, for mbox files, Sup stores a byte offset into the
+file for each message. If a message deleted from that file by another
+client, or even marked as read (yeah, mbox sucks), all succeeding
+offsets will be wrong.
 
 That's the bad news. The good news is that Sup is pretty good at being
 able to detect this type of situation, and fixing it is just a matter
@@ -185,7 +184,7 @@ how to invoke sup-sync when it detects a problem. This is a
 complication you will almost certainly run in to if you use both Sup
 and another MUA on the same source, so it's good to be aware of it.
 
-Have fun, and let me know if you have any problems. --William
+Have fun, and let me know if you have any problems!
 
 Appending A: sup-add and sup-sync
 ---------------------------------
@@ -201,7 +200,8 @@ Instead of using sup-config to add a new source, you can manually run
 Before you add the source, you need make three decisions. The first is
 whether you want Sup to regularly poll this source for new messages.
 By default it will, but if this is a source that will never have new
-messages, you can specify --unusual. Sup polls only "usual" sources.
+messages, you can specify --unusual. Sup polls only "usual" sources
+when checking for new mail (unless you manually invoke sup-sync).
 
 The second is whether you want messages from the source to be
 automatically archived. An archived message will not show up in your
@@ -225,12 +225,12 @@ import except your actual inbox. You can also specify --read to mark
 all imported messages as read; the default is to preserve the
 read/unread status from the source.
 
-sup-sync will now load all the messages from the source into the
+Sup-sync will now load all the messages from the source into the
 index. Depending on the size of the source, this may take a while.
 Don't panic! It's a one-time process.
 
-Appending B: Handling high-volume mailing lists
------------------------------------------------
+Appendix B: Handling high-volume mailing lists
+----------------------------------------------
 
 Here's what I recommend:
 1. Use procmail to filter messages from the list into a distinct source.
@@ -242,4 +242,10 @@ Here's what I recommend:
    searching for that label.
 
 
+Appendix C: Reading blogs with Sup
+----------------------------------
 
+Really, blog posts should be read like emails are read---you should be
+able to mark them as unread, flag them, label them, etc. Use rss2email
+to transform RSS feeds into emails, direct them all into a source, and
+add that source to Sup. Voila!

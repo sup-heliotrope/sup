@@ -4,21 +4,22 @@ Sup FAQ
 Q: What is Sup?
 A: Sup is a console-based email client for people with a lot of email.
    It supports tagging, very fast full-text search, automatic contact-
-   list management, and more. If you're the type of person who treats
-   email as an extension of your long-term memory, Sup is for you.
+   list management, custom code insertion via a hook system, and more.
+   If you're the type of person who treats email as an extension of your
+   long-term memory, Sup is for you.
 
 Q: What does Sup stand for?
 A: "What's up?"
 
-Q: Sup looks a lot like a text-based Gmail.
-A: I stole a lot of their ideas. And improved upon them, of course.
+Q: Sup looks like a text-based Gmail.
+A: I stole their ideas. And improved them!
 
-Q: If you love Gmail so much, why not just use it?
-A: I hate ads, I hate using a mouse, and I hate non-programmability
-   and non-extensibility.
+Q: Why not just use Gmail?
+A: I wrote Sup because I hate ads, I hate using a mouse, and I hate
+   non-programmability and non-extensibility.
 
    Also, Gmail doesn't let you use a monospace font, which is just
-   plain lame.
+   lame.
 
    Also, Gmail encourages top-posting. THIS CANNOT BE TOLERATED!
 
@@ -43,17 +44,16 @@ Q: But I want to delete it for real, not just add a 'deleted' flag in
 A: Currently, for mbox sources, there is a batch deletion tool that
    will strip out all messages marked as spam or deleted.
 
-Q: I got some error message about needing to run sup-sync --changed
-   when I tried to read a message. What's that about?
-A: If messages have been moved, deleted, or altered in a source, Sup
-   may have to rebuild its index for that source. For example, for
-   mbox files, reading a single unread message changes the offsets of
-   every file on disk. Rather than rescanning every time, Sup assumes
-   sources don't change except by having new messages added. If that
-   assumption is violated, you'll have to sync the index.
+Q: How well does Sup play with other mail clients?
+A: Not well at all. If messages have been moved, deleted, or altered
+   due to some other client, Sup will have to rebuild its index for
+   that message source. For example, for mbox files, reading a single
+   unread message changes the offsets of every file on disk. Rather
+   than rescanning every time, Sup assumes sources don't change except
+   by having new messages added. If that assumption is violated,
+   you'll have to sync the index.
 
 Q: How do I back up my index?
-Q: How do I make a state dump?
 A: Since the contents of the messages are recoverable from their
    sources using sup-sync, all you need to back up is the message
    state. To do this, simply run:
@@ -66,13 +66,10 @@ A: Run:
      sup-sync [<source>+] --restored --restore <dumpfile>
    where <dumpfile> was created as above.
 
-Q: I upgraded Ferret and the index format changed. I need to
-   completely rebuild my index. How do I do this?
 Q: Ferret crashed and I can't read my index. Luckily I made a state
    dump. What should I do?
-A: First, you'll need a complete state dump. If you haven't made
-   one, you'll need to downgrade Ferret and make a state dump as
-   above. Then run these commands:
+Q: How do I rebuild the index completely?
+A: Run:
      rm -rf ~/.sup/ferret    # omg wtf
      sup-sync --all-sources --all --restore <dumpfile>
    Voila! A brand new index.
@@ -82,28 +79,23 @@ Q: I want to move messages from one source to another. (E.g., my
    some of those messages to local mbox files.) How do I do that while
    preserving message state?
 A: Move the messages from the source to the target using whatever tool
-   you'd like. Then (and this is the important part), run:
+   you'd like. Mutt's a good one. :) Then run:
      sup-sync --changed <source1> <source2>
 
-   If you sup-sync only one source at a time, depending on the order,
-   the messages may be treated as missing and then deleted from the
-   index, which means that their states will be lost when you sync the
-   other source.
+   Note that if you sup-sync only one source at a time, depending on
+   the order in which you do it, the messages may be treated as
+   missing and then deleted from the index, which means that their
+   states will be lost when you sync the other source. So do them both
+   in one go.
 
 Q: What are all these "Redwood" references I see in the code?
-A: That was Sup's original name. (Think pine, elm. Although I am a
-   Mutt user, I couldn't think of a good progression there.) But it was
-   taken by another project on RubyForge, and wasn't that original,
-   and was too long to type anyways.
+A: That was Sup's original name. (Think pine, elm. Although I was a
+   Mutt user, I couldn't think of a good progression there.) But it
+   was taken by another project on RubyForge, and wasn't that
+   original, and was too long to type anyways.
 
    Maybe one day I'll do a huge search-and-replace on the code, but it
    doesn't seem that important at this point.
-
-Q: How is Sup possible?
-A: Sup is only possible through the hard work of Dave Balmain, the
-   author of ferret, which is the search engine behind Sup. Ferret is
-   really a first-class piece of software, and it's due to the
-   tremendous amount of time and effort he's put in to it.
 
 Common Problems
 ---------------
