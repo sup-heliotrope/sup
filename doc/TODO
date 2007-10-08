@@ -16,6 +16,7 @@ x hookability
 
 future
 ------
+_ emlx support (some os x thing)
 _ notes
 _ tab completion for mid-text cursors
 _ ncurses text entry horizontal scrolling
