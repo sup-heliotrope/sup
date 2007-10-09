@@ -12,9 +12,9 @@ bin/sup-recover-sources
 bin/sup-sync
 bin/sup-sync-back
 doc/FAQ.txt
+doc/NewUserGuide.txt
 doc/Philosophy.txt
 doc/TODO
-doc/UserGuide.txt
 lib/sup.rb
 lib/sup/account.rb
 lib/sup/buffer.rb
