@@ -1,9 +1,9 @@
-for 0.2
+for 0.3
 -------
 _ mailing list subscribe/unsubscribe
 _ forward attachments
 _ messages as attachments
-_ gpg integration
+_ flesh out gpg integration: sign & encrypt outgoing
 _ mbox: don't keep filehandles open, and protect all reads with dotlockfile
 _ bugfix: screwing with the headers when editing causes a crash
 _ bugfix: need a better way to force an address to a particular name,

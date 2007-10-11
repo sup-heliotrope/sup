@@ -1,0 +1,38 @@
+Sup's Hook System
+-----------------
+
+Sup can be easily customized via its hook system, which allows custom
+user code to be injected into Sup's execution path by "hooking" the
+code onto pre-defined events. When those events occur, the code is
+executed.
+
+To see which hooks are available, simply run sup -l. Each hook sits in
+a file in ~/.sup/hooks/. Hooks are written in Ruby, and require no
+class or method definitions, just the executable code itself.
+
+Information passes from Sup to the hook code via Ruby variables
+(actually method calls), and from the hook code back to Sup via a
+return value. Each hook description lists the variables and return
+value expected, if any.
+
+Some example hooks:
+
+before-poll:
+  ## runs fetchmail before polling
+  if (@last_fetchmail_time || Time.now) < Time.now - 60
+    say "Running fetchmail..."
+    system "fetchmail >& /dev/null"
+    say "Done running fetchmail."
+  end
+  @last_fetchmail_time = Time.now
+
+
+mime-decode:
+  ## turn text/html attachments into plain text, unless they are part
+  ## of a multipart/alternative pair
+  unless sibling_types.member? "text/plain"
+    case content_type
+    when "text/html"
+      `/usr/bin/w3m -dump -T #{content_type} '#{filename}'`
+    end
+  end
