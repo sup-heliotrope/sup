@@ -3,6 +3,7 @@ require 'yaml'
 require 'zlib'
 require 'thread'
 require 'fileutils'
+require 'curses'
 
 class Object
   ## this is for debugging purposes because i keep calling #id on the
