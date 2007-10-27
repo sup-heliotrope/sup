@@ -3,6 +3,7 @@ require 'net/imap'
 require 'stringio'
 require 'time'
 require 'rmail'
+require 'cgi'
 
 ## fucking imap fucking sucks. what the FUCK kind of committee of
 ## dunces designed this shit.
@@ -82,7 +83,7 @@ class IMAP < Source
   def port; @parsed_uri.port || (ssl? ? 993 : 143); end
   def mailbox
     x = @parsed_uri.path[1..-1]
-    x.nil? || x.empty? ? 'INBOX' : x
+    (x.nil? || x.empty?) ? 'INBOX' : CGI.unescape(x)
   end
   def ssl?; @parsed_uri.scheme == 'imaps' end
 

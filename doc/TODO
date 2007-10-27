@@ -1,3 +1,11 @@
+for 0.2
+-------
+
+_ bugfix: contacts.txt isn't parsed correctly when there are spaces in
+   aliases
+_ bugfix: @ signs in names make sendmail die silently
+x bugfix: need to URL-unescape maildir folders
+
 for 0.3
 -------
 _ mailing list subscribe/unsubscribe
@@ -6,8 +14,8 @@ _ messages as attachments
 _ flesh out gpg integration: sign & encrypt outgoing
 _ mbox: don't keep filehandles open, and protect all reads with dotlockfile
 _ bugfix: screwing with the headers when editing causes a crash
-_ bugfix: need a better way to force an address to a particular name,
-  for things like evite addresses
+_ need a better way to force an address to a particular name,
+   for things like evite addresses
 _ pressing A in thread-view-mode should jump to next message
 _ bugfix: aliases can't have spaces; check on input and handle loading
    parse errors gracefully
