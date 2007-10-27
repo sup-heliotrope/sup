@@ -325,7 +325,7 @@ private
       chunks
     elsif m.header.content_type == "message/rfc822"
       payload = RMail::Parser.read(m.body)
-      [Chunk::EnclosedMessageNotice.new(PersonManager.person_for(payload.header.from.first.format), payload.to_s)]
+      [Chunk::EnclosedMessage.new(PersonManager.person_for(payload.header.from.first.format), payload.to_s)]
     else
       filename =
         ## first, paw through the headers looking for a filename

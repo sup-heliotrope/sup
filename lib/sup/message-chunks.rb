@@ -5,7 +5,7 @@
 ## notices like "this message was decrypted" or "this message contains
 ## a valid signature"---basically, anything we want to differentiate
 ## at display time.
-
+##
 ## A chunk can be inlineable, expandable, or viewable. If it's
 ## inlineable, #color and #lines are called and the output is treated
 ## as part of the message text. This is how Text and one-line Quotes
@@ -15,13 +15,15 @@
 ## #patina_text are called to generate a "patina" (a one-line widget,
 ## basically), and the user can press enter to toggle the display of
 ## the chunk content, which is generated from #color and #lines as
-## above. This is how Quote, Signature, and most widgets work.
+## above. This is how Quote, Signature, and most widgets
+## work. Exandable chunks can additionally define #initial_state to be
+## :open if they want to start expanded (default is to start collapsed).
 ##
 ## If it's not expandable but is viewable, a patina is displayed using
-## #patina_color and #patina_text, but no toggling is allowed. Instead,
-## if #view! is defined, pressing enter on the widget calls view! and
-## (if that returns false) #to_s. Otherwise, enter does nothing. This
-## is how non-inlineable attachments work.
+###patina_color and #patina_text, but no toggling is allowed. Instead,
+##if #view! is defined, pressing enter on the widget calls view! and
+##(if that returns false) #to_s. Otherwise, enter does nothing. This
+##is how non-inlineable attachments work.
 
 module Redwood
 module Chunk
@@ -75,6 +77,7 @@ EOS
     ## something we can display inline. otherwise, it's viewable.
     def inlineable?; false end
     def expandable?; !viewable? end
+    def initial_state; :open end
     def viewable?; @lines.nil? end
     def view!
       path = write_to_disk
@@ -142,7 +145,7 @@ EOS
     def color; :sig_color end
   end
 
-  class EnclosedMessageNotice
+  class EnclosedMessage
     attr_reader :from, :lines
     def initialize from, body
       @from = from
@@ -151,6 +154,7 @@ EOS
 
     def inlineable?; false end
     def expandable?; true end
+    def initial_state; :open end
     def viewable?; false end
 
     def patina_color; :generic_notice_patina_color end

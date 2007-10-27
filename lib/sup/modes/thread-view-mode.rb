@@ -377,8 +377,8 @@ private
 
           ## set the default state for chunks
           cl.state ||=
-            if c.is_a?(Chunk::Attachment) && c.expandable?
-              :open
+            if c.expandable? && c.respond_to?(:initial_state)
+              c.initial_state
             else
               :closed
             end
