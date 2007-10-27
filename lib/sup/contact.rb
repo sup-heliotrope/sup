@@ -10,7 +10,7 @@ class ContactManager
 
     if File.exists? fn
       IO.foreach(fn) do |l|
-        l =~ /^(\S+): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
+        l =~ /^([^:]+): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
         aalias, addr = $1, $2
         p = PersonManager.person_for addr, :definitive => true
         @p2a[p] = aalias
