@@ -20,6 +20,7 @@ class PersonManager
   def save
     File.open(@fn, "w") do |f|
       @@people.each do |email, p|
+        next if p.email == p.name
         f.puts "#{p.email}: #{p.timestamp} #{p.name}"
       end
     end
@@ -114,7 +115,7 @@ class Person
 
   def full_address
     if @name && @email
-      if @name =~ /[",]/
+      if @name =~ /[",@]/
         "#{@name.inspect} <#@email>" # escape quotes
       else
         "#@name <#@email>"
