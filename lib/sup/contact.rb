@@ -1,5 +1,7 @@
 module Redwood
 
+class InvalidAliasError < StandardError; end
+
 class ContactManager
   include Singleton
 
@@ -23,6 +25,8 @@ class ContactManager
 
   def contacts; @p2a.keys; end
   def set_contact person, aalias
+    raise InvalidAliasError unless valid_alias? aalias
+
     if(pold = @a2p[aalias]) && (pold != person)
       drop_contact pold
     end
@@ -38,6 +42,11 @@ class ContactManager
   def contact_for aalias; @a2p[aalias]; end
   def alias_for person; @p2a[person]; end
   def is_contact? person; @p2a.member? person; end
+
+  def valid_alias? a
+    a =~ /^\S+$/
+  end
+
   def save
     File.open(@fn, "w") do |f|
       @p2a.each do |p, a|
