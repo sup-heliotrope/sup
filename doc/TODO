@@ -4,6 +4,8 @@ for 0.2
 _ bugfix: contacts.txt isn't parsed correctly when there are spaces in
    aliases
 _ bugfix: @ signs in names make sendmail die silently
+_ bugfix: sent.mbox and >From
+x bugfix: trailing spaces in buffermanager.ask
 x bugfix: need to URL-unescape maildir folders
 
 for 0.3
@@ -45,7 +47,6 @@ _ search results: highlight relevant snippets and open to relevant
   portion of thread
 _ select all, starred, to me, etc
 _ undo
-_ gmail support
 _ Net::SMTP support
 _ ruby-talk:XXXX detection (via hooks?)
 _ more control character support in buffer line editing
@@ -72,6 +73,7 @@ rangefilter on the initial inbox to only consider the most recent 1000 messages
 denied
 ------
 x rss feed reading: use rss2email
+x gmail support: obsoleted by imap
 
 done
 ----
