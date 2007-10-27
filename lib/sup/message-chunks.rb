@@ -106,8 +106,10 @@ EOS
       lines.pop while lines.last =~ /^\s*$/ 
     end
 
-    def color; :none end
     def inlineable?; true end
+    def expandable?; false end
+    def viewable?; false end
+    def color; :none end
   end
 
   class Quote
@@ -118,6 +120,8 @@ EOS
     
     def inlineable?; @lines.length == 1 end
     def expandable?; !inlineable? end
+    def viewable?; false end
+
     def patina_color; :quote_patina_color end
     def patina_text; "(#{lines.length} quoted lines)" end
     def color; :quote_color end
@@ -131,6 +135,8 @@ EOS
 
     def inlineable?; @lines.length == 1 end
     def expandable?; !inlineable? end
+    def viewable?; false end
+
     def patina_color; :sig_patina_color end
     def patina_text; "(#{lines.length}-line signature)" end
     def color; :sig_color end
@@ -145,6 +151,7 @@ EOS
 
     def inlineable?; false end
     def expandable?; true end
+    def viewable?; false end
 
     def patina_color; :generic_notice_patina_color end
     def patina_text; "Begin enclosed message from #{@from.longname} (#{@lines.length} lines)" end
