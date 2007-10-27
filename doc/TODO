@@ -1,51 +1,52 @@
 for 0.2
 -------
 
-_ bugfix: contacts.txt isn't parsed correctly when there are spaces in
+x bugfix: contacts.txt isn't parsed correctly when there are spaces in
    aliases
 x bugfix: @ signs in names make sendmail die silently
 _ bugfix: sent.mbox and >From
 _ bugfix: tokenized email addresses (amazon.com, etc)
 x bugfix: trailing spaces in buffermanager.ask
 x bugfix: need to URL-unescape maildir folders
+x warnings: top-posting, missing attachment
+x hookability
 
 for 0.3
 -------
-_ mailing list subscribe/unsubscribe
-_ forward attachments
-_ messages as attachments
+_ bugfix: time zone parsing broken?
+_ mailing list auto-subscribe/unsubscribe
+_ forwards optionally include attachments
+_ attach messages
 _ flesh out gpg integration: sign & encrypt outgoing
 _ mbox: don't keep filehandles open, and protect all reads with dotlockfile
 _ bugfix: screwing with the headers when editing causes a crash
 _ need a better way to force an address to a particular name,
    for things like evite addresses
 _ pressing A in thread-view-mode should jump to next message
-_ bugfix: aliases can't have spaces; check on input and handle loading
-   parse errors gracefully
 _ imap "add all folders on this server" option in sup-add
 _ for new message flashes, add new message counts until keypress
-x warnings: top-posting, missing attachment
-x hookability
+_ bugfix: missing sources should be handled better
+_ search results: highlight relevant snippets and open to relevant
+   portion of thread
+_ have "notes" (treated as emails to oneself, never sent) as
+   first-class objects.
 
 future
 ------
 _ emlx support (some os x thing)
-_ notes
 _ tab completion for mid-text cursors
-_ ncurses text entry horizontal scrolling
+_ bugfix: not horizontal scrolling for ncurses text field entry
 _ use trac or something. this file is getting a little silly.
 _ saved searches
-_ bugfix: missing sources should be handled better
 _ bugfix: sometimes, when one new message comes into an imap folder,
   we don't catch it until a reload. but we do see a message
   indicating they're loaded to inbox (imap only? hard to reproduce.)
-_ bugfix: ferret flakiness: just added message but can't find it (? still relevant ?)
+_ bugfix: ferret flakiness: just added message but can't find it.
+   possibly a message id tokenization issue.
 _ bugfix: read before thread-index has finished loading then hides the
   thread?!? wtf. (on jamie) (? still valid ?)
-_ bugfix: width in index-mode needs to be determined per-character
-  rather than per-byte
-_ search results: highlight relevant snippets and open to relevant
-  portion of thread
+_ bugfix: display field width in index-mode needs to be determined
+   per-character rather than per-byte
 _ select all, starred, to me, etc
 _ undo
 _ Net::SMTP support
@@ -54,7 +55,7 @@ _ more control character support in buffer line editing
 _ mboxz, mboxbz
 _ swappable keymappings
 _ bugfix: when returning from a shelling out, sometime ncurses is
-  crazy and refuses to interpret any keystrokes
+   crazy and refuses to interpret any keystrokes
 _ configurable colors
 _ better batch deletion (extend to non-mbox sources)
 _ annotations on messages
@@ -67,9 +68,8 @@ _ maildir+ssh
 
 maybe
 -----
-split out threading & message chunk parsing to a separate library
-filters
-rangefilter on the initial inbox to only consider the most recent 1000 messages
+_ split out threading & message chunk parsing to a separate library
+_ rangefilter on the initial inbox to only consider the most recent 1000 messages
 
 denied
 ------
@@ -80,7 +80,6 @@ done
 ----
 x bugfix: deadlock (on rubyforge) (? still valid ?)
 x bugfix: ferret corrupt index problem at index.c:901. see http://ferret.davebalmain.com/trac/ticket/279
-x user-defined hooks
 x tab completion for to: and cc: in compose-mode
 x individual labeling in thread-view-mode
 x translate aliases in queries on to: and from: fields
@@ -88,10 +87,10 @@ x tab completion on labeling
 x bugfix: any interactive prompt after "No new messages." flash has an
    empty line above it.
 x detect other sup instances and do something intelligent (because
+   ferret crashes violently with more than one index writer open)
 x refactor all the *-search-results-mode classes
 x decode RFC 2047 ("encoded word") headers
   - see: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/101949, http://dev.rubyonrails.org/ticket/6807
-   ferret crashes violently with more than one index writer open)
 x create attachments
 x add arbitrary labels to sources
 x improve sup-config
