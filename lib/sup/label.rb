@@ -50,6 +50,16 @@ class LabelManager
       l.to_s
     end
   end
+
+  def label_for s
+    l = s.intern
+    l2 = s.downcase.intern
+    if RESERVED_LABELS.include? l2
+      l2
+    else
+      l
+    end
+  end
   
   def << t
     t = t.intern unless t.is_a? Symbol

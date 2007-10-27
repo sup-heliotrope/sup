@@ -238,7 +238,7 @@ begin
           when nil, /^\s*$/
             bm.spawn_modal("Label list", LabelListMode.new) if user_label && user_label.empty?
           else
-            user_label.intern
+            LabelManager.label_for user_label
           end
         
         case user_label

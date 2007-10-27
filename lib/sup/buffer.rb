@@ -340,7 +340,7 @@ class BufferManager
 
   def ask_with_completions domain, question, completions, default=nil
     ask domain, question, default do |s|
-      completions.select { |x| x =~ /^#{s}/i }.map { |x| [x.downcase, x] }
+      completions.select { |x| x =~ /^#{s}/i }.map { |x| [x, x] }
     end
   end
 
