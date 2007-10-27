@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'ncurses'
+require 'curses'
 require 'fileutils'
 require 'trollop'
 require "sup"
@@ -148,6 +149,9 @@ begin
           Ncurses::A_BOLD
     c.add :completion_character_color, Ncurses::COLOR_WHITE,
           Ncurses::COLOR_BLACK, Ncurses::A_BOLD
+    c.add :reply_mode_selected_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, Ncurses::A_BOLD
+    c.add :reply_mode_unselected_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
+    c.add :reply_mode_label_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
   end
 
   log "initializing buffer manager"

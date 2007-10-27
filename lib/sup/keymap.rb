@@ -1,5 +1,3 @@
-require "curses"
-
 module Redwood
 
 class Keymap

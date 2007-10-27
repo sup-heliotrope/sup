@@ -1,5 +1,3 @@
-require 'curses'
-
 module Redwood
 
 ## a fully-functional text field supporting completions, expansions,
