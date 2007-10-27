@@ -10,18 +10,18 @@
 ## inlineable, #color and #lines are called and the output is treated
 ## as part of the message text. This is how Text and one-line Quotes
 ## and Signatures work.
-
-## If it's expandable, #patina_color and #patina_text are called to
-## generate a "patina" (a one-line widget, basically), and the user
-## can press enter to toggle the display of the chunk content, which
-## is generated from #color and #lines). This is how Quote, Signature,
-## and most widgets work.
-
-## If it's viewable, a patina is displayed using #patina_color and
-## #patina_text, but no toggling is allowed. Instead, if #view! is
-## defined, pressing enter on the widget calls view! and (if that
-## returns false) #to_s. Otherwise enter does nothing. This is how
-## non-inlineable attachments work.
+##
+## If it's not inlineable but is expandable, #patina_color and
+## #patina_text are called to generate a "patina" (a one-line widget,
+## basically), and the user can press enter to toggle the display of
+## the chunk content, which is generated from #color and #lines as
+## above. This is how Quote, Signature, and most widgets work.
+##
+## If it's not expandable but is viewable, a patina is displayed using
+## #patina_color and #patina_text, but no toggling is allowed. Instead,
+## if #view! is defined, pressing enter on the widget calls view! and
+## (if that returns false) #to_s. Otherwise, enter does nothing. This
+## is how non-inlineable attachments work.
 
 module Redwood
 module Chunk
@@ -137,14 +137,19 @@ EOS
   end
 
   class EnclosedMessageNotice
-    attr_reader :from
-    def initialize from
+    attr_reader :from, :lines
+    def initialize from, body
       @from = from
+      @lines = body.split "\n"
     end
 
-    def to_s
-      "Begin enclosed message from #{@from.longname}"
-    end
+    def inlineable?; false end
+    def expandable?; true end
+
+    def patina_color; :generic_notice_patina_color end
+    def patina_text; "Begin enclosed message from #{@from.longname} (#{@lines.length} lines)" end
+
+    def color; :quote_color end
   end
 
   class CryptoNotice

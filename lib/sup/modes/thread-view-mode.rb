@@ -478,6 +478,7 @@ private
         (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. To edit, hit 'e'. <<<"]]] : [])
 
     else
+      raise "Bad chunk: #{chunk.inspect}" unless chunk.respond_to?(:inlineable?) ## debugging
       if chunk.inlineable?
         chunk.lines.map { |line| [[chunk.color, "#{prefix}#{line}"]] }
       elsif chunk.expandable?
