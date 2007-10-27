@@ -6,11 +6,7 @@ module CanAliasContacts
     if a.empty?
       ContactManager.drop_contact p
     else
-      begin
-        ContactManager.set_contact p, a
-      rescue InvalidAliasError
-        BufferManager.flash "Error: nickname cannot contain spaces."
-      end
+      ContactManager.set_contact p, a
     end
   end
 end
