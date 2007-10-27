@@ -270,8 +270,9 @@ private
   end
 
   def get_imap_fields id, *fields
-    imap_id = @imap_state[id][:id] or raise OutOfSyncSourceError, "Unknown message id #{id}"
+    raise OutOfSyncSourceError, "Unknown message id #{id}" unless @imap_state[id]
 
+    imap_id = @imap_state[id][:id]
     result = fetch(imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq).first
     got_id = make_id result
     raise OutOfSyncSourceError, "IMAP message mismatch: requested #{id}, got #{got_id}." unless got_id == id
