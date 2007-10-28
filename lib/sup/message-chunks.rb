@@ -146,10 +146,14 @@ EOS
   end
 
   class EnclosedMessage
-    attr_reader :from, :lines
+    attr_reader :lines
     def initialize from, body
       @from = from
       @lines = body.split "\n"
+    end
+
+    def from
+      @from ? @from.longname : "unknown sender"
     end
 
     def inlineable?; false end
@@ -158,7 +162,7 @@ EOS
     def viewable?; false end
 
     def patina_color; :generic_notice_patina_color end
-    def patina_text; "Begin enclosed message from #{@from.longname} (#{@lines.length} lines)" end
+    def patina_text; "Begin enclosed message from #{from} (#{@lines.length} lines)" end
 
     def color; :quote_color end
   end

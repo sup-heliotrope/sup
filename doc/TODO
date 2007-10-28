@@ -8,6 +8,7 @@ _ bugfix: sent.mbox and >From
 _ bugfix: tokenized email addresses (amazon.com, etc)
 x bugfix: trailing spaces in buffermanager.ask
 x bugfix: need to URL-unescape maildir folders
+x bugfix: downcasing tab completion
 x warnings: top-posting, missing attachment
 x hookability
 
