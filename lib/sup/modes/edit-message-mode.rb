@@ -218,9 +218,9 @@ protected
     BufferManager.flash "Sending..."
 
     begin
-      IO.popen(acct.sendmail, "w") { |p| write_full_message_to p, date }
+      IO.popen(acct.sendmail, "w") { |p| write_full_message_to p, date, false }
       raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
-      SentManager.write_sent_message(date, from_email) { |f| write_full_message_to f, date }
+      SentManager.write_sent_message(date, from_email) { |f| write_full_message_to f, date, true }
       BufferManager.kill_buffer buffer
       BufferManager.flash "Message sent!"
       true
@@ -237,7 +237,7 @@ protected
     BufferManager.flash "Saved for later editing."
   end
 
-  def write_full_message_to f, date=Time.now
+  def write_full_message_to f, date=Time.now, escape=false
     m = RMail::Message.new
     @header.each do |k, v|
       next if v.nil? || v.empty?
@@ -257,10 +257,12 @@ protected
     if @attachments.empty?
       m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
       m.body = @body.join
+      m.body = sanitize_body m.body if escape
       m.body += sig_lines.join("\n") unless $config[:edit_signature]
     else
       body_m = RMail::Message.new
       body_m.body = @body.join
+      body_m.body = sanitize_body body_m.body if escape
       body_m.body += sig_lines.join("\n") unless $config[:edit_signature]
       body_m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
       body_m.header["Content-Disposition"] = "inline"
@@ -271,6 +273,8 @@ protected
     f.puts m.to_s
   end
 
+  ## TODO: remove this. redundant with write_full_message_to.
+  ##
   ## this is going to change soon: draft messages (currently written
   ## with full=false) will be output as yaml.
   def write_message f, full=true, date=Time.now
@@ -290,11 +294,15 @@ EOS
     end
 
     f.puts
-    f.puts @body.map { |l| l =~ /^From / ? ">#{l}" : l }
+    f.puts sanitize_body(@body.join)
     f.puts sig_lines if full unless $config[:edit_signature]
   end  
 
 private
+
+  def sanitize_body body
+    body.gsub(/^From /, ">From ")
+  end
 
   def mentions_attachments?
     @body.any? { |l| l =~ /^[^>]/ && l =~ /\battach(ment|ed|ing|)\b/i }

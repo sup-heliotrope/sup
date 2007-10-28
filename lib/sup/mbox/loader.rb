@@ -68,7 +68,11 @@ class Loader < Source
       @f.seek offset
       begin
         RMail::Mailbox::MBoxReader.new(@f).each_message do |input|
-          return RMail::Parser.read(input)
+          m = RMail::Parser.read(input)
+          if m.body
+            m.body.gsub!(/^>From /, "From ")
+          end
+          return m
         end
       rescue RMail::Parser::Error => e
         raise FatalSourceError, "error parsing mbox file: #{e.message}"

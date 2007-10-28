@@ -4,8 +4,8 @@ for 0.2
 x bugfix: contacts.txt isn't parsed correctly when there are spaces in
    aliases
 x bugfix: @ signs in names make sendmail die silently
-_ bugfix: sent.mbox and >From
-_ bugfix: tokenized email addresses (amazon.com, etc)
+x bugfix: sent.mbox and >From
+x bugfix: tokenized email addresses (amazon.com, etc)
 x bugfix: trailing spaces in buffermanager.ask
 x bugfix: need to URL-unescape maildir folders
 x bugfix: downcasing tab completion

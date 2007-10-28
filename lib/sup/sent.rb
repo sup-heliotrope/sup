@@ -21,6 +21,7 @@ class SentManager
       f.puts "From #{from_email} #{date}"
       yield f
     end
+
     @source.each do |offset, labels|
       m = Message.new :source => @source, :source_info => offset, :labels => @source.labels
       Index.sync_message m
