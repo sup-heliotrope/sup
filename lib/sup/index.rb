@@ -154,7 +154,7 @@ EOS
     docid, entry = load_entry_for_id m.id unless docid && entry
 
     raise "no source info for message #{m.id}" unless m.source && m.source_info
-    raise "trying to delete non-corresponding entry #{docid}" if docid && @index[docid][:message_id] != m.id
+    raise "trying to delete non-corresponding entry #{docid} with index message-id #{@index[docid][:message_id].inspect} and parameter message id #{m.id.inspect}" if docid && @index[docid][:message_id] != m.id
 
     source_id = 
       if m.source.is_a? Integer

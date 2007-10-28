@@ -60,7 +60,7 @@ class Message
 
     @id = header["message-id"]
     if @id
-      id.gsub!(/^\s+|\s+$/, "")
+      id.gsub!(/\s+/, "")
     else
       @id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
       Redwood::log "faking message-id for message from #@from: #@id"
