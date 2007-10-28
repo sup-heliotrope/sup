@@ -305,7 +305,7 @@ EOS
       "from" => doc[:from],
       "to" => doc[:to],
       "message-id" => doc[:message_id],
-      "references" => doc[:refs],
+      "references" => doc[:refs].split(/\s+/).map { |x| "<#{x}>" }.join(" "),
     }
 
     Message.new :source => source, :source_info => doc[:source_info].to_i, 

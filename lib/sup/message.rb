@@ -55,17 +55,17 @@ class Message
 
   def parse_header header
     header.each { |k, v| header[k.downcase] = v }
-
+    
     @from = PersonManager.person_for header["from"]
 
-    @id = header["message-id"]
-    if @id
-      id.gsub!(/\s+/, "")
-    else
-      @id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
-      Redwood::log "faking message-id for message from #@from: #@id"
-    end
-
+    @id =
+      if header["message-id"]
+        sanitize_message_id header["message-id"]
+      else
+        "sup-faked-" + Digest::MD5.hexdigest(raw_header)
+        Redwood::log "faking message-id for message from #@from: #@id"
+      end
+    
     date = header["date"]
     @date =
       case date
@@ -86,8 +86,9 @@ class Message
     @to = PersonManager.people_for header["to"]
     @cc = PersonManager.people_for header["cc"]
     @bcc = PersonManager.people_for header["bcc"]
-    @refs = (header["references"] || "").gsub(/[<>]/, "").split(/\s+/).flatten
-    @replytos = (header["in-reply-to"] || "").scan(/<(.*?)>/).flatten
+    @refs = (header["references"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
+    @replytos = (header["in-reply-to"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
+
     @replyto = PersonManager.person_for header["reply-to"]
     @list_address =
       if header["list-post"]
@@ -108,6 +109,8 @@ class Message
     raise "not a draft" unless is_draft?
     @source.fn_for_offset @source_info
   end
+
+  def sanitize_message_id mid; mid.gsub(/\s/, "") end
 
   def save index
     index.sync_message self if @dirty
