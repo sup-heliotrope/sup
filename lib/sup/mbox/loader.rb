@@ -69,7 +69,7 @@ class Loader < Source
       begin
         RMail::Mailbox::MBoxReader.new(@f).each_message do |input|
           m = RMail::Parser.read(input)
-          if m.body
+          if m.body && m.body.is_a?(String)
             m.body.gsub!(/^>From /, "From ")
           end
           return m
