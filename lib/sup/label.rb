@@ -32,7 +32,8 @@ class LabelManager
   ## nicely and converted to pretty strings. use #label_for to recover
   ## the original label.
   def listable_labels
-    LISTABLE_RESERVED_LABELS + @labels.keys
+    ## uniq's only necessary here because of certain upgrade issues
+    (LISTABLE_RESERVED_LABELS + @labels.keys).uniq
   end
 
   ## all apply-able (user-defined and system listable) labels, ordered
