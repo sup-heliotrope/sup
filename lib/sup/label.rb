@@ -5,12 +5,12 @@ class LabelManager
 
   ## labels that have special semantics. user will be unable to
   ## add/remove these via normal label mechanisms.
-  RESERVED_LABELS = [ :starred, :spam, :draft, :unread, :killed, :sent, :deleted ]
+  RESERVED_LABELS = [ :starred, :spam, :draft, :unread, :killed, :sent, :deleted, :inbox ]
 
   ## labels which it nonetheless makes sense to search for by
-  LISTABLE_RESERVED_LABELS = [ :starred, :spam, :draft, :sent, :killed, :deleted ]
+  LISTABLE_RESERVED_LABELS = [ :starred, :spam, :draft, :sent, :killed, :deleted, :inbox ]
 
-  ## labels that will never be displayed to the user
+  ## labels that will typically be hidden from the user
   HIDDEN_RESERVED_LABELS = [ :starred, :unread ]
 
   def initialize fn

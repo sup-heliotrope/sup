@@ -140,10 +140,12 @@ class ThreadViewMode < LineCursorMode
 
   def edit_labels
     m = @message_lines[curpos] or return
+
+    reserved_labels = m.labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
     new_labels = BufferManager.ask_for_labels :label, "Labels for message: ", m.labels
 
     return unless new_labels
-    m.labels = new_labels
+    m.labels = (reserved_labels + new_labels).uniq
     new_labels.each { |l| LabelManager << l }
     ## TODO: don't recalculate EVERYTHING
     update
@@ -441,11 +443,12 @@ private
         rest += format_person_list "   Bcc: ", m.bcc
       end
 
+      show_labels = m.labels - LabelManager::HIDDEN_RESERVED_LABELS
       rest += [
         "   Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})",
         "   Subject: #{m.subj}",
         (parent ? "   In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil),
-        m.labels.empty? ? nil : "   Labels: #{m.labels.join(', ')}",
+        show_labels.empty? ? nil : "   Labels: #{show_labels.join(', ')}",
       ].compact
       
       from + rest.map { |l| [[color, prefix + "  " + l]] }
