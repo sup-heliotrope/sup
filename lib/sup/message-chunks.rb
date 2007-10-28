@@ -49,7 +49,12 @@ EOS
     def initialize content_type, filename, encoded_content, sibling_types
       @content_type = content_type
       @filename = filename
-      @raw_content = encoded_content.decode
+      @raw_content =
+        if encoded_content.body
+          encoded_content.decode
+        else
+          "For some bizarre reason, RubyMail was unable to parse this attachment.\n"
+        end
 
       @lines =
         case @content_type
