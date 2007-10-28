@@ -85,7 +85,10 @@ class Thread
   def first; each { |m, *o| return m if m }; nil; end
   def dirty?; any? { |m, *o| m && m.dirty? }; end
   def date; map { |m, *o| m.date if m }.compact.max; end
-  def snippet; sort_by { |m, d, p| -d }.argfind { |m, d, p| m && !m.snippet.empty? && m.snippet } || "" end
+  def snippet
+    last_m, last_stuff = select { |m, *o| m && m.snippet && !m.snippet.empty? }.sort_by { |m, *o| m.date }.last
+    last_m ? last_m.snippet : ""
+  end
   def authors; map { |m, *o| m.from if m }.compact.uniq; end
 
   def apply_label t; each { |m, *o| m && m.add_label(t) }; end
