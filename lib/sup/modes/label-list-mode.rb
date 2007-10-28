@@ -40,8 +40,8 @@ protected
     end.sort_by { |l, s, t, u| s.downcase }
 
     width = counts.max_of { |l, s, t, u| s.length }
-    @labels = counts.map { |l, s, t, u| l }
 
+    @labels = []
     counts.map do |label, string, total, unread|
       if total == 0 && !LabelManager::RESERVED_LABELS.include?(label)
         Redwood::log "no hits for label #{label}, deleting"
@@ -51,6 +51,7 @@ protected
 
       @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),
           sprintf("%#{width + 1}s %5d %s, %5d unread", string, total, total == 1 ? " message" : "messages", unread)]]
+      @labels << label
       yield i if block_given?
     end.compact
   end
