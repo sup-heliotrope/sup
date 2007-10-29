@@ -139,15 +139,12 @@ class ThreadViewMode < LineCursorMode
   end    
 
   def edit_labels
-    m = @message_lines[curpos] or return
-
-    reserved_labels = m.labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
-    new_labels = BufferManager.ask_for_labels :label, "Labels for message: ", m.labels
+    reserved_labels = @thread.labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
+    new_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", @thread.labels
 
     return unless new_labels
-    m.labels = (reserved_labels + new_labels).uniq
+    @thread.labels = (reserved_labels + new_labels).uniq
     new_labels.each { |l| LabelManager << l }
-    ## TODO: don't recalculate EVERYTHING
     update
     UpdateManager.relay self, :label, m
   end
@@ -443,7 +440,7 @@ private
         rest += format_person_list "   Bcc: ", m.bcc
       end
 
-      show_labels = m.labels - LabelManager::HIDDEN_RESERVED_LABELS
+      show_labels = @thread.labels - LabelManager::HIDDEN_RESERVED_LABELS
       rest += [
         "   Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})",
         "   Subject: #{m.subj}",
