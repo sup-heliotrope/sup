@@ -306,7 +306,7 @@ class ThreadSet
       next if contains_id? mid
 
       m = builder.call
-      load_thread_for_message m, :load_killed => opts[:load_killed], :load_deleted => opts[:load_deleted], :load_spam => opts[:load_spam]
+      load_thread_for_message m, :skip_killed => opts[:skip_killed], :load_deleted => opts[:load_deleted], :load_spam => opts[:load_spam]
       yield size if block_given?
     end
   end

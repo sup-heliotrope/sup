@@ -225,7 +225,9 @@ EOS
   ## message-building lambdas, so that building an unwanted message
   ## can be skipped in the block if desired.
   ##
-  ## stops loading any thread if a message with a :killed flag is found.
+  ## only two options, :limit and :skip_killed. if :skip_killed is
+  ## true, stops loading any thread if a message with a :killed flag
+  ## is found.
   SAME_SUBJECT_DATE_LIMIT = 7
   def each_message_in_thread_for m, opts={}
     #Redwood::log "Building thread for #{m.id}: #{m.subj}"
@@ -261,15 +263,13 @@ EOS
       q.add_query Ferret::Search::TermQuery.new(:message_id, id), :should
       q.add_query Ferret::Search::TermQuery.new(:refs, id), :should
 
-      ## load_killed is true so that we can abort if any message in
-      ## the thread has the killed label.
-      q = build_query :qobj => q, :load_killed => true
+      q = build_query :qobj => q
 
       num_queries += 1
       killed = false
       @index.search_each(q, :limit => :all) do |docid, score|
         break if opts[:limit] && messages.size >= opts[:limit]
-        if @index[docid][:label].split(/\s+/).include?("killed") && !opts[:load_killed]
+        if @index[docid][:label].split(/\s+/).include?("killed") && opts[:skip_killed]
           killed = true
           break
         end
@@ -400,7 +400,7 @@ protected
         
     query.add_query Ferret::Search::TermQuery.new("label", "spam"), :must_not unless opts[:load_spam] || labels.include?(:spam)
     query.add_query Ferret::Search::TermQuery.new("label", "deleted"), :must_not unless opts[:load_deleted] || labels.include?(:deleted)
-    query.add_query Ferret::Search::TermQuery.new("label", "killed"), :must_not unless opts[:load_killed] || labels.include?(:killed)
+    query.add_query Ferret::Search::TermQuery.new("label", "killed"), :must_not if opts[:skip_killed]
     query
   end
 

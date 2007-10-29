@@ -9,7 +9,7 @@ class InboxMode < ThreadIndexMode
   end
 
   def initialize
-    super [:inbox, :sent], { :label => :inbox }
+    super [:inbox, :sent], { :label => :inbox, :skip_killed => true }
     raise "can't have more than one!" if defined? @@instance
     @@instance = self
   end

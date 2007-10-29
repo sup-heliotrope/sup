@@ -3,7 +3,7 @@ module Redwood
 class SearchResultsMode < ThreadIndexMode
   def initialize qobj
     @qobj = qobj
-    super [], { :qobj => @qobj, :load_killed => true, :load_spam => false }
+    super [], { :qobj => @qobj }
   end
 
   ## a proper is_relevant? method requires some way of asking ferret
