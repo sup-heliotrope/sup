@@ -1,3 +1,12 @@
+== 0.2 / 2007-10-29
+* Complete hook system for user-inserted code.
+* GPG signature verification and decryption.
+* Automatically scold users who top-post.
+* Automatically warn when sending a message with words like
+  "attachment" in the body if there aren't actually any attachments to
+  the message.
+* Millions of bugfixes.
+
 == 0.1 / 2007-07-17
 * MIME attachment creation.
 * i18n support: character set conversion and rfc2047 header decoding.
