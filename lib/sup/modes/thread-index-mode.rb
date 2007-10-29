@@ -10,19 +10,19 @@ class ThreadIndexMode < LineCursorMode
 
   register_keymap do |k|
     k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
-    k.add :reload, "Discard threads and reload", '@'
+    k.add :reload, "Refresh view", '@'
     k.add :toggle_archived, "Toggle archived status", 'a'
     k.add :toggle_starred, "Star or unstar all messages in thread", '*'
     k.add :toggle_new, "Toggle new/read status of all messages in thread", 'N'
     k.add :edit_labels, "Edit or add labels for a thread", 'l'
     k.add :edit_message, "Edit message (drafts only)", 'e'
-    k.add :mark_as_spam, "Mark thread as spam", 'S'
-    k.add :delete, "Mark thread for deletion", 'd'
+    k.add :toggle_spam, "Mark/unmark thread as spam", 'S'
+    k.add :toggle_deleted, "Delete/undelete thread", 'd'
     k.add :kill, "Kill thread (never to be seen in inbox again)", '&'
     k.add :save, "Save changes now", '$'
     k.add :jump_to_next_new, "Jump to next new thread", :tab
-    k.add :reply, "Reply to a thread", 'r'
-    k.add :forward, "Forward a thread", 'f'
+    k.add :reply, "Reply to latest message in a thread", 'r'
+    k.add :forward, "Forward latest message in a thread", 'f'
     k.add :toggle_tagged, "Tag/untag current line", 't'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", ';'
   end
@@ -150,8 +150,10 @@ class ThreadIndexMode < LineCursorMode
   def actually_toggle_starred t
     if t.has_label? :starred # if ANY message has a star
       t.remove_label :starred # remove from all
+      UpdateManager.relay self, :unstarred, t
     else
       t.first.add_label :starred # add only to first
+      UpdateManager.relay self, :starred, t
     end
   end  
 
@@ -174,6 +176,26 @@ class ThreadIndexMode < LineCursorMode
     else
       t.apply_label :inbox
       UpdateManager.relay self, :unarchived, t
+    end
+  end
+
+  def actually_toggle_spammed t
+    if t.has_label? :spam
+      t.remove_label :spam
+      UpdateManager.relay self, :unspammed, t
+    else
+      t.apply_label :spam
+      UpdateManager.relay self, :spammed, t
+    end
+  end
+
+  def actually_toggle_deleted t
+    if t.has_label? :deleted
+      t.remove_label :deleted
+      UpdateManager.relay self, :undeleted, t
+    else
+      t.apply_label :deleted
+      UpdateManager.relay self, :deleted, t
     end
   end
 
@@ -216,28 +238,36 @@ class ThreadIndexMode < LineCursorMode
     end
   end
 
-  def mark_as_spam
+  def toggle_spam
     t = @threads[curpos] or return
-    multi_mark_as_spam [t]
+    multi_toggle_spam [t]
   end
 
-  def multi_mark_as_spam threads
+  ## both spam and deleted have the curious characteristic that you
+  ## always want to hide the thread after either applying or removing
+  ## that label. in all thread-index-views except for
+  ## label-search-results-mode, when you mark a message as spam or
+  ## deleted, you want it to disappear immediately; in LSRM, you only
+  ## see deleted or spam emails, and when you undelete or unspam them
+  ## you also want them to disappear immediately.
+  def multi_toggle_spam threads
     threads.each do |t|
-      t.toggle_label :spam
-      hide_thread t
+      actually_toggle_spammed t
+      hide_thread t 
     end
     regen_text
   end
 
-  def delete
+  def toggle_deleted
     t = @threads[curpos] or return
-    multi_delete [t]
+    multi_toggle_deleted [t]
   end
 
-  def multi_delete threads
+  ## see comment for multi_toggle_spam
+  def multi_toggle_deleted threads
     threads.each do |t|
-      t.toggle_label :deleted
-      hide_thread t
+      actually_toggle_deleted t
+      hide_thread t 
     end
     regen_text
   end
