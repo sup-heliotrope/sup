@@ -1,5 +1,17 @@
 module Redwood
 
+module CanSpawnComposeMode
+  def spawn_compose_mode opts={}
+    to = opts[:to] || BufferManager.ask_for_contacts(:people, "To: ") or return
+    cc = opts[:cc] || BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc]
+    bcc = opts[:bcc] || BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc]
+    
+    mode = ComposeMode.new :to => to, :cc => cc, :bcc => bcc
+    BufferManager.spawn "New Message", mode
+    mode.edit_message
+  end
+end
+
 class ComposeMode < EditMessageMode
   def initialize opts={}
     header = {

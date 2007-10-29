@@ -92,6 +92,7 @@ EOS
 end
 
 begin
+  extend CanSpawnComposeMode
   Redwood::start
   Index.load
 
@@ -253,13 +254,7 @@ begin
         end
 
       when :compose
-        to = BufferManager.ask_for_contacts(:people, "To: ") or next
-        cc = BufferManager.ask_for_contacts(:people, "Cc: ") or next if $config[:ask_for_cc]
-        bcc = BufferManager.ask_for_contacts(:people, "Bcc: ") or next if $config[:ask_for_bcc]
-
-        mode = ComposeMode.new :to => to, :cc => cc, :bcc => bcc
-        bm.spawn "New Message", mode
-        mode.edit_message
+        spawn_compose_mode
       when :poll
         reporting_thread { PollManager.poll }
       when :recall_draft

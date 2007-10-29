@@ -1,6 +1,8 @@
 module Redwood
 
 class ThreadViewMode < LineCursorMode
+  include CanSpawnComposeMode
+
   ## this holds all info we need to lay out a message
   class MessageLayout
     attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color, :star_color, :orig_new
@@ -128,14 +130,11 @@ class ThreadViewMode < LineCursorMode
 
   def compose
     p = @person_lines[curpos]
-    mode =
-      if p
-        ComposeMode.new :to => [p]
-      else
-        ComposeMode.new
-      end
-    BufferManager.spawn "Compose message", mode
-    mode.edit_message
+    if p
+      spawn_compose_mode :to => [p]
+    else
+      spawn_compose_mode
+    end
   end    
 
   def edit_labels
