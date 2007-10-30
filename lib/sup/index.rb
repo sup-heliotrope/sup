@@ -18,6 +18,7 @@ class Index
   include Singleton
 
   attr_reader :index
+  alias ferret index
   def initialize dir=BASE_DIR
     @dir = dir
     @sources = {}
