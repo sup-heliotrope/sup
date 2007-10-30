@@ -529,7 +529,7 @@ protected
     dp = t.direct_participants.any? { |p| AccountManager.is_account? p }
     p = dp || t.participants.any? { |p| AccountManager.is_account? p }
 
-    base_color =
+    subj_color =
       if new
         :index_new_color
       elsif starred
@@ -537,6 +537,8 @@ protected
       else 
         :index_old_color
       end
+
+    snippet = t.snippet + (t.snippet.empty? ? "" : "...")
 
     [ 
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
@@ -547,10 +549,10 @@ protected
       [
       [:none, t.size == 1 ? " " * (@size_width + 2) : sprintf("(%#{@size_width}d)", t.size)],
       [:to_me_color, dp ? " >" : (p ? ' +' : "  ")],
-      [base_color, t.subj + (t.subj.empty? ? "" : " ")],
+      [subj_color, t.subj + (t.subj.empty? ? "" : " ")],
     ] +
       (t.labels - @hidden_labels).map { |label| [:label_color, "+#{label} "] } +
-      [[:snippet_color, t.snippet]
+      [[:snippet_color, snippet]
     ]
 
   end
