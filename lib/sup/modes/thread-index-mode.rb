@@ -5,7 +5,7 @@ module Redwood
 
 class ThreadIndexMode < LineCursorMode
   DATE_WIDTH = Time::TO_NICE_S_MAX_LEN
-  FROM_WIDTH = 15
+  MIN_FROM_WIDTH = 15
   LOAD_MORE_THREAD_NUM = 20
 
   register_keymap do |k|
@@ -34,7 +34,6 @@ class ThreadIndexMode < LineCursorMode
     @load_thread_opts = load_thread_opts
     @hidden_labels = hidden_labels + LabelManager::HIDDEN_RESERVED_LABELS
     @date_width = DATE_WIDTH
-    @from_width = FROM_WIDTH
     @size_width = nil
     
     @tags = Tagger.new self
@@ -425,6 +424,11 @@ class ThreadIndexMode < LineCursorMode
     end
   end
 
+  def resize rows, cols
+    regen_text
+    super
+  end
+
 protected
 
   def cursor_thread; @threads[curpos]; end
@@ -463,28 +467,64 @@ protected
     buffer.mark_dirty if buffer
   end
   
-  def author_text_for_thread t
-    t.authors.map do |p|
-      if AccountManager.is_account?(p)
-        "me"
-      elsif t.authors.size == 1
-        p.mediumname
-      else
-        p.shortname
-      end
-    end.uniq.join ","
+  def authors; map { |m, *o| m.from if m }.compact.uniq; end
+
+  def author_names_and_newness_for_thread t
+    new = {}
+    authors = t.map do |m, *o|
+      next unless m
+
+      name = 
+        if AccountManager.is_account?(m.from)
+          "me"
+        elsif t.authors.size == 1
+          m.from.mediumname
+        else
+          m.from.shortname
+        end
+
+      new[name] ||= m.has_label?(:unread)
+      name
+    end
+
+    authors.compact.uniq.map { |a| [a, new[a]] }
   end
 
   def text_for_thread t
     date = t.date.to_nice_s
-    from = author_text_for_thread t
-    if from.length > @from_width
-      from = from[0 ... (@from_width - 1)]
-      from += "." unless from[-1] == ?\s
-    end
 
     new = t.has_label?(:unread)
     starred = t.has_label?(:starred)
+
+    ## format the from column
+    cur_width = 0
+    ann = author_names_and_newness_for_thread t
+    from = []
+    ann.each_with_index do |(name, newness), i|
+      break if cur_width >= from_width
+      last = i == ann.length - 1
+
+      abbrev =
+        if cur_width + name.length > from_width
+          name[0 ... (from_width - cur_width - 1)] + "."
+        elsif cur_width + name.length == from_width
+          name[0 ... (from_width - cur_width)]
+        else
+          if last
+            name[0 ... (from_width - cur_width)]
+          else
+            name[0 ... (from_width - cur_width - 1)] + "," 
+          end
+        end
+
+      cur_width += abbrev.length
+
+      if last && from_width > cur_width
+        abbrev += " " * (from_width - cur_width)
+      end
+
+      from << [(newness ? :index_new_color : (starred ? :index_starred_color : :index_old_color)), abbrev]
+    end
 
     dp = t.direct_participants.any? { |p| AccountManager.is_account? p }
     p = dp || t.participants.any? { |p| AccountManager.is_account? p }
@@ -502,7 +542,9 @@ protected
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
       [:none, sprintf("%#{@date_width}s", date)],
       (starred ? [:starred_color, "*"] : [:none, " "]),
-      [base_color, sprintf("%-#{@from_width}s", from)],
+    ] +
+      from +
+      [
       [:none, t.size == 1 ? " " * (@size_width + 2) : sprintf("(%#{@size_width}d)", t.size)],
       [:to_me_color, dp ? " >" : (p ? ' +' : "  ")],
       [base_color, t.subj + (t.subj.empty? ? "" : " ")],
@@ -510,11 +552,16 @@ protected
       (t.labels - @hidden_labels).map { |label| [:label_color, "+#{label} "] } +
       [[:snippet_color, t.snippet]
     ]
+
   end
 
   def dirty?; (@hidden_threads.keys + @threads).any? { |t| t.dirty? }; end
 
 private
+
+  def from_width
+    [(buffer.content_width.to_f * 0.2).to_i, MIN_FROM_WIDTH].max
+  end
 
   def initialize_threads
     @ts = ThreadSet.new Index.instance, $config[:thread_by_subject]
