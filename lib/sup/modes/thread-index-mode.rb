@@ -90,6 +90,10 @@ class ThreadIndexMode < LineCursorMode
   
   def handle_label_update sender, m
     t = @ts.thread_for(m) or return
+    handle_label_thread_update sender, t
+  end
+
+  def handle_label_thread_update sender, t
     l = @lines[t] or return
     update_text_for_line l
     BufferManager.draw_screen

@@ -145,7 +145,7 @@ class ThreadViewMode < LineCursorMode
     @thread.labels = (reserved_labels + new_labels).uniq
     new_labels.each { |l| LabelManager << l }
     update
-    UpdateManager.relay self, :label, m
+    UpdateManager.relay self, :label_thread, @thread
   end
 
   def toggle_starred
