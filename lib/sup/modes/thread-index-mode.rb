@@ -551,7 +551,7 @@ protected
     ] +
       from +
       [
-      [:none, t.size == 1 ? " " * (@size_width + 2) : sprintf("(%#{@size_width}d)", t.size)],
+      [subj_color, t.size == 1 ? " " * (@size_width + 2) : sprintf("(%#{@size_width}d)", t.size)],
       [:to_me_color, dp ? " >" : (p ? ' +' : "  ")],
       [subj_color, t.subj + (t.subj.empty? ? "" : " ")],
     ] +
