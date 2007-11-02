@@ -121,7 +121,7 @@ protected
     (@m.refs + [@m.id]).map { |x| "<#{x}>" }.join(" ")
   end
 
-  def edit_field
+  def edit_message_or_field
     @selected_type = :user
     self.header = @headers[:user]
     update
