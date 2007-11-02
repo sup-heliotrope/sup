@@ -99,12 +99,14 @@ begin
   if(s = Index.source_for DraftManager.source_name)
     DraftManager.source = s
   else
+    Redwood::log "no draft source, auto-adding..."
     Index.add_source DraftManager.new_source
   end
 
   if(s = Index.source_for SentManager.source_name)
     SentManager.source = s
   else
+    Redwood::log "no sent mail source, auto-adding..."
     Index.add_source SentManager.new_source
   end
 

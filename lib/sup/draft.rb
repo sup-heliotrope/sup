@@ -47,7 +47,7 @@ class DraftLoader < Source
   def initialize cur_offset=0
     dir = Redwood::DRAFT_DIR
     Dir.mkdir dir unless File.exists? dir
-    super "draft://#{dir}", cur_offset, true, false
+    super DraftManager.source_name, cur_offset, true, false
     @dir = dir
   end
 
