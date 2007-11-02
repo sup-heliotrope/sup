@@ -62,8 +62,9 @@ class Message
       if header["message-id"]
         sanitize_message_id header["message-id"]
       else
-        Redwood::log "faking message-id for message from #@from: #@id"
-        "sup-faked-" + Digest::MD5.hexdigest(raw_header)
+        returning("sup-faked-" + Digest::MD5.hexdigest(raw_header)) do |id|
+          Redwood::log "faking message-id for message from #@from: #{id}"
+        end
       end
     
     date = header["date"]
