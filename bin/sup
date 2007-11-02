@@ -218,19 +218,7 @@ begin
         b = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
         b.mode.load_in_background
       when :search
-        text = bm.ask :search, "query: "
-        next unless text && text !~ /^\s*$/
-
-        begin
-          qobj = Index.parse_user_query_string text
-          short_text = text.length < 20 ? text : text[0 ... 20] + "..."
-          log "built query from #{text.inspect}: #{qobj}"
-          mode = SearchResultsMode.new qobj
-          bm.spawn "search: \"#{short_text}\"", mode
-          mode.load_threads :num => mode.buffer.content_height
-        rescue Ferret::QueryParser::QueryParseException => e
-          bm.flash "Couldn't parse query."
-        end
+        SearchResultsMode.spawn_by_query
       when :list_labels
         labels = LabelManager.listable_labels.map { |l| LabelManager.string_for l }
         user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
