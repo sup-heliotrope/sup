@@ -4,6 +4,7 @@ class LabelListMode < LineCursorMode
   register_keymap do |k|
     k.add :select_label, "Select label", :enter
     k.add :reload, "Discard label list and reload", '@'
+    k.add :toggle_show_unread_only, "Toggle between all labels and those with unread mail", :tab
   end
 
   bool_reader :done
@@ -14,6 +15,7 @@ class LabelListMode < LineCursorMode
     @text = []
     @done = false
     @value = nil
+    @unread_only = false
     super
     regen_text
   end
@@ -22,12 +24,16 @@ class LabelListMode < LineCursorMode
   def [] i; @text[i] end
 
 protected
+  def toggle_show_unread_only
+    @unread_only = !@unread_only
+    reload
+  end
 
   def reload
     regen_text
     buffer.mark_dirty if buffer
   end
-  
+
   def regen_text
     @text = []
     labels = LabelManager.listable_labels
@@ -40,6 +46,10 @@ protected
     end.sort_by { |l, s, t, u| s.downcase }
 
     width = counts.max_of { |l, s, t, u| s.length }
+
+    if @unread_only
+      counts.delete_if { | l, s, t, u | u == 0 }
+    end
 
     @labels = []
     counts.map do |label, string, total, unread|
