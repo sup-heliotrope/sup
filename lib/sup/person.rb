@@ -21,6 +21,7 @@ class PersonManager
     File.open(@fn, "w") do |f|
       @@people.each do |email, p|
         next if p.email == p.name
+        next if p.email =~ /=/ # drop rfc2047-encoded, and lots of other useless emails. definitely a heuristic.
         f.puts "#{p.email}: #{p.timestamp} #{p.name}"
       end
     end
