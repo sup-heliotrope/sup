@@ -30,7 +30,10 @@ EOS
 
   register_keymap do |k|
     k.add :send_message, "Send message", 'y'
-    k.add :edit_field, "Edit field", 'e'
+    k.add :edit_message_or_field, "Edit selected field", 'e'
+    k.add :edit_to, "Edit To:", 't'
+    k.add :edit_cc, "Edit Cc:", 'c'
+    k.add :edit_subject, "Edit Subject", 's'
     k.add :edit_message, "Edit message", :enter
     k.add :save_as_draft, "Save as draft", 'P'
     k.add :attach_file, "Attach a file", 'a'
@@ -59,32 +62,17 @@ EOS
   ## a hook
   def handle_new_text header, body; end
 
-  def edit_field
+  def edit_message_or_field
     if (curpos - @skip_top_rows) >= @header_lines.length
       edit_message
     else
-      case(field = @header_lines[curpos - @skip_top_rows])
-      when "Subject"
-        text = BufferManager.ask :subject, "Subject: ", @header[field]
-        @header[field] = parse_header field, text if text
-      else
-        default =
-          case field
-          when *MULTI_HEADERS
-            @header[field].join(", ")
-          else
-            @header[field]
-          end
-
-        contacts = BufferManager.ask_for_contacts :people, "#{field}: ", default
-        if contacts
-          text = contacts.map { |s| s.longname }.join(", ")
-          @header[field] = parse_header field, text
-        end
-      end
-      update
+      edit_field @header_lines[curpos - @skip_top_rows]
     end
   end
+
+  def edit_to; edit_field "To" end
+  def edit_cc; edit_field "Cc" end
+  def edit_subject; edit_field "Subject" end
 
   def edit_message
     @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
@@ -299,6 +287,30 @@ EOS
   end  
 
 private
+
+  def edit_field field
+    case field
+    when "Subject"
+      text = BufferManager.ask :subject, "Subject: ", @header[field]
+      @header[field] = parse_header field, text if text
+    else
+      default =
+        case field
+        when *MULTI_HEADERS
+          @header[field].join(", ")
+        else
+          @header[field]
+        end
+
+      contacts = BufferManager.ask_for_contacts :people, "#{field}: ", default
+      if contacts
+        text = contacts.map { |s| s.longname }.join(", ")
+        @header[field] = parse_header field, text
+      end
+    end
+
+    update
+  end
 
   def sanitize_body body
     body.gsub(/^From /, ">From ")
