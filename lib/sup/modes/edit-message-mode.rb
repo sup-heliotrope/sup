@@ -286,13 +286,17 @@ EOS
     f.puts sig_lines if full unless $config[:edit_signature]
   end  
 
-private
+protected
 
   def edit_field field
     case field
     when "Subject"
       text = BufferManager.ask :subject, "Subject: ", @header[field]
-      @header[field] = parse_header field, text if text
+       if text
+         @header[field] = parse_header field, text
+         update
+         field
+       end
     else
       default =
         case field
@@ -306,11 +310,13 @@ private
       if contacts
         text = contacts.map { |s| s.longname }.join(", ")
         @header[field] = parse_header field, text
+        update
+        field
       end
     end
-
-    update
   end
+
+private
 
   def sanitize_body body
     body.gsub(/^From /, ">From ")

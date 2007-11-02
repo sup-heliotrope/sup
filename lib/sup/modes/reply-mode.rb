@@ -121,11 +121,12 @@ protected
     (@m.refs + [@m.id]).map { |x| "<#{x}>" }.join(" ")
   end
 
-  def edit_message_or_field
-    @selected_type = :user
-    self.header = @headers[:user]
-    update
-    super
+  def edit_field field
+    edited_field = super
+    if edited_field && edited_field != "Subject"
+      @selected_type = :user
+      update
+    end
   end
   
   def move_cursor_left
