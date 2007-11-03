@@ -19,6 +19,7 @@ Options are:
 EOS
   opt :list_hooks, "List all hooks and descriptions thereof, and quit."
   opt :no_threads, "Turn of threading. Helps with debugging. (Necessarily disables background polling for new messages.)"
+  opt :search, "Search for threads ", :type => String
 end
 
 if $opts[:list_hooks]
@@ -195,6 +196,10 @@ begin
     Index.start_lock_update_thread
   end
 
+  if $opts[:search]
+    SearchResultsMode.spawn_from_query $opts[:search]
+  end
+
   until $exception || SuicideManager.die?
     c = Ncurses.nonblocking_getch
     next unless c
@@ -220,7 +225,9 @@ begin
         b = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
         b.mode.load_in_background
       when :search
-        SearchResultsMode.spawn_by_query
+        query = BufferManager.ask :search, "query: "
+        next unless query && query !~ /^\s*$/
+        SearchResultsMode.spawn_from_query query
       when :list_labels
         labels = LabelManager.listable_labels.map { |l| LabelManager.string_for l }
         user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels

@@ -11,7 +11,9 @@ class SearchResultsMode < ThreadIndexMode
   end
 
   def refine_search
-    SearchResultsMode.spawn_by_query(@qobj.to_s + " ")
+    query = BufferManager.ask :search, "query: ", (@qobj.to_s + " ")
+    return unless query && query !~ /^\s*$/
+    SearchResultsMode.spawn_from_query query
   end
 
   ## a proper is_relevant? method requires some way of asking ferret
@@ -20,10 +22,7 @@ class SearchResultsMode < ThreadIndexMode
   ## the message, and search against it to see if i have > 0 results,
   ## but that seems pretty insane.
 
-  def self.spawn_by_query default=""
-    text = BufferManager.ask :search, "query: ", default
-    return unless text && text !~ /^\s*$/
-
+  def self.spawn_from_query text
     begin
       qobj = Index.parse_user_query_string text
       short_text = text.length < 20 ? text : text[0 ... 20] + "..."
