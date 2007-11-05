@@ -23,7 +23,8 @@ class ThreadIndexMode < LineCursorMode
     k.add :jump_to_next_new, "Jump to next new thread", :tab
     k.add :reply, "Reply to latest message in a thread", 'r'
     k.add :forward, "Forward latest message in a thread", 'f'
-    k.add :toggle_tagged, "Tag/untag current line", 't'
+    k.add :toggle_tagged, "Tag/untag selected thread", 't'
+    k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", ';'
   end
 
@@ -319,6 +320,11 @@ class ThreadIndexMode < LineCursorMode
     @tags.toggle_tag_for t
     update_text_for_line curpos
     cursor_down
+  end
+  
+  def toggle_tagged_all
+    @threads.each { |t| @tags.toggle_tag_for t }
+    regen_text
   end
 
   def apply_to_tagged; @tags.apply_to_tagged; end
