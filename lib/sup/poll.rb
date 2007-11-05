@@ -5,6 +5,12 @@ module Redwood
 class PollManager
   include Singleton
 
+  HookManager.register "before-add-message", <<EOS
+Executes immediately before a message is added to the index.
+Variables:
+  message: the new message
+EOS
+
   HookManager.register "before-poll", <<EOS
 Executes immediately before a poll for new messages commences.
 No variables.
@@ -18,7 +24,7 @@ Variables:
                        not auto-archived).
         from_and_subj: an array of (from email address, subject) pairs
   from_and_subj_inbox: an array of (from email address, subject) pairs for
-                       messages appearing in the inbox
+                       only those messages appearing in the inbox
 EOS
 
   DELAY = 300
@@ -148,6 +154,7 @@ EOS
 
           docid, entry = Index.load_entry_for_id m.id
           m = yield(m, offset, entry) or next
+          HookManager.run "before-add-message", :message => m
           Index.sync_message m, docid, entry
           UpdateManager.relay self, :add, m unless entry
         rescue MessageFormatError => e

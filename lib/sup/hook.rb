@@ -12,6 +12,7 @@ class HookManager
   ## this is basically fail-fast.
   class HookContext
     def initialize name
+      @__say_id = nil
       @__name = name
       @__locals = {}
     end
@@ -30,8 +31,12 @@ class HookManager
     end
 
     def say s
-      @__say_id = BufferManager.say s, @__say_id
-      BufferManager.draw_screen
+      if BufferManager.instantiated?
+        @__say_id = BufferManager.say s, @__say_id
+        BufferManager.draw_screen
+      else
+        log s
+      end
     end
 
     def log s
@@ -39,7 +44,12 @@ class HookManager
     end
 
     def ask_yes_or_no q
-      BufferManager.ask_yes_or_no q
+      if BufferManager.instantiated?
+        BufferManager.ask_yes_or_no q
+      else
+        print q
+        gets.chomp.downcase == 'y'
+      end
     end
 
     def __binding 
