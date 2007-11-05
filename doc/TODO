@@ -1,17 +1,3 @@
-for 0.2
--------
-
-x bugfix: contacts.txt isn't parsed correctly when there are spaces in
-   aliases
-x bugfix: @ signs in names make sendmail die silently
-x bugfix: sent.mbox and >From
-x bugfix: tokenized email addresses (amazon.com, etc)
-x bugfix: trailing spaces in buffermanager.ask
-x bugfix: need to URL-unescape maildir folders
-x bugfix: downcasing tab completion
-x warnings: top-posting, missing attachment
-x hookability
-
 for 0.3
 -------
 _ mark thread as unread should remember the unread messages and mark
@@ -23,7 +9,9 @@ _ mailing list auto-subscribe/unsubscribe
 _ forwards optionally include attachments
 _ attach messages
 _ flesh out gpg integration: sign & encrypt outgoing
-_ mbox: don't keep filehandles open, and protect all reads with dotlockfile
+_ mbox: don't keep filehandles open, and protect all reads with
+   dotlockfile
+_ imap: share connection to the same server.
 _ bugfix: screwing with the headers when editing causes a crash
 _ need a better way to force an address to a particular name,
    for things like evite addresses
@@ -83,6 +71,16 @@ x gmail support: obsoleted by imap
 
 done
 ----
+x bugfix: contacts.txt isn't parsed correctly when there are spaces in
+   aliases
+x bugfix: @ signs in names make sendmail die silently
+x bugfix: sent.mbox and >From
+x bugfix: tokenized email addresses (amazon.com, etc)
+x bugfix: trailing spaces in buffermanager.ask
+x bugfix: need to URL-unescape maildir folders
+x bugfix: downcasing tab completion
+x warnings: top-posting, missing attachment
+x hookability
 x bugfix: deadlock (on rubyforge) (? still valid ?)
 x bugfix: ferret corrupt index problem at index.c:901. see http://ferret.davebalmain.com/trac/ticket/279
 x tab completion for to: and cc: in compose-mode
