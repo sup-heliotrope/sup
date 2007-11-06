@@ -44,7 +44,7 @@ class Keymap
     when :end: "<end>"
     when :enter, :return: "<enter>"
     when :ctrl_l: "ctrl-l"
-    when :ctrl_l: "ctrl-g"
+    when :ctrl_g: "ctrl-g"
     when :tab: "tab"
     when " ": "<space>"
     else
