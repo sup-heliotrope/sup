@@ -198,6 +198,7 @@ else
     :edit_signature => false,
     :ask_for_cc => true,
     :ask_for_bcc => false,
+    :ask_for_subject => true,
     :confirm_no_attachments => true,
     :confirm_top_posting => true,
   }

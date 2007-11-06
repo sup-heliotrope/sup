@@ -86,7 +86,7 @@ EOS
     def viewable?; @lines.nil? end
     def view!
       path = write_to_disk
-      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{path} >& /dev/null"
+      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{path} > /dev/null 2> /dev/null"
       $? == 0
     end
 
