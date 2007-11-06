@@ -55,6 +55,19 @@ protected
     buffer.mark_dirty
   end
 
+  ## override search behavior to be cursor-based
+  def search_goto_line line
+    while line > botline
+      page_down
+    end
+    while line < topline
+      page_up
+    end
+    set_cursor_pos line
+  end
+
+  def search_start_line; @curpos end
+ 
   def line_down # overwrite scrollmode
     super
     call_load_more_callbacks([topline + buffer.content_height - lines, 10].max) if topline + buffer.content_height > lines

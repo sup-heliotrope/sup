@@ -22,14 +22,14 @@ class Colormap
                                                    []) + [nil]
   end
 
-  def add sym, fg, bg, *attrs
-    raise ArgumentError, "color for #{sym} already defined" if
-      @entries.member? sym
+  def add sym, fg, bg, attr=nil, opts={}
+    raise ArgumentError, "color for #{sym} already defined" if @entries.member? sym
     raise ArgumentError, "color '#{fg}' unknown" unless CURSES_COLORS.include? fg
     raise ArgumentError, "color '#{bg}' unknown" unless CURSES_COLORS.include? bg
+    attrs = [attr].flatten.compact
 
     @entries[sym] = [fg, bg, attrs, nil]
-    @entries[highlight_sym(sym)] = highlight_for(fg, bg, attrs) + [nil]
+    @entries[highlight_sym(sym)] = opts[:highlight] ? @entries[opts[:highlight]] : highlight_for(fg, bg, attrs) + [nil]
   end
 
   def highlight_sym sym

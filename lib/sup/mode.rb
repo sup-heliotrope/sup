@@ -27,6 +27,8 @@ class Mode
   def draw; end
   def focus; end
   def blur; end
+  def cancel_search!; end
+  def in_search?; false end
   def status; ""; end
   def resize rows, cols; end
   def cleanup

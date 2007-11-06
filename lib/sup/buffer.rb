@@ -133,6 +133,11 @@ class BufferManager
 
   attr_reader :focus_buf
 
+  ## we have to define the key used to continue in-buffer search here, because
+  ## it has special semantics that BufferManager deals with---current searches
+  ## are canceled by any keypress except this one.
+  CONTINUE_IN_BUFFER_SEARCH_KEY = "n"
+
   def initialize
     @name_map = {}
     @buffers = []
@@ -190,7 +195,13 @@ class BufferManager
   end
 
   def handle_input c
-    @focus_buf && @focus_buf.mode.handle_input(c)
+    if @focus_buf
+      if @focus_buf.mode.in_search? && c != CONTINUE_IN_BUFFER_SEARCH_KEY[0]
+        @focus_buf.mode.cancel_search!
+        @focus_buf.mark_dirty
+      end
+      @focus_buf.mode.handle_input c
+    end
   end
 
   def exists? n; @name_map.member? n; end

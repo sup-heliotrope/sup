@@ -40,10 +40,11 @@ global_keymap = Keymap.new do |k|
   k.add :list_buffers, "List all buffers", 'B'
   k.add :list_contacts, "List contacts", 'C'
   k.add :redraw, "Redraw screen", :ctrl_l
-  k.add :search, "Search messages", '/'
+  k.add :search, "Search all messages", '\\'
   k.add :list_labels, "List labels", 'L'
   k.add :poll, "Poll for new messages", 'P'
   k.add :compose, "Compose new message", 'm'
+  k.add :nothing, "Do nothing", :ctrl_g
   k.add :recall_draft, "Edit most recent draft message", 'R'
 end
 
@@ -157,6 +158,7 @@ begin
     c.add :reply_mode_selected_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, Ncurses::A_BOLD
     c.add :reply_mode_unselected_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
     c.add :reply_mode_label_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
+    c.add :search_highlight_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_YELLOW, Ncurses::A_BOLD, :highlight => :search_highlight_color
   end
 
   log "initializing buffer manager"
@@ -274,7 +276,7 @@ begin
       when :redraw
         bm.completely_redraw_screen
       else
-        bm.flash "Unknown key press '#{c.to_character}' for #{bm.focus_buf.mode.name}."
+        bm.flash "Unknown keypress '#{c.to_character}' for #{bm.focus_buf.mode.name}."
       end
     end
 

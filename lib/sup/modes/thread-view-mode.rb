@@ -236,6 +236,7 @@ class ThreadViewMode < LineCursorMode
   end
 
   def jump_to_next_open
+    return continue_search_in_buffer if in_search? # hack: allow 'n' to apply to both operations
     m = @message_lines[curpos] or return
     while nextm = @layout[m].next
       break if @layout[nextm].state != :closed
