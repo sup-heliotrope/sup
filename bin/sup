@@ -43,7 +43,7 @@ global_keymap = Keymap.new do |k|
   k.add :search, "Search all messages", '\\'
   k.add :list_labels, "List labels", 'L'
   k.add :poll, "Poll for new messages", 'P'
-  k.add :compose, "Compose new message", 'm'
+  k.add :compose, "Compose new message", 'm', 'c'
   k.add :nothing, "Do nothing", :ctrl_g
   k.add :recall_draft, "Edit most recent draft message", 'R'
 end
