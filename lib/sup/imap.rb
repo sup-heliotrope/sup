@@ -109,6 +109,10 @@ class IMAP < Source
   def load_message id
     RMail::Parser.read raw_message(id)
   end
+  
+  def each_raw_message_line id
+    StringIO.new(raw_message(id)).each { |l| yield l }
+  end
 
   def raw_header id
     unsynchronized_scan_mailbox
@@ -164,12 +168,13 @@ class IMAP < Source
       id = ids[i]
       state = @mutex.synchronize { @imap_state[id] } or next
       self.cur_offset = id 
-      labels = { :Seen => :unread, 
-                 :Flagged => :starred,
+      labels = { :Flagged => :starred,
                  :Deleted => :deleted
                }.inject(@labels) do |cur, (imap, sup)|
         cur + (state[:flags].include?(imap) ? [sup] : [])
       end
+
+      labels += [:unread] unless state[:flags].include?(:Seen)
 
       yield id, labels
     end
@@ -228,10 +233,12 @@ private
         ## fails with a NO response, the client may try another", in
         ## practice it seems like they can also send a BAD response.
         begin
+          raise Net::IMAP::NoResponseError unless @imap.capability().member? "AUTH=CRAM-MD5"
           @imap.authenticate 'CRAM-MD5', @username, @password
         rescue Net::IMAP::BadResponseError, Net::IMAP::NoResponseError => e
           Redwood::log "CRAM-MD5 authentication failed: #{e.class}. Trying LOGIN auth..."
           begin
+            raise Net::IMAP::NoResponseError unless @imap.capability().member? "AUTH=LOGIN"
             @imap.authenticate 'LOGIN', @username, @password
           rescue Net::IMAP::BadResponseError, Net::IMAP::NoResponseError => e
             Redwood::log "LOGIN authentication failed: #{e.class}. Trying plain-text LOGIN..."
@@ -245,6 +252,8 @@ private
         shutup
       end
     end.join
+
+
 
     raise exception if exception
   end

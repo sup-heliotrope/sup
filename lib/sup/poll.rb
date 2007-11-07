@@ -153,8 +153,8 @@ EOS
           end
 
           docid, entry = Index.load_entry_for_id m.id
-          m = yield(m, offset, entry) or next
           HookManager.run "before-add-message", :message => m
+          m = yield(m, offset, entry) or next
           Index.sync_message m, docid, entry
           UpdateManager.relay self, :add, m unless entry
         rescue MessageFormatError => e

@@ -127,6 +127,8 @@ protected
     header, @header_lines = format_headers(@header - NON_EDITABLE_HEADERS) + [""]
     @text = header + [""] + @body
     @text += sig_lines unless $config[:edit_signature]
+    
+    @attachment_lines_offset = 0
 
     unless @attachments.empty?
       @text += [""]

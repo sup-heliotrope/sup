@@ -39,6 +39,15 @@ class Maildir < Source
 
     start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
   end
+  
+  def each_raw_message_line id
+    scan_mailbox
+    with_file_for(id) do |f|
+      until f.eof?
+        yield f.gets
+      end
+    end
+  end
 
   def load_header id
     scan_mailbox
