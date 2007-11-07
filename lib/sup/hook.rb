@@ -86,6 +86,7 @@ class HookManager
       log "error running hook: #{e.message}"
       log e.backtrace.join("\n")
       BufferManager.flash "Error running hook: #{e.message}"
+      @hooks[name] = nil # disable it
     end
     context.__cleanup
     result
