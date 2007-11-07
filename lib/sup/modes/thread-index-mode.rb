@@ -4,6 +4,8 @@ module Redwood
 ## - is_relevant?
 
 class ThreadIndexMode < LineCursorMode
+  include CanSpawnForwardMode
+
   DATE_WIDTH = Time::TO_NICE_S_MAX_LEN
   MIN_FROM_WIDTH = 15
   LOAD_MORE_THREAD_NUM = 20
@@ -379,9 +381,7 @@ EOS
     m = t.latest_message
     return if m.nil? # probably won't happen
     m.load_from_source!
-    mode = ForwardMode.new m
-    BufferManager.spawn "Forward of #{m.subj}", mode
-    mode.edit_message
+    spawn_forward_mode m
   end
 
   def load_n_threads_background n=LOAD_MORE_THREAD_NUM, opts={}

@@ -2,6 +2,7 @@ module Redwood
 
 class ThreadViewMode < LineCursorMode
   include CanSpawnComposeMode
+  include CanSpawnForwardMode
 
   ## this holds all info we need to lay out a message
   class MessageLayout
@@ -109,9 +110,7 @@ class ThreadViewMode < LineCursorMode
 
   def forward
     m = @message_lines[curpos] or return
-    mode = ForwardMode.new m
-    BufferManager.spawn "Forward of #{m.subj}", mode
-    mode.edit_message
+    spawn_forward_mode m
   end
 
   include CanAliasContacts
