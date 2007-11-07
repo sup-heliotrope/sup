@@ -15,7 +15,7 @@ class InboxMode < ThreadIndexMode
   end
 
   def is_relevant? m
-    m.has_label? :inbox && ([:spam, :deleted, :killed] & m.labels).length == 0
+    m.has_label?(:inbox) && ([:spam, :deleted, :killed] & m.labels).empty?
   end
 
   ## label-list-mode wants to be able to raise us if the user selects
