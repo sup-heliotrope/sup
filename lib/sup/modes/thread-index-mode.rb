@@ -8,6 +8,12 @@ class ThreadIndexMode < LineCursorMode
   MIN_FROM_WIDTH = 15
   LOAD_MORE_THREAD_NUM = 20
 
+  HookManager.register "index-mode-size-widget", <<EOS
+Generates the per-thread size widget for each thread.
+Variables:
+  thread: The message thread to be formatted.
+EOS
+
   register_keymap do |k|
     k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
     k.add :reload, "Refresh view", '@'
@@ -35,8 +41,8 @@ class ThreadIndexMode < LineCursorMode
     @load_thread_opts = load_thread_opts
     @hidden_labels = hidden_labels + LabelManager::HIDDEN_RESERVED_LABELS
     @date_width = DATE_WIDTH
-    @size_width = nil
-    
+    @size_widget_width = nil
+    @size_widgets = {}
     @tags = Tagger.new self
     
     initialize_threads
@@ -136,7 +142,9 @@ class ThreadIndexMode < LineCursorMode
   def update
     ## let's see you do THIS in python
     @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| t.date }.reverse
-    @size_width = (@threads.max_of { |t| t.size } || 0).num_digits
+    @size_widgets = @threads.map { |t| size_widget_for_thread t }
+    @size_widget_width = @size_widgets.max_of { |w| w.length }
+
     regen_text
   end
 
@@ -441,6 +449,10 @@ class ThreadIndexMode < LineCursorMode
 
 protected
 
+  def size_widget_for_thread t
+    HookManager.run("index-mode-size-widget", :thread => t) || default_size_widget_for(t)
+  end
+
   def cursor_thread; @threads[curpos]; end
 
   def drop_all_threads
@@ -467,12 +479,19 @@ protected
 
   def update_text_for_line l
     return unless l # not sure why this happens, but it does, occasionally
-    @text[l] = text_for_thread @threads[l]
-    buffer.mark_dirty if buffer
+    @size_widgets[l] = size_widget_for_thread @threads[l]
+
+    ## if the widget size has increased, we need to redraw everyone
+    if @size_widgets[l].size > @size_widget_width
+      update
+    else
+      @text[l] = text_for_thread_at l
+      buffer.mark_dirty if buffer
+    end
   end
 
   def regen_text
-    @text = @threads.map_with_index { |t, i| text_for_thread t }
+    @text = @threads.map_with_index { |t, i| text_for_thread_at i }
     @lines = @threads.map_with_index { |t, i| [t, i] }.to_h
     buffer.mark_dirty if buffer
   end
@@ -500,7 +519,10 @@ protected
     authors.compact.uniq.map { |a| [a, new[a]] }
   end
 
-  def text_for_thread t
+  def text_for_thread_at line
+    t = @threads[line]
+    size_widget = @size_widgets[line]
+
     date = t.date.to_nice_s
 
     new = t.has_label?(:unread)
@@ -550,6 +572,8 @@ protected
 
     snippet = t.snippet + (t.snippet.empty? ? "" : "...")
 
+    size_widget_text = sprintf "%#{ @size_widget_width}s", size_widget
+
     [ 
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
       [:none, sprintf("%#{@date_width}s", date)],
@@ -557,7 +581,7 @@ protected
     ] +
       from +
       [
-      [subj_color, t.size == 1 ? " " * (@size_width + 2) : sprintf("(%#{@size_width}d)", t.size)],
+      [subj_color, size_widget_text],
       [:to_me_color, dp ? " >" : (p ? ' +' : "  ")],
       [subj_color, t.subj + (t.subj.empty? ? "" : " ")],
     ] +
@@ -570,6 +594,15 @@ protected
   def dirty?; (@hidden_threads.keys + @threads).any? { |t| t.dirty? }; end
 
 private
+
+  def default_size_widget_for t
+    case t.size
+    when 1
+      ""
+    else
+      "(#{t.size})"
+    end
+  end
 
   def from_width
     [(buffer.content_width.to_f * 0.2).to_i, MIN_FROM_WIDTH].max
