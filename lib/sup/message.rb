@@ -361,11 +361,11 @@ private
   end
 
   def self.convert_from body, charset
-    return body unless charset
-
     begin
+      raise MessageFormatError, "RubyMail decode returned a null body" unless body
+      return body unless charset
       Iconv.iconv($encoding, charset, body).join
-    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
+    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence, MessageFormatError => e
       Redwood::log "warning: error (#{e.class.name}) decoding message body from #{charset}: #{e.message}"
       File.open("sup-unable-to-decode.txt", "w") { |f| f.write body }
       body
