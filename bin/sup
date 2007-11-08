@@ -311,6 +311,10 @@ ensure
 end
 
 if $exception 
+  File.open("sup-exception-log.txt", "w") do |f|
+    f.puts "--- #{e.class.name} at #{Time.now}"
+    f.puts e.message, e.backtrace
+  end
   $stderr.puts <<EOS
 ----------------------------------------------------------------
 I'm very sorry, but it seems that an error occurred in Sup. 

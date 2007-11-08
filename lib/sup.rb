@@ -69,10 +69,6 @@ module Redwood
         begin
           yield
         rescue Exception => e
-          File.open("sup-exception-log.txt", "w") do |f|
-            f.puts "--- #{e.class.name} at #{Time.now}"
-            f.puts e.message, e.backtrace
-          end
           $exception ||= e
           raise
         end
