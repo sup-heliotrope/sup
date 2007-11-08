@@ -361,9 +361,7 @@ class BufferManager
         case partial#.gsub(/#{sep}+/, sep)
         when /^\s*$/
           ["", ""]
-        when /^(.+#{sep})$/
-          [$1, ""]
-        when /^(.*#{sep})?(.+?)$/
+        when /^(.*#{sep})?(.*?)$/
           [$1 || "", $2]
         else
           raise "william screwed up completion: #{partial.inspect}"
@@ -434,10 +432,8 @@ class BufferManager
     default = default_contacts.map { |s| s.to_s }.join(" ")
     default += " " unless default.empty?
     
-    recent = Index.load_contacts(AccountManager.user_emails, :num => 10).map { |c| [c.longname, c.email] }
-    contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.longname, c.email] }
-
-    Redwood::log "recent: #{recent.inspect}"
+    recent = Index.load_contacts(AccountManager.user_emails, :num => 10).map { |c| [c.full_address, c.email] }
+    contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.full_address, c.email] }
 
     completions = (recent + contacts).flatten.uniq.sort
     answer = BufferManager.ask_many_with_completions domain, question, completions, default, /\s*,\s*/
