@@ -38,6 +38,8 @@ class ThreadViewMode < LineCursorMode
     k.add :compose, "Compose message to person", 'm'
     k.add :archive_and_kill, "Archive thread and kill buffer", 'a'
     k.add :delete_and_kill, "Delete thread and kill buffer", 'd'
+    k.add :subscribe_to_list, "Subscribe to/unsubscribe from mailing list", "("
+    k.add :unsubscribe_from_list, "Subscribe to/unsubscribe from mailing list", ")"
   end
 
   ## there are a couple important instance variables we hold to format
@@ -106,6 +108,24 @@ class ThreadViewMode < LineCursorMode
     m = @message_lines[curpos] or return
     mode = ReplyMode.new m
     BufferManager.spawn "Reply to #{m.subj}", mode
+  end
+
+  def subscribe_to_list
+    m = @message_lines[curpos] or return
+    if m.list_subscribe && m.list_subscribe =~ /<mailto:(.*?)\?(subject=(.*?))>/
+      spawn_compose_mode :from => AccountManager.account_for(m.recipient_email), :to => [PersonManager.person_for($1)], :subj => $3
+    else
+      BufferManager.flash "Can't find List-Subscribe header for this message."
+    end
+  end
+
+  def unsubscribe_from_list
+    m = @message_lines[curpos] or return
+    if m.list_unsubscribe && m.list_unsubscribe =~ /<mailto:(.*?)\?(subject=(.*?))>/
+      spawn_compose_mode :from => AccountManager.account_for(m.recipient_email), :to => [PersonManager.person_for($1)], :subj => $3
+    else
+      BufferManager.flash "Can't find List-Unsubscribe header for this message."
+    end
   end
 
   def forward

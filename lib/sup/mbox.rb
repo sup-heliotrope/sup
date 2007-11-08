@@ -30,6 +30,8 @@ module MBox
         /^(In-Reply-To):\s+(.*?)\s*$/i,
         /^(Reply-To):\s+(.*?)\s*$/i,
         /^(List-Post):\s+(.*?)\s*$/i,
+        /^(List-Subscribe):\s+(.*?)\s*$/i,
+        /^(List-Unsubscribe):\s+(.*?)\s*$/i,
         /^(Status):\s+(.*?)\s*$/i: header[last = $1] = $2
       when /^(Message-Id):\s+(.*?)\s*$/i: header[mid_field = last = $1] = $2
 
@@ -40,7 +42,7 @@ module MBox
         /^(Envelope-To):\s+(.*)$/i: header[last = $1] ||= $2
 
       when /^$/: break
-      when /:/: last = nil # some other header we don't care about
+      when /^\S+: /: last = nil # some other header we don't care about
       else
         header[last] += " " + line.chomp.gsub(/^\s+/, "") if last
       end

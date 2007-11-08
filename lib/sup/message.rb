@@ -35,7 +35,7 @@ class Message
 
   attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :source,
               :cc, :bcc, :labels, :list_address, :recipient_email, :replyto,
-              :source_info, :chunks
+              :source_info, :chunks, :list_subscribe, :list_unsubscribe
 
   bool_reader :dirty, :source_marked_read
 
@@ -107,6 +107,8 @@ class Message
 
     @recipient_email = header["envelope-to"] || header["x-original-to"] || header["delivered-to"]
     @source_marked_read = header["status"] == "RO"
+    @list_subscribe = header["list-subscribe"]
+    @list_unsubscribe = header["list-unsubscribe"]
   end
   private :parse_header
 
