@@ -45,12 +45,6 @@ class InboxMode < ThreadIndexMode
     end
   end
 
-# not quite working, and not sure if i like it anyways
-#   def handle_unarchived_update sender, t
-#     Redwood::log "unarchived #{t.subj}"
-#     show_thread t
-#   end
-
   def status
     super + "    #{Index.size} messages in index"
   end

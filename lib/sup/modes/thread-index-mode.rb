@@ -38,16 +38,19 @@ EOS
 
   def initialize hidden_labels=[], load_thread_opts={}
     super()
-    @mutex = Mutex.new
+    @mutex = Mutex.new # covers the following variables
+    @threads = {}
+    @hidden_threads = {}
+    @size_widget_width = nil
+    @size_widgets = {}
+    @tags = Tagger.new self
+
     @load_thread = nil
     @load_thread_opts = load_thread_opts
     @hidden_labels = hidden_labels + LabelManager::HIDDEN_RESERVED_LABELS
     @date_width = DATE_WIDTH
-    @size_widget_width = nil
-    @size_widgets = {}
-    @tags = Tagger.new self
     
-    initialize_threads
+    initialize_threads # defines @ts and @ts_mutex
     update
 
     UpdateManager.register self
@@ -63,7 +66,8 @@ EOS
 
   def lines; @text.length; end
   def [] i; @text[i]; end
-  def contains_thread? t; !@lines[t].nil?; end
+  #def contains_thread? t; !@lines[t].nil?; end
+  def contains_thread? t; @threads.contains?(t) end
 
   def reload
     drop_all_threads
@@ -73,7 +77,7 @@ EOS
 
   ## open up a thread view window
   def select t=nil
-    t ||= @threads[curpos] or return
+    t ||= cursor_thread or return
 
     ## TODO: don't regen text completely
     Redwood::reporting_thread do
@@ -98,7 +102,7 @@ EOS
   end
   
   def handle_label_update sender, m
-    t = @ts.thread_for(m) or return
+    t = @ts_mutex.synchronize { @ts.thread_for(m) } or return
     handle_label_thread_update sender, t
   end
 
@@ -110,7 +114,7 @@ EOS
 
   def handle_read_update sender, t
     l = @lines[t] or return
-    update_text_for_line @lines[t]
+    update_text_for_line l
     BufferManager.draw_screen
   end
 
@@ -126,32 +130,36 @@ EOS
   def is_relevant? m; false; end
 
   def handle_add_update sender, m
-    if is_relevant?(m) || @ts.is_relevant?(m)
+    @ts_mutex.synchronize do
+      return unless is_relevant?(m) || @ts.is_relevant?(m)
       @ts.load_thread_for_message m
-      update
-      BufferManager.draw_screen
     end
+    update
+    BufferManager.draw_screen
   end
 
   def handle_delete_update sender, mid
-    if @ts.contains_id? mid
+    @ts_mutex.synchronize do
+      return unless @ts.contains_id? mid
       @ts.remove mid
-      update
-      BufferManager.draw_screen
     end
+    update
+    BufferManager.draw_screen
   end
 
   def update
-    ## let's see you do THIS in python
-    @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| t.date }.reverse
-    @size_widgets = @threads.map { |t| size_widget_for_thread t }
-    @size_widget_width = @size_widgets.max_of { |w| w.length }
+    @mutex.synchronize do
+      ## let's see you do THIS in python
+      @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| t.date }.reverse
+      @size_widgets = @threads.map { |t| size_widget_for_thread t }
+      @size_widget_width = @size_widgets.max_of { |w| w.length }
+    end
 
     regen_text
   end
 
   def edit_message
-    return unless(t = @threads[curpos])
+    return unless(t = cursor_thread)
     message, *crap = t.find { |m, *o| m.has_label? :draft }
     if message
       mode = ResumeMode.new message
@@ -172,7 +180,7 @@ EOS
   end  
 
   def toggle_starred 
-    t = @threads[curpos] or return
+    t = cursor_thread or return
     actually_toggle_starred t
     update_text_for_line curpos
     cursor_down
@@ -214,7 +222,7 @@ EOS
   end
 
   def toggle_archived 
-    t = @threads[curpos] or return
+    t = cursor_thread or return
     actually_toggle_archived t
     update_text_for_line curpos
   end
@@ -225,7 +233,7 @@ EOS
   end
 
   def toggle_new
-    t = @threads[curpos] or return
+    t = cursor_thread or return
     t.toggle_label :unread
     update_text_for_line curpos
     cursor_down
@@ -237,12 +245,15 @@ EOS
   end
 
   def multi_toggle_tagged threads
-    @tags.drop_all_tags
+    @mutex.synchronize { @tags.drop_all_tags }
     regen_text
   end
 
   def jump_to_next_new
-    n = ((curpos + 1) ... lines).find { |i| @threads[i].has_label? :unread } || (0 ... curpos).find { |i| @threads[i].has_label? :unread }
+    n = @mutex.synchronize do
+      ((curpos + 1) ... lines).find { |i| @threads[i].has_label? :unread } ||
+        (0 ... curpos).find { |i| @threads[i].has_label? :unread }
+    end
     if n
       ## jump there if necessary
       jump_to_line n unless n >= topline && n < botline
@@ -253,7 +264,7 @@ EOS
   end
 
   def toggle_spam
-    t = @threads[curpos] or return
+    t = cursor_thread or return
     multi_toggle_spam [t]
   end
 
@@ -273,7 +284,7 @@ EOS
   end
 
   def toggle_deleted
-    t = @threads[curpos] or return
+    t = cursor_thread or return
     multi_toggle_deleted [t]
   end
 
@@ -287,7 +298,7 @@ EOS
   end
 
   def kill
-    t = @threads[curpos] or return
+    t = cursor_thread or return
     multi_kill [t]
   end
 
@@ -301,7 +312,7 @@ EOS
   end
 
   def save
-    dirty_threads = (@threads + @hidden_threads.keys).select { |t| t.dirty? }
+    dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
     return if dirty_threads.empty?
 
     BufferManager.say("Saving threads...") do |say_id|
@@ -326,21 +337,21 @@ EOS
   end
 
   def toggle_tagged
-    t = @threads[curpos] or return
-    @tags.toggle_tag_for t
+    t = cursor_thread or return
+    @mutex.synchronize { @tags.toggle_tag_for t }
     update_text_for_line curpos
     cursor_down
   end
   
   def toggle_tagged_all
-    @threads.each { |t| @tags.toggle_tag_for t }
+    @mutex.synchronize { @threads.each { |t| @tags.toggle_tag_for t } }
     regen_text
   end
 
   def apply_to_tagged; @tags.apply_to_tagged; end
 
   def edit_labels
-    thread = @threads[curpos] or return
+    thread = cursor_thread or return
     speciall = (@hidden_labels + LabelManager::RESERVED_LABELS).uniq
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
@@ -368,7 +379,7 @@ EOS
   end
 
   def reply
-    t = @threads[curpos] or return
+    t = cursor_thread or return
     m = t.latest_message
     return if m.nil? # probably won't happen
     m.load_from_source!
@@ -377,7 +388,7 @@ EOS
   end
 
   def forward
-    t = @threads[curpos] or return
+    t = cursor_thread or return
     m = t.latest_message
     return if m.nil? # probably won't happen
     m.load_from_source!
@@ -393,13 +404,14 @@ EOS
     end
   end
 
+  ## TODO: figure out @ts_mutex in this method
   def load_n_threads n=LOAD_MORE_THREAD_NUM, opts={}
     @mbid = BufferManager.say "Searching for threads..."
     orig_size = @ts.size
-    last_update = Time.now - 9999 # oh yeah
+    last_update = Time.now
     @ts.load_n_threads(@ts.size + n, opts) do |i|
-      BufferManager.say "Loaded #{i} threads...", @mbid
       if (Time.now - last_update) >= 0.25
+        BufferManager.say "Loaded #{i} threads...", @mbid
         update
         BufferManager.draw_screen
         last_update = Time.now
@@ -413,7 +425,7 @@ EOS
     BufferManager.draw_screen
     @ts.size - orig_size
   end
-  synchronized :load_n_threads
+  ignore_concurrent_calls :load_n_threads
 
   def status
     if (l = lines) == 0
@@ -441,6 +453,7 @@ EOS
       load_n_threads n, myopts
     end
   end
+  ignore_concurrent_calls :load_threads
 
   def resize rows, cols
     regen_text
@@ -453,7 +466,7 @@ protected
     HookManager.run("index-mode-size-widget", :thread => t) || default_size_widget_for(t)
   end
 
-  def cursor_thread; @threads[curpos]; end
+  def cursor_thread; @mutex.synchronize { @threads[curpos] }; end
 
   def drop_all_threads
     @tags.drop_all_tags
@@ -462,27 +475,29 @@ protected
   end
 
   def hide_thread t
-    raise "already hidden" if @hidden_threads[t]
-    @hidden_threads[t] = true
-    @threads.delete t
-    @tags.drop_tag_for t
-  end
-
-  def show_thread t
-    if @hidden_threads[t]
-      @hidden_threads.delete t
-    else
-      @ts.add_thread t
+    @mutex.synchronize do
+      raise "already hidden" if @hidden_threads[t]
+      @hidden_threads[t] = true
+      i = @threads.index t
+      @threads.delete_at i
+      @size_widgets.delete_at i
+      @tags.drop_tag_for t
     end
-    update
   end
 
   def update_text_for_line l
     return unless l # not sure why this happens, but it does, occasionally
-    @size_widgets[l] = size_widget_for_thread @threads[l]
+    
+    need_update = false
 
-    ## if the widget size has increased, we need to redraw everyone
-    if @size_widgets[l].size > @size_widget_width
+    @mutex.synchronize do
+      @size_widgets[l] = size_widget_for_thread @threads[l]
+
+      ## if the widget size has increased, we need to redraw everyone
+      need_update = @size_widgets[l].size > @size_widget_width
+    end
+
+    if need_update
       update
     else
       @text[l] = text_for_thread_at l
@@ -491,8 +506,9 @@ protected
   end
 
   def regen_text
-    @text = @threads.map_with_index { |t, i| text_for_thread_at i }
-    @lines = @threads.map_with_index { |t, i| [t, i] }.to_h
+    threads = @mutex.synchronize { @threads }
+    @text = threads.map_with_index { |t, i| text_for_thread_at i }
+    @lines = threads.map_with_index { |t, i| [t, i] }.to_h
     buffer.mark_dirty if buffer
   end
   
@@ -520,8 +536,7 @@ protected
   end
 
   def text_for_thread_at line
-    t = @threads[line]
-    size_widget = @size_widgets[line]
+    t, size_widget = @mutex.synchronize { [@threads[line], @size_widgets[line]] }
 
     date = t.date.to_nice_s
 
@@ -591,7 +606,7 @@ protected
 
   end
 
-  def dirty?; (@hidden_threads.keys + @threads).any? { |t| t.dirty? }; end
+  def dirty?; @mutex.synchronize { (@hidden_threads.keys + @threads).any? { |t| t.dirty? } } end
 
 private
 

@@ -136,12 +136,39 @@ class Object
 
   ## clone of java-style whole-method synchronization
   ## assumes a @mutex variable
+  ## TODO: clean up, try harder to avoid namespace collisions
   def synchronized *meth
     meth.each do
       class_eval <<-EOF
         alias unsynchronized_#{meth} #{meth}
         def #{meth}(*a, &b)
           @mutex.synchronize { unsynchronized_#{meth}(*a, &b) }
+        end
+      EOF
+    end
+  end
+
+  def ignore_concurrent_calls *meth
+    meth.each do
+      mutex = "@__concurrent_protector_#{meth}"
+      flag = "@__concurrent_flag_#{meth}"
+      oldmeth = "__unprotected_#{meth}"
+      class_eval <<-EOF
+        alias #{oldmeth} #{meth}
+        def #{meth}(*a, &b)
+          #{mutex} = Mutex.new unless defined? #{mutex}
+          #{flag} = true unless defined? #{flag}
+          run = #{mutex}.synchronize do
+            if #{flag}
+              #{flag} = false
+              true
+            end
+          end
+          if run
+            ret = #{oldmeth}(*a, &b)
+            #{mutex}.synchronize { #{flag} = true }
+            ret
+          end
         end
       EOF
     end
