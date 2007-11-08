@@ -38,20 +38,21 @@ EOS
 
   def initialize hidden_labels=[], load_thread_opts={}
     super()
-    @mutex = Mutex.new # covers the following variables
+    @mutex = Mutex.new # covers the following variables:
     @threads = {}
     @hidden_threads = {}
     @size_widget_width = nil
     @size_widgets = {}
     @tags = Tagger.new self
 
+    ## these guys, and @text and @lines, are not covered
     @load_thread = nil
     @load_thread_opts = load_thread_opts
     @hidden_labels = hidden_labels + LabelManager::HIDDEN_RESERVED_LABELS
     @date_width = DATE_WIDTH
     
     initialize_threads # defines @ts and @ts_mutex
-    update
+    update # defines @text and @lines
 
     UpdateManager.register self
 
