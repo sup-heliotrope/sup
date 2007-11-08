@@ -54,7 +54,6 @@ class ScrollMode < Mode
   end
 
   def in_search?; @search_line end
-
   def cancel_search!; @search_line = nil end
 
   def continue_search_in_buffer
@@ -63,7 +62,13 @@ class ScrollMode < Mode
       return
     end
 
-    if(line = find_text(@search_query, @search_line || search_start_line))
+    start = @search_line || search_start_line
+    line = find_text @search_query, start
+    if line.nil? && (start > 0)
+      line = find_text @search_query, 0
+      BufferManager.flash "Search wrapped to top!" if line
+    end
+    if line
       @search_line = line + 1
       search_goto_line line
       buffer.mark_dirty
