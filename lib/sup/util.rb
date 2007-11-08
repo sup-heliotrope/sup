@@ -192,6 +192,7 @@ class String
     ret
   end
 
+  ## one of the few things i miss from perl
   def ucfirst
     self[0 .. 0].upcase + self[1 .. -1]
   end
@@ -200,6 +201,65 @@ class String
   ## commas, unless they occurr within double quotes.
   def split_on_commas
     split(/,\s*(?=(?:[^"]*"[^"]*")*(?![^"]*"))/)
+  end
+
+  ## ok, here we do it the hard way. got to have a remainder for purposes of
+  ## tab-completing full email addresses
+  def split_on_commas_with_remainder
+    ret = []
+    state = :outstring
+    pos = 0
+    region_start = 0
+    while pos <= length
+      newpos = case state
+        when :escaped_instring, :escaped_outstring: pos
+        else index(/[,"\\]/, pos)
+      end 
+      
+      if newpos
+        char = self[newpos]
+      else
+        char = nil
+        newpos = length
+      end
+        
+      $stderr.puts "pos #{newpos} (len #{length}), state #{state}, char #{(char || ?$).chr}, region_start #{region_start}"
+      case char
+      when ?"
+        state = case state
+          when :outstring: :instring
+          when :instring: :outstring
+          when :escaped_instring: :instring
+          when :escaped_outstring: :outstring
+        end
+      when ?,, nil
+        state = case state
+          when :outstring, :escaped_outstring:
+            ret << self[region_start ... newpos]
+            region_start = newpos + 1
+            :outstring
+          when :instring: :instring
+          when :escaped_instring: :instring
+        end
+      when ?\\
+        state = case state
+          when :instring: :escaped_instring
+          when :outstring: :escaped_outstring
+          when :escaped_instring: :instring
+          when :escaped_outstring: :outstring
+        end
+      end
+      pos = newpos + 1
+    end
+
+    remainder = case state
+      when :instring
+        self[region_start .. -1]
+      else
+        nil
+      end
+
+    [ret, remainder]
   end
 
   def wrap len
@@ -249,6 +309,10 @@ class Fixnum
     else
       "<#{self}>"
     end
+  end
+
+  def pluralize s
+    to_s + " " + (self == 1 ? s : s + "s")
   end
 end
 

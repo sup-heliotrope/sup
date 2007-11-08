@@ -59,7 +59,7 @@ class ContactListMode < LineCursorMode
     @num += num
     load
     update
-    BufferManager.flash "Added #{num} contacts."
+    BufferManager.flash "Added #{num.pluralize 'contact'}."
   end
 
   def multi_select people

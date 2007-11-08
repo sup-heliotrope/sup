@@ -50,7 +50,7 @@ EOS
     BufferManager.flash "Polling for new messages..."
     num, numi, from_and_subj, from_and_subj_inbox = buffer.mode.poll
     if num > 0
-      BufferManager.flash "Loaded #{num} new messages, #{numi} to inbox." 
+      BufferManager.flash "Loaded #{num.pluralize 'new message'}, #{numi} to inbox." 
     else
       BufferManager.flash "No new messages." 
     end

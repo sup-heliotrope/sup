@@ -309,7 +309,7 @@ EOS
       hide_thread t
     end
     regen_text
-    BufferManager.flash "Thread#{threads.size == 1 ? '' : 's'} killed."
+    BufferManager.flash "#{threads.size.pluralize 'Thread'} killed."
   end
 
   def save
@@ -412,7 +412,7 @@ EOS
     last_update = Time.now
     @ts.load_n_threads(@ts.size + n, opts) do |i|
       if (Time.now - last_update) >= 0.25
-        BufferManager.say "Loaded #{i} threads...", @mbid
+        BufferManager.say "Loaded #{i.pluralize 'thread'}...", @mbid
         update
         BufferManager.draw_screen
         last_update = Time.now
@@ -442,7 +442,7 @@ EOS
     myopts = @load_thread_opts.merge({ :when_done => (lambda do |num|
       opts[:when_done].call(num) if opts[:when_done]
       if num > 0
-        BufferManager.flash "Found #{num} threads."
+        BufferManager.flash "Found #{num.pluralize 'thread'}."
       else
         BufferManager.flash "No matches."
       end
