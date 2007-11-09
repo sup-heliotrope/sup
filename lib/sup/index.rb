@@ -1,8 +1,14 @@
 ## the index structure for redwood. interacts with ferret.
 
-require 'thread'
 require 'fileutils'
 require 'ferret'
+begin
+  require 'chronic'
+  $have_chronic = true
+rescue LoadError => e
+  Redwood::log "'chronic' library not found. run 'gem install chronic' to install."
+  $have_chronic = false
+end
 
 module Redwood
 
@@ -371,8 +377,10 @@ EOS
 
 protected
 
+  ## do any specialized parsing
+  ## returns nil and flashes error message if parsing failed
   def parse_user_query_string str
-    str2 = str.gsub(/(to|from):(\S+)/) do
+    result = str.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
         [field, p.email]
@@ -381,8 +389,29 @@ protected
       end.join(":")
     end
     
-    Redwood::log "translated #{str} to #{str2}" unless str2 == str
-    @qparser.parse str2
+    if $have_chronic
+      chronic_failure = false
+      result = result.gsub(/\b(before|after):(\((.+?)\)\B|(\S+)\b)/) do
+        break if chronic_failure
+        field, datestr = $1, ($3 || $4)
+        realdate = Chronic.parse datestr
+        if realdate
+          Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate}"
+          if field == "after"
+            "date:(>= #{sprintf "%012d", realdate.to_i})"
+          else
+            "date:(<= #{sprintf "%012d", realdate.to_i})"
+          end
+        else
+          BufferManager.flash "Don't understand date #{datestr.inspect}!"
+          chronic_failure = true
+        end
+      end
+      result = nil if chronic_failure
+    end
+    
+    Redwood::log "translated #{str.inspect} to #{result}" unless result == str
+    @qparser.parse result if result
   end
 
   def build_query opts

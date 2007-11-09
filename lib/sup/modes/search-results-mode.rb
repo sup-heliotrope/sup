@@ -24,7 +24,7 @@ class SearchResultsMode < ThreadIndexMode
 
   def self.spawn_from_query text
     begin
-      qobj = Index.parse_user_query_string text
+      qobj = Index.parse_user_query_string(text) or return
       short_text = text.length < 20 ? text : text[0 ... 20] + "..."
       mode = SearchResultsMode.new qobj
       BufferManager.spawn "search: \"#{short_text}\"", mode

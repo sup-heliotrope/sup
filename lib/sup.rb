@@ -214,6 +214,20 @@ require "sup/hook"
 ## time.
 Redwood::HookManager.new Redwood::HOOK_DIR
 
+## everything we need to get logging working
+require "sup/buffer"
+require "sup/keymap"
+require "sup/mode"
+require "sup/modes/scroll-mode"
+require "sup/modes/text-mode"
+require "sup/modes/log-mode"
+require "sup/logger"
+module Redwood
+  def log s; Logger.log s; end
+  module_function :log
+end
+
+## now everything else (which can feel free to call Redwood::log at load time)
 require "sup/update"
 require "sup/suicide"
 require "sup/message-chunks"
@@ -227,9 +241,6 @@ require "sup/account"
 require "sup/thread"
 require "sup/index"
 require "sup/textfield"
-require "sup/buffer"
-require "sup/keymap"
-require "sup/mode"
 require "sup/colormap"
 require "sup/label"
 require "sup/contact"
@@ -237,8 +248,6 @@ require "sup/tagger"
 require "sup/draft"
 require "sup/poll"
 require "sup/crypto"
-require "sup/modes/scroll-mode"
-require "sup/modes/text-mode"
 require "sup/modes/line-cursor-mode"
 require "sup/modes/help-mode"
 require "sup/modes/edit-message-mode"
@@ -255,17 +264,10 @@ require "sup/modes/search-results-mode"
 require "sup/modes/person-search-results-mode"
 require "sup/modes/inbox-mode"
 require "sup/modes/buffer-list-mode"
-require "sup/modes/log-mode"
 require "sup/modes/poll-mode"
 require "sup/modes/file-browser-mode"
 require "sup/modes/completion-mode"
-require "sup/logger"
 require "sup/sent"
-
-module Redwood
-  def log s; Logger.log s; end
-  module_function :log
-end
 
 $:.each do |base|
   d = File.join base, "sup/share/modes/"
