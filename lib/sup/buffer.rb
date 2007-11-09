@@ -355,18 +355,29 @@ class BufferManager
     end
   end
 
-  def ask_many_with_completions domain, question, completions, default=nil, sep=" "
+  def ask_many_with_completions domain, question, completions, default=nil
     ask domain, question, default do |partial|
       prefix, target = 
-        case partial#.gsub(/#{sep}+/, sep)
+        case partial
         when /^\s*$/
           ["", ""]
-        when /^(.*#{sep})?(.*?)$/
+        when /^(.*\s+)?(.*?)$/
           [$1 || "", $2]
         else
           raise "william screwed up completion: #{partial.inspect}"
         end
 
+      completions.select { |x| x =~ /^#{target}/i }.map { |x| [prefix + x, x] }
+    end
+  end
+
+  def ask_many_emails_with_completions domain, question, completions, default=nil
+    ask domain, question, default do |partial|
+      prefix, target = partial.split_on_commas_with_remainder
+      Redwood::log "before: prefix #{prefix.inspect}, target #{target.inspect}"
+      target ||= prefix.pop || ""
+      prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
+      Redwood::log "after: prefix #{prefix.inspect}, target #{target.inspect}"
       completions.select { |x| x =~ /^#{target}/i }.map { |x| [prefix + x, x] }
     end
   end
@@ -436,7 +447,7 @@ class BufferManager
     contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.full_address, c.email] }
 
     completions = (recent + contacts).flatten.uniq.sort
-    answer = BufferManager.ask_many_with_completions domain, question, completions, default, /\s*,\s*/
+    answer = BufferManager.ask_many_emails_with_completions domain, question, completions, default
 
     if answer
       answer.split_on_commas.map { |x| ContactManager.contact_for(x.downcase) || PersonManager.person_for(x) }

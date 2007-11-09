@@ -222,8 +222,7 @@ class String
         char = nil
         newpos = length
       end
-        
-      $stderr.puts "pos #{newpos} (len #{length}), state #{state}, char #{(char || ?$).chr}, region_start #{region_start}"
+
       case char
       when ?"
         state = case state
@@ -235,7 +234,7 @@ class String
       when ?,, nil
         state = case state
           when :outstring, :escaped_outstring:
-            ret << self[region_start ... newpos]
+            ret << self[region_start ... newpos].gsub(/^\s+|\s+$/, "")
             region_start = newpos + 1
             :outstring
           when :instring: :instring
@@ -254,7 +253,7 @@ class String
 
     remainder = case state
       when :instring
-        self[region_start .. -1]
+        self[region_start .. -1].gsub(/^\s+/, "")
       else
         nil
       end
