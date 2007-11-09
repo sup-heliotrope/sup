@@ -68,7 +68,7 @@ EOS
   def lines; @text.length; end
   def [] i; @text[i]; end
   #def contains_thread? t; !@lines[t].nil?; end
-  def contains_thread? t; @threads.contains?(t) end
+  def contains_thread? t; @threads.include?(t) end
 
   def reload
     drop_all_threads
