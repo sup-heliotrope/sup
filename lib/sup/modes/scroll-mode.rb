@@ -78,7 +78,8 @@ class ScrollMode < Mode
   end
 
   def search_in_buffer
-    query = BufferManager.ask(:search, "query: ") or return
+    query = BufferManager.ask :search, "search in buffer: "
+    return if query.nil? || query.empty?
     @search_query = Regexp.escape query
     continue_search_in_buffer
   end

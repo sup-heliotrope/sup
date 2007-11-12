@@ -40,7 +40,7 @@ global_keymap = Keymap.new do |k|
   k.add :list_buffers, "List all buffers", 'B'
   k.add :list_contacts, "List contacts", 'C'
   k.add :redraw, "Redraw screen", :ctrl_l
-  k.add :search, "Search all messages", '\\'
+  k.add :search, "Search all messages", '\\', 'F'
   k.add :list_labels, "List labels", 'L'
   k.add :poll, "Poll for new messages", 'P'
   k.add :compose, "Compose new message", 'm', 'c'
@@ -227,7 +227,7 @@ begin
         b = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
         b.mode.load_in_background
       when :search
-        query = BufferManager.ask :search, "query: "
+        query = BufferManager.ask :search, "search all messages: "
         next unless query && query !~ /^\s*$/
         SearchResultsMode.spawn_from_query query
       when :list_labels
