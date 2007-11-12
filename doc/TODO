@@ -26,6 +26,9 @@ _ have "notes" (treated as emails to oneself, never sent) as
 
 future
 ------
+_ fix killed threads contributing to unread message count problem (prob. need
+  to maintain all killed message ids and our own unread message count for
+  inbox).
 _ emlx support (some os x thing)
 _ tab completion for mid-text cursors
 _ bugfix: not horizontal scrolling for ncurses text field entry
