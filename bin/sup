@@ -115,7 +115,6 @@ begin
   log "starting curses"
   start_cursing
 
-  log "initializing colormap"
   Colormap.new do |c|
     c.add :status_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLUE, Ncurses::A_BOLD
     c.add :index_old_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
@@ -161,7 +160,6 @@ begin
     c.add :search_highlight_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_YELLOW, Ncurses::A_BOLD, :highlight => :search_highlight_color
   end
 
-  log "initializing buffer manager"
   bm = BufferManager.new
 
   log "initializing mail index buffer"
