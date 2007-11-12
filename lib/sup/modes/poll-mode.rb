@@ -8,9 +8,6 @@ class PollMode < LogMode
 
   def puts s=""
     self << s + "\n"
-#    if lines % 5 == 0
-      BufferManager.draw_screen
-#    end
   end
 
   def poll
