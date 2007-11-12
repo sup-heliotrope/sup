@@ -64,7 +64,7 @@ class TextField
     case c
     when Ncurses::KEY_ENTER # submit!
       @value = get_cursed_value
-      @history.push @value
+      @history.push @value unless @value =~ /^\s*$/
       return false
     when Ncurses::KEY_CANCEL # cancel
       @value = nil
@@ -108,23 +108,23 @@ class TextField
         Ncurses::Form::REQ_END_FIELD
       when 11 # ctrl-k
         Ncurses::Form::REQ_CLR_EOF
-      when Ncurses::KEY_UP
-        @i ||= @history.size
-        @history[@i] = get_cursed_value
-        @i = (@i - 1) % @history.size
-        @value = @history[@i]
-        set_cursed_value @value
-      when Ncurses::KEY_DOWN
-        @i ||= @history.size
-        @history[@i] = get_cursed_value
-        @i = (@i + 1) % @history.size
-        @value = @history[@i]
-        set_cursed_value @value
+      when Ncurses::KEY_UP, Ncurses::KEY_DOWN
+        unless @history.empty?
+          value = get_cursed_value
+          @i ||= @history.size
+          #Redwood::log "history before #{@history.inspect}"
+          @history[@i] = value #unless value =~ /^\s*$/
+          @i = (@i + (c == Ncurses::KEY_UP ? -1 : 1)) % @history.size
+          @value = @history[@i]
+          #Redwood::log "history after #{@history.inspect}"
+          set_cursed_value @value
+          Ncurses::Form::REQ_END_FIELD
+        end
       else
         c
       end
 
-    Ncurses::Form.form_driver @form, d
+    Ncurses::Form.form_driver @form, d if d
     true
   end
 
