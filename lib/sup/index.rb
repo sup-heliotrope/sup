@@ -391,16 +391,21 @@ protected
     
     if $have_chronic
       chronic_failure = false
-      result = result.gsub(/\b(before|after):(\((.+?)\)\B|(\S+)\b)/) do
+      result = result.gsub(/\b(before|on|in|after):(\((.+?)\)\B|(\S+)\b)/) do
         break if chronic_failure
         field, datestr = $1, ($3 || $4)
-        realdate = Chronic.parse datestr
+        realdate = Chronic.parse(datestr, :guess => false)
         if realdate
-          Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate}"
-          if field == "after"
-            "date:(>= #{sprintf "%012d", realdate.to_i})"
+          case field
+          when "after"
+            Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate.end}"
+            "date:(>= #{sprintf "%012d", realdate.end.to_i})"
+          when "before"
+            Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
+            "date:(<= #{sprintf "%012d", realdate.begin.to_i})"
           else
-            "date:(<= #{sprintf "%012d", realdate.to_i})"
+            Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate}"
+            "date:(<= #{sprintf "%012d", realdate.end.to_i}) date:(>= #{sprintf "%012d", realdate.begin.to_i})"
           end
         else
           BufferManager.flash "Don't understand date #{datestr.inspect}!"
