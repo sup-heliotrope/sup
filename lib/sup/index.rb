@@ -178,7 +178,7 @@ EOS
       :date => m.date.to_indexable_s,
       :body => m.content,
       :snippet => m.snippet,
-      :label => m.labels.join(" "),
+      :label => m.labels.uniq.join(" "),
       :from => m.from ? m.from.email : "",
       :to => (m.to + m.cc + m.bcc).map { |x| x.email }.join(" "),
       :subject => wrap_subj(Message.normalize_subj(m.subj)),
