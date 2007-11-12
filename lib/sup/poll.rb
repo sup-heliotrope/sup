@@ -100,7 +100,7 @@ EOS
           unless entry
             num += 1
             from_and_subj << [m.from.longname, m.subj]
-            if m.labels.include? :inbox
+            if m.has_label?(:inbox) && ([:spam, :deleted, :killed] & m.labels).empty?
               from_and_subj_inbox << [m.from.longname, m.subj]
               numi += 1 
             end
