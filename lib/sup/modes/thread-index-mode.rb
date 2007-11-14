@@ -477,9 +477,9 @@ protected
 
   def hide_thread t
     @mutex.synchronize do
+      i = @threads.index(t) or return
       raise "already hidden" if @hidden_threads[t]
       @hidden_threads[t] = true
-      i = @threads.index t
       @threads.delete_at i
       @size_widgets.delete_at i
       @tags.drop_tag_for t
