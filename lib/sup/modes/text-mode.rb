@@ -2,12 +2,20 @@ module Redwood
 
 class TextMode < ScrollMode
   attr_reader :text
+  register_keymap do |k|
+    k.add :save_to_disk, "Save to disk", 's'
+  end
 
   def initialize text=""
     @text = text.normalize_whitespace
     update_lines
     buffer.mark_dirty if buffer
     super()
+  end
+  
+  def save_to_disk
+    fn = BufferManager.ask_for_filename :filename, "Save to file: "
+    save_to_file(fn) { |f| f.puts text } if fn
   end
 
   def text= t
