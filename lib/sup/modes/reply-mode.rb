@@ -38,13 +38,20 @@ class ReplyMode < EditMessageMode
     cc = (@m.to + @m.cc - [from, to]).uniq
 
     @headers = {}
-    @headers[:sender] = {
-      "To" => [to.full_address],
-    } unless AccountManager.is_account? to
 
+    ## if there's no cc, then the sender is the person you want to reply
+    ## to. if it's a list message, then the list address is. otherwise,
+    ## the cc contains a recipient.
+    useful_recipient = !(cc.empty? || @m.is_list_message?)
+    
     @headers[:recipient] = {
       "To" => cc.map { |p| p.full_address },
-    } unless cc.empty? || @m.is_list_message?
+    } if useful_recipient
+
+    ## typically we don't want to have a reply-to-sender option if the sender
+    ## is a user account. however, if the cc is empty, it's a message to
+    ## ourselves, so for the lack of any other options, we'll add it.
+    @headers[:sender] = { "To" => [to.full_address], } if !AccountManager.is_account?(to) || !useful_recipient
 
     @headers[:user] = {}
 
@@ -58,6 +65,7 @@ class ReplyMode < EditMessageMode
     } if @m.is_list_message?
 
     refs = gen_references
+
     @headers.each do |k, v|
       @headers[k] = {
                "From" => "#{from.name} <#{from.email}>",
