@@ -24,6 +24,16 @@ Return value:
   use the default signature.
 EOS
 
+  HookManager.register "before-edit", <<EOS
+Modifies message body and headers before editing a new message. Variables
+should be modified in place.
+Variables:
+	header: a hash of headers. See 'signature' hook for documentation.
+	body: an array of lines of body text.
+Return value:
+	none
+EOS
+
   attr_reader :status
   attr_accessor :body, :header
   bool_reader :edited
@@ -51,6 +61,8 @@ EOS
     @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
     @edited = false
     @skip_top_rows = opts[:skip_top_rows] || 0
+    
+    HookManager.run "before-edit", :header => @header, :body => @body
 
     super opts
     regen_text
