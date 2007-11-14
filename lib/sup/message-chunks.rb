@@ -111,7 +111,7 @@ EOS
       @lines = lines.map { |l| l.chomp.wrap WRAP_LEN }.flatten # wrap
 
       ## trim off all empty lines except one
-      @lines.pop while @lines.last =~ /^\s*$/ 
+      @lines.pop while @lines.length > 1 && @lines[-1] =~ /^\s*$/ && @lines[-2] =~ /^\s*$/
     end
 
     def inlineable?; true end
