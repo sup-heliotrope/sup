@@ -171,6 +171,17 @@ begin
 
   bm.draw_screen
 
+  Index.usual_sources.each do |s|
+    next unless s.respond_to? :connect
+    reporting_thread do
+      begin
+        s.connect
+      rescue SourceError => e
+        Redwood::log "fatal error loading from #{s}: #{e.message}"
+      end
+    end
+  end
+  
   imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread { sleep 1; PollManager.poll } unless $opts[:no_threads] }
 
   unless $opts[:no_threads]
