@@ -501,13 +501,16 @@ class Recoverable
   def initialize o
     @o = o
     @e = nil
+    @mutex = Mutex.new
   end
 
   def clear_error!; @e = nil; end
   def has_errors?; !@e.nil?; end
   def error; @e; end
 
-  def method_missing m, *a, &b; __pass m, *a, &b; end
+  def method_missing m, *a, &b
+    @mutex.synchronize { __pass m, *a, &b }
+  end
   
   def id; __pass :id; end
   def to_s; __pass :to_s; end
@@ -520,7 +523,7 @@ class Recoverable
     begin
       @o.send(m, *a, &b)
     rescue Exception => e
-      @e = e
+      @e ||= e
       raise e
     end
   end
