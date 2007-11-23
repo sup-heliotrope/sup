@@ -394,7 +394,7 @@ protected
       result = result.gsub(/\b(before|on|in|after):(\((.+?)\)\B|(\S+)\b)/) do
         break if chronic_failure
         field, datestr = $1, ($3 || $4)
-        realdate = Chronic.parse(datestr, :guess => false)
+        realdate = Chronic.parse(datestr, :guess => false, :context => :none)
         if realdate
           case field
           when "after"
