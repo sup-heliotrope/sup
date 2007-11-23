@@ -87,17 +87,8 @@ class IMAP < Source
   end
   def ssl?; @parsed_uri.scheme == 'imaps' end
 
-  def check
-    return unless start_offset
-
-    ids = 
-      @mutex.synchronize do
-        unsynchronized_scan_mailbox
-        @ids
-      end
-
-    start = ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}."
-  end
+  def check; end # do nothing because anything we do will be too slow,
+                 # and we'll catch the errors later.
 
   ## is this necessary? TODO: remove maybe
   def == o; o.is_a?(IMAP) && o.uri == self.uri && o.username == self.username; end
@@ -252,8 +243,6 @@ private
         shutup
       end
     end.join
-
-
 
     raise exception if exception
   end
