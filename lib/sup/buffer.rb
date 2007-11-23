@@ -345,7 +345,9 @@ class BufferManager
       ## TODO: something intelligent here
       ## for now I will simply prohibit killing the inbox buffer.
     else
-      raise_to_front @buffers.last
+      last = @buffers.last
+      @focus_buf ||= last
+      raise_to_front last
     end
   end
 
