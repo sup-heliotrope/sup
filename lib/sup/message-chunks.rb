@@ -20,10 +20,14 @@
 ## :open if they want to start expanded (default is to start collapsed).
 ##
 ## If it's not expandable but is viewable, a patina is displayed using
-###patina_color and #patina_text, but no toggling is allowed. Instead,
-##if #view! is defined, pressing enter on the widget calls view! and
-##(if that returns false) #to_s. Otherwise, enter does nothing. This
-##is how non-inlineable attachments work.
+## #patina_color and #patina_text, but no toggling is allowed. Instead,
+## if #view! is defined, pressing enter on the widget calls view! and
+## (if that returns false) #to_s. Otherwise, enter does nothing. This
+##  is how non-inlineable attachments work.
+##
+## Independent of all that, a chunk can be quotable, in which case it's
+## included as quoted text during a reply. Text, Quotes, and mime-parsed
+## attachments are quotable; Signatures are not.
 
 module Redwood
 module Chunk
@@ -45,10 +49,12 @@ EOS
     ## raw_content is the post-MIME-decode content. this is used for
     ## saving the attachment to disk.
     attr_reader :content_type, :filename, :lines, :raw_content
+    bool_reader :quotable
 
     def initialize content_type, filename, encoded_content, sibling_types
       @content_type = content_type
       @filename = filename
+      @quotable = false # only quotable if we can parse it through the mime-decode hook
       @raw_content =
         if encoded_content.body
           encoded_content.decode
@@ -64,7 +70,10 @@ EOS
           text = HookManager.run "mime-decode", :content_type => content_type,
                                  :filename => lambda { write_to_disk },
                                  :sibling_types => sibling_types
-          text.split("\n") if text
+          if text
+            @quotable = true
+            text.split("\n")
+          end
         end
     end
 
@@ -115,6 +124,7 @@ EOS
     end
 
     def inlineable?; true end
+    def quotable?; true end
     def expandable?; false end
     def viewable?; false end
     def color; :none end
@@ -127,6 +137,7 @@ EOS
     end
     
     def inlineable?; @lines.length == 1 end
+    def quotable?; true end
     def expandable?; !inlineable? end
     def viewable?; false end
 
@@ -142,6 +153,7 @@ EOS
     end
 
     def inlineable?; @lines.length == 1 end
+    def quotable?; false end
     def expandable?; !inlineable? end
     def viewable?; false end
 
@@ -162,6 +174,7 @@ EOS
     end
 
     def inlineable?; false end
+    def quotable?; false end
     def expandable?; true end
     def initial_state; :open end
     def viewable?; false end
@@ -191,6 +204,7 @@ EOS
     def color; patina_color end
 
     def inlineable?; false end
+    def quotable?; false end
     def expandable?; !@lines.empty? end
     def viewable?; false end
   end

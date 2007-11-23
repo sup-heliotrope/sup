@@ -110,8 +110,7 @@ class ReplyMode < EditMessageMode
 protected
 
   def reply_body_lines m
-    lines = ["Excerpts from #{@m.from.name}'s message of #{@m.date}:"] + 
-      m.basic_body_lines.map { |l| "> #{l}" }
+    lines = ["Excerpts from #{@m.from.name}'s message of #{@m.date}:"] + m.quotable_body_lines.map { |l| "> #{l}" }
     lines.pop while lines.last =~ /^\s*$/
     lines
   end

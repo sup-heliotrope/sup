@@ -32,7 +32,7 @@ protected
 
   def forward_body_lines m
     ["--- Begin forwarded message from #{m.from.mediumname} ---"] + 
-      m.basic_header_lines + [""] + m.basic_body_lines +
+      m.quotable_header_lines + [""] + m.quotable_body_lines +
       ["--- End forwarded message ---"]
   end
 end

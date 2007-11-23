@@ -228,11 +228,11 @@ EOS
     ].flatten.compact.join " "
   end
 
-  def basic_body_lines
-    chunks.find_all { |c| c.is_a?(Chunk::Text) || c.is_a?(Chunk::Quote) }.map { |c| c.lines }.flatten
+  def quotable_body_lines
+    chunks.find_all { |c| c.quotable? }.map { |c| c.lines }.flatten
   end
 
-  def basic_header_lines
+  def quotable_header_lines
     ["From: #{@from.full_address}"] +
       (@to.empty? ? [] : ["To: " + @to.map { |p| p.full_address }.join(", ")]) +
       (@cc.empty? ? [] : ["Cc: " + @cc.map { |p| p.full_address }.join(", ")]) +
