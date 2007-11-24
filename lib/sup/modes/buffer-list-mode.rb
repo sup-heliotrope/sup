@@ -3,7 +3,7 @@ module Redwood
 class BufferListMode < LineCursorMode
   register_keymap do |k|
     k.add :jump_to_buffer, "Jump to selected buffer", :enter
-    k.add :reload, "Reload buffer list", "R"
+    k.add :reload, "Reload buffer list", "@"
   end
 
   def initialize
@@ -11,8 +11,12 @@ class BufferListMode < LineCursorMode
     super
   end
 
-  def lines; @text.length; end
-  def [] i; @text[i]; end
+  def lines; @text.length end
+  def [] i; @text[i] end
+
+  def focus
+    reload # buffers may have been killed or created since last view
+  end
 
 protected
 

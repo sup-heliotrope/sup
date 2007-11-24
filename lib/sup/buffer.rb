@@ -155,7 +155,8 @@ class BufferManager
   def buffers; @name_map.to_a; end
 
   def focus_on buf
-    raise ArgumentError, "buffer not on stack: #{buf.inspect}" unless @buffers.member? buf
+    return unless @buffers.member? buf
+
     return if buf == @focus_buf 
     @focus_buf.blur if @focus_buf
     @focus_buf = buf
@@ -163,7 +164,7 @@ class BufferManager
   end
 
   def raise_to_front buf
-    raise ArgumentError, "buffer not on stack: #{buf.inspect}" unless @buffers.member? buf
+    return unless @buffers.member? buf
 
     @buffers.delete buf
     if @buffers.length > 0 && @buffers.last.force_to_top?
