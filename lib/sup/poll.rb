@@ -39,7 +39,7 @@ EOS
   end
 
   def buffer
-    BufferManager.spawn_unless_exists("<poll for new messages>", :hidden => true) { PollMode.new }
+    @buffer ||= BufferManager.spawn_unless_exists("<poll for new messages>", :hidden => true) { PollMode.new }
   end
 
   def poll
