@@ -310,8 +310,18 @@ class Fixnum
     end
   end
 
+  ## hacking the english language
   def pluralize s
-    to_s + " " + (self == 1 ? s : s + "s")
+    to_s + " " +
+      if self == 1
+        s
+      else
+        if s =~ /(.*)y$/
+          $1 + "ies"
+        else
+          s + "s"
+        end
+      end
   end
 end
 

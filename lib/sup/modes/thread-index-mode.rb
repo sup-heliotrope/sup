@@ -83,10 +83,11 @@ EOS
     ## TODO: don't regen text completely
     Redwood::reporting_thread do
       num = t.size
-      BufferManager.say("Loading message bodies...") do |sid|
+      message = "Loading #{num.pluralize 'message body'}..."
+      BufferManager.say(message) do |sid|
         t.each_with_index do |(m, *o), i|
           next unless m
-          BufferManager.say "Loading message bodies... (#{i + 1}/#{num})", sid if t.size > 1
+          BufferManager.say "#{message} (#{i}/#{num})", sid if t.size > 1
           m.load_from_source! 
         end
       end

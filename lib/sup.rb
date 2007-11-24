@@ -124,8 +124,10 @@ module Redwood
     return unless BufferManager.instantiated?
 
     broken_sources = Index.usual_sources.select { |s| s.error.is_a? FatalSourceError }
+    File.open("goat", "w") { |f| f.puts Kernel.caller }
     unless broken_sources.empty?
-      BufferManager.spawn "Broken source notification", TextMode.new(<<EOM), opts
+      BufferManager.spawn_unless_exists("Broken source notification for #{broken_sources.join(',')}", opts) do
+        TextMode.new(<<EOM)
 Source error notification
 -------------------------
 
@@ -136,11 +138,13 @@ be viewed, and new messages will not be detected.
 #{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.error.message.wrap(70).join("\n        ")}.join("\n\n")}
 EOM
 #' stupid ruby-mode
+      end
     end
 
     desynced_sources = Index.usual_sources.select { |s| s.error.is_a? OutOfSyncSourceError }
     unless desynced_sources.empty?
-      BufferManager.spawn "Out-of-sync source notification", TextMode.new(<<EOM), opts
+      BufferManager.spawn_unless_exists("Out-of-sync source notification for #{broken_sources.join(',')}", opts) do
+        TextMode.new(<<EOM)
 Out-of-sync source notification
 -------------------------------
 
@@ -158,6 +162,7 @@ and new messages will not be detected. Luckily, this is easy to correct!
   end}
 EOM
 #' stupid ruby-mode
+      end
     end
   end
 

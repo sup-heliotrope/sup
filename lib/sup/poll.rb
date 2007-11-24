@@ -87,7 +87,7 @@ EOS
           yield "Loading from #{source}... " unless source.done? || source.has_errors?
         rescue SourceError => e
           Redwood::log "problem getting messages from #{source}: #{e.message}"
-          Redwood::report_broken_sources
+          Redwood::report_broken_sources :force_to_top => true
           next
         end
 
@@ -163,7 +163,7 @@ EOS
       end
     rescue SourceError => e
       Redwood::log "problem getting messages from #{source}: #{e.message}"
-      Redwood::report_broken_sources
+      Redwood::report_broken_sources :force_to_top => true
     end
   end
 end
