@@ -2,18 +2,16 @@ module Redwood
 
 class LabelListMode < LineCursorMode
   register_keymap do |k|
-    k.add :select_label, "Select label", :enter
+    k.add :select_label, "Search by label", :enter
     k.add :reload, "Discard label list and reload", '@'
     k.add :toggle_show_unread_only, "Toggle between all labels and those with unread mail", :tab
   end
 
-  bool_reader :done
   attr_reader :value
 
   def initialize
     @labels = []
     @text = []
-    @done = false
     @value = nil
     @unread_only = false
     super
@@ -68,7 +66,8 @@ protected
 
   def select_label
     @value, string = @labels[curpos]
-    @done = true if @value
+    return unless @value
+    LabelSearchResultsMode.spawn_nicely @value
   end
 end
 

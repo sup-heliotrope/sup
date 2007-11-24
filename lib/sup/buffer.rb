@@ -259,11 +259,12 @@ class BufferManager
   def spawn_unless_exists title, opts={}
     if @name_map.member? title
       raise_to_front @name_map[title] unless opts[:hidden]
+      nil
     else
       mode = yield
       spawn title, mode, opts
+      @name_map[title]
     end
-    @name_map[title]
   end
 
   def spawn title, mode, opts={}

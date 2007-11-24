@@ -216,7 +216,7 @@ begin
         bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
       when :list_contacts
         b = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
-        b.mode.load_in_background
+        b.mode.load_in_background if b
       when :search
         query = BufferManager.ask :search, "search all messages: "
         next unless query && query !~ /^\s*$/
@@ -246,10 +246,8 @@ begin
           BufferManager.spawn "Edit message", r
           r.edit_message
         else
-          b = BufferManager.spawn_unless_exists("All drafts") do
-            mode = LabelSearchResultsMode.new [:draft]
-          end
-          b.mode.load_threads :num => b.content_height
+          b = BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
+          b.mode.load_threads :num => b.content_height if b
         end
       when :nothing
       when :redraw
