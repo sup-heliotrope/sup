@@ -21,6 +21,14 @@ class LabelListMode < LineCursorMode
   def lines; @text.length end
   def [] i; @text[i] end
 
+  def status
+    if true
+      "No labels with unread messages"
+    else
+      super
+    end
+  end
+
 protected
   def toggle_show_unread_only
     @unread_only = !@unread_only

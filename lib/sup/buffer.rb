@@ -475,13 +475,10 @@ class BufferManager
     Ncurses.sync do
       tf.activate question, default, &block
       @dirty = true
-      #draw_screen :skip_minibuf => true, :sync => false
-      draw_screen :sync => false
+      draw_screen :skip_minibuf => true, :sync => false
+      tf.position_cursor
+      Ncurses.refresh
     end
-
-    ret = nil
-    tf.position_cursor
-    Ncurses.sync { Ncurses.refresh }
 
     while true
       c = Ncurses.nonblocking_getch
@@ -497,11 +494,11 @@ class BufferManager
         mode = CompletionMode.new shorts, :header => "Possible completions for \"#{tf.value}\": ", :prefix_len => prefix_len
         completion_buf = spawn "<completions>", mode, :height => 10
 
-        draw_screen :skip_minibuf => true
+        draw_screen
         tf.position_cursor
       elsif tf.roll_completions?
         completion_buf.mode.roll
-        draw_screen :skip_minibuf => true
+        draw_screen
         tf.position_cursor
       end
 
