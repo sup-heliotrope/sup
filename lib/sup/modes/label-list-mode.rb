@@ -4,15 +4,13 @@ class LabelListMode < LineCursorMode
   register_keymap do |k|
     k.add :select_label, "Search by label", :enter
     k.add :reload, "Discard label list and reload", '@'
-    k.add :toggle_show_unread_only, "Toggle between all labels and those with unread mail", :tab
+    k.add :jump_to_next_new, "Jump to next new thread", :tab
+    k.add :toggle_show_unread_only, "Toggle between showing all labels and those with unread mail", 'u'
   end
-
-  attr_reader :value
 
   def initialize
     @labels = []
     @text = []
-    @value = nil
     @unread_only = false
     super
     regen_text
@@ -21,15 +19,18 @@ class LabelListMode < LineCursorMode
   def lines; @text.length end
   def [] i; @text[i] end
 
-  def status
-    if true
-      "No labels with unread messages"
+  def jump_to_next_new
+    n = ((curpos + 1) ... lines).find { |i| @labels[i][1] > 0 } || (0 ... curpos).find { |i| @labels[i][1] > 0 }
+    if n
+      ## jump there if necessary
+      jump_to_line n unless n >= topline && n < botline
+      set_cursor_pos n
     else
-      super
+      BufferManager.flash "No labels messages with unread messages."
     end
   end
-
 protected
+
   def toggle_show_unread_only
     @unread_only = !@unread_only
     reload
@@ -67,15 +68,17 @@ protected
 
       @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),
           sprintf("%#{width + 1}s %5d %s, %5d unread", string, total, total == 1 ? " message" : "messages", unread)]]
-      @labels << label
+      @labels << [label, unread]
       yield i if block_given?
     end.compact
+
+    BufferManager.flash "No labels with unread messages!" if counts.empty? && @unread_only
   end
 
   def select_label
-    @value, string = @labels[curpos]
-    return unless @value
-    LabelSearchResultsMode.spawn_nicely @value
+    label, num_unread = @labels[curpos]
+    return unless label
+    LabelSearchResultsMode.spawn_nicely label
   end
 end
 

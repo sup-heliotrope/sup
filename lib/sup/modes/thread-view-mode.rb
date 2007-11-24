@@ -25,7 +25,7 @@ class ThreadViewMode < LineCursorMode
     k.add :jump_to_prev_open, "Jump to previous open message", 'p'
     k.add :toggle_starred, "Star or unstar message", '*'
     k.add :toggle_new, "Toggle new/read status of message", 'N'
-#    k.add :collapse_non_new_messages, "Collapse all but new messages", 'N'
+#    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message", 'f'
     k.add :alias, "Edit alias/nickname for a person", 'i'
