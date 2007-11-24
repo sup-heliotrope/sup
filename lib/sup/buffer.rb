@@ -475,7 +475,8 @@ class BufferManager
     Ncurses.sync do
       tf.activate question, default, &block
       @dirty = true
-      draw_screen :skip_minibuf => true, :sync => false
+      #draw_screen :skip_minibuf => true, :sync => false
+      draw_screen :sync => false
     end
 
     ret = nil
