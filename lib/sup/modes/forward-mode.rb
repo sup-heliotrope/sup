@@ -1,17 +1,5 @@
 module Redwood
 
-module CanSpawnForwardMode
-  def spawn_forward_mode m, opts={}
-    to = opts[:to] || BufferManager.ask_for_contacts(:people, "To: ") or return
-    cc = opts[:cc] || BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc]
-    bcc = opts[:bcc] || BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc]
-    
-    mode = ForwardMode.new m, :to => to, :cc => cc, :bcc => bcc
-    BufferManager.spawn "Forwarding #{m.subj}", mode
-    mode.edit_message
-  end
-end
-
 class ForwardMode < EditMessageMode
 
   ## todo: share some of this with reply-mode
@@ -26,6 +14,16 @@ class ForwardMode < EditMessageMode
     header["Bcc"] = opts[:bcc].map { |p| p.full_address }.join(", ") if opts[:bcc]
 
     super :header => header, :body => forward_body_lines(m)
+  end
+
+  def self.spawn_nicely m, opts={}
+    to = opts[:to] || BufferManager.ask_for_contacts(:people, "To: ") or return
+    cc = opts[:cc] || BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc]
+    bcc = opts[:bcc] || BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc]
+    
+    mode = ForwardMode.new m, :to => to, :cc => cc, :bcc => bcc
+    BufferManager.spawn "Forwarding #{m.subj}", mode
+    mode.edit_message
   end
 
 protected

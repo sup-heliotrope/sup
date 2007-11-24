@@ -1,9 +1,6 @@
 module Redwood
 
 class ThreadViewMode < LineCursorMode
-  include CanSpawnComposeMode
-  include CanSpawnForwardMode
-
   ## this holds all info we need to lay out a message
   class MessageLayout
     attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color, :star_color, :orig_new
@@ -113,7 +110,7 @@ class ThreadViewMode < LineCursorMode
   def subscribe_to_list
     m = @message_lines[curpos] or return
     if m.list_subscribe && m.list_subscribe =~ /<mailto:(.*?)\?(subject=(.*?))>/
-      spawn_compose_mode :from => AccountManager.account_for(m.recipient_email), :to => [PersonManager.person_for($1)], :subj => $3
+      ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [PersonManager.person_for($1)], :subj => $3
     else
       BufferManager.flash "Can't find List-Subscribe header for this message."
     end

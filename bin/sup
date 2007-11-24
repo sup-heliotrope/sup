@@ -94,7 +94,6 @@ EOS
 end
 
 begin
-  extend CanSpawnComposeMode
   Redwood::start
   Index.load
 
@@ -225,27 +224,15 @@ begin
       when :list_labels
         labels = LabelManager.listable_labels.map { |l| LabelManager.string_for l }
         user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
-        user_label =
-          case user_label
-          when nil, /^\s*$/
-            bm.spawn_modal("Label list", LabelListMode.new) if user_label && user_label.empty?
+        unless user_label.nil?
+          if user_label.empty?
+            bm.spawn_unless_exists("Label list") { LabelListMode.new } if user_label && user_label.empty?
           else
-            LabelManager.label_for user_label
+            LabelSearchResultsMode.spawn_nicely user_label
           end
-        
-        case user_label
-        when nil
-        when :inbox
-          BufferManager.raise_to_front InboxMode.instance.buffer
-        else
-          b = BufferManager.spawn_unless_exists("All threads with label '#{user_label}'") do
-            mode = LabelSearchResultsMode.new([user_label])
-          end
-          b.mode.load_threads :num => b.content_height
         end
-
       when :compose
-        spawn_compose_mode
+        ComposeMode.spawn_nicely
       when :poll
         reporting_thread { PollManager.poll }
       when :recall_draft
