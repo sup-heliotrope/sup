@@ -86,8 +86,12 @@ class Thread
   def dirty?; any? { |m, *o| m && m.dirty? }; end
   def date; map { |m, *o| m.date if m }.compact.max; end
   def snippet
-    last_m, last_stuff = select { |m, *o| m && m.snippet && !m.snippet.empty? }.sort_by { |m, *o| m.date }.last
-    last_m ? last_m.snippet : ""
+    with_snippets = select { |m, *o| m && m.snippet && !m.snippet.empty? }
+    first_unread, * = with_snippets.select { |m, *o| m.has_label?(:unread) }.sort_by { |m, *o| m.date }.first
+    return first_unread.snippet if first_unread
+    last_read, * = with_snippets.sort_by { |m, *o| m.date }.last
+    return last_read.snippet if last_read
+    ""
   end
   def authors; map { |m, *o| m.from if m }.compact.uniq; end
 
