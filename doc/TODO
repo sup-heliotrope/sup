@@ -5,7 +5,6 @@ _ mark thread as unread should remember the unread messages and mark
 _ mark thread as unread should have a version within thread-view-mode
    which then also closes the buffer
 _ bugfix: time zone parsing broken?
-_ mailing list auto-subscribe/unsubscribe
 _ forwards optionally include attachments
 _ attach messages
 _ flesh out gpg integration: sign & encrypt outgoing
@@ -23,9 +22,21 @@ _ search results: highlight relevant snippets and open to relevant
    portion of thread
 _ have "notes" (treated as emails to oneself, never sent) as
    first-class objects.
+x multi-thread dump upon crash
+x hook manager caches values of any proc "variables"
+x bugfix: remove delay on startup if a usual imap source exists
+x bugfix: broken source handling still needs to be improved
+x speed up querying
+x bugfix: sources sometimes aren't added by sup-add
+x more widgets: terminal title, statusbar
+x mailing list auto-subscribe/unsubscribe
 
 future
 ------
+_ ldbd support
+_ don't use a people.txt; store email addresses directly in the index. too many
+  problems with email addresses that occur with multiple names.
+_ infix match instead of prefix match for tab completion (maybe!)
 _ fix killed threads contributing to unread message count problem (prob. need
   to maintain all killed message ids and our own unread message count for
   inbox).

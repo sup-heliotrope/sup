@@ -7,6 +7,7 @@ require 'fileutils'
 require 'trollop'
 require "sup"
 
+$exceptions = []
 $opts = Trollop::options do
   version "sup v#{Redwood::VERSION}"
   banner <<EOS
@@ -172,7 +173,7 @@ begin
 
   Index.usual_sources.each do |s|
     next unless s.respond_to? :connect
-    reporting_thread do
+    reporting_thread("call #connect on #{s}") do
       begin
         s.connect
       rescue SourceError => e
@@ -181,7 +182,7 @@ begin
     end
   end
   
-  imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread { sleep 1; PollManager.poll } unless $opts[:no_threads] }
+  imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread("poll after loading inbox") { sleep 1; PollManager.poll } unless $opts[:no_threads] }
 
   unless $opts[:no_threads]
     PollManager.start
@@ -193,7 +194,7 @@ begin
     SearchResultsMode.spawn_from_query $opts[:search]
   end
 
-  until $exception || SuicideManager.die?
+  until $exceptions.nonempty? || SuicideManager.die?
     c = Ncurses.nonblocking_getch
     next unless c
     bm.erase_flash
@@ -215,8 +216,8 @@ begin
       when :list_buffers
         bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
       when :list_contacts
-        b = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
-        b.mode.load_in_background if b
+        b, new = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
+        b.mode.load_in_background if new
       when :search
         query = BufferManager.ask :search, "search all messages: "
         next unless query && query !~ /^\s*$/
@@ -234,7 +235,7 @@ begin
       when :compose
         ComposeMode.spawn_nicely
       when :poll
-        reporting_thread { PollManager.poll }
+        reporting_thread("user-invoked poll") { PollManager.poll }
       when :recall_draft
         case Index.num_results_for :label => :draft
         when 0
@@ -246,8 +247,8 @@ begin
           BufferManager.spawn "Edit message", r
           r.edit_message
         else
-          b = BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
-          b.mode.load_threads :num => b.content_height if b
+          b, new = BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
+          b.mode.load_threads :num => b.content_height if new
         end
       when :nothing
       when :redraw
@@ -260,7 +261,7 @@ begin
     bm.draw_screen
   end
 rescue Exception => e
-  $exception ||= e
+  $exceptions << [e, "main"]
 ensure
   unless $opts[:no_threads]
     PollManager.stop if PollManager.instantiated?
@@ -276,8 +277,7 @@ ensure
     Redwood::log "I've been ordered to commit sepuku. I obey!"
   end
 
-  case $exception
-  when nil
+  if $exceptions.empty?
     Redwood::log "no fatal errors. good job, william."
     Index.save
   else
@@ -287,27 +287,29 @@ ensure
   Index.unlock
 end
 
-if $exception 
+unless $exceptions.empty?
   File.open("sup-exception-log.txt", "w") do |f|
-    f.puts "--- #{e.class.name} at #{Time.now}"
-    f.puts e.message, e.backtrace
+    $exceptions.each do |e, name|
+      f.puts "--- #{e.class.name} from thread: #{name}"
+      f.puts e.message, e.backtrace
+    end
   end
   $stderr.puts <<EOS
 ----------------------------------------------------------------
-I'm very sorry, but it seems that an error occurred in Sup. 
-Please accept my sincere apologies. If you don't mind, please
-send the backtrace below and a brief report of the circumstances
-to sup-talk at rubyforge dot orgs so that I might address this
-problem. Thank you!
+I'm very sorry. It seems that an error occurred in Sup. Please
+accept my sincere apologies. If you don't mind, please send the
+contents of sup-exception-log.txt and a brief report of the
+circumstances to sup-talk at rubyforge dot orgs so that I might
+address this problem. Thank you!
 
 Sincerely,
 William
 ----------------------------------------------------------------
-
-The problem was: '#{$exception.message}' (error type #{$exception.class.name})
-A backtrace follows:
 EOS
-  raise $exception
+  $exceptions.each do |e, name|
+    puts "--- #{e.class.name} from thread: #{name}"
+    puts e.message, e.backtrace
+  end
 end
 
 end

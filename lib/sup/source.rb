@@ -1,6 +1,11 @@
 module Redwood
 
-class SourceError < StandardError; end
+class SourceError < StandardError
+  def initialize *a
+    raise "don't instantiate me!" if SourceError.is_a?(self.class)
+    super
+  end
+end
 class OutOfSyncSourceError < SourceError; end
 class FatalSourceError < SourceError; end
 

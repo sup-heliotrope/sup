@@ -74,9 +74,13 @@ class Buffer
     mode.resize rows, cols
   end
 
-  def redraw
-    draw if @dirty
-    draw_status
+  def redraw status
+    if @dirty
+      draw status 
+    else
+      draw_status status
+    end
+
     commit
   end
 
@@ -87,9 +91,9 @@ class Buffer
     @w.noutrefresh
   end
 
-  def draw
+  def draw status
     @mode.draw
-    draw_status
+    draw_status status
     commit
   end
 
@@ -110,9 +114,8 @@ class Buffer
     @w.clear
   end
 
-  def draw_status
-    write @height - 1, 0, " [#{mode.name}] #{title}   #{mode.status}",
-      :color => :status_color
+  def draw_status status
+    write @height - 1, 0, status, :color => :status_color
   end
 
   def focus
@@ -137,6 +140,30 @@ class BufferManager
   ## it has special semantics that BufferManager deals with---current searches
   ## are canceled by any keypress except this one.
   CONTINUE_IN_BUFFER_SEARCH_KEY = "n"
+
+  HookManager.register "status-bar-text", <<EOS
+Sets the status bar. The default status bar contains the mode name, the buffer
+title, and the mode status. Note that this will be called at least once per
+keystroke, so excessive computation is discouraged.
+
+Variables:
+         num_inbox: number of messages in inbox
+  num_inbox_unread: total number of messages marked as unread
+         num_total: total number of messages in the index
+          num_spam: total number of messages marked as spam
+             title: title of the current buffer
+              mode: current mode name (string)
+            status: current mode status (string)
+Return value: a string to be used as the status bar.
+EOS
+
+  HookManager.register "terminal-title-text", <<EOS
+Sets the title of the current terminal, if applicable. Note that this will be
+called at least once per keystroke, so excessive computation is discouraged.
+
+Variables: the same as status-bar-text hook.
+Return value: a string to be used as the terminal title.
+EOS
 
   def initialize
     @name_map = {}
@@ -216,15 +243,26 @@ class BufferManager
   def completely_redraw_screen
     return if @shelled
 
+    status, title = get_status_and_title(@focus_buf) # must be called outside of the ncurses lock
+
     Ncurses.sync do
       @dirty = true
       Ncurses.clear
-      draw_screen :sync => false
+      draw_screen :sync => false, :status => status, :title => title
     end
   end
 
   def draw_screen opts={}
     return if @shelled
+
+    status, title =
+      if opts.member? :status
+        [opts[:status], opts[:title]]
+      else
+        get_status_and_title(@focus_buf) # must be called outside of the ncurses lock
+      end
+
+    print "\033]2;#{title}\07" if title
 
     Ncurses.mutex.lock unless opts[:sync] == false
 
@@ -234,7 +272,7 @@ class BufferManager
     false && @buffers.inject(@dirty) do |dirty, buf|
       buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
       #dirty ? buf.draw : buf.redraw
-      buf.draw
+      buf.draw status
       dirty
     end
 
@@ -242,7 +280,7 @@ class BufferManager
     if true
       buf = @buffers.last
       buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
-      @dirty ? buf.draw : buf.redraw
+      @dirty ? buf.draw(status) : buf.redraw(status)
     end
 
     draw_minibuf :sync => false unless opts[:skip_minibuf]
@@ -253,18 +291,21 @@ class BufferManager
     Ncurses.mutex.unlock unless opts[:sync] == false
   end
 
-  ## gets the mode from the block, which is only called if the buffer
-  ## doesn't already exist. this is useful in the case that generating
-  ## the mode is expensive, as it often is.
+  ## if the named buffer already exists, pops it to the front without
+  ## calling the block. otherwise, gets the mode from the block and
+  ## creates a new buffer. returns two things: the buffer, and a boolean
+  ## indicating whether it's a new buffer or not.
   def spawn_unless_exists title, opts={}
-    if @name_map.member? title
-      raise_to_front @name_map[title] unless opts[:hidden]
-      nil
-    else
-      mode = yield
-      spawn title, mode, opts
-      @name_map[title]
-    end
+    new = 
+      if @name_map.member? title
+        raise_to_front @name_map[title] unless opts[:hidden]
+        false
+      else
+        mode = yield
+        spawn title, mode, opts
+        true
+      end
+    [@name_map[title], new]
   end
 
   def spawn title, mode, opts={}
@@ -647,6 +688,30 @@ class BufferManager
   end
 
 private
+  def default_status_bar buf
+    " [#{buf.mode.name}] #{buf.title}   #{buf.mode.status}"
+  end
+
+  def default_terminal_title buf
+    "Sup #{Redwood::VERSION} :: #{buf.title}"
+  end
+
+  def get_status_and_title buf
+    opts = {
+      :num_inbox => lambda { Index.num_results_for :label => :inbox },
+      :num_inbox_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] },
+      :num_total => lambda { Index.size },
+      :num_spam => lambda { Index.num_results_for :label => :spam },
+      :title => buf.title,
+      :mode => buf.mode.name,
+      :status => buf.mode.status
+    }
+
+    statusbar_text = HookManager.run("status-bar-text", opts) || default_status_bar(buf)
+    term_title_text = HookManager.run("terminal-title-text", opts) || default_terminal_title(buf)
+    
+    [statusbar_text, term_title_text]
+  end
 
   def users
     unless @users

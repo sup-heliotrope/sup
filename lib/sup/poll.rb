@@ -39,7 +39,8 @@ EOS
   end
 
   def buffer
-    @buffer ||= BufferManager.spawn_unless_exists("<poll for new messages>", :hidden => true) { PollMode.new }
+    b, new = BufferManager.spawn_unless_exists("<poll for new messages>", :hidden => true) { PollMode.new }
+    b
   end
 
   def poll
@@ -62,7 +63,7 @@ EOS
   end
 
   def start
-    @thread = Redwood::reporting_thread do
+    @thread = Redwood::reporting_thread("periodic poll") do
       while true
         sleep DELAY / 2
         poll if @last_poll.nil? || (Time.now - @last_poll) >= DELAY

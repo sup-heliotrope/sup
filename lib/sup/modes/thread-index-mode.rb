@@ -65,7 +65,6 @@ EOS
 
   def lines; @text.length; end
   def [] i; @text[i]; end
-  #def contains_thread? t; !@lines[t].nil?; end
   def contains_thread? t; @threads.include?(t) end
 
   def reload
@@ -78,8 +77,7 @@ EOS
   def select t=nil
     t ||= cursor_thread or return
 
-    ## TODO: don't regen text completely
-    Redwood::reporting_thread do
+    Redwood::reporting_thread("load messages for thread-view-mode") do
       num = t.size
       message = "Loading #{num.pluralize 'message body'}..."
       BufferManager.say(message) do |sid|
@@ -402,7 +400,7 @@ EOS
 
   def load_n_threads_background n=LOAD_MORE_THREAD_NUM, opts={}
     return if @load_thread # todo: wrap in mutex
-    @load_thread = Redwood::reporting_thread do
+    @load_thread = Redwood::reporting_thread("load threads for thread-index-mode") do
       num = load_n_threads n, opts
       opts[:when_done].call(num) if opts[:when_done]
       @load_thread = nil

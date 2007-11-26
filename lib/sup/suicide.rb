@@ -16,7 +16,7 @@ class SuicideManager
   bool_reader :die
 
   def start
-    @thread = Redwood::reporting_thread do
+    @thread = Redwood::reporting_thread("suicide watch") do
       while true
         sleep DELAY
         if File.exists? @fn

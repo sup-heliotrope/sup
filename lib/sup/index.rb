@@ -6,7 +6,7 @@ begin
   require 'chronic'
   $have_chronic = true
 rescue LoadError => e
-  Redwood::log "'chronic' library not found. run 'gem install chronic' to install."
+  Redwood::log "optional 'chronic' library not found (run 'gem install chronic' to install)"
   $have_chronic = false
 end
 
@@ -53,7 +53,7 @@ class Index
   end
 
   def start_lock_update_thread
-    @lock_update_thread = Redwood::reporting_thread do
+    @lock_update_thread = Redwood::reporting_thread("lock update") do
       while true
         sleep 30
         @lock.touch_yourself
@@ -119,8 +119,8 @@ EOS
   def add_source source
     raise "duplicate source!" if @sources.include? source
     @sources_dirty = true
-    source.id ||= @sources.size
-    ##TODO: why was this necessary?
+    max = @sources.max_of { |id, s| s.is_a?(DraftLoader) || s.is_a?(SentLoader) ? 0 : id }
+    source.id ||= (max || 0) + 1
     ##source.id += 1 while @sources.member? source.id
     @sources[source.id] = source
   end
@@ -263,12 +263,14 @@ EOS
     end
 
     until pending.empty? || (opts[:limit] && messages.size >= opts[:limit])
-      id = pending.pop
-      next if searched.member? id
-      searched[id] = true
       q = Ferret::Search::BooleanQuery.new true
-      q.add_query Ferret::Search::TermQuery.new(:message_id, id), :should
-      q.add_query Ferret::Search::TermQuery.new(:refs, id), :should
+
+      pending.each do |id|
+        searched[id] = true
+        q.add_query Ferret::Search::TermQuery.new(:message_id, id), :should
+        q.add_query Ferret::Search::TermQuery.new(:refs, id), :should
+      end
+      pending = []
 
       q = build_query :qobj => q
 
@@ -285,10 +287,11 @@ EOS
           #Redwood::log "got #{mid} as a child of #{id}"
           messages[mid] ||= lambda { build_message docid }
           refs = @index[docid][:refs].split(" ")
-          pending += refs
+          pending += refs.select { |id| !searched[id] }
         end
       end
     end
+
     if killed
       Redwood::log "thread for #{m.id} is killed, ignoring"
       false

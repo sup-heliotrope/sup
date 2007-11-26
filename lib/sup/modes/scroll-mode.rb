@@ -35,6 +35,7 @@ class ScrollMode < Mode
     @twiddles = opts.member?(:twiddles) ? opts[:twiddles] : true
     @search_query = nil
     @search_line = nil
+    @status = ""
     super()
   end
 

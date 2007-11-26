@@ -94,7 +94,7 @@ class ContactListMode < LineCursorMode
   end
 
   def load_in_background
-    Redwood::reporting_thread do
+    Redwood::reporting_thread("contact manager load in bg") do
       load
       update
       BufferManager.draw_screen

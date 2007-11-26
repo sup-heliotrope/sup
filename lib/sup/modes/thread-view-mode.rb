@@ -119,7 +119,7 @@ class ThreadViewMode < LineCursorMode
   def unsubscribe_from_list
     m = @message_lines[curpos] or return
     if m.list_unsubscribe && m.list_unsubscribe =~ /<mailto:(.*?)\?(subject=(.*?))>/
-      spawn_compose_mode :from => AccountManager.account_for(m.recipient_email), :to => [PersonManager.person_for($1)], :subj => $3
+      ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [PersonManager.person_for($1)], :subj => $3
     else
       BufferManager.flash "Can't find List-Unsubscribe header for this message."
     end
@@ -127,7 +127,7 @@ class ThreadViewMode < LineCursorMode
 
   def forward
     m = @message_lines[curpos] or return
-    spawn_forward_mode m
+    ForwardMode.spawn_nicely m
   end
 
   include CanAliasContacts
@@ -147,9 +147,9 @@ class ThreadViewMode < LineCursorMode
   def compose
     p = @person_lines[curpos]
     if p
-      spawn_compose_mode :to => [p]
+      ComposeMode.spawn_nicely :to => [p]
     else
-      spawn_compose_mode
+      ComposeMode.spawn_nicely
     end
   end    
 

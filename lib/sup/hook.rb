@@ -9,7 +9,7 @@ class HookManager
   ##
   ## i don't bother providing setters, since i'm pretty sure the
   ## charade will fall apart pretty quickly with respect to scoping.
-  ## this is basically fail-fast.
+  ## "fail-fast", we'll call it.
   class HookContext
     def initialize name
       @__say_id = nil
@@ -22,7 +22,7 @@ class HookManager
     def method_missing m, *a
       case @__locals[m]
       when Proc
-        @__locals[m].call(*a)
+        @__locals[m] = @__locals[m].call(*a) # only call the proc once
       when nil
         super
       else
@@ -85,8 +85,8 @@ class HookManager
     rescue Exception => e
       log "error running hook: #{e.message}"
       log e.backtrace.join("\n")
-      BufferManager.flash "Error running hook: #{e.message}"
       @hooks[name] = nil # disable it
+      BufferManager.flash "Error running hook: #{e.message}"
     end
     context.__cleanup
     result
@@ -111,6 +111,8 @@ File: #{fn_for name}
 EOS
     end
   end
+
+  def enabled? name; !hook_for(name).nil? end
 
 private
 

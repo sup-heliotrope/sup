@@ -399,6 +399,7 @@ class Array
   def to_boolean_h; Hash[*map { |x| [x, true] }.flatten]; end
 
   def last= e; self[-1] = e end
+  def nonempty?; !empty? end
 end
 
 class Time
@@ -505,18 +506,18 @@ module Singleton
   end
 end
 
-## wraps an object. if it throws an exception, keeps a copy, and
-## rethrows it for any further method calls.
+## wraps an object. if it throws an exception, keeps a copy.
 class Recoverable
   def initialize o
     @o = o
-    @e = nil
+    @error = nil
     @mutex = Mutex.new
   end
 
-  def clear_error!; @e = nil; end
-  def has_errors?; !@e.nil?; end
-  def error; @e; end
+  attr_accessor :error
+
+  def clear_error!; @error = nil; end
+  def has_errors?; !@error.nil?; end
 
   def method_missing m, *a, &b; __pass m, *a, &b end
   
@@ -531,8 +532,8 @@ class Recoverable
     begin
       @o.send(m, *a, &b)
     rescue Exception => e
-      @e ||= e
-      raise e
+      @error ||= e
+      raise
     end
   end
 end

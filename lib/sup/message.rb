@@ -13,6 +13,10 @@ class MessageFormatError < StandardError; end
 ## i would like, for example, to be able to add in a ruby-talk
 ## specific module that would detect and link to /ruby-talk:\d+/
 ## sequences in the text of an email. (how sweet would that be?)
+##
+## this class cathces all source exceptions. if the underlying source throws
+## an error, it is caught and handled.
+
 class Message
   SNIPPET_LEN = 80
   RE_PATTERN = /^((re|re[\[\(]\d[\]\)]):\s*)+/i
@@ -169,6 +173,7 @@ class Message
           Redwood::log "problem getting messages from #{@source}: #{e.message}"
           ## we need force_to_top here otherwise this window will cover
           ## up the error message one
+          @source.error ||= e
           Redwood::report_broken_sources :force_to_top => true
           [Chunk::Text.new(error_message(e.message))]
         end
@@ -194,11 +199,14 @@ The error message was:
 EOS
   end
 
+  ## wrap any source methods that might throw sourceerrors
   def with_source_errors_handled
     begin
       yield
     rescue SourceError => e
       Redwood::log "problem getting messages from #{@source}: #{e.message}"
+      @source.error ||= e
+      Redwood::report_broken_sources :force_to_top => true
       error_message e.message
     end
   end

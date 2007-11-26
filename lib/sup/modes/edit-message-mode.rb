@@ -13,7 +13,7 @@ class EditMessageMode < LineCursorMode
   NON_EDITABLE_HEADERS = %w(Message-Id Date)
 
   HookManager.register "signature", <<EOS
-Generates a signature for a message.
+Generates a message signature.
 Variables:
       header: an object that supports string-to-string hashtable-style access
               to the raw headers for the message. E.g., header["From"],

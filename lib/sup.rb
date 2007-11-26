@@ -60,8 +60,7 @@ module Redwood
     end
 
 ## record exceptions thrown in threads nicely
-  $exception = nil
-  def reporting_thread
+  def reporting_thread name
     if $opts[:no_threads]
       yield
     else
@@ -69,7 +68,8 @@ module Redwood
         begin
           yield
         rescue Exception => e
-          $exception ||= e
+          $exceptions ||= []
+          $exceptions << [e, name]
           raise
         end
       end
@@ -120,11 +120,13 @@ module Redwood
   end
 
   ## not really a good place for this, so I'll just dump it here.
+  ##
+  ## a source error is either a FatalSourceError or an OutOfSyncSourceError.
+  ## the superclass SourceError is just a generic.
   def report_broken_sources opts={}
     return unless BufferManager.instantiated?
 
-    broken_sources = Index.usual_sources.select { |s| s.error.is_a? FatalSourceError }
-    File.open("goat", "w") { |f| f.puts Kernel.caller }
+    broken_sources = Index.sources.select { |s| s.error.is_a? FatalSourceError }
     unless broken_sources.empty?
       BufferManager.spawn_unless_exists("Broken source notification for #{broken_sources.join(',')}", opts) do
         TextMode.new(<<EOM)
@@ -141,7 +143,7 @@ EOM
       end
     end
 
-    desynced_sources = Index.usual_sources.select { |s| s.error.is_a? OutOfSyncSourceError }
+    desynced_sources = Index.sources.select { |s| s.error.is_a? OutOfSyncSourceError }
     unless desynced_sources.empty?
       BufferManager.spawn_unless_exists("Out-of-sync source notification for #{broken_sources.join(',')}", opts) do
         TextMode.new(<<EOM)
