@@ -352,11 +352,9 @@ private
     else
       filename =
         ## first, paw through the headers looking for a filename
-        if m.header["Content-Disposition"] &&
-            m.header["Content-Disposition"] =~ /filename="?(.*?[^\\])("|;|$)/
+        if m.header["Content-Disposition"] && m.header["Content-Disposition"] =~ /filename="?(.*?[^\\])("|;|$)/
           $1
-        elsif m.header["Content-Type"] &&
-            m.header["Content-Type"] =~ /name=(.*?)(;|$)/
+        elsif m.header["Content-Type"] && m.header["Content-Type"] =~ /name="?(.*?[^\\])("|;|$)/
           $1
 
         ## haven't found one, but it's a non-text message. fake
