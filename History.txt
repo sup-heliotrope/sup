@@ -1,3 +1,13 @@
+== 0.3 / 2007-10-29
+* In-buffer search (finally!)
+* Subscribe to/unsubscribe from mailing list commands.
+* IMAP speedups.
+* More hooks: set status bar, set terminal title bar, modify message headers
+  and bodies before editing, etc.
+* Optionally use chronic gem to allow for natural-language dates in searches.
+* Many, many bugfixes and minor improvements.
+* Tomorrow is Sup's first birthday!
+
 == 0.2 / 2007-10-29
 * Complete hook system for user-inserted code.
 * GPG signature verification and decryption.
