@@ -135,20 +135,24 @@ scrollable list of all the labels you've ever used, along with some
 special labels (Draft, Starred, Sent, Spam, etc.). Highlight a label
 and press enter to view all the messages with that label.
 
-What you just did was actually a specific search. For a general
-search, press "/". Now type in your query (again, Ctrl-G to cancel at
-any point.) You can just type in arbitrary text, which will be matched
-on a per-word basis against the bodies of all email in the index, or
-you can make use of the full Ferret query syntax:
+What you just did was actually a specific search. For a general search,
+press "\" (backslash---forward slash is used for in-buffer search,
+following console conventions). Now type in your query (again, Ctrl-G to
+cancel at any point.) You can just type in arbitrary text, which will be
+matched on a per-word basis against the bodies of all email in the
+index, or you can make use of the full Ferret query syntax:
 
 - Phrasal queries using double-quotes, e.g.: "three contiguous words"
 - Queries against a particular field using <field name>:<query>,
   e.g.: label:ruby-talk, or from:matz@ruby-lang.org. (Fields include:
   body, from, to, and subject.)
-- Force non-occurrence by -, e.g. -body:"hot soup"
+- Force non-occurrence by -, e.g. -body:"hot soup".
+- If you have the chronic gem installed, date queries like
+  "before:today", "on:today", "after:yesterday", "after:(2 days ago)"
+  (parentheses required for multi-word descriptions).
 
 You can combine those all together. For example:
-     label:ruby-talk subject:\[ANN\] -rails
+     label:ruby-talk subject:\[ANN\] -rails on:today
 
 Play around with the search, and see the Ferret documentation for
 details on more sophisticated queries (date ranges, "within n words",
