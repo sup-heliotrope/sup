@@ -1,35 +1,27 @@
-for 0.3
+for 0.4
 -------
 _ mark thread as unread should remember the unread messages and mark
-   only them as unread, just like gmail
+  only them as unread, just like gmail
 _ mark thread as unread should have a version within thread-view-mode
-   which then also closes the buffer
+  which then also closes the buffer
 _ bugfix: time zone parsing broken?
 _ forwards optionally include attachments
 _ attach messages
 _ flesh out gpg integration: sign & encrypt outgoing
 _ mbox: don't keep filehandles open, and protect all reads with
-   dotlockfile
+  dotlockfile
 _ imap: share connection to the same server.
 _ bugfix: screwing with the headers when editing causes a crash
 _ need a better way to force an address to a particular name,
-   for things like evite addresses
+  for things like evite addresses
 _ pressing A in thread-view-mode should jump to next message
 _ imap "add all folders on this server" option in sup-add
 _ for new message flashes, add new message counts until keypress
 _ bugfix: missing sources should be handled better
 _ search results: highlight relevant snippets and open to relevant
-   portion of thread
+  portion of thread
 _ have "notes" (treated as emails to oneself, never sent) as
-   first-class objects.
-x multi-thread dump upon crash
-x hook manager caches values of any proc "variables"
-x bugfix: remove delay on startup if a usual imap source exists
-x bugfix: broken source handling still needs to be improved
-x speed up querying
-x bugfix: sources sometimes aren't added by sup-add
-x more widgets: terminal title, statusbar
-x mailing list auto-subscribe/unsubscribe
+  first-class objects.
 
 future
 ------
@@ -85,6 +77,14 @@ x gmail support: obsoleted by imap
 
 done
 ----
+x multi-thread dump upon crash
+x hook manager caches values of any proc "variables"
+x bugfix: remove delay on startup if a usual imap source exists
+x bugfix: broken source handling still needs to be improved
+x speed up querying
+x bugfix: sources sometimes aren't added by sup-add
+x more widgets: terminal title, statusbar
+x mailing list auto-subscribe/unsubscribe
 x bugfix: contacts.txt isn't parsed correctly when there are spaces in
    aliases
 x bugfix: @ signs in names make sendmail die silently
