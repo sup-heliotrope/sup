@@ -114,15 +114,15 @@ class Person
 
   def mediumname; @name || @email; end
 
-  def full_address
-    if @name && @email
+  def full_address email=@email
+    if @name && email
       if @name =~ /[",@]/
-        "#{@name.inspect} <#@email>" # escape quotes
+        "#{@name.inspect} <#{email}>" # escape quotes
       else
-        "#@name <#@email>"
+        "#@name <#{email}>"
       end
     else
-      @email
+      email
     end
   end
 

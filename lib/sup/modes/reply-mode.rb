@@ -23,19 +23,20 @@ class ReplyMode < EditMessageMode
     ## any)
     body = reply_body_lines message
 
-    from =
+    from_email, from_acct =
       if @m.recipient_email && (a = AccountManager.account_for(@m.recipient_email))
-        a
+        [@m.recipient_email, a]
       elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
-        b
+        [b.full_address, b]
       else
-        AccountManager.default_account
+        c = AccountManager.default_account
+        [c.full_address, c]
       end
 
     ## ignore reply-to for list messages because it's typically set to
     ## the list address, which we explicitly treat with :list
     to = @m.is_list_message? ? @m.from : (@m.replyto || @m.from)
-    cc = (@m.to + @m.cc - [from, to]).uniq
+    cc = (@m.to + @m.cc - [from_acct, to]).uniq
 
     @headers = {}
 
@@ -68,7 +69,7 @@ class ReplyMode < EditMessageMode
 
     @headers.each do |k, v|
       @headers[k] = {
-               "From" => "#{from.name} <#{from.email}>",
+               "From" => from_acct.full_address(from_email),
                "To" => [],
                "Cc" => [],
                "Bcc" => [],
