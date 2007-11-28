@@ -191,15 +191,13 @@ EOS
   end
 
   def raise_to_front buf
-    return unless @buffers.member? buf
-
-    @buffers.delete buf
+    @buffers.delete(buf) or return
     if @buffers.length > 0 && @buffers.last.force_to_top?
       @buffers.insert(-2, buf)
     else
       @buffers.push buf
-      focus_on buf
     end
+    focus_on buf
     @dirty = true
   end
 
@@ -387,10 +385,9 @@ EOS
     if @buffers.empty?
       ## TODO: something intelligent here
       ## for now I will simply prohibit killing the inbox buffer.
+      raise "how did you kill the inbox? that's impossible!"
     else
-      last = @buffers.last
-      @focus_buf ||= last
-      raise_to_front last
+      raise_to_front @buffers.last
     end
   end
 
