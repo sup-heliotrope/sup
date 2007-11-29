@@ -385,7 +385,6 @@ EOS
     if @buffers.empty?
       ## TODO: something intelligent here
       ## for now I will simply prohibit killing the inbox buffer.
-      raise "how did you kill the inbox? that's impossible!"
     else
       raise_to_front @buffers.last
     end
