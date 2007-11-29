@@ -183,7 +183,6 @@ EOS
 
   def focus_on buf
     return unless @buffers.member? buf
-
     return if buf == @focus_buf 
     @focus_buf.blur if @focus_buf
     @focus_buf = buf
@@ -197,7 +196,7 @@ EOS
     else
       @buffers.push buf
     end
-    focus_on buf
+    focus_on @buffers.last
     @dirty = true
   end
 
