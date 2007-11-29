@@ -27,10 +27,10 @@ class ReplyMode < EditMessageMode
       if @m.recipient_email && (a = AccountManager.account_for(@m.recipient_email))
         [@m.recipient_email, a]
       elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
-        [b.full_address, b]
+        [nil, b]
       else
         c = AccountManager.default_account
-        [c.full_address, c]
+        [nil, c]
       end
 
     ## ignore reply-to for list messages because it's typically set to
