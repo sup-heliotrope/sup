@@ -573,3 +573,27 @@ class SavingHash
 
   defer_all_other_method_calls_to :hash
 end
+
+class OrderedHash < Hash
+  alias_method :store, :[]=
+  alias_method :each_pair, :each
+
+  def initialize
+    @keys = []
+  end
+
+  def []=(key, val)
+    @keys << key unless member?(key)
+    super
+  end
+
+  def delete(key)
+    @keys.delete(key)
+    super
+  end
+
+  def each
+    @keys.each { |k| yield k, self[k] }
+  end
+end
+

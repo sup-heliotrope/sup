@@ -17,9 +17,10 @@ class ThreadViewMode < LineCursorMode
 Add or remove headers from the detailed header display of a message.
 Variables:
   message: The message whose headers are to be formatted.
-  headers: A hash of header name, value pairs for the default display.
+  headers: A hash of header (name, value) pairs, initialized to the default
+           headers.
 Return value:
-  A hash of the same form of 'headers'.
+  None. The variable 'headers' should be modified in place.
 EOS
 
   register_keymap do |k|
@@ -465,10 +466,9 @@ private
         addressee_lines += format_person_list "   Bcc: ", m.bcc
       end
 
-      headers = {
-        "Date" => "#{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})",
-        "Subject" => m.subj,
-      }
+      headers = OrderedHash.new
+      headers["Date"] = "#{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})"
+      headers["Subject"] = m.subj
 
       show_labels = @thread.labels - LabelManager::HIDDEN_RESERVED_LABELS
       unless show_labels.empty?
@@ -478,7 +478,7 @@ private
         headers["In reply to"] = "#{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}"
       end
 
-      headers = (HookManager.run("detailed-headers", :message => m, :headers => headers)) || headers
+      HookManager.run "detailed-headers", :message => m, :headers => headers
       
       from_line + (addressee_lines + headers.map { |k, v| "   #{k}: #{v}" }).map { |l| [[color, prefix + "  " + l]] }
     end

@@ -141,6 +141,7 @@ class IMAP < Source
       @ids << id
       @imap_state[id] = { :id => v.seqno, :flags => v.attr["FLAGS"] }
     end
+    Redwood::log "done fetching IMAP headers"
   end
   synchronized :scan_mailbox
 
