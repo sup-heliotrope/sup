@@ -13,6 +13,15 @@ class ThreadViewMode < LineCursorMode
   DATE_FORMAT = "%B %e %Y %l:%M%P"
   INDENT_SPACES = 2 # how many spaces to indent child messages
 
+  HookManager.register "detailed-headers", <<EOS
+Add or remove headers from the detailed header display of a message.
+Variables:
+  message: The message whose headers are to be formatted.
+  headers: A hash of header name, value pairs for the default display.
+Return value:
+  A hash of the same form of 'headers'.
+EOS
+
   register_keymap do |k|
     k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
@@ -439,32 +448,39 @@ private
 
     when :detailed
       @person_lines[start] = m.from
-      from = [[prefix_widget, open_widget, new_widget, starred_widget,
+      from_line = [[prefix_widget, open_widget, new_widget, starred_widget,
           [color, "From: #{m.from ? format_person(m.from) : '?'}"]]]
 
-      rest = []
+      addressee_lines = []
       unless m.to.empty?
-        m.to.each_with_index { |p, i| @person_lines[start + rest.length + from.length + i] = p }
-        rest += format_person_list "   To: ", m.to
+        m.to.each_with_index { |p, i| @person_lines[start + addressee_lines.length + from_line.length + i] = p }
+        addressee_lines += format_person_list "   To: ", m.to
       end
       unless m.cc.empty?
-        m.cc.each_with_index { |p, i| @person_lines[start + rest.length + from.length + i] = p }
-        rest += format_person_list "   Cc: ", m.cc
+        m.cc.each_with_index { |p, i| @person_lines[start + addressee_lines.length + from_line.length + i] = p }
+        addressee_lines += format_person_list "   Cc: ", m.cc
       end
       unless m.bcc.empty?
-        m.bcc.each_with_index { |p, i| @person_lines[start + rest.length + from.length + i] = p }
-        rest += format_person_list "   Bcc: ", m.bcc
+        m.bcc.each_with_index { |p, i| @person_lines[start + addressee_lines.length + from_line.length + i] = p }
+        addressee_lines += format_person_list "   Bcc: ", m.bcc
       end
 
+      headers = {
+        "Date" => "#{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})",
+        "Subject" => m.subj,
+      }
+
       show_labels = @thread.labels - LabelManager::HIDDEN_RESERVED_LABELS
-      rest += [
-        "   Date: #{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})",
-        "   Subject: #{m.subj}",
-        (parent ? "   In reply to: #{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}" : nil),
-        show_labels.empty? ? nil : "   Labels: #{show_labels.join(', ')}",
-      ].compact
+      unless show_labels.empty?
+        headers["Labels"] = show_labels.map { |x| x.to_s }.sort.join(', ')
+      end
+      if parent
+        headers["In reply to"] = "#{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}"
+      end
+
+      headers = (HookManager.run("detailed-headers", :message => m, :headers => headers)) || headers
       
-      from + rest.map { |l| [[color, prefix + "  " + l]] }
+      from_line + (addressee_lines + headers.map { |k, v| "   #{k}: #{v}" }).map { |l| [[color, prefix + "  " + l]] }
     end
   end
 
