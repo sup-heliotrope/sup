@@ -387,6 +387,8 @@ protected
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
         [field, p.email]
+      elsif name == "me"
+        [field, "(" + AccountManager.user_emails.join("||") + ")"]
       else
         [field, name]
       end.join(":")
