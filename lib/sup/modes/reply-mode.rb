@@ -23,28 +23,34 @@ class ReplyMode < EditMessageMode
     ## any)
     body = reply_body_lines message
 
-    from_email, from_acct =
-      if @m.recipient_email && (a = AccountManager.account_for(@m.recipient_email))
-        [@m.recipient_email, a]
+    ## first, determine the address at which we received this email. this will
+    ## become our From: address in the reply.
+    from =
+      if @m.recipient_email && AccountManager.is_account_email?(@m.recipient_email)
+        PersonManager.person_for(@m.recipient_email)
       elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
-        [nil, b]
+        b
       else
-        c = AccountManager.default_account
-        [nil, c]
+        AccountManager.default_account
       end
 
-    ## ignore reply-to for list messages because it's typically set to
-    ## the list address, which we explicitly treat with :list
+    ## now, determine to: and cc: addressess. we  ignore reply-to for list
+    ## messages because it's typically set to the list address, which we
+    ## explicitly treat with reply type :list
     to = @m.is_list_message? ? @m.from : (@m.replyto || @m.from)
-    cc = (@m.to + @m.cc - [from_acct, to]).uniq
 
-    @headers = {}
+    ## next, cc:
+    cc = (@m.to + @m.cc - [from, to]).uniq
+    Redwood::log "cc = (#{@m.to.inspect} + #{@m.cc.inspect} - #{[from, to].inspect}).uniq = #{cc.inspect}"
 
+    ## one potential reply type is "reply to recipient". this only happens
+    ## in certain cases:
     ## if there's no cc, then the sender is the person you want to reply
     ## to. if it's a list message, then the list address is. otherwise,
     ## the cc contains a recipient.
     useful_recipient = !(cc.empty? || @m.is_list_message?)
     
+    @headers = {}
     @headers[:recipient] = {
       "To" => cc.map { |p| p.full_address },
     } if useful_recipient
@@ -69,7 +75,7 @@ class ReplyMode < EditMessageMode
 
     @headers.each do |k, v|
       @headers[k] = {
-               "From" => from_acct.full_address(from_email),
+               "From" => from.full_address,
                "To" => [],
                "Cc" => [],
                "Bcc" => [],
