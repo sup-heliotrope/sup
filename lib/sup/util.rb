@@ -297,11 +297,6 @@ class Numeric
 end
 
 class Fixnum
-  def num_digits base=10
-    return 1 if self == 0
-    1 + (Math.log(self) / Math.log(10)).floor
-  end
-  
   def to_character
     if self < 128 && self >= 0
       chr
