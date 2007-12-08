@@ -274,7 +274,21 @@ private
     imap_id = @imap_state[id][:id]
     result = fetch(imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq).first
     got_id = make_id result
-    raise OutOfSyncSourceError, "IMAP message mismatch: requested #{id}, got #{got_id}." unless got_id == id
+
+    ## I've turned off the following sanity check because Microsoft Exchange fails it.
+    ## Exchange actually reports two different INTERNALDATEs for the exact same message
+    ## when queried at different points in time.
+    ##
+    ## I don't actually see the semantics of INTERNALDATE actually defined anywhere
+    ## in either RFC 3501 or RFC 2060, beyond "the internal date of the message"
+    ## (gee, thanks guys, great job on that committee), so it's probably perfectly
+    ## acceptable to return any date you'd like for any message.
+    ##
+    ## Of course no OTHER imap server I've encountered returns DIFFERENT values for
+    ## the SAME message. But it's Microsoft; what do you expect? If their programmers
+    ## were any good they'd be working at Google.
+
+    # raise OutOfSyncSourceError, "IMAP message mismatch: requested #{id}, got #{got_id}." unless got_id == id
 
     fields.map { |f| result.attr[f] or raise FatalSourceError, "empty response from IMAP server: #{f}" }
   end
