@@ -313,7 +313,7 @@ EOS
       "date" => Time.at(doc[:date].to_i),
       "subject" => unwrap_subj(doc[:subject]),
       "from" => doc[:from],
-      "to" => doc[:to],
+      "to" => doc[:to].split(/\s+/).join(", "), # reformat
       "message-id" => doc[:message_id],
       "references" => doc[:refs].split(/\s+/).map { |x| "<#{x}>" }.join(" "),
     }
