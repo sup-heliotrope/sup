@@ -54,7 +54,8 @@ EOS
     def initialize content_type, filename, encoded_content, sibling_types
       @content_type = content_type
       @filename = filename
-      @quotable = false # only quotable if we can parse it through the mime-decode hook
+      @quotable = false # changed to true if we can parse it through the
+                        # mime-decode hook, or if it's plain text
       @raw_content =
         if encoded_content.body
           encoded_content.decode
@@ -65,6 +66,7 @@ EOS
       @lines =
         case @content_type
         when /^text\/plain\b/
+          @quotable = true
           Message.convert_from(@raw_content, encoded_content.charset).split("\n")
         else
           text = HookManager.run "mime-decode", :content_type => content_type,
