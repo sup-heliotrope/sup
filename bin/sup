@@ -20,6 +20,7 @@ Options are:
 EOS
   opt :list_hooks, "List all hooks and descriptions thereof, and quit."
   opt :no_threads, "Turn of threading. Helps with debugging. (Necessarily disables background polling for new messages.)"
+  opt :no_initial_poll, "Don't poll for new messages when starting."
   opt :search, "Search for threads ", :type => String
 end
 
@@ -154,9 +155,8 @@ begin
           Ncurses::A_BOLD
     c.add :completion_character_color, Ncurses::COLOR_WHITE,
           Ncurses::COLOR_BLACK, Ncurses::A_BOLD
-    c.add :reply_mode_selected_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, Ncurses::A_BOLD
-    c.add :reply_mode_unselected_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
-    c.add :reply_mode_label_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
+    c.add :horizontal_selector_selected_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, Ncurses::A_BOLD
+    c.add :horizontal_selector_unselected_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
     c.add :search_highlight_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_YELLOW, Ncurses::A_BOLD, :highlight => :search_highlight_color
   end
 
@@ -182,7 +182,7 @@ begin
     end
   end
   
-  imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread("poll after loading inbox") { sleep 1; PollManager.poll } unless $opts[:no_threads] }
+  imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread("poll after loading inbox") { sleep 1; PollManager.poll } unless $opts[:no_threads] || $opts[:no_initial_poll] }
 
   unless $opts[:no_threads]
     PollManager.start
