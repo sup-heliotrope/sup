@@ -8,6 +8,8 @@ module Redwood
 class SendmailCommandFailed < StandardError; end
 
 class EditMessageMode < LineCursorMode
+  DECORATION_LINES = 1
+
   FORCE_HEADERS = %w(From To Cc Bcc Subject)
   MULTI_HEADERS = %w(To Cc Bcc)
   NON_EDITABLE_HEADERS = %w(Message-Id Date)
@@ -48,6 +50,8 @@ EOS
     k.add :save_as_draft, "Save as draft", 'P'
     k.add :attach_file, "Attach a file", 'a'
     k.add :delete_attachment, "Delete an attachment", 'd'
+    k.add :move_cursor_right, "Move selector to the right", :right
+    k.add :move_cursor_left, "Move selector to the left", :left
   end
 
   def initialize opts={}
@@ -60,7 +64,15 @@ EOS
     @attachments = []
     @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
     @edited = false
-    @skip_top_rows = opts[:skip_top_rows] || 0
+    @reserve_top_rows = opts[:reserve_top_rows] || 0
+    @selectors = []
+    @selector_label_width = 0
+
+    @crypto_selector =
+      if CryptoManager.have_crypto?
+        HorizontalSelector.new "Crypto:", [:none] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.keys, ["None"] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.values
+      end
+    add_selector @crypto_selector if @crypto_selector
     
     HookManager.run "before-edit", :header => @header, :body => @body
 
@@ -68,17 +80,29 @@ EOS
     regen_text
   end
 
-  def lines; @text.length end
-  def [] i; @text[i] end
+  def lines; @text.length + (@selectors.empty? ? 0 : (@selectors.length + DECORATION_LINES)) end
+  
+  def [] i
+    if @selectors.empty?
+      @text[i]
+    elsif i < @selectors.length
+      @selectors[i].line @selector_label_width
+    elsif i == @selectors.length
+      "-" * buffer.content_width
+    else
+      @text[i - @selectors.length - DECORATION_LINES]
+    end
+  end
 
-  ## a hook
+  ## hook for subclasses. i hate this style of programming.
   def handle_new_text header, body; end
 
   def edit_message_or_field
-    if (curpos - @skip_top_rows) >= @header_lines.length
+    lines = DECORATION_LINES + @selectors.size
+    if (curpos - lines) >= @header_lines.length
       edit_message
     else
-      edit_field @header_lines[curpos - @skip_top_rows]
+      edit_field @header_lines[curpos - lines]
     end
   end
 
@@ -121,7 +145,7 @@ EOS
   end
 
   def delete_attachment
-    i = (curpos - @skip_top_rows) - @attachment_lines_offset
+    i = (curpos - @reserve_top_rows) - @attachment_lines_offset
     if i >= 0 && i < @attachments.size && BufferManager.ask_yes_or_no("Delete attachment #{@attachments[i]}?")
       @attachments.delete_at i
       update
@@ -129,6 +153,23 @@ EOS
   end
 
 protected
+
+  def move_cursor_left
+    return unless curpos < @selectors.length
+    @selectors[curpos].roll_left
+    buffer.mark_dirty
+  end
+
+  def move_cursor_right
+    return unless curpos < @selectors.length
+    @selectors[curpos].roll_right
+    buffer.mark_dirty
+  end
+
+  def add_selector s
+    @selectors << s
+    @selector_label_width = [@selector_label_width, s.label.length].max
+  end
 
   def update
     regen_text

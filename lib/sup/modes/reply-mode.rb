@@ -3,17 +3,12 @@ module Redwood
 class ReplyMode < EditMessageMode
   REPLY_TYPES = [:sender, :recipient, :list, :all, :user]
   TYPE_DESCRIPTIONS = {
-    :sender => "Reply to sender",
-    :recipient => "Reply to recipient",
-    :all => "Reply to all",
-    :list => "Reply to mailing list",
-    :user => "Customized reply"
+    :sender => "Sender",
+    :recipient => "Recipient",
+    :all => "All",
+    :list => "Mailing list",
+    :user => "Customized"
   }
-
-  register_keymap do |k|
-    k.add :move_cursor_right, "Move cursor to the right", :right
-    k.add :move_cursor_left, "Move cursor to the left", :left
-  end
 
   def initialize message
     @m = message
@@ -41,7 +36,6 @@ class ReplyMode < EditMessageMode
 
     ## next, cc:
     cc = (@m.to + @m.cc - [from, to]).uniq
-    Redwood::log "cc = (#{@m.to.inspect} + #{@m.cc.inspect} - #{[from, to].inspect}).uniq = #{cc.inspect}"
 
     ## one potential reply type is "reply to recipient". this only happens
     ## in certain cases:
@@ -85,36 +79,39 @@ class ReplyMode < EditMessageMode
              }.merge v
     end
 
-    @type_labels = REPLY_TYPES.select { |t| @headers.member?(t) }
-    @selected_type = 
+    types = REPLY_TYPES.select { |t| @headers.member?(t) }
+    @type_selector = HorizontalSelector.new "Reply to:", types, types.map { |x| TYPE_DESCRIPTIONS[x] }
+
+    @type_selector.set_to(
       if @m.is_list_message?
         :list
       elsif @headers.member? :sender
         :sender
       else
         :recipient
-      end
+      end)
 
-    super :header => @headers[@selected_type], :body => body,
-          :skip_top_rows => 2, :twiddles => false
-  end
-
-  def lines; super + 2; end
-  def [] i
-    case i
-    when 0
-      @type_labels.inject([]) do |array, t|
-        array + [[(t == @selected_type ? :none_highlight : :none), 
-          "#{TYPE_DESCRIPTIONS[t]}"], [:none, "  "]]
-      end + [[:none, ""]]
-    when 1
-      ""
-    else
-      super(i - 2)
-    end
+    super :header => @headers[@type_selector.val], :body => body, :twiddles => false
+    add_selector @type_selector
   end
 
 protected
+
+  def move_cursor_right
+    super
+    if @headers[@type_selector.val] != self.header
+      self.header = @headers[@type_selector.val]
+      update
+    end
+  end
+
+  def move_cursor_left
+    super
+    if @headers[@type_selector.val] != self.header
+      self.header = @headers[@type_selector.val]
+      update
+    end
+  end
 
   def reply_body_lines m
     lines = ["Excerpts from #{@m.from.name}'s message of #{@m.date}:"] + m.quotable_body_lines.map { |l| "> #{l}" }
@@ -123,9 +120,9 @@ protected
   end
 
   def handle_new_text new_header, new_body
-    old_header = @headers[@selected_type]
+    old_header = @headers[@type_selector.val]
     if new_header.size != old_header.size || old_header.any? { |k, v| new_header[k] != v }
-      @selected_type = :user
+      @type_selector.set_to :user
       self.header = @headers[:user] = new_header
       update
     end
@@ -138,23 +135,9 @@ protected
   def edit_field field
     edited_field = super
     if edited_field && edited_field != "Subject"
-      @selected_type = :user
+      @type_selector.set_to :user
       update
     end
-  end
-  
-  def move_cursor_left
-    i = @type_labels.index @selected_type
-    @selected_type = @type_labels[(i - 1) % @type_labels.length]
-    self.header = @headers[@selected_type]
-    update
-  end
-
-  def move_cursor_right
-    i = @type_labels.index @selected_type
-    @selected_type = @type_labels[(i + 1) % @type_labels.length]
-    self.header = @headers[@selected_type]
-    update
   end
 end
 

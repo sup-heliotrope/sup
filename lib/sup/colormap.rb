@@ -51,6 +51,8 @@ class Colormap
       case bg
       when Curses::COLOR_CYAN
         Curses::COLOR_YELLOW
+      when Curses::COLOR_YELLOW
+        Curses::COLOR_BLUE
       else
         Curses::COLOR_CYAN
       end

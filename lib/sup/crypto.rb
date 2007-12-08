@@ -3,6 +3,12 @@ module Redwood
 class CryptoManager
   include Singleton
 
+  OUTGOING_MESSAGE_OPERATIONS = OrderedHash.new(
+    [:sign, "Sign"],
+    [:sign_and_encrypt, "Sign and encrypt"],
+    [:encrypt, "Encrypt only"]
+  )
+
   def initialize
     @mutex = Mutex.new
     self.class.i_am_the_instance self
@@ -13,13 +19,16 @@ class CryptoManager
     @cmd =
       case bin
       when /\S/
+        Redwood::log "crypto: detected gpg binary in #{bin}"
         "#{bin} --quiet --batch --no-verbose --logger-fd 1 --use-agent"
       else
+        Redwood::log "crypto: no gpg binary detected"
         nil
       end
   end
 
-  # returns a cryptosignature
+  def have_crypto?; !@cmd.nil? end
+
   def verify payload, signature # both RubyMail::Message objects
     return unknown_status(cant_find_binary) unless @cmd
 

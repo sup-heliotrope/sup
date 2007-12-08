@@ -24,6 +24,7 @@ lib/sup/contact.rb
 lib/sup/crypto.rb
 lib/sup/draft.rb
 lib/sup/hook.rb
+lib/sup/horizontal-selector.rb
 lib/sup/imap.rb
 lib/sup/index.rb
 lib/sup/keymap.rb

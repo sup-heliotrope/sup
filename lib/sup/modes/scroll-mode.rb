@@ -176,7 +176,7 @@ protected
         draw_line_from_array ln, s, opts
       end
     else
-      raise "unknown drawable object: #{s.inspect}" # good for debugging
+      raise "unknown drawable object: #{s.inspect} in #{self} for line #{ln}" # good for debugging
     end
 
       ## speed test

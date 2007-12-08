@@ -577,23 +577,26 @@ end
 class OrderedHash < Hash
   alias_method :store, :[]=
   alias_method :each_pair, :each
+  attr_reader :keys
 
-  def initialize
+  def initialize *a
     @keys = []
+    a.each { |k, v| self[k] = v }
   end
 
-  def []=(key, val)
+  def []= key, val
     @keys << key unless member?(key)
     super
   end
 
-  def delete(key)
-    @keys.delete(key)
+  def values; keys.map { |k| self[k] } end
+  def index key; @keys.index key end
+
+  def delete key
+    @keys.delete key
     super
   end
 
-  def each
-    @keys.each { |k| yield k, self[k] }
-  end
+  def each; @keys.each { |k| yield k, self[k] } end
 end
 
