@@ -370,7 +370,7 @@ private
       ## otherwise, it's body text
       else
         body = Message.convert_from m.decode, m.charset
-        text_to_chunks body.normalize_whitespace.split("\n")
+        text_to_chunks (body || "").normalize_whitespace.split("\n")
       end
     end
   end
@@ -379,7 +379,7 @@ private
     begin
       raise MessageFormatError, "RubyMail decode returned a null body" unless body
       return body unless charset
-      Iconv.iconv($encoding, charset, body).join
+      Iconv.iconv($encoding + "//IGNORE", charset, body + " ").join[0 .. -2]
     rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence, MessageFormatError => e
       Redwood::log "warning: error (#{e.class.name}) decoding message body from #{charset}: #{e.message}"
       File.open("sup-unable-to-decode.txt", "w") { |f| f.write body }
