@@ -8,6 +8,8 @@ class Tagger
 
   def tagged? o; @tagged[o]; end
   def toggle_tag_for o; @tagged[o] = !@tagged[o]; end
+  def tag o; @tagged[o] = true; end
+  def untag o; @tagged[o] = false; end
   def drop_all_tags; @tagged.clear; end
   def drop_tag_for o; @tagged.delete o; end
 

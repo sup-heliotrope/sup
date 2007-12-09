@@ -31,6 +31,7 @@ EOS
     k.add :forward, "Forward latest message in a thread", 'f'
     k.add :toggle_tagged, "Tag/untag selected thread", 't'
     k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
+    k.add :tag_matching, "Tag/untag all threads", 'g'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", ';'
   end
 
@@ -351,6 +352,14 @@ EOS
     regen_text
   end
 
+  def tag_matching
+    query = BufferManager.ask :search, "tag threads matching: "
+    return if query.nil? || query.empty?
+    query = /#{query}/i
+    @mutex.synchronize { @threads.each { |t| @tags.tag t if thread_match?(t, query) } }
+    regen_text
+  end
+
   def apply_to_tagged; @tags.apply_to_tagged; end
 
   def edit_labels
@@ -464,6 +473,12 @@ EOS
   end
 
 protected
+
+  ## used to tag threads by query. this can be made a lot more sophisticated,
+  ## but for right now we'll do the obvious this.
+  def thread_match? t, query
+    t.snippet =~ query || t.participants.any? { |x| x.longname =~ query }
+  end
 
   def size_widget_for_thread t
     HookManager.run("index-mode-size-widget", :thread => t) || default_size_widget_for(t)
