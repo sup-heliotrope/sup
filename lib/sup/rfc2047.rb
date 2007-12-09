@@ -55,7 +55,11 @@ module Rfc2047
       # Convert:
       #
       # Remember - Iconv.open(to, from)!
-      text = Iconv.iconv(target, charset, text).join
+      begin
+        text = Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]
+      rescue Iconv::InvalidCharacter
+        text
+      end
     end
   end
 end
