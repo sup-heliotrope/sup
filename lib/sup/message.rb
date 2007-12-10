@@ -370,7 +370,7 @@ private
       ## otherwise, it's body text
       else
         body = Message.convert_from m.decode, m.charset
-        text_to_chunks (body || "").normalize_whitespace.split("\n")
+        text_to_chunks((body || "").normalize_whitespace.split("\n"))
       end
     end
   end
