@@ -359,8 +359,16 @@ private
 
         ## haven't found one, but it's a non-text message. fake
         ## it.
+        ##
+        ## TODO: make this less lame.
         elsif m.header["Content-Type"] && m.header["Content-Type"] !~ /^text\/plain/
-          "sup-attachment-#{Time.now.to_i}-#{rand 10000}"
+          extension =
+            case m.header["Content-Type"]
+            when /text\/html/: "html"
+            when /image\/(.*)/: $1
+            end
+
+          ["sup-attachment-#{Time.now.to_i}-#{rand 10000}", extension].join(".")
         end
 
       ## if there's a filename, we'll treat it as an attachment.
