@@ -482,7 +482,6 @@ protected
       @hidden_threads.delete m
       ## now it will re-appear when #update is called
     else
-      Redwood::log "#{self}: adding: #{m}"
       @ts_mutex.synchronize do
         return unless is_relevant?(m) || @ts.is_relevant?(m)
         @ts.load_thread_for_message m
