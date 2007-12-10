@@ -31,7 +31,7 @@ EOS
     k.add :forward, "Forward latest message in a thread", 'f'
     k.add :toggle_tagged, "Tag/untag selected thread", 't'
     k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
-    k.add :tag_matching, "Tag/untag all threads", 'g'
+    k.add :tag_matching, "Tag matching threads", 'g'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", ';'
   end
 
