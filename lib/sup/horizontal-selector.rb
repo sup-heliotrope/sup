@@ -16,25 +16,6 @@ class HorizontalSelector
 
   def val; @vals[@selection] end
 
-  def old_line width=nil
-    label =
-      if width
-        sprintf "%#{width}s ", @label
-      else
-        "#{@label} "
-      end
-
-    [[:none, label]] + 
-      (0 ... @labels.length).inject([]) do |array, i|
-        array + [
-          if i == @selection
-            [@selected_color, "[" + @labels[i] + "]"]
-          else
-            [@base_color, " " + @labels[i] + " "]
-          end] + [[:none, " "]]
-      end + [[:none, ""]]
-  end
-
   def line width=nil
     label =
       if width
@@ -43,15 +24,15 @@ class HorizontalSelector
         "#{@label} "
       end
 
-    [[:none, label]] + 
+    [[@base_color, label]] + 
       (0 ... @labels.length).inject([]) do |array, i|
         array + [
           if i == @selection
             [@selected_color, @labels[i]]
           else
             [@base_color, @labels[i]]
-          end] + [[:none, "  "]]
-      end + [[:none, ""]]
+          end] + [[@base_color, "  "]]
+      end + [[@base_color, ""]]
   end
 
   def roll_left

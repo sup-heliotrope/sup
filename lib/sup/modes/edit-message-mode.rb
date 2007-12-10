@@ -94,7 +94,7 @@ EOS
     elsif i < @selectors.length
       @selectors[i].line @selector_label_width
     elsif i == @selectors.length
-      "-" * buffer.content_width
+      ""
     else
       @text[i - @selectors.length - DECORATION_LINES]
     end
