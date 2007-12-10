@@ -1,3 +1,4 @@
+require 'open3'
 module Redwood
 
 class ThreadViewMode < LineCursorMode
@@ -37,7 +38,7 @@ EOS
     k.add :toggle_new, "Toggle new/read status of message", 'N'
 #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
     k.add :reply, "Reply to a message", 'r'
-    k.add :forward, "Forward a message", 'f'
+    k.add :forward, "Forward a message or attachment", 'f'
     k.add :alias, "Edit alias/nickname for a person", 'i'
     k.add :edit_as_new, "Edit message as new", 'D'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
@@ -47,6 +48,7 @@ EOS
     k.add :delete_and_kill, "Delete thread and kill buffer", 'd'
     k.add :subscribe_to_list, "Subscribe to/unsubscribe from mailing list", "("
     k.add :unsubscribe_from_list, "Subscribe to/unsubscribe from mailing list", ")"
+    k.add :pipe_message, "Pipe message or attachment to a shell command", '|'
   end
 
   ## there are a couple important instance variables we hold to format
@@ -342,6 +344,54 @@ EOS
     @thread.apply_label :deleted
     UpdateManager.relay self, :deleted, @thread.first
     BufferManager.kill_buffer_safely buffer
+  end
+
+  def pipe_message
+    chunk = @chunk_lines[curpos]
+    chunk = nil unless chunk.is_a?(Chunk::Attachment)
+    message = @message_lines[curpos] unless chunk
+
+    return unless chunk || message
+
+    command = BufferManager.ask(:shell, "pipe command: ")
+    return if command.nil? || command.empty?
+
+    Open3.popen3(command) do |input, output, error|
+      err, data, * = IO.select [error], [input], nil
+
+      unless err.empty?
+        message = err.first.read
+        if message =~ /^\s*$/
+          Redwood::log "error running #{command} (but no error message)"
+          BufferManager.flash "Error running #{command}!"
+        else
+          Redwood::log "error running #{command}: #{message}"
+          BufferManager.flash "Error: #{message}"
+        end
+        return
+      end
+
+      data = data.first
+      data.sync = false # buffer input
+
+      if chunk
+        data.print chunk.raw_content
+      else
+        message.each_raw_message_line { |l| data.print l }
+      end
+
+      data.close # output will block unless input is closed
+
+      ## BUG?: shows errors or output but not both....
+      data, * = IO.select [output, error], nil, nil
+      data = data.first
+
+      if data.eof
+        BufferManager.flash "'#{command}' done!"
+      else
+        BufferManager.spawn "Output of '#{command}'", TextMode.new(data.read)
+      end
+    end
   end
 
 private
