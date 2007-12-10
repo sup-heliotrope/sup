@@ -236,6 +236,7 @@ EOS
   ## true, stops loading any thread if a message with a :killed flag
   ## is found.
   SAME_SUBJECT_DATE_LIMIT = 7
+  MAX_CLAUSES = 1000
   def each_message_in_thread_for m, opts={}
     #Redwood::log "Building thread for #{m.id}: #{m.subj}"
     messages = {}
@@ -264,13 +265,16 @@ EOS
 
     until pending.empty? || (opts[:limit] && messages.size >= opts[:limit])
       q = Ferret::Search::BooleanQuery.new true
+      # this disappeared in newer ferrets... wtf.
+      # q.max_clause_count = 2048
 
-      pending.each do |id|
+      lim = [MAX_CLAUSES / 2, pending.length].min
+      pending[0 ... lim].each do |id|
         searched[id] = true
         q.add_query Ferret::Search::TermQuery.new(:message_id, id), :should
         q.add_query Ferret::Search::TermQuery.new(:refs, id), :should
       end
-      pending = []
+      pending = pending[lim .. -1]
 
       q = build_query :qobj => q
 
