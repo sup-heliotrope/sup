@@ -497,7 +497,7 @@ protected
   ## used to tag threads by query. this can be made a lot more sophisticated,
   ## but for right now we'll do the obvious this.
   def thread_matches? t, query
-    t.subject =~ query || t.snippet =~ query || t.participants.any? { |x| x.longname =~ query }
+    t.subj =~ query || t.snippet =~ query || t.participants.any? { |x| x.longname =~ query }
   end
 
   def size_widget_for_thread t
