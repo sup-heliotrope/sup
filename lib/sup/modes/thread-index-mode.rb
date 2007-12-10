@@ -359,7 +359,7 @@ EOS
     query = BufferManager.ask :search, "tag threads matching: "
     return if query.nil? || query.empty?
     query = /#{query}/i
-    @mutex.synchronize { @threads.each { |t| @tags.tag t if thread_match?(t, query) } }
+    @mutex.synchronize { @threads.each { |t| @tags.tag t if thread_matches?(t, query) } }
     regen_text
   end
 
@@ -496,8 +496,8 @@ protected
 
   ## used to tag threads by query. this can be made a lot more sophisticated,
   ## but for right now we'll do the obvious this.
-  def thread_match? t, query
-    t.snippet =~ query || t.participants.any? { |x| x.longname =~ query }
+  def thread_matches? t, query
+    t.subject =~ query || t.snippet =~ query || t.participants.any? { |x| x.longname =~ query }
   end
 
   def size_widget_for_thread t
