@@ -1,3 +1,5 @@
+require 'tmpdir'
+
 ## Here we define all the "chunks" that a message is parsed
 ## into. Chunks are used by ThreadViewMode to render a message. Chunks
 ## are used for both MIME stuff like attachments, for Sup's parsing of
@@ -36,8 +38,7 @@ module Chunk
 Executes when decoding a MIME attachment.
 Variables:
    content_type: the content-type of the message
-       filename: the filename of the attachment as saved to disk (generated
-                 on the fly, so don't call more than once)
+       filename: the filename of the attachment as saved to disk
   sibling_types: if this attachment is part of a multipart MIME attachment,
                  an array of content-types for all attachments. Otherwise,
                  the empty array.
@@ -102,7 +103,13 @@ EOS
     end
 
     def write_to_disk
-      file = Tempfile.new "redwood.attachment"
+      file =
+        if @filename
+          File.open File.join(Dir::tmpdir, @filename), "w"
+        else
+          Tempfile.new "redwood.attachment"
+        end
+
       file.print @raw_content
       file.close
       file.path
