@@ -37,16 +37,7 @@ class Pathname
       rescue SystemCallError
         return "?"
       end
-
-    if s < 1024
-      s.to_s + "b"
-    elsif s < (1024 * 1024)
-      (s / 1024).to_s + "k"
-    elsif s < (1024 * 1024 * 1024)
-      (s / 1024 / 1024).to_s + "m"
-    else
-      (s / 1024 / 1024 / 1024).to_s + "g"
-    end
+    s.to_human_size
   end
 
   def human_time
@@ -63,33 +54,35 @@ module RMail
   class EncodingUnsupportedError < StandardError; end
 
   class Message
-    def add_file_attachment fn
+    def self.make_file_attachment fn
       bfn = File.basename fn
-      a = Message.new
       t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first
-
-      a.header.add "Content-Disposition", "attachment; filename=#{bfn.to_s.inspect}"
-      a.header.add "Content-Type", "#{t.content_type}; name=#{bfn.to_s.inspect}"
-      a.header.add "Content-Transfer-Encoding", t.encoding
-      a.body =
-        case t.encoding
-        when "base64"
-          [IO.read(fn)].pack "m"
-        when "quoted-printable"
-          [IO.read(fn)].pack "M"
-        when "7bit", "8bit"
-          IO.read(fn)
-        else
-          raise EncodingUnsupportedError, t.encoding
-        end
-
-      add_part a
+      make_attachment IO.read(fn), t.content_type, t.encoding, bfn.to_s
     end
 
     def charset
       if header.field?("content-type") && header.fetch("content-type") =~ /charset="?(.*?)"?(;|$)/
         $1
       end
+    end
+
+    def self.make_attachment payload, mime_type, encoding, filename
+      a = Message.new
+      a.header.add "Content-Disposition", "attachment; filename=#{filename.inspect}"
+      a.header.add "Content-Type", "#{mime_type}; name=#{filename.inspect}"
+      a.header.add "Content-Transfer-Encoding", encoding
+      a.body =
+        case encoding
+        when "base64"
+          [payload].pack "m"
+        when "quoted-printable"
+          [payload].pack "M"
+        when "7bit", "8bit"
+          payload
+        else
+          raise EncodingUnsupportedError, t.encoding
+        end
+      a
     end
   end
 end
@@ -294,6 +287,18 @@ class Numeric
   end
 
   def in? range; range.member? self; end
+
+  def to_human_size
+    if self < 1024
+      to_s + "b"
+    elsif self < (1024 * 1024)
+      (self / 1024).to_s + "k"
+    elsif self < (1024 * 1024 * 1024)
+      (self / 1024 / 1024).to_s + "m"
+    else
+      (self / 1024 / 1024 / 1024).to_s + "g"
+    end
+  end
 end
 
 class Fixnum

@@ -136,8 +136,11 @@ EOS
   end
 
   def forward
-    m = @message_lines[curpos] or return
-    ForwardMode.spawn_nicely m
+    if(chunk = @chunk_lines[curpos]) && chunk.is_a?(Chunk::Attachment)
+      ForwardMode.spawn_nicely :attachments => [chunk]
+    elsif(m = @message_lines[curpos])
+      ForwardMode.spawn_nicely :message => m
+    end
   end
 
   include CanAliasContacts

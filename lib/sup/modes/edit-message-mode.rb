@@ -61,10 +61,16 @@ EOS
     @body = opts.delete(:body) || []
     @body += sig_lines if $config[:edit_signature]
 
-    @attachments = []
+    if opts[:attachments]
+      @attachments = opts[:attachments].values
+      @attachment_names = opts[:attachments].keys
+    else
+      @attachments = []
+      @attachment_names = []
+    end
+
     @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
     @edited = false
-    @reserve_top_rows = opts[:reserve_top_rows] || 0
     @selectors = []
     @selector_label_width = 0
 
@@ -140,14 +146,16 @@ EOS
   def attach_file
     fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
     return unless fn
-    @attachments << Pathname.new(fn)
+    @attachments << RMail::Message.make_file_attachment(fn)
+    @attachment_names << fn
     update
   end
 
   def delete_attachment
-    i = (curpos - @reserve_top_rows) - @attachment_lines_offset
-    if i >= 0 && i < @attachments.size && BufferManager.ask_yes_or_no("Delete attachment #{@attachments[i]}?")
+    i = curpos - @attachment_lines_offset - DECORATION_LINES - 1
+    if i >= 0 && i < @attachments.size && BufferManager.ask_yes_or_no("Delete attachment #{@attachment_names[i]}?")
       @attachments.delete_at i
+      @attachment_names.delete_at i
       update
     end
   end
@@ -186,7 +194,7 @@ protected
     unless @attachments.empty?
       @text += [""]
       @attachment_lines_offset = @text.length
-      @text += @attachments.map { |f| [[:attachment_color, "+ Attachment: #{f} (#{f.human_size})"]] }
+      @text += (0 ... @attachments.size).map { |i| [[:attachment_color, "+ Attachment: #{@attachment_names[i]} (#{@attachments[i].body.size.to_human_size})"]] }
     end
   end
 
@@ -311,7 +319,7 @@ protected
       body_m.header["Content-Disposition"] = "inline"
       
       m.add_part body_m
-      @attachments.each { |fn| m.add_file_attachment fn.to_s }
+      @attachments.each { |a| m.add_part a }
     end
     f.puts m.to_s
   end

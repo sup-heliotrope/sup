@@ -407,7 +407,7 @@ EOS
     m = t.latest_message
     return if m.nil? # probably won't happen
     m.load_from_source!
-    ForwardMode.spawn_nicely m
+    ForwardMode.spawn_nicely :message => m
   end
 
   def load_n_threads_background n=LOAD_MORE_THREAD_NUM, opts={}
