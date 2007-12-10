@@ -9,6 +9,17 @@ class LabelSearchResultsMode < ThreadIndexMode
     super [], opts
   end
 
+  register_keymap do |k|
+    k.add :refine_search, "Refine search", '.'
+  end
+
+  def refine_search
+    label_query = @labels.size > 1 ? "(#{@labels.join('||')})" : @labels.first
+    query = BufferManager.ask :search, "query: ", "+label:#{label_query} "
+    return unless query && query !~ /^\s*$/
+    SearchResultsMode.spawn_from_query query
+  end
+
   def is_relevant? m; @labels.all? { |l| m.has_label? l } end
 
   def self.spawn_nicely label
