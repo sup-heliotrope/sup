@@ -23,20 +23,20 @@ class DraftManager
     @source.each do |thisoffset, theselabels|
       m = Message.new :source => @source, :source_info => thisoffset, :labels => theselabels
       Index.sync_message m
-      UpdateManager.relay self, :add, m
+      UpdateManager.relay self, :added, m
       my_message = m if thisoffset == offset
     end
 
     my_message
   end
 
-  def discard mid
-    docid, entry = Index.load_entry_for_id mid
-    raise ArgumentError, "can't find entry for draft: #{mid.inspect}" unless entry
-    raise ArgumentError, "not a draft: source id #{entry[:source_id].inspect}, should be #{DraftManager.source_id.inspect} for #{mid.inspect} / docno #{docid}" unless entry[:source_id].to_i == DraftManager.source_id
+  def discard m
+    docid, entry = Index.load_entry_for_id m.id
+    raise ArgumentError, "can't find entry for draft: #{m.id.inspect}" unless entry
+    raise ArgumentError, "not a draft: source id #{entry[:source_id].inspect}, should be #{DraftManager.source_id.inspect} for #{m.id.inspect} / docno #{docid}" unless entry[:source_id].to_i == DraftManager.source_id
     Index.drop_entry docid
     File.delete @source.fn_for_offset(entry[:source_info])
-    UpdateManager.relay self, :delete, mid
+    UpdateManager.relay self, :deleted, m
   end
 end
 

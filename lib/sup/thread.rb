@@ -11,7 +11,7 @@
 ## zero or more Threads. A Thread represents all the message related
 ## to a particular subject. Each Thread has one or more Containers.  A
 ## Container is a recursive structure that holds the message tree as
-## determined by the references: and in-reply-to: headers. EAch
+## determined by the references: and in-reply-to: headers. Each
 ## Container holds zero or one messages. In the case of zero messages,
 ## it means we've seen a reference to the message but haven't (yet)
 ## seen the message itself.
@@ -252,10 +252,10 @@ class ThreadSet
     @thread_by_subj = thread_by_subj
   end
 
-  def contains_id? id; @messages.member?(id) && !@messages[id].empty?; end
-  def thread_for m
-    (c = @messages[m.id]) && c.root.thread
-  end
+  def thread_for_id mid; (c = @messages[mid]) && c.root.thread end
+  def contains_id? id; @messages.member?(id) && !@messages[id].empty? end
+  def thread_for m; thread_for_id m.id end
+  def contains? m; contains_id? m.id end
 
   def delete_cruft
     @threads.each { |k, v| @threads.delete(k) if v.empty? }
@@ -293,7 +293,7 @@ class ThreadSet
   end
   private :link
 
-  def remove mid
+  def remove_id mid
     return unless(c = @messages[mid])
 
     c.parent.children.delete c if c.parent

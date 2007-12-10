@@ -171,7 +171,7 @@ EOS
     @thread.labels = (reserved_labels + new_labels).uniq
     new_labels.each { |l| LabelManager << l }
     update
-    UpdateManager.relay self, :label_thread, @thread
+    UpdateManager.relay self, :labeled, @thread.first
   end
 
   def toggle_starred
@@ -193,7 +193,7 @@ EOS
     ## TODO: don't recalculate EVERYTHING just to add a stupid little
     ## star to the display
     update
-    UpdateManager.relay self, :label, m
+    UpdateManager.relay self, :single_message_labeled, m
   end
 
   ## called when someone presses enter when the cursor is highlighting
@@ -331,13 +331,13 @@ EOS
 
   def archive_and_kill
     @thread.remove_label :inbox
-    UpdateManager.relay self, :archived, @thread
+    UpdateManager.relay self, :archived, @thread.first
     BufferManager.kill_buffer_safely buffer
   end
 
   def delete_and_kill
     @thread.apply_label :deleted
-    UpdateManager.relay self, :deleted, @thread
+    UpdateManager.relay self, :deleted, @thread.first
     BufferManager.kill_buffer_safely buffer
   end
 

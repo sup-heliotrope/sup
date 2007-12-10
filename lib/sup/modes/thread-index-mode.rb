@@ -97,7 +97,7 @@ EOS
       ## are set, and the second to show the cursor having moved
 
       update_text_for_line curpos
-      UpdateManager.relay self, :read, t
+      UpdateManager.relay self, :read, t.first
     end
   end
 
@@ -105,27 +105,31 @@ EOS
     threads.each { |t| select t }
   end
   
-  def handle_label_update sender, m
-    t = @ts_mutex.synchronize { @ts.thread_for(m) } or return
-    handle_label_thread_update sender, t
+  def handle_single_message_labeled_update sender, m
+    ## no need to do anything different here; we don't differentiate 
+    ## messages from their containing threads
+    handle_labeled_update sender, m
   end
 
-  def handle_label_thread_update sender, t
-    l = @lines[t] or return
-    update_text_for_line l
-    BufferManager.draw_screen
+  def handle_labeled_update sender, m
+    if(t = thread_containing(m)) 
+      l = @lines[t] or return
+      update_text_for_line l
+    elsif is_relevant?(m)
+      add_or_unhide m
+    end
   end
 
-  def handle_read_update sender, t
+  def handle_read_update sender, m
+    t = thread_containing(m) or return
     l = @lines[t] or return
     update_text_for_line l
-    BufferManager.draw_screen
   end
 
   def handle_archived_update *a; handle_read_update(*a); end
 
-  def handle_deleted_update sender, t
-    handle_read_update sender, t
+  def handle_deleted_update sender, m
+    t = thread_containing(m) or return
     hide_thread t
     regen_text
   end
@@ -133,22 +137,21 @@ EOS
   ## overwrite me!
   def is_relevant? m; false; end
 
-  def handle_add_update sender, m
-    @ts_mutex.synchronize do
-      return unless is_relevant?(m) || @ts.is_relevant?(m)
-      @ts.load_thread_for_message m
-    end
-    update
+  def handle_added_update sender, m
+    add_or_unhide m
     BufferManager.draw_screen
   end
 
-  def handle_delete_update sender, mid
+  def handle_deleted_update sender, m
     @ts_mutex.synchronize do
-      return unless @ts.contains_id? mid
-      @ts.remove mid
+      return unless @ts.contains? m
+      @ts.remove_id m.id
     end
     update
-    BufferManager.draw_screen
+  end
+
+  def handle_undeleted_update sender, m
+    add_or_unhide m
   end
 
   def update
@@ -176,10 +179,10 @@ EOS
   def actually_toggle_starred t
     if t.has_label? :starred # if ANY message has a star
       t.remove_label :starred # remove from all
-      UpdateManager.relay self, :unstarred, t
+      UpdateManager.relay self, :unstarred, t.first
     else
       t.first.add_label :starred # add only to first
-      UpdateManager.relay self, :starred, t
+      UpdateManager.relay self, :starred, t.first
     end
   end  
 
@@ -198,30 +201,30 @@ EOS
   def actually_toggle_archived t
     if t.has_label? :inbox
       t.remove_label :inbox
-      UpdateManager.relay self, :archived, t
+      UpdateManager.relay self, :archived, t.first
     else
       t.apply_label :inbox
-      UpdateManager.relay self, :unarchived, t
+      UpdateManager.relay self, :unarchived, t.first
     end
   end
 
   def actually_toggle_spammed t
     if t.has_label? :spam
       t.remove_label :spam
-      UpdateManager.relay self, :unspammed, t
+      UpdateManager.relay self, :unspammed, t.first
     else
       t.apply_label :spam
-      UpdateManager.relay self, :spammed, t
+      UpdateManager.relay self, :spammed, t.first
     end
   end
 
   def actually_toggle_deleted t
     if t.has_label? :deleted
       t.remove_label :deleted
-      UpdateManager.relay self, :undeleted, t
+      UpdateManager.relay self, :undeleted, t.first
     else
       t.apply_label :deleted
-      UpdateManager.relay self, :deleted, t
+      UpdateManager.relay self, :deleted, t.first
     end
   end
 
@@ -372,7 +375,7 @@ EOS
     return unless user_labels
     thread.labels = keepl + user_labels
     user_labels.each { |l| LabelManager << l }
-    update_text_for_line curpos
+    UpdateManager.relay self, :labeled, thread.first
   end
 
   def multi_edit_labels threads
@@ -473,6 +476,23 @@ EOS
   end
 
 protected
+
+  def add_or_unhide m
+    if @hidden_threads[m]
+      @hidden_threads.delete m
+      ## now it will re-appear when #update is called
+    else
+      Redwood::log "#{self}: adding: #{m}"
+      @ts_mutex.synchronize do
+        return unless is_relevant?(m) || @ts.is_relevant?(m)
+        @ts.load_thread_for_message m
+      end
+    end
+
+    update
+  end
+
+  def thread_containing m; @ts_mutex.synchronize { @ts.thread_for m } end
 
   ## used to tag threads by query. this can be made a lot more sophisticated,
   ## but for right now we'll do the obvious this.

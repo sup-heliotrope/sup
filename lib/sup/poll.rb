@@ -157,7 +157,7 @@ EOS
           HookManager.run "before-add-message", :message => m
           m = yield(m, offset, entry) or next
           Index.sync_message m, docid, entry
-          UpdateManager.relay self, :add, m unless entry
+          UpdateManager.relay self, :added, m unless entry
         rescue MessageFormatError => e
           Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
         end

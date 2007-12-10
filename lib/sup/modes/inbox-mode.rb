@@ -38,11 +38,14 @@ class InboxMode < ThreadIndexMode
     regen_text
   end
 
-  def handle_archived_update sender, t
-    if contains_thread? t
-      hide_thread t
-      regen_text
-    end
+  def handle_unarchived_update sender, m
+    add_or_unhide m
+  end
+
+  def handle_archived_update sender, m
+    t = thread_containing(m) or return
+    hide_thread t
+    regen_text
   end
 
   def status

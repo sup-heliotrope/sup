@@ -9,7 +9,7 @@ class LabelSearchResultsMode < ThreadIndexMode
     super [], opts
   end
 
-  def is_relevant? m; @labels.all? { |l| m.has_label? l }; end
+  def is_relevant? m; @labels.all? { |l| m.has_label? l } end
 
   def self.spawn_nicely label
     label = LabelManager.label_for(label) unless label.is_a?(Symbol)

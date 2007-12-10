@@ -2,7 +2,7 @@ module Redwood
 
 class ResumeMode < EditMessageMode
   def initialize m
-    @id = m.id
+    @m = m
     @safe = false
 
     header, body = parse_file m.draft_filename
@@ -16,13 +16,13 @@ class ResumeMode < EditMessageMode
 
     case BufferManager.ask_yes_or_no "Discard draft?"
     when true
-      DraftManager.discard @id
+      DraftManager.discard @m
       BufferManager.flash "Draft discarded."
       true
     when false
       if edited?
         DraftManager.write_draft { |f| write_message f, false }
-        DraftManager.discard @id
+        DraftManager.discard @m
         BufferManager.flash "Draft saved."
       end
       true
@@ -33,14 +33,14 @@ class ResumeMode < EditMessageMode
 
   def send_message
     if super
-      DraftManager.discard @id 
+      DraftManager.discard @m 
       @safe = true
     end
   end
 
   def save_as_draft
     @safe = true
-    DraftManager.discard @id if super
+    DraftManager.discard @m if super
   end
 end
 
