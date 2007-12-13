@@ -70,17 +70,17 @@ module RMail
       a = Message.new
       a.header.add "Content-Disposition", "attachment; filename=#{filename.inspect}"
       a.header.add "Content-Type", "#{mime_type}; name=#{filename.inspect}"
-      a.header.add "Content-Transfer-Encoding", encoding
+      a.header.add "Content-Transfer-Encoding", encoding if encoding
       a.body =
         case encoding
         when "base64"
           [payload].pack "m"
         when "quoted-printable"
           [payload].pack "M"
-        when "7bit", "8bit"
+        when "7bit", "8bit", nil
           payload
         else
-          raise EncodingUnsupportedError, t.encoding
+          raise EncodingUnsupportedError, encoding.inspect
         end
       a
     end

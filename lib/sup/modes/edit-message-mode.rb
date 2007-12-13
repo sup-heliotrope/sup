@@ -257,7 +257,6 @@ protected
     return false if $config[:confirm_no_attachments] && mentions_attachments? && @attachments.size == 0 && !BufferManager.ask_yes_or_no("You haven't added any attachments. Really send?")#" stupid ruby-mode
     return false if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no("You're top-posting. That makes you a bad person. Really send?") #" stupid ruby-mode
 
-    date = Time.now
     from_email = 
       if @header["From"] =~ /<?(\S+@(\S+?))>?$/
         $1
@@ -269,13 +268,15 @@ protected
     BufferManager.flash "Sending..."
 
     begin
-      IO.popen(acct.sendmail, "w") { |p| write_full_message_to p, date, false }
+      date = Time.now
+      m = build_message date
+      IO.popen(acct.sendmail, "w") { |p| p.puts m }
       raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
-      SentManager.write_sent_message(date, from_email) { |f| write_full_message_to f, date, true }
+      SentManager.write_sent_message(date, from_email) { |f| f.puts sanitize_body(m.to_s) }
       BufferManager.kill_buffer buffer
       BufferManager.flash "Message sent!"
       true
-    rescue SystemCallError, SendmailCommandFailed => e
+    rescue SystemCallError, SendmailCommandFailed, CryptoManager::Error => e
       Redwood::log "Problem sending mail: #{e.message}"
       BufferManager.flash "Problem sending mail: #{e.message}"
       false
@@ -288,8 +289,32 @@ protected
     BufferManager.flash "Saved for later editing."
   end
 
-  def write_full_message_to f, date=Time.now, escape=false
+  def build_message date
     m = RMail::Message.new
+    m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
+    m.body = @body.join
+    m.body = m.body
+    m.body += sig_lines.join("\n") unless $config[:edit_signature]
+
+    ## there are attachments, so wrap body in an attachment of its own
+    unless @attachments.empty?
+      body_m = m
+      body_m.header["Content-Disposition"] = "inline"
+      m = RMail::Message.new
+      
+      m.add_part body_m
+      @attachments.each { |a| m.add_part a }
+    end
+
+    ## do whatever crypto transformation is necessary
+    if @crypto_selector && @crypto_selector.val != :none
+      from_email = PersonManager.person_for(@header["From"]).email
+      to_email = (@header["To"] + @header["Cc"] + @header["Bcc"]).map { |p| PersonManager.person_for(p).email }
+
+      m = CryptoManager.send @crypto_selector.val, from_email, to_email, m
+    end
+
+    ## finally, set the top-level headers
     @header.each do |k, v|
       next if v.nil? || v.empty?
       m.header[k] = 
@@ -300,28 +325,10 @@ protected
           v.join ", "
         end
     end
-
     m.header["Date"] = date.rfc2822
     m.header["Message-Id"] = @message_id
     m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
-
-    if @attachments.empty?
-      m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
-      m.body = @body.join
-      m.body = sanitize_body m.body if escape
-      m.body += sig_lines.join("\n") unless $config[:edit_signature]
-    else
-      body_m = RMail::Message.new
-      body_m.body = @body.join
-      body_m.body = sanitize_body body_m.body if escape
-      body_m.body += sig_lines.join("\n") unless $config[:edit_signature]
-      body_m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
-      body_m.header["Content-Disposition"] = "inline"
-      
-      m.add_part body_m
-      @attachments.each { |a| m.add_part a }
-    end
-    f.puts m.to_s
+    m
   end
 
   ## TODO: remove this. redundant with write_full_message_to.

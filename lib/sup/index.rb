@@ -171,13 +171,20 @@ EOS
       end
 
     to = (m.to + m.cc + m.bcc).map { |x| x.email }.join(" ")
+    snippet = 
+      if m.snippet_contains_encrypted_content? && $config[:discard_snippets_from_encrypted_messages]
+        ""
+      else
+        m.snippet
+      end
+
     d = {
       :message_id => m.id,
       :source_id => source_id,
       :source_info => m.source_info,
       :date => m.date.to_indexable_s,
       :body => m.content,
-      :snippet => m.snippet,
+      :snippet => snippet,
       :label => m.labels.uniq.join(" "),
       :from => m.from ? m.from.email : "",
       :to => (m.to + m.cc + m.bcc).map { |x| x.email }.join(" "),

@@ -204,6 +204,7 @@ else
     :ask_for_subject => true,
     :confirm_no_attachments => true,
     :confirm_top_posting => true,
+    :discard_snippets_from_encrypted_messages => false,
   }
   begin
     FileUtils.mkdir_p Redwood::BASE_DIR

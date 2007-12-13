@@ -41,17 +41,19 @@ class Message
               :cc, :bcc, :labels, :list_address, :recipient_email, :replyto,
               :source_info, :chunks, :list_subscribe, :list_unsubscribe
 
-  bool_reader :dirty, :source_marked_read
+  bool_reader :dirty, :source_marked_read, :snippet_contains_encrypted_content
 
   ## if you specify a :header, will use values from that. otherwise,
   ## will try and load the header from the source.
   def initialize opts
     @source = opts[:source] or raise ArgumentError, "source can't be nil"
     @source_info = opts[:source_info] or raise ArgumentError, "source_info can't be nil"
-    @snippet = opts[:snippet] || ""
-    @have_snippet = !opts[:snippet].nil?
+    @snippet = opts[:snippet]
+    @snippet_contains_encrypted_content = false
+    @have_snippet = !(opts[:snippet].nil? || opts[:snippet].empty?)
     @labels = [] + (opts[:labels] || [])
     @dirty = false
+    @encrypted = false
     @chunks = nil
 
     parse_header(opts[:header] || @source.load_header(@source_info))
@@ -116,7 +118,7 @@ class Message
   end
   private :parse_header
 
-  def snippet; @snippet || chunks && @snippet; end
+  def snippet; @snippet || (chunks && @snippet); end
   def is_list_message?; !@list_address.nil?; end
   def is_draft?; @source.is_a? DraftLoader; end
   def draft_filename
@@ -301,7 +303,6 @@ private
   end
 
   def multipart_encrypted_to_chunks m
-    Redwood::log ">> multipart ENCRYPTED: #{m.header['Content-Type']}: #{m.body.size}"
     if m.body.size != 2
       Redwood::log "warning: multipart/encrypted with #{m.body.size} parts (expecting 2)"
       return
@@ -324,11 +325,11 @@ private
     end
 
     decryptedm, sig, notice = CryptoManager.decrypt payload
-    children = message_to_chunks(decryptedm) if decryptedm
+    children = message_to_chunks(decryptedm, true) if decryptedm
     [notice, sig, children].flatten.compact
   end
 
-  def message_to_chunks m, sibling_types=[]
+  def message_to_chunks m, encrypted=false, sibling_types=[]
     if m.multipart?
       chunks =
         case m.header.content_type
@@ -340,7 +341,7 @@ private
 
       unless chunks
         sibling_types = m.body.map { |p| p.header.content_type }
-        chunks = m.body.map { |p| message_to_chunks p, sibling_types }.flatten.compact
+        chunks = m.body.map { |p| message_to_chunks p, encrypted, sibling_types }.flatten.compact
       end
 
       chunks
@@ -378,7 +379,7 @@ private
       ## otherwise, it's body text
       else
         body = Message.convert_from m.decode, m.charset
-        text_to_chunks((body || "").normalize_whitespace.split("\n"))
+        text_to_chunks (body || "").normalize_whitespace.split("\n"), encrypted
       end
     end
   end
@@ -398,7 +399,7 @@ private
   ## parse the lines of text into chunk objects.  the heuristics here
   ## need tweaking in some nice manner. TODO: move these heuristics
   ## into the classes themselves.
-  def text_to_chunks lines
+  def text_to_chunks lines, encrypted
     state = :text # one of :text, :quote, or :sig
     chunks = []
     chunk_lines = []
@@ -450,11 +451,14 @@ private
       when :block_quote, :sig
         chunk_lines << line
       end
- 
+
       if !@have_snippet && state == :text && (@snippet.nil? || @snippet.length < SNIPPET_LEN) && line !~ /[=\*#_-]{3,}/ && line !~ /^\s*$/
+        @snippet ||= ""
         @snippet += " " unless @snippet.empty?
         @snippet += line.gsub(/^\s+/, "").gsub(/[\r\n]/, "").gsub(/\s+/, " ")
         @snippet = @snippet[0 ... SNIPPET_LEN].chomp
+        @dirty = true unless encrypted && $config[:discard_snippets_from_encrypted_messages]
+        @snippet_contains_encrypted_content = true if encrypted
       end
     end
 
