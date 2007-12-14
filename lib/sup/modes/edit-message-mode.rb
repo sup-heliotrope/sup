@@ -105,7 +105,9 @@ EOS
 
   def edit_message_or_field
     lines = DECORATION_LINES + @selectors.size
-    if (curpos - lines) >= @header_lines.length
+    if lines > curpos
+      return
+    elsif (curpos - lines) >= @header_lines.length
       edit_message
     else
       edit_field @header_lines[curpos - lines]
