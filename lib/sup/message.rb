@@ -277,7 +277,6 @@ private
   ## product.
 
   def multipart_signed_to_chunks m
-#    Redwood::log ">> multipart SIGNED: #{m.header['Content-Type']}: #{m.body.size}"
     if m.body.size != 2
       Redwood::log "warning: multipart/signed with #{m.body.size} parts (expecting 2)"
       return
@@ -289,13 +288,15 @@ private
       return
     end
 
+    ## this probably will never happen
     if payload.header.content_type == "application/pgp-signature"
       Redwood::log "warning: multipart/signed with payload content type #{payload.header.content_type}"
       return
     end
 
     if signature.header.content_type != "application/pgp-signature"
-      Redwood::log "warning: multipart/signed with signature content type #{signature.header.content_type}"
+      ## unknown signature type; just ignore.
+      #Redwood::log "warning: multipart/signed with signature content type #{signature.header.content_type}"
       return
     end
 
