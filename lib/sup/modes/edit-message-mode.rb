@@ -50,8 +50,8 @@ EOS
     k.add :save_as_draft, "Save as draft", 'P'
     k.add :attach_file, "Attach a file", 'a'
     k.add :delete_attachment, "Delete an attachment", 'd'
-    k.add :move_cursor_right, "Move selector to the right", :right
-    k.add :move_cursor_left, "Move selector to the left", :left
+    k.add :move_cursor_right, "Move selector to the right", :right, 'l'
+    k.add :move_cursor_left, "Move selector to the left", :left, 'h'
   end
 
   def initialize opts={}
@@ -163,15 +163,21 @@ EOS
 protected
 
   def move_cursor_left
-    return unless curpos < @selectors.length
-    @selectors[curpos].roll_left
-    buffer.mark_dirty
+    if curpos < @selectors.length
+      @selectors[curpos].roll_left
+      buffer.mark_dirty
+    else
+      col_left
+    end
   end
 
   def move_cursor_right
-    return unless curpos < @selectors.length
-    @selectors[curpos].roll_right
-    buffer.mark_dirty
+    if curpos < @selectors.length
+      @selectors[curpos].roll_right
+      buffer.mark_dirty
+    else
+      col_right
+    end
   end
 
   def add_selector s
