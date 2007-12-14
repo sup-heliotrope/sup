@@ -72,11 +72,7 @@ class IMAP < Source
   end
 
   def self.suggest_labels_for path
-    if path =~ /inbox/i
-      [path.intern]
-    else
-      []
-    end
+    path =~ /([^\/]*inbox[^\/]*)/i ? [$1.downcase.intern] : []
   end
 
   def host; @parsed_uri.host; end

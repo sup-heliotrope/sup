@@ -37,7 +37,7 @@ class Loader < Source
     if File.dirname(path) =~ /\b(var|usr|spool)\b/
       []
     else
-      [File.basename(path).intern]
+      [File.basename(path).downcase.intern]
     end
   end
 

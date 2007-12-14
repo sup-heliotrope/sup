@@ -96,7 +96,7 @@ def add_source
         $last_folder = fn
 
         fn = "/#{fn}" # lame
-        if srv =~ /^(\w+):(\d+)$/
+        if srv =~ /^(\S+):(\d+)$/
           host, port = $1, $2.to_i
         else
           host, port = srv, nil
