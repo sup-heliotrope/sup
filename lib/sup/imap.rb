@@ -275,11 +275,12 @@ private
     ## Exchange actually reports two different INTERNALDATEs for the exact same message
     ## when queried at different points in time.
     ##
-    ## I don't actually see the semantics of INTERNALDATE actually defined anywhere
-    ## in either RFC 3501 or RFC 2060, beyond "the internal date of the message"
-    ## (gee, thanks guys, great job on that committee), so it's probably perfectly
-    ## acceptable to return any date you'd like for any message.
     ##
+    ## RFC2060 defines the semantics of INTERNALDATE for messages that arrive
+    ## via SMTP for via various IMAP commands, but states that "All other
+    ## cases are implementation defined.". Great, thanks guys, yet another
+    ## useless field.
+    ## 
     ## Of course no OTHER imap server I've encountered returns DIFFERENT values for
     ## the SAME message. But it's Microsoft; what do you expect? If their programmers
     ## were any good they'd be working at Google.
