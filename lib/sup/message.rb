@@ -39,7 +39,7 @@ class Message
 
   attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :source,
               :cc, :bcc, :labels, :list_address, :recipient_email, :replyto,
-              :source_info, :chunks, :list_subscribe, :list_unsubscribe
+              :source_info, :list_subscribe, :list_unsubscribe
 
   bool_reader :dirty, :source_marked_read, :snippet_contains_encrypted_content
 
@@ -152,6 +152,11 @@ class Message
   def labels= l
     @labels = l
     @dirty = true
+  end
+
+  def chunks
+    load_from_source!
+    @chunks
   end
 
   ## this is called when the message body needs to actually be loaded.
