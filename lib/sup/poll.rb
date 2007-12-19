@@ -19,12 +19,13 @@ EOS
   HookManager.register "after-poll", <<EOS
 Executes immediately after a poll for new messages completes.
 Variables:
-                  num: the total number of new messages
-            num_inbox: the number of new messages appearing in the inbox (i.e.
-                       not auto-archived).
-        from_and_subj: an array of (from email address, subject) pairs
-  from_and_subj_inbox: an array of (from email address, subject) pairs for
-                       only those messages appearing in the inbox
+                   num: the total number of new messages added in this poll
+             num_inbox: the number of new messages added in this poll which
+                        appear in the inbox (i.e. were not auto-archived).
+num_inbox_total_unread: the total number of unread messages in the inbox
+         from_and_subj: an array of (from email address, subject) pairs
+   from_and_subj_inbox: an array of (from email address, subject) pairs for
+                        only those messages appearing in the inbox
 EOS
 
   DELAY = 300
@@ -56,7 +57,7 @@ EOS
       BufferManager.flash "No new messages." 
     end
 
-    HookManager.run "after-poll", :num => num, :num_inbox => numi, :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox
+    HookManager.run "after-poll", :num => num, :num_inbox => numi, :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox, :num_inbox_total_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] }
 
     @polling = false
     [num, numi]
