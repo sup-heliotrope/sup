@@ -1,0 +1,127 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'trollop'
+require "sup"
+
+class Float
+  def to_s; sprintf '%.2f', self; end
+   def to_time_s
+     infinite? ? "unknown" : super
+   end
+end
+
+class Numeric
+  def to_time_s
+    i = to_i
+    sprintf "%d:%02d:%02d", i / 3600, (i / 60) % 60, i % 60
+  end
+end
+
+def time
+  startt = Time.now
+  yield
+  Time.now - startt
+end
+
+opts = Trollop::options do
+  version "sup-tweak-labels (sup #{Redwood::VERSION})"
+  banner <<EOS
+Batch modification of message state for messages already in the index.
+
+Usage:
+  sup-mangle-index [options] <source>*
+
+where <source>* is zero or more source URIs. Supported source URI schemes can
+be seen by running "sup-add --help".
+
+Options:
+EOS
+  opt :add, "One or more labels (comma-separated) to add to every message from the specified sources", :type => String
+  opt :remove, "One or more labels (comma-separated) to remove from every message from the specified sources, if those labels are present", :type => String
+
+  text <<EOS
+
+Other options:
+EOS
+  opt :verbose, "Print message ids as they're processed."
+  opt :all_sources, "Scan over all sources.", :short => :none
+  opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
+  opt :version, "Show version information", :short => :none
+end
+
+add_labels = (opts[:add] || "").split(",").map { |l| l.intern }.uniq
+remove_labels = (opts[:remove] || "").split(",").map { |l| l.intern }.uniq
+
+Trollop::die "nothing to do: no labels to add or remove" if add_labels.empty? && remove_labels.empty?
+
+Redwood::start
+begin
+  index = Redwood::Index.new
+  index.load
+
+  source_ids = 
+    if opts[:all_sources]
+      index.sources
+    else
+      ARGV.map do |uri|
+        index.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+      end
+  end.map { |s| s.id }
+  Trollop::die "nothing to do: no sources" if source_ids.empty?
+
+  query = "+(" + source_ids.map { |id| "source_id:#{id}" }.join(" ") + ")"
+  if add_labels.empty?
+    ## if all we're doing is removing labels, we can further restrict the
+    ## query to only messages with those labels
+    query += " +(" + remove_labels.map { |l| "label:#{l}" }.join(" ") + ")"
+  end
+
+  results = index.ferret.search query, :limit => :all
+  num_total = results.total_hits
+
+  $stderr.puts "Found #{num_total} documents across #{source_ids.length} sources. Scanning..."
+
+  num_changed = num_scanned = 0
+  last_info_time = start_time = Time.now
+  results.hits.each do |hit|
+    num_scanned += 1
+    id = hit.doc
+
+    m = index.build_message id
+    old_labels = m.labels.clone
+
+    m.labels += add_labels
+    m.labels -= remove_labels
+    m.labels = m.labels.uniq
+
+    unless m.labels.sort_by { |s| s.to_s } == old_labels.sort_by { |s| s.to_s }
+      num_changed += 1
+      puts "#{m.id}: {#{old_labels.join ','}} => {#{m.labels.join ','}}" if opts[:verbose]
+      index.sync_message m unless opts[:dry_run]
+    end
+
+    if Time.now - last_info_time > 60
+      last_info_time = Time.now
+      elapsed = last_info_time - start_time
+      pctdone = 100.0 * num_scanned.to_f / num_total.to_f
+      remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
+      $stderr.puts "## #{num_scanned} (#{pctdone}%) read; #{elapsed.to_time_s} elapsed; #{remaining.to_time_s} remaining"
+    end
+  end
+  $stderr.puts "Scanned #{num_scanned} / #{num_total} messages and changed #{num_changed}."
+
+  unless num_changed == 0
+    $stderr.puts "Optimizing index..."
+    index.ferret.optimize unless opts[:dry_run]
+  end
+
+rescue Exception => e
+  File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
+  raise
+ensure
+  index.save
+  Redwood::finish
+  index.unlock
+end
+

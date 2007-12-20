@@ -11,6 +11,7 @@ bin/sup-dump
 bin/sup-recover-sources
 bin/sup-sync
 bin/sup-sync-back
+bin/sup-tweak-labels
 doc/FAQ.txt
 doc/Hooks.txt
 doc/NewUserGuide.txt
