@@ -156,9 +156,9 @@ private
 
   def run_gpg args
     cmd = "#{@cmd} #{args} 2> /dev/null"
-    Redwood::log "crypto: running: #{cmd}"
+    #Redwood::log "crypto: running: #{cmd}"
     output = `#{cmd}`
-    Redwood::log "crypto: output: #{output.inspect}" unless $?.success?
+    #Redwood::log "crypto: output: #{output.inspect}" unless $?.success?
     output
   end
 end
