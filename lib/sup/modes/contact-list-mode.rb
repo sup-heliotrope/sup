@@ -2,12 +2,16 @@ module Redwood
 
 module CanAliasContacts
   def alias_contact p
-    a = BufferManager.ask(:alias, "Nickname for #{p.longname}: ", ContactManager.alias_for(p)) or return
-    if a.empty?
-      ContactManager.drop_contact p
-    else
-      ContactManager.set_contact p, a
-    end
+    aalias = BufferManager.ask(:alias, "Alias for #{p.longname}: ", ContactManager.alias_for(p))
+    return if aalias.nil?
+    aalias = nil if aalias.empty? # allow empty aliases
+
+    name = BufferManager.ask(:name, "Name for #{p.longname}: ", p.name)
+    return if name.nil? || name.empty? # don't allow empty names
+    p.name = name
+
+    ContactManager.update_alias p, aalias
+    BufferManager.flash "Contact updated!"
   end
 end
 
@@ -17,7 +21,7 @@ class ContactListMode < LineCursorMode
   register_keymap do |k|
     k.add :load_more, "Load #{LOAD_MORE_CONTACTS_NUM} more contacts", 'M'
     k.add :reload, "Drop contact list and reload", 'D'
-    k.add :alias, "Edit nickname/alias for contact", 'a'
+    k.add :alias, "Edit alias/or name for contact", 'a', 'i'
     k.add :toggle_tagged, "Tag/untag current line", 't'
     k.add :apply_to_tagged, "Apply next command to all tagged items", ';'
     k.add :search, "Search for messages from particular people", 'S'
@@ -103,7 +107,7 @@ class ContactListMode < LineCursorMode
 
   def load
     @num ||= buffer.content_height
-    @user_contacts = ContactManager.contacts
+    @user_contacts = ContactManager.contacts_with_aliases
     num = [@num - @user_contacts.length, 0].max
     BufferManager.say("Loading #{num} contacts from index...") do
       recentc = Index.load_contacts AccountManager.user_emails, :num => num

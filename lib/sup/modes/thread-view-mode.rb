@@ -547,7 +547,7 @@ private
   end
 
   def format_person p
-    p.longname + (ContactManager.is_contact?(p) ? " (#{ContactManager.alias_for p})" : "")
+    p.longname + (ContactManager.is_aliased_contact?(p) ? " (#{ContactManager.alias_for p})" : "")
   end
 
   ## todo: check arguments on this overly complex function
