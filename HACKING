@@ -1,20 +1,38 @@
-Running Sup locally
--------------------
+Running Sup from your git checkout
+----------------------------------
+
 Invoke it like this:
 
-ruby -I lib -w bin/sup
+  ruby -I lib -w bin/sup
 
 You'll have to install all gems mentioned in the Rakefile (look for the line
 setting p.extra_deps). If you're on a Debian or Debian-based system (e.g.
 Ubuntu), you'll have to make sure you have a complete Ruby installation,
-especially libssl-ruby.
+especially libssl-ruby. You will need libruby-devel, gcc, and make installed
+to build certain gems like Ferret. Gem install does not do a good job of
+detecting when these things are missing and the build fails.
+
+Rubygems also is particularly aggressive about picking up libraries from
+installed gems. If you do have Sup installed as a gem, please examine
+backtraces to make sure you're loading files from the repository and NOT from
+the installed gem before submitting any bug reports.
 
 Coding standards
 ----------------
 
-- Don't wrap code unless it really benefits from it. The days of
-  80-column displays are long over. But do wrap comments and other
-  text at whatever Emacs meta-Q does.
-- I like poetry mode.
+- Don't wrap code unless it really benefits from it. The days of 80-column
+  displays are long over. But do wrap comments and other text at whatever vi
+  gq<region> does.
+- Old lisp-style comment differentiations:
+   # one for comments on the same line as a line of code
+   ## two for comments on their own line, except:
+   ### three for comments that demarcate large sections of code (rare)
 - Use {} for one-liner blocks and do/end for multi-line blocks.
+- I like poetry mode. Don't use parentheses unless you must.
+- The one exception to poetry mode is if-statements that have an assignment in
+  the condition. To make it clear this is not a comparison, surround the
+  condition by parentheses. E.g.:
 
+  if a == b         BUT        if(a = some.computation)
+    ...                          ... something with a
+  end                          end
