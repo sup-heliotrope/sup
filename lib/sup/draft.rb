@@ -99,6 +99,12 @@ class DraftLoader < Source
     ret
   end
 
+  def each_raw_message_line offset
+    File.open(fn_for_offset(offset)) do |f|
+      yield f.gets until f.eof?
+    end
+  end
+
   def raw_message offset
     IO.readlines(fn_for_offset(offset)).join
   end
