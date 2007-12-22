@@ -4,6 +4,7 @@ class TextMode < ScrollMode
   attr_reader :text
   register_keymap do |k|
     k.add :save_to_disk, "Save to disk", 's'
+    k.add :pipe, "Pipe to process", '|'
   end
 
   def initialize text=""
@@ -16,6 +17,21 @@ class TextMode < ScrollMode
   def save_to_disk
     fn = BufferManager.ask_for_filename :filename, "Save to file: "
     save_to_file(fn) { |f| f.puts text } if fn
+  end
+
+  def pipe
+    command = BufferManager.ask(:shell, "pipe command: ")
+    return if command.nil? || command.empty?
+
+    output = pipe_to_process(command) do |stream|
+      @text.each { |l| stream.puts l }
+    end
+
+    if output
+      BufferManager.spawn "Output of '#{command}'", TextMode.new(output)
+    else
+      BufferManager.flash "'#{command}' done!"
+    end
   end
 
   def text= t
