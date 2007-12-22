@@ -356,41 +356,18 @@ EOS
     command = BufferManager.ask(:shell, "pipe command: ")
     return if command.nil? || command.empty?
 
-    Open3.popen3(command) do |input, output, error|
-      err, data, * = IO.select [error], [input], nil
-
-      unless err.empty?
-        message = err.first.read
-        if message =~ /^\s*$/
-          Redwood::log "error running #{command} (but no error message)"
-          BufferManager.flash "Error running #{command}!"
-        else
-          Redwood::log "error running #{command}: #{message}"
-          BufferManager.flash "Error: #{message}"
-        end
-        return
-      end
-
-      data = data.first
-      data.sync = false # buffer input
-
+    output = pipe_to_process(command) do |stream|
       if chunk
-        data.print chunk.raw_content
+        stream.print chunk.raw_content
       else
-        message.each_raw_message_line { |l| data.print l }
+        message.each_raw_message_line { |l| stream.print l }
       end
+    end
 
-      data.close # output will block unless input is closed
-
-      ## BUG?: shows errors or output but not both....
-      data, * = IO.select [output, error], nil, nil
-      data = data.first
-
-      if data.eof
-        BufferManager.flash "'#{command}' done!"
-      else
-        BufferManager.spawn "Output of '#{command}'", TextMode.new(data.read)
-      end
+    if output
+      BufferManager.spawn "Output of '#{command}'", TextMode.new(output)
+    else
+      BufferManager.flash "'#{command}' done!"
     end
   end
 

@@ -75,7 +75,8 @@ EOS
     end.compact.join "\n"
   end
 
-  ## helper function
+### helper functions
+
   def save_to_file fn
     if File.exists? fn
       return unless BufferManager.ask_yes_or_no "File exists. Overwrite?"
@@ -85,6 +86,41 @@ EOS
       BufferManager.flash "Successfully wrote #{fn}."
     rescue SystemCallError, IOError => e
       BufferManager.flash "Error writing to file: #{e.message}"
+    end
+  end
+
+  def pipe_to_process command
+    Open3.popen3(command) do |input, output, error|
+      err, data, * = IO.select [error], [input], nil
+
+      unless err.empty?
+        message = err.first.read
+        if message =~ /^\s*$/
+          Redwood::log "error running #{command} (but no error message)"
+          BufferManager.flash "Error running #{command}!"
+        else
+          Redwood::log "error running #{command}: #{message}"
+          BufferManager.flash "Error: #{message}"
+        end
+        return
+      end
+
+      data = data.first
+      data.sync = false # buffer input
+
+      yield data
+      data.close # output will block unless input is closed
+
+      ## BUG?: shows errors or output but not both....
+      data, * = IO.select [output, error], nil, nil
+      data = data.first
+
+      if data.eof
+        BufferManager.flash "'#{command}' done!"
+        nil
+      else
+        data.read
+      end
     end
   end
 end
