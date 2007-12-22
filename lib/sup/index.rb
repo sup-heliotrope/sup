@@ -394,6 +394,7 @@ protected
   ## do any specialized parsing
   ## returns nil and flashes error message if parsing failed
   def parse_user_query_string str
+    extraopts = {}
     result = str.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
@@ -405,9 +406,26 @@ protected
       end.join(":")
     end
     
+    # gmail style "is" operator
+    result = result.gsub(/\b(is):(\S+)\b/) do
+      field, label = $1, $2
+      case label
+      when "read"
+        "-label:unread"
+      when "spam"
+        extraopts[:load_spam] = true
+        "label:spam"
+      when "deleted"
+        extraopts[:load_deleted] = true
+        "label:deleted"
+      else
+        "label:#{$2}"
+      end
+    end
+
     if $have_chronic
       chronic_failure = false
-      result = result.gsub(/\b(before|on|in|after):(\((.+?)\)\B|(\S+)\b)/) do
+      result = result.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
         break if chronic_failure
         field, datestr = $1, ($3 || $4)
         realdate = Chronic.parse(datestr, :guess => false, :context => :none)
@@ -432,7 +450,11 @@ protected
     end
     
     Redwood::log "translated #{str.inspect} to #{result}" unless result == str
-    @qparser.parse result if result
+    if result
+      [@qparser.parse(result), extraopts]
+    else
+      [nil,nil]
+    end
   end
 
   def build_query opts
