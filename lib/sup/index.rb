@@ -393,9 +393,21 @@ protected
 
   ## do any specialized parsing
   ## returns nil and flashes error message if parsing failed
-  def parse_user_query_string str
+  def parse_user_query_string s
     extraopts = {}
-    result = str.gsub(/\b(to|from):(\S+)\b/) do
+
+    ## this is a little hacky, but it works, at least until ferret changes
+    ## its api. we parse the user query string with ferret twice: the first
+    ## time we just turn the resulting object back into a string, which has
+    ## the next effect of transforming the original string into a nice
+    ## normalized form with + and - instead of AND, OR, etc. then we do some
+    ## string substitutions which depend on this normalized form, re-parse
+    ## the string with Ferret, and return the resulting query object.
+
+    norms = @qparser.parse(s).to_s
+    Redwood::log "normalized #{s.inspect} to #{norms.inspect}" unless s == norms
+
+    subs = norms.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
         [field, p.email]
@@ -407,7 +419,7 @@ protected
     end
     
     # gmail style "is" operator
-    result = result.gsub(/\b(is):(\S+)\b/) do
+    subs = subs.gsub(/\b(is):(\S+)\b/) do
       field, label = $1, $2
       case label
       when "read"
@@ -425,7 +437,7 @@ protected
 
     if $have_chronic
       chronic_failure = false
-      result = result.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
+      subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
         break if chronic_failure
         field, datestr = $1, ($3 || $4)
         realdate = Chronic.parse(datestr, :guess => false, :context => :none)
@@ -442,18 +454,18 @@ protected
             "date:(<= #{sprintf "%012d", realdate.end.to_i}) date:(>= #{sprintf "%012d", realdate.begin.to_i})"
           end
         else
-          BufferManager.flash "Don't understand date #{datestr.inspect}!"
+          BufferManager.flash "Can't understand date #{datestr.inspect}!"
           chronic_failure = true
         end
       end
-      result = nil if chronic_failure
+      subs = nil if chronic_failure
     end
     
-    Redwood::log "translated #{str.inspect} to #{result}" unless result == str
-    if result
-      [@qparser.parse(result), extraopts]
+    Redwood::log "translated #{norms.inspect} to #{subs.inspect}" unless subs == norms
+    if subs
+      [@qparser.parse(subs), extraopts]
     else
-      [nil,nil]
+      nil
     end
   end
 
