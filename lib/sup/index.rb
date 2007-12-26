@@ -383,7 +383,7 @@ EOS
   end
 
   def has_any_from_source_with_label? source, label
-    q = Ferret::Search::BooleanQuery.new
+    q = erret::Search::BooleanQuery.new
     q.add_query Ferret::Search::TermQuery.new("source_id", source.id.to_s), :must
     q.add_query Ferret::Search::TermQuery.new("label", label.to_s), :must
     index.search(q, :limit => 1).total_hits > 0
@@ -417,8 +417,24 @@ protected
         [field, name]
       end.join(":")
     end
-    
-    # gmail style "is" operator
+
+    ## if we see a label:deleted or a label:spam term anywhere in the query
+    ## string, we set the extra load_spam or load_deleted options to true.
+    ## bizarre? well, because the query allows arbitrary parenthesized boolean
+    ## expressions, without fully parsing the query, we can't tell whether
+    ## the user is explicitly directing us to search spam messages or not.
+    ## e.g. if the string is -(-(-(-(-label:spam)))), does the user want to
+    ## search spam messages or not?
+    ##
+    ## so, we rely on the fact that turning these extra options ON turns OFF
+    ## the adding of "-label:deleted" or "-label:spam" terms at the very
+    ## final stage of query processing. if the user wants to search spam
+    ## messages, not adding that is the right thing; if he doesn't want to
+    ## search spam messages, then not adding it won't have any effect.
+    extraopts[:load_spam] = true if subs =~ /\blabel:spam\b/
+    extraopts[:load_deleted] = true if subs =~ /\blabel:deleted\b/
+
+    ## gmail style "is" operator
     subs = subs.gsub(/\b(is):(\S+)\b/) do
       field, label = $1, $2
       case label
