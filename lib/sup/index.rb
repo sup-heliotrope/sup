@@ -383,7 +383,7 @@ EOS
   end
 
   def has_any_from_source_with_label? source, label
-    q = erret::Search::BooleanQuery.new
+    q = Ferret::Search::BooleanQuery.new
     q.add_query Ferret::Search::TermQuery.new("source_id", source.id.to_s), :must
     q.add_query Ferret::Search::TermQuery.new("label", label.to_s), :must
     index.search(q, :limit => 1).total_hits > 0
