@@ -494,22 +494,22 @@ EOS
     end
   end
 
-
   def ask domain, question, default=nil, &block
     raise "impossible!" if @asking
     @asking = true
 
-    @textfields[domain] ||= TextField.new Ncurses.stdscr, Ncurses.rows - 1, 0, Ncurses.cols
+    @textfields[domain] ||= TextField.new
     tf = @textfields[domain]
     completion_buf = nil
 
     ## this goddamn ncurses form shit is a fucking 1970's nightmare.
     ## jesus christ. the exact sequence of ncurses events that needs
     ## to happen in order to display a form and have the entire screen
-    ## not disappear and have the cursor in the right place is TOO
-    ## FUCKING COMPLICATED.
+    ## not disappear and have the cursor in the right place can only
+    ## be determined by hours of trial and error and is TOO FUCKING
+    ## COMPLICATED.
     Ncurses.sync do
-      tf.activate question, default, &block
+      tf.activate Ncurses.stdscr, Ncurses.rows - 1, 0, Ncurses.cols, question, default, &block
       @dirty = true
       draw_screen :skip_minibuf => true, :sync => false
       tf.position_cursor

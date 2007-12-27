@@ -16,9 +16,7 @@ module Redwood
 ## in sup, completion support is implemented through BufferManager#ask
 ## and CompletionMode.
 class TextField
-  def initialize window, y, x, width
-    @w, @x, @y = window, x, y
-    @width = width
+  def initialize
     @i = nil
     @history = []
 
@@ -31,7 +29,8 @@ class TextField
 
   def value; @value || get_cursed_value end
 
-  def activate question, default=nil, &block
+  def activate window, y, x, width, question, default=nil, &block
+    @w, @y, @x, @width = window, y, x, width
     @question = question
     @completion_block = block
     @field = Ncurses::Form.new_field 1, @width - question.length,
