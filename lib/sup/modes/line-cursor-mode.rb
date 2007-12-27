@@ -55,14 +55,11 @@ protected
     buffer.mark_dirty
   end
 
-  ## override search behavior to be cursor-based
+  ## override search behavior to be cursor-based. this is a stupid
+  ## implementation and should be made better. TODO: improve.
   def search_goto_line line
-    while line > botline
-      page_down
-    end
-    while line < topline
-      page_up
-    end
+    page_down while line >= botline
+    page_up while line < topline
     set_cursor_pos line
   end
 
