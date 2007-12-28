@@ -19,7 +19,7 @@ class ScrollMode < Mode
     k.add :line_up, "Up one line", :up, 'k', 'K'
     k.add :col_left, "Left one column", :left, 'h'
     k.add :col_right, "Right one column", :right, 'l'
-    k.add :page_down, "Down one page", :page_down, 'n', ' '
+    k.add :page_down, "Down one page", :page_down, ' '
     k.add :page_up, "Up one page", :page_up, 'p', :backspace
     k.add :jump_to_start, "Jump to top", :home, '^', '1'
     k.add :jump_to_end, "Jump to bottom", :end, '$', '0'
