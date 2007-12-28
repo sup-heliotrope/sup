@@ -60,8 +60,8 @@ class Keymap
     entry = [action, help, keys]
     @order << entry
     keys.each do |k|
-      raise ArgumentError, "key #{k} already defined (action #{action})" if @map.include? k
       kc = keysym_to_keycode k
+      raise ArgumentError, "key #{k} already defined (action #{action})" if @map.include? kc
       @map[kc] = entry
     end
   end
