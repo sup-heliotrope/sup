@@ -7,7 +7,7 @@ class Keymap
     yield self if block_given?
   end
 
-  def keysym_to_keycode k
+  def self.keysym_to_keycode k
     case k
     when :down: Curses::KEY_DOWN
     when :up: Curses::KEY_UP
@@ -31,7 +31,7 @@ class Keymap
     end
   end
 
-  def keysym_to_string k
+  def self.keysym_to_string k
     case k
     when :down: "<down arrow>"
     when :up: "<up arrow>"
@@ -60,25 +60,44 @@ class Keymap
     entry = [action, help, keys]
     @order << entry
     keys.each do |k|
-      kc = keysym_to_keycode k
-      raise ArgumentError, "key #{k} already defined (action #{action})" if @map.include? kc
+      kc = Keymap.keysym_to_keycode k
+      raise ArgumentError, "key '#{k}' already defined (action #{action})" if @map.include? kc
       @map[kc] = entry
     end
   end
 
+  def add_multi prompt, key
+    submap = Keymap.new
+    add submap, prompt, key
+    yield submap
+  end
+
   def action_for kc
     action, help, keys = @map[kc]
-    action
+    [action, help]
   end
+
+  def has_key? k; @map[k] end
 
   def keysyms; @map.values.map { |action, help, keys| keys }.flatten; end
 
-  def help_text except_for={}
-    lines = @order.map do |action, help, keys|
+  def help_lines except_for={}, prefix=""
+    lines = [] # :(
+    @order.each do |action, help, keys|
       valid_keys = keys.select { |k| !except_for[k] }
       next if valid_keys.empty?
-      [valid_keys.map { |k| keysym_to_string k }.join(", "), help]
+      case action
+      when Symbol
+        lines << [valid_keys.map { |k| prefix + Keymap.keysym_to_string(k) }.join(", "), help]
+      when Keymap
+        lines += action.help_lines({}, prefix + Keymap.keysym_to_string(keys.first))
+      end
     end.compact
+    lines
+  end
+
+  def help_text except_for={}
+    lines = help_lines except_for
     llen = lines.max_of { |a, b| a.length }
     lines.map { |a, b| sprintf " %#{llen}s : %s", a, b }.join("\n")
   end

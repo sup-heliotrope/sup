@@ -35,17 +35,12 @@ class Mode
     @buffer = nil
   end
 
-  ## turns an input keystroke into an action symbol
   def resolve_input c
-    ## try all keymaps in order of age
-    action = nil
-    klass = self.class
-
-    ancestors.each do |klass|
-      action = @@keymaps.member?(klass) && @@keymaps[klass].action_for(c)
+    ancestors.each do |klass| # try all keymaps in order of ancestry
+      next unless @@keymaps.member?(klass)
+      action = BufferManager.resolve_input_with_keymap c, @@keymaps[klass]
       return action if action
     end
-
     nil
   end
 

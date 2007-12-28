@@ -199,63 +199,71 @@ begin
     next unless c
     bm.erase_flash
 
-    unless bm.handle_input(c)
-      x = global_keymap.action_for c
-      case x
-      when :quit
-        break if bm.kill_all_buffers_safely
-      when :help
-        curmode = bm.focus_buf.mode
-        bm.spawn_unless_exists("<help for #{curmode.name}>") { HelpMode.new curmode, global_keymap }
-      when :roll_buffers
-        bm.roll_buffers
-      when :roll_buffers_backwards
-        bm.roll_buffers_backwards
-      when :kill_buffer
-        bm.kill_buffer_safely bm.focus_buf
-      when :list_buffers
-        bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
-      when :list_contacts
-        b, new = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
-        b.mode.load_in_background if new
-      when :search
-        query = BufferManager.ask :search, "search all messages: "
-        next unless query && query !~ /^\s*$/
-        SearchResultsMode.spawn_from_query query
-      when :list_labels
-        labels = LabelManager.listable_labels.map { |l| LabelManager.string_for l }
-        user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
-        unless user_label.nil?
-          if user_label.empty?
-            bm.spawn_unless_exists("Label list") { LabelListMode.new } if user_label && user_label.empty?
-          else
-            LabelSearchResultsMode.spawn_nicely user_label
-          end
-        end
-      when :compose
-        ComposeMode.spawn_nicely
-      when :poll
-        reporting_thread("user-invoked poll") { PollManager.poll }
-      when :recall_draft
-        case Index.num_results_for :label => :draft
-        when 0
-          bm.flash "No draft messages."
-        when 1
-          m = nil
-          Index.each_id_by_date(:label => :draft) { |mid, builder| m = builder.call }
-          r = ResumeMode.new(m)
-          BufferManager.spawn "Edit message", r
-          r.edit_message
+    action =
+      begin
+        if bm.handle_input c
+          :nothing
         else
-          b, new = BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
-          b.mode.load_threads :num => b.content_height if new
+          bm.resolve_input_with_keymap c, global_keymap
         end
-      when :nothing
-      when :redraw
-        bm.completely_redraw_screen
-      else
-        bm.flash "Unknown keypress '#{c.to_character}' for #{bm.focus_buf.mode.name}."
+      rescue InputSequenceAborted
+        :nothing
       end
+
+    case action
+    when :quit
+      break if bm.kill_all_buffers_safely
+    when :help
+      curmode = bm.focus_buf.mode
+      bm.spawn_unless_exists("<help for #{curmode.name}>") { HelpMode.new curmode, global_keymap }
+    when :roll_buffers
+      bm.roll_buffers
+    when :roll_buffers_backwards
+      bm.roll_buffers_backwards
+    when :kill_buffer
+      bm.kill_buffer_safely bm.focus_buf
+    when :list_buffers
+      bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
+    when :list_contacts
+      b, new = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
+      b.mode.load_in_background if new
+    when :search
+      query = BufferManager.ask :search, "search all messages: "
+      next unless query && query !~ /^\s*$/
+      SearchResultsMode.spawn_from_query query
+    when :list_labels
+      labels = LabelManager.listable_labels.map { |l| LabelManager.string_for l }
+      user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
+      unless user_label.nil?
+        if user_label.empty?
+          bm.spawn_unless_exists("Label list") { LabelListMode.new } if user_label && user_label.empty?
+        else
+          LabelSearchResultsMode.spawn_nicely user_label
+        end
+      end
+    when :compose
+      ComposeMode.spawn_nicely
+    when :poll
+      reporting_thread("user-invoked poll") { PollManager.poll }
+    when :recall_draft
+      case Index.num_results_for :label => :draft
+      when 0
+        bm.flash "No draft messages."
+      when 1
+        m = nil
+        Index.each_id_by_date(:label => :draft) { |mid, builder| m = builder.call }
+        r = ResumeMode.new(m)
+        BufferManager.spawn "Edit message", r
+        r.edit_message
+      else
+        b, new = BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
+        b.mode.load_threads :num => b.content_height if new
+      end
+    when :nothing, InputSequenceAborted
+    when :redraw
+      bm.completely_redraw_screen
+    else
+      bm.flash "Unknown keypress '#{c.to_character}' for #{bm.focus_buf.mode.name}."
     end
 
     bm.draw_screen

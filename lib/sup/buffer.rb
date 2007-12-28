@@ -48,6 +48,8 @@ end
 
 module Redwood
 
+class InputSequenceAborted < StandardError; end
+
 class Buffer
   attr_reader :mode, :x, :y, :width, :height, :title
   bool_reader :dirty
@@ -346,7 +348,10 @@ EOS
       c = Ncurses.nonblocking_getch
       next unless c # getch timeout
       break if c == Ncurses::KEY_CANCEL
-      mode.handle_input c
+      begin
+        mode.handle_input c
+      rescue InputSequenceAborted # do nothing
+      end
       draw_screen
       erase_flash
     end
@@ -595,6 +600,25 @@ EOS
     else
       false
     end
+  end
+
+  ## turns an input keystroke into an action symbol. returns the action
+  ## if found, nil if not found, and throws InputSequenceAborted if
+  ## the user aborted a multi-key sequence. (Because each of those cases
+  ## should be handled differently.)
+  ##
+  ## this is in BufferManager because multi-key sequences require prompting.
+  def resolve_input_with_keymap c, keymap
+    action, text = keymap.action_for c
+    while action.is_a? Keymap # multi-key commands, prompt
+      key = BufferManager.ask_getch text
+      unless key # user canceled, abort
+        erase_flash
+        raise InputSequenceAborted
+      end
+      action, text = action.action_for(key) if action.has_key?(key)
+    end
+    action
   end
 
   def minibuf_lines
