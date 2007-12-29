@@ -1,17 +1,15 @@
 module Redwood
 
-## Classic listener/sender paradigm. Handles communication between various
+## Classic listener/broadcaster paradigm. Handles communication between various
 ## parts of Sup.
 ##
-## Usage note: don't pass threads around. Neither thread nor message equality
-## is defined beyond standard object equality. For Thread equality, this is
-## because of computational cost. But message equality is trivial by comparing
-## message ids, so to communicate something about a particular thread, just
-## pass a representative message from it instead.
+## Usage note: don't pass threads around. Neither thread nor message equality is
+## defined anywhere in Sup beyond standard object equality. To communicate
+## something about a particular thread, just pass a representative message from
+## it around.
 ##
-## This assumes that no message will be a part of more than one thread within
-## a single "view" (otherwise a message from a thread wouldn't uniquely
-## identify it). But that's true.
+## (This assumes that no message will be a part of more than one thread within a
+## single "view". Luckily, that's true.)
 
 class UpdateManager
   include Singleton
