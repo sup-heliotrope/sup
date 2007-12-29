@@ -128,12 +128,6 @@ EOS
 
   def handle_archived_update *a; handle_read_update(*a); end
 
-  def handle_deleted_update sender, m
-    t = thread_containing(m) or return
-    hide_thread t
-    regen_text
-  end
-
   ## overwrite me!
   def is_relevant? m; false; end
 
