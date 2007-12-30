@@ -420,10 +420,8 @@ EOS
   def ask_many_emails_with_completions domain, question, completions, default=nil
     ask domain, question, default do |partial|
       prefix, target = partial.split_on_commas_with_remainder
-      Redwood::log "before: prefix #{prefix.inspect}, target #{target.inspect}"
       target ||= prefix.pop || ""
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
-      Redwood::log "after: prefix #{prefix.inspect}, target #{target.inspect}"
       completions.select { |x| x =~ /^#{target}/i }.map { |x| [prefix + x, x] }
     end
   end
