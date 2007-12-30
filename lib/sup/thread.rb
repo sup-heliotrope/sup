@@ -185,6 +185,10 @@ class Container
   def root?; @parent.nil?; end
   def root; root? ? self : @parent.root; end
 
+  ## skip over any containers which are empty and have only one child. we use
+  ## this make the threaded display a little nicer, and only stick in the
+  ## "missing message" line when it's graphically necessary, i.e. when the
+  ## missing message has more than one descendent.
   def first_useful_descendant
     if empty? && @children.size == 1
       @children.first.first_useful_descendant
