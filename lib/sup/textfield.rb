@@ -33,8 +33,7 @@ class TextField
     @w, @y, @x, @width = window, y, x, width
     @question = question
     @completion_block = block
-    @field = Ncurses::Form.new_field 1, @width - question.length,
-                                     @y, @x + question.length, 0, 0
+    @field = Ncurses::Form.new_field 1, @width - question.length, @y, @x + question.length, 0, 0
     @form = Ncurses::Form.new_form [@field]
     @value = default
     Ncurses::Form.post_form @form
@@ -46,7 +45,7 @@ class TextField
     @w.mvaddstr @y, 0, @question
     Ncurses.curs_set 1
     Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_NEXT_CHAR if @value && @value =~ / $/ # fucking RETARDED!!!!
+    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_NEXT_CHAR if @value && @value =~ / $/ # fucking RETARDED
   end
 
   def deactivate

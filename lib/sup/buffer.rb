@@ -258,7 +258,8 @@ EOS
       if opts.member? :status
         [opts[:status], opts[:title]]
       else
-        get_status_and_title(@focus_buf) # must be called outside of the ncurses lock
+        raise "status must be supplied if draw_screen is called within a sync" if opts[:sync] == false
+        get_status_and_title @focus_buf # must be called outside of the ncurses lock
       end
 
     print "\033]2;#{title}\07" if title
@@ -499,6 +500,8 @@ EOS
     end
   end
 
+  ## for simplicitly, we always place the question at the very bottom of the
+  ## screen
   def ask domain, question, default=nil, &block
     raise "impossible!" if @asking
     @asking = true
@@ -507,16 +510,12 @@ EOS
     tf = @textfields[domain]
     completion_buf = nil
 
-    ## this goddamn ncurses form shit is a fucking 1970's nightmare.
-    ## jesus christ. the exact sequence of ncurses events that needs
-    ## to happen in order to display a form and have the entire screen
-    ## not disappear and have the cursor in the right place can only
-    ## be determined by hours of trial and error and is TOO FUCKING
-    ## COMPLICATED.
+    status, title = get_status_and_title @focus_buf
+
     Ncurses.sync do
       tf.activate Ncurses.stdscr, Ncurses.rows - 1, 0, Ncurses.cols, question, default, &block
-      @dirty = true
-      draw_screen :skip_minibuf => true, :sync => false
+      @dirty = true # for some reason that blanks the whole fucking screen
+      draw_screen :sync => false, :status => status, :title => title
       tf.position_cursor
       Ncurses.refresh
     end
@@ -546,45 +545,48 @@ EOS
       Ncurses.sync { Ncurses.refresh }
     end
     
-    Ncurses.sync { tf.deactivate }
     kill_buffer completion_buf if completion_buf
+
     @dirty = true
     @asking = false
-    draw_screen
+    Ncurses.sync do
+      tf.deactivate
+      draw_screen :sync => false, :status => status, :title => title
+    end
     tf.value
   end
 
-  ## some pretty lame code in here!
   def ask_getch question, accept=nil
+    raise "impossible!" if @asking
+    @asking = true
+
     accept = accept.split(//).map { |x| x[0] } if accept
 
-    flash question
+    status, title = get_status_and_title @focus_buf
     Ncurses.sync do
-      Ncurses.curs_set 1
+      draw_screen :sync => false, :status => status, :title => title
+      Ncurses.mvaddstr Ncurses.rows - 1, 0, question
       Ncurses.move Ncurses.rows - 1, question.length + 1
+      Ncurses.curs_set 1
       Ncurses.refresh
     end
 
     ret = nil
     done = false
-    @shelled = true
     until done
       key = Ncurses.nonblocking_getch or next
       if key == Ncurses::KEY_CANCEL
         done = true
-      elsif (accept && accept.member?(key)) || !accept
+      elsif accept.nil? || accept.empty? || accept.member?(key)
         ret = key
         done = true
       end
     end
 
-    @shelled = false
-
+    @asking = false
     Ncurses.sync do
       Ncurses.curs_set 0
-      erase_flash
-      draw_screen :sync => false
-      Ncurses.curs_set 0
+      draw_screen :sync => false, :status => status, :title => title
     end
 
     ret
@@ -634,7 +636,7 @@ EOS
     @minibuf_mutex.synchronize do
       m = @minibuf_stack.compact
       m << @flash if @flash
-      m << "" if m.empty?
+      m << "" if m.empty? unless @asking # to clear it
     end
 
     Ncurses.mutex.lock unless opts[:sync] == false
