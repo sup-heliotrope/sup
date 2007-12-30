@@ -380,7 +380,7 @@ EOS
   end
 
   def kill_buffer buf
-    raise ArgumentError, "buffer not on stack: #{buf.inspect}" unless @buffers.member? buf
+    raise ArgumentError, "buffer not on stack: #{buf}: #{buf.title.inspect}" unless @buffers.member? buf
 
     buf.mode.cleanup
     @buffers.delete buf
