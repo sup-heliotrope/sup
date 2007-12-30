@@ -320,10 +320,16 @@ class ThreadSet
   end
   private :remove_container
 
-  ## remove a single message id
+  ## remove a single message id. not used anywhere, afaik.
   def remove_id mid
     return unless(c = @messages[mid])
     remove_container c
+  end
+
+  def remove_thread_containing_id mid
+    c = @messages[mid] or return
+    t = c.root.thread
+    @threads.delete_if { |key, thread| t == thread }
   end
 
   ## load in (at most) num number of threads from the index

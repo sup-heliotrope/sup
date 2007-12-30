@@ -139,7 +139,7 @@ EOS
   def handle_deleted_update sender, m
     @ts_mutex.synchronize do
       return unless @ts.contains? m
-      @ts.remove_id m.id
+      @ts.remove_thread_containing_id m.id
     end
     update
   end
