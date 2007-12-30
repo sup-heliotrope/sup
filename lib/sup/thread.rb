@@ -146,6 +146,10 @@ class Thread
   def to_s
     "<thread containing: #{@containers.join ', '}>"
   end
+
+  def prune_dangling_container_trees!
+    @containers.delete_if { |c| c.dangling? }
+  end
 end
 
 ## recursive structure used internally to represent message trees as
@@ -168,6 +172,16 @@ class Container
     yield self, 0, parent
     @children.each do |c|
       c.each_with_stuff(self) { |cc, d, par| yield cc, d + 1, par }
+    end
+  end
+
+  def dangling?
+    if @children.any? { |c| !c.empty? }
+      false
+    elsif @children.any? { |c| !c.dangling? }
+      false
+    else
+      true
     end
   end
 
@@ -235,13 +249,17 @@ class Container
   end
 end
 
-## A set of threads (so a forest). Builds thread structures by reading
-## messages from an index.
+## A set of threads, so a forest. Is integrated with the index and
+## builds thread structures by reading messages from it.
 ##
 ## If 'thread_by_subj' is true, puts messages with the same subject in
 ## one thread, even if they don't reference each other. This is
 ## helpful for crappy MUAs that don't set In-reply-to: or References:
 ## headers, but means that messages may be threaded unnecessarily.
+##
+## The following invariants should be maintained: every Thread
+## should have at least one Container tree, and every Container tree
+## should have at least one Message.
 class ThreadSet
   attr_reader :num_messages
   bool_reader :thread_by_subj
@@ -261,13 +279,8 @@ class ThreadSet
   def thread_for m; thread_for_id m.id end
   def contains? m; contains_id? m.id end
 
-  def delete_cruft
-    @threads.each { |k, v| @threads.delete(k) if v.empty? }
-  end
-  private :delete_cruft
-
-  def threads; delete_cruft; @threads.values; end
-  def size; delete_cruft; @threads.size; end
+  def threads; @threads.values end
+  def size; @threads.size end
 
   ## unused
   def dump f
@@ -279,6 +292,7 @@ class ThreadSet
     end
   end
 
+  ## link two containers
   def link p, c, overwrite=false
     if p == c || p.descendant_of?(c) || c.descendant_of?(p) # would create a loop
 #      puts "*** linking parent #{p} and child #{c} would create a loop"
@@ -286,25 +300,30 @@ class ThreadSet
     end
 
     if c.parent.nil? || overwrite
-      c.parent.children.delete c if overwrite && c.parent
-      if c.thread
-        c.thread.drop c 
-        c.thread = nil
-      end
+      remove_container c
       p.children << c
       c.parent = p
     end
   end
   private :link
 
+  def remove_container c
+    c.parent.children.delete c if c.parent # remove from tree
+    thread = c.root.thread # find containing thread
+    if thread
+      thread.prune_dangling_container_trees!
+      if thread.empty? # kill the thread
+        @threads.delete_if { |key, thread| thread.empty? }
+        c.root.thread = nil
+      end
+    end
+  end
+  private :remove_container
+
+  ## remove a single message id
   def remove_id mid
     return unless(c = @messages[mid])
-
-    c.parent.children.delete c if c.parent
-    if c.thread
-      c.thread.drop c
-      c.thread = nil
-    end
+    remove_container c
   end
 
   ## load in (at most) num number of threads from the index
