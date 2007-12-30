@@ -75,7 +75,7 @@ EOS
   end
 
   ## open up a thread view window
-  def select t=nil
+  def select t=nil, when_done=nil
     t ||= cursor_thread or return
 
     Redwood::reporting_thread("load messages for thread-view-mode") do
@@ -98,11 +98,27 @@ EOS
 
       update_text_for_line curpos
       UpdateManager.relay self, :read, t.first
+      when_done.call if when_done
     end
   end
 
   def multi_select threads
     threads.each { |t| select t }
+  end
+
+  ## this is called by thread-view-modes when the user wants to view
+  ## the next thread without going to index-mode. we update the cursor
+  ## as a convenience.
+  def launch_next_thread_after thread, &b
+    l = @lines[thread] or return
+    t = @mutex.synchronize do
+      if l < @threads.length - 1
+        set_cursor_pos l + 1 # move out of mutex?
+        @threads[l + 1]
+      end
+    end or return
+
+    select t, b
   end
   
   def handle_single_message_labeled_update sender, m
