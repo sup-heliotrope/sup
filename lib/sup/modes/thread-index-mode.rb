@@ -88,7 +88,7 @@ EOS
           m.load_from_source! 
         end
       end
-      mode = ThreadViewMode.new t, @hidden_labels
+      mode = ThreadViewMode.new t, @hidden_labels, self
       BufferManager.spawn t.subj, mode
       BufferManager.draw_screen
       mode.jump_to_first_open

@@ -48,6 +48,7 @@ EOS
     k.add :unsubscribe_from_list, "Subscribe to/unsubscribe from mailing list", ")"
     k.add :pipe_message, "Pipe message or attachment to a shell command", '|'
 
+    ## dispatch-and-kill commands
     k.add_multi "(A)rchive/(d)elete/mark as (s)pam/do (n)othing:", ',' do |kk|
       kk.add :archive_and_kill, "Archive this thread and view next", 'a'
       kk.add :delete_and_kill, "Delete this thread and view next", 'd'
@@ -63,10 +64,14 @@ EOS
   ## Message objects.  @chunk_lines is a map from row #s to Chunk
   ## objects. @person_lines is a map from row #s to Person objects.
 
-  def initialize thread, hidden_labels=[]
+  def initialize thread, hidden_labels=[], index_mode=nil
     super()
     @thread = thread
     @hidden_labels = hidden_labels
+
+    ## used for dispatch-and-kill
+    @index_mode = index_mode
+    @dying = false
 
     @layout = SavingHash.new { MessageLayout.new }
     @chunk_layout = SavingHash.new { ChunkLayout.new }
@@ -340,29 +345,45 @@ EOS
   end
 
   def archive_and_kill
-    @thread.remove_label :inbox
-    @thread.save Index
-    UpdateManager.relay self, :archived, @thread.first
-    BufferManager.kill_buffer_safely buffer
+    dispatch_and_kill do
+      @thread.remove_label :inbox
+      UpdateManager.relay self, :archived, @thread.first
+    end
   end
 
   def spam_and_kill
-    @thread.apply_label :spam
-    @thread.save Index
-    UpdateManager.relay self, :spammed, @thread.first
-    BufferManager.kill_buffer_safely buffer
-  end
-
-  def skip_and_kill
-    BufferManager.kill_buffer_safely buffer
+    dispatch_and_kill do
+      @thread.apply_label :spam
+      UpdateManager.relay self, :spammed, @thread.first
+    end
   end
 
   def delete_and_kill
-    @thread.apply_label :deleted
-    @thread.save Index
-    UpdateManager.relay self, :deleted, @thread.first
-    BufferManager.kill_buffer_safely buffer
+    dispatch_and_kill do
+      @thread.apply_label :deleted
+      UpdateManager.relay self, :deleted, @thread.first
+    end
   end
+
+  def skip_and_kill
+    dispatch_and_kill { }
+  end
+
+  def dispatch_and_kill
+    return if @dying
+    @dying = true
+
+    if @index_mode
+      @index_mode.launch_next_thread_after(@thread) do
+        @thread.save Index if yield
+        BufferManager.kill_buffer_safely buffer
+      end
+    else
+      @thread.save Index if yield
+      BufferManager.kill_buffer_safely buffer
+    end
+  end
+  private :dispatch_and_kill
 
   def pipe_message
     chunk = @chunk_lines[curpos]
