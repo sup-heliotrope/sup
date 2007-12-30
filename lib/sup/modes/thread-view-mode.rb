@@ -44,11 +44,16 @@ EOS
     k.add :save_to_disk, "Save message/attachment to disk", 's'
     k.add :search, "Search for messages from particular people", 'S'
     k.add :compose, "Compose message to person", 'm'
-    k.add :archive_and_kill, "Archive thread and kill buffer", 'a'
-    k.add :delete_and_kill, "Delete thread and kill buffer", 'd'
     k.add :subscribe_to_list, "Subscribe to/unsubscribe from mailing list", "("
     k.add :unsubscribe_from_list, "Subscribe to/unsubscribe from mailing list", ")"
     k.add :pipe_message, "Pipe message or attachment to a shell command", '|'
+
+    k.add_multi "(A)rchive/(d)elete/mark as (s)pam/do (n)othing:", ',' do |kk|
+      kk.add :archive_and_kill, "Archive this thread and view next", 'a'
+      kk.add :delete_and_kill, "Delete this thread and view next", 'd'
+      kk.add :spam_and_kill, "Mark this thread as spam and view next", 's'
+      kk.add :skip_and_kill, "Skip this thread and view next", 'n'
+    end
   end
 
   ## there are a couple important instance variables we hold to format
@@ -336,12 +341,25 @@ EOS
 
   def archive_and_kill
     @thread.remove_label :inbox
+    @thread.save Index
     UpdateManager.relay self, :archived, @thread.first
+    BufferManager.kill_buffer_safely buffer
+  end
+
+  def spam_and_kill
+    @thread.apply_label :spam
+    @thread.save Index
+    UpdateManager.relay self, :spammed, @thread.first
+    BufferManager.kill_buffer_safely buffer
+  end
+
+  def skip_and_kill
     BufferManager.kill_buffer_safely buffer
   end
 
   def delete_and_kill
     @thread.apply_label :deleted
+    @thread.save Index
     UpdateManager.relay self, :deleted, @thread.first
     BufferManager.kill_buffer_safely buffer
   end
