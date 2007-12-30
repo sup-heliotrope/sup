@@ -1,3 +1,4 @@
+require 'thread'
 require 'lockfile'
 require 'mime/types'
 require 'pathname'
@@ -600,3 +601,15 @@ class OrderedHash < Hash
   def each; @keys.each { |k| yield k, self[k] } end
 end
 
+## easy thread-safe class for determining who's the "winner" in a race (i.e.
+## first person to hit the finish line
+class FinishLine
+  def initialize
+    @m = Mutex.new
+    @over = false
+  end
+
+  def winner?
+    @m.synchronize { !@over && @over = true }
+  end
+end
