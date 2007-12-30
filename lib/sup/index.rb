@@ -188,7 +188,7 @@ EOS
       :label => m.labels.uniq.join(" "),
       :from => m.from ? m.from.email : "",
       :to => (m.to + m.cc + m.bcc).map { |x| x.email }.join(" "),
-      :subject => wrap_subj(Message.normalize_subj(m.subj)),
+      :subject => wrap_subj(m.subj),
       :refs => (m.refs + m.replytos).uniq.join(" "),
     }
 
