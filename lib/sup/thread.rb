@@ -58,7 +58,7 @@ class Thread
   ## messages).
   def each fake_root=false
     adj = 0
-    root = @containers.find_all { |c| !Message.subj_is_reply?(c) }.argmin { |c| c.date || 0 }
+    root = @containers.find_all { |c| c.message && !Message.subj_is_reply?(c.message.subj) }.argmin { |c| c.date }
 
     if root
       adj = 1
