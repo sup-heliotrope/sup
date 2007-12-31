@@ -256,10 +256,6 @@ end
 ## one thread, even if they don't reference each other. This is
 ## helpful for crappy MUAs that don't set In-reply-to: or References:
 ## headers, but means that messages may be threaded unnecessarily.
-##
-## The following invariants should be maintained: every Thread
-## should have at least one Container tree, and every Container tree
-## should have at least one Message.
 class ThreadSet
   attr_reader :num_messages
   bool_reader :thread_by_subj
@@ -279,8 +275,8 @@ class ThreadSet
   def thread_for m; thread_for_id m.id end
   def contains? m; contains_id? m.id end
 
-  def threads; @threads.values end
-  def size; @threads.size end
+  def threads; prune_empty_threads.values end
+  def size; prune_empty_threads.size end
 
   ## unused
   def dump f
@@ -312,13 +308,13 @@ class ThreadSet
     thread = c.root.thread # find containing thread
     if thread
       thread.prune_dangling_container_trees!
-      if thread.empty? # kill the thread
-        @threads.delete_if { |key, thread| thread.empty? }
-        c.root.thread = nil
-      end
+      c.root.thread = nil
     end
   end
   private :remove_container
+
+  def prune_empty_threads; @threads.delete_if { |k, t| t.empty? } end
+  private :prune_empty_threads
 
   ## remove a single message id. not used anywhere, afaik.
   def remove_id mid
