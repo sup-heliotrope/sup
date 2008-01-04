@@ -15,8 +15,6 @@ _ have "notes" (treated as emails to oneself, never sent) as
 
 for 0.4
 -------
-_ bugfix: pressing S on an email address should search to/from
-_ bugfix: thread ordering in thread-index-mode sometimes jumps around with 'M'
 _ bugfix in completion: capitalization for contact names
 _ imap: cache headers
 _ imap: share connection to the same server.
@@ -79,6 +77,7 @@ x gmail support: obsoleted by imap
 
 done
 ----
+x bugfix: thread ordering in thread-index-mode sometimes jumps around with 'M'
 x forwards optionally include attachments
 x flesh out gpg integration: sign & encrypt outgoing
 x pressing A in thread-view-mode should jump to next message

@@ -167,7 +167,7 @@ EOS
   def update
     @mutex.synchronize do
       ## let's see you do THIS in python
-      @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| t.date }.reverse
+      @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| [t.date, t.first.id] }.reverse
       @size_widgets = @threads.map { |t| size_widget_for_thread t }
       @size_widget_width = @size_widgets.max_of { |w| w.length }
     end
