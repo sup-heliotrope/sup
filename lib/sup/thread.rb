@@ -47,8 +47,8 @@ class Thread
 
   ## unused
   def dump f=$stdout
-    f.puts "=== start thread #{self} with #{@containers.length} trees ==="
-    @containers.each { |c| c.dump_recursive f }
+    f.puts "=== start thread with #{@containers.length} trees ==="
+    @containers.each { |c| c.dump_recursive f; f.puts }
     f.puts "=== end thread ==="
   end
 
@@ -146,10 +146,6 @@ class Thread
   def to_s
     "<thread containing: #{@containers.join ', '}>"
   end
-
-  def prune_dangling_container_trees!
-    @containers.delete_if { |c| c.dangling? }
-  end
 end
 
 ## recursive structure used internally to represent message trees as
@@ -172,16 +168,6 @@ class Container
     yield self, 0, parent
     @children.each do |c|
       c.each_with_stuff(self) { |cc, d, par| yield cc, d + 1, par }
-    end
-  end
-
-  def dangling?
-    if @children.any? { |c| !c.empty? }
-      false
-    elsif @children.any? { |c| !c.dangling? }
-      false
-    else
-      true
     end
   end
 
@@ -236,9 +222,9 @@ class Container
       f.print " " * indent
       f.print "+->"
     end
-    line = #"[#{useful? ? 'U' : ' '}] " +
+    line = "[#{thread.nil? ? ' ' : '*'}] " + #"[#{useful? ? 'U' : ' '}] " +
       if @message
-        "[#{thread}] #{@message.subj} " ##{@message.refs.inspect} / #{@message.replytos.inspect}"
+        message.subj ##{@message.refs.inspect} / #{@message.replytos.inspect}"
       else
         "<no message>"
       end
@@ -256,6 +242,9 @@ end
 ## one thread, even if they don't reference each other. This is
 ## helpful for crappy MUAs that don't set In-reply-to: or References:
 ## headers, but means that messages may be threaded unnecessarily.
+##
+## The following invariants are maintained: every Thread has at least one
+## Container tree, and every Container tree has at least one Message.
 class ThreadSet
   attr_reader :num_messages
   bool_reader :thread_by_subj
@@ -275,11 +264,10 @@ class ThreadSet
   def thread_for m; thread_for_id m.id end
   def contains? m; contains_id? m.id end
 
-  def threads; prune_empty_threads.values end
-  def size; prune_empty_threads.size end
+  def threads; @threads.values end
+  def size; @threads.size end
 
-  ## unused
-  def dump f
+  def dump f=$stdout
     @threads.each do |s, t|
       f.puts "**********************"
       f.puts "** for subject #{s} **"
@@ -291,25 +279,29 @@ class ThreadSet
   ## link two containers
   def link p, c, overwrite=false
     if p == c || p.descendant_of?(c) || c.descendant_of?(p) # would create a loop
-#      puts "*** linking parent #{p} and child #{c} would create a loop"
+      #puts "*** linking parent #{p.id} and child #{c.id} would create a loop"
       return
     end
 
-    if c.parent.nil? || overwrite
-      remove_container c
-      p.children << c
-      c.parent = p
+    #puts "in link for #{p.id} to #{c.id}, perform? #{c.parent.nil?} || #{overwrite}"
+
+    return unless c.parent.nil? || overwrite
+    remove_container c
+    p.children << c
+    c.parent = p
+
+    ## if the child was previously a top-level container, but now is not,
+    ## ditch our thread and kill it if necessary
+    if c.thread && !c.root?
+      c.thread.drop c
+      @threads.delete_if { |k, v| v == c.thread } if c.thread.empty?
+      c.thread = nil
     end
   end
   private :link
 
   def remove_container c
     c.parent.children.delete c if c.parent # remove from tree
-    thread = c.root.thread # find containing thread
-    if thread
-      thread.prune_dangling_container_trees!
-      c.root.thread = nil
-    end
   end
   private :remove_container
 
@@ -365,17 +357,17 @@ class ThreadSet
     el = @messages[message.id]
     return if el.message # we've seen it before
 
+    #puts "adding: #{message.id}, refs #{message.refs.inspect}"
+
     el.message = message
     oldroot = el.root
 
     ## link via references:
-    prev = nil
-    message.refs.each do |ref_id|
+    (message.refs + [el.id]).inject(nil) do |prev, ref_id|
       ref = @messages[ref_id]
       link prev, ref if prev
-      prev = ref
+      ref
     end
-    link prev, el, true if prev
 
     ## link via in-reply-to:
     message.replytos.each do |ref_id|
@@ -385,13 +377,6 @@ class ThreadSet
     end
 
     root = el.root
-
-    ## new root. need to drop old one and put this one in its place
-    if root != oldroot && oldroot.thread
-      oldroot.thread.drop oldroot
-      oldroot.thread = nil
-    end
-
     key =
       if thread_by_subj?
         Message.normalize_subj root.subj
