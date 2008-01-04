@@ -384,7 +384,7 @@ private
 
       ## otherwise, it's body text
       else
-        body = Message.convert_from m.decode, m.charset
+        body = Message.convert_from m.decode, m.charset if m.body
         text_to_chunks (body || "").normalize_whitespace.split("\n"), encrypted
       end
     end
