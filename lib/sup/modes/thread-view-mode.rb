@@ -112,7 +112,7 @@ EOS
 
   def show_header
     m = @message_lines[curpos] or return
-    BufferManager.spawn_unless_exists("Full header") do
+    BufferManager.spawn_unless_exists("Full header for #{m.id}") do
       TextMode.new m.raw_header
     end
   end
