@@ -35,7 +35,7 @@ EOS
     k.add :jump_to_next_open, "Jump to next open message", 'n'
     k.add :jump_to_prev_open, "Jump to previous open message", 'p'
     k.add :toggle_starred, "Star or unstar message", '*'
-    k.add :toggle_new, "Toggle new/read status of message", 'N'
+    k.add :toggle_new, "Toggle unread/read status of message", 'N'
 #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message or attachment", 'f'
@@ -48,12 +48,19 @@ EOS
     k.add :unsubscribe_from_list, "Subscribe to/unsubscribe from mailing list", ")"
     k.add :pipe_message, "Pipe message or attachment to a shell command", '|'
 
-    ## dispatch-and-kill commands
-    k.add_multi "(A)rchive/(d)elete/mark as (s)pam/do (n)othing:", ',' do |kk|
-      kk.add :archive_and_kill, "Archive this thread and view next", 'a'
-      kk.add :delete_and_kill, "Delete this thread and view next", 'd'
-      kk.add :spam_and_kill, "Mark this thread as spam and view next", 's'
-      kk.add :skip_and_kill, "Skip this thread and view next", 'n'
+    k.add_multi "(A)rchive/(d)elete/mark as (s)pam/mark as u(N)read:", '.' do |kk|
+      kk.add :archive_and_kill, "Archive this thread and kill buffer", 'a'
+      kk.add :delete_and_kill, "Delete this thread and kill buffer", 'd'
+      kk.add :spam_and_kill, "Mark this thread as spam and kill buffer", 's'
+      kk.add :unread_and_kill, "Mark this thread as unread and kill buffer", 'N'
+    end
+
+    k.add_multi "(A)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ',' do |kk|
+      kk.add :archive_and_next, "Archive this thread, kill buffer, and view next", 'a'
+      kk.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
+      kk.add :spam_and_next, "Mark this thread as spam, kill buffer, and view next", 's'
+      kk.add :unread_and_next, "Mark this thread as unread, kill buffer, and view next", 'N'
+      kk.add :do_nothing_and_next, "Kill buffer, and view next", 'n'
     end
   end
 
@@ -69,7 +76,7 @@ EOS
     @thread = thread
     @hidden_labels = hidden_labels
 
-    ## used for dispatch-and-kill
+    ## used for dispatch-and-next
     @index_mode = index_mode
     @dying = false
 
@@ -344,46 +351,67 @@ EOS
     @layout = @chunk_layout = @text = nil # for good luck
   end
 
-  def archive_and_kill
-    dispatch_and_kill do
+  def archive_and_kill; archive_and_then :kill end
+  def spam_and_kill; spam_and_then :kill end
+  def delete_and_kill; delete_and_then :kill end
+  def unread_and_kill; unread_and_then :kill end
+
+  def archive_and_next; archive_and_then :next end
+  def spam_and_next; spam_and_then :next end
+  def delete_and_next; delete_and_then :next end
+  def unread_and_next; unread_and_then :next end
+  def do_nothing_and_next; do_nothing_and_then :next end
+
+  def archive_and_then op
+    dispatch op do
       @thread.remove_label :inbox
       UpdateManager.relay self, :archived, @thread.first
     end
   end
 
-  def spam_and_kill
-    dispatch_and_kill do
+  def spam_and_then op
+    dispatch op do
       @thread.apply_label :spam
       UpdateManager.relay self, :spammed, @thread.first
     end
   end
 
-  def delete_and_kill
-    dispatch_and_kill do
+  def delete_and_then op
+    dispatch op do
       @thread.apply_label :deleted
       UpdateManager.relay self, :deleted, @thread.first
     end
   end
 
-  def skip_and_kill
-    dispatch_and_kill { }
+  def unread_and_then op
+    dispatch op do
+      @thread.apply_label :unread
+      UpdateManager.relay self, :unread, @thread.first
+    end
   end
 
-  def dispatch_and_kill
+  def do_nothing_and_then op
+    dispatch op
+  end
+
+  def dispatch op
     return if @dying
     @dying = true
 
-    if @index_mode
+    case op
+    when :next
       @index_mode.launch_next_thread_after(@thread) do
-        @thread.save Index if yield
+        @thread.save Index if block_given? && yield
         BufferManager.kill_buffer_safely buffer
       end
-    else
+    when :kill
       @thread.save Index if yield
       BufferManager.kill_buffer_safely buffer
+    else
+      raise ArgumentError, "unknown thread dispatch operation #{op.inspect}"
     end
   end
-  private :dispatch_and_kill
+  private :dispatch
 
   def pipe_message
     chunk = @chunk_lines[curpos]

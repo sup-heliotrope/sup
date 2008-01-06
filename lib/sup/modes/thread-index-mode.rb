@@ -136,13 +136,17 @@ EOS
     end
   end
 
-  def handle_read_update sender, m
+  def handle_simple_update sender, m
     t = thread_containing(m) or return
     l = @lines[t] or return
     update_text_for_line l
   end
 
-  def handle_archived_update *a; handle_read_update(*a); end
+  %w(read unread archived starred unstarred).each do |state|
+    define_method "handle_#{state}_update" do |*a|
+      handle_simple_update *a
+    end
+  end
 
   ## overwrite me!
   def is_relevant? m; false; end
