@@ -3,8 +3,10 @@ module Redwood
 class Account < Person
   attr_accessor :sendmail, :signature
 
-  def initialize email, h
-    super h[:name], email, 0, true
+  def initialize h
+    raise ArgumentError, "no name for account" unless h[:name]
+    raise ArgumentError, "no name for email" unless h[:name]
+    super h[:name], h[:email], 0, true
     @sendmail = h[:sendmail]
     @signature = h[:signature]
   end
@@ -21,7 +23,7 @@ class AccountManager
     @default_account = nil
 
     add_account accounts[:default], true
-    accounts.each { |k, v| add_account v unless k == :default }
+    accounts.each { |k, v| add_account v, false unless k == :default }
 
     self.class.i_am_the_instance self
   end
@@ -38,18 +40,18 @@ class AccountManager
     end
     hash[:alternates] ||= []
 
-    main_email = hash[:email]
-    ([hash[:email]] + hash[:alternates]).each do |email|
-      next if @email_map.member? email
-      a = Account.new main_email, hash
-      PersonManager.register a
-      @accounts[a] = true
-      @email_map[email] = a
-    end
+    a = Account.new hash
+    PersonManager.register a
+    @accounts[a] = true
 
     if default
       raise ArgumentError, "multiple default accounts" if @default_account
-      @default_account = @email_map[main_email]
+      @default_account = a
+    end
+
+    ([hash[:email]] + hash[:alternates]).each do |email|
+      next if @email_map.member? email
+      @email_map[email] = a
     end
   end
 
