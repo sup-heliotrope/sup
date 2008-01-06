@@ -20,6 +20,7 @@ class AccountManager
   def initialize accounts
     @email_map = {}
     @accounts = {}
+    @regexen = {}
     @default_account = nil
 
     add_account accounts[:default], true
@@ -53,11 +54,21 @@ class AccountManager
       next if @email_map.member? email
       @email_map[email] = a
     end
+
+    hash[:regexen].each do |re|
+      @regexen[Regexp.new(re)] = a
+    end if hash[:regexen]
   end
 
   def is_account? p; is_account_email? p.email end
-  def account_for email; @email_map[email] end
   def is_account_email? email; !account_for(email).nil? end
+  def account_for email
+    if(a = @email_map[email])
+      a
+    else
+      @regexen.argfind { |re, a| re =~ email && a }
+    end
+  end
 end
 
 end
