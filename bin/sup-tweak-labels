@@ -30,7 +30,7 @@ opts = Trollop::options do
 Batch modification of message state for messages already in the index.
 
 Usage:
-  sup-mangle-index [options] <source>*
+  sup-tweak-labels [options] <source>*
 
 where <source>* is zero or more source URIs. Supported source URI schemes can
 be seen by running "sup-add --help".
