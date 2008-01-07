@@ -12,9 +12,15 @@ _ search results: highlight relevant snippets and open to relevant
   portion of thread
 _ have "notes" (treated as emails to oneself, never sent) as
   first-class objects.
+_ make use of the username in URIs, and move account passwords to
+  a different file from sources.yaml. heck, allow encryption of that
+  file.
 
 for 0.4
 -------
+_ bugfix in drafts: the entire thread is currently discarded, rather
+  than just the one message. (need to distinguish per-message and
+  per-thread deletion in the update messages.)
 _ bugfix in completion: capitalization for contact names
 _ imap: cache headers
 _ imap: share connection to the same server.
