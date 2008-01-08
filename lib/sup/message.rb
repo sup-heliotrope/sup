@@ -391,6 +391,7 @@ private
   end
 
   def self.convert_from body, charset
+    charset = "utf-8" if charset =~ /UTF_?8/i
     begin
       raise MessageFormatError, "RubyMail decode returned a null body" unless body
       return body unless charset
