@@ -98,6 +98,8 @@ class TextField
         Ncurses::Form::REQ_PREV_CHAR
       when Ncurses::KEY_RIGHT
         Ncurses::Form::REQ_NEXT_CHAR
+      when Ncurses::KEY_DC
+        Ncurses::Form::REQ_DEL_CHAR
       when Ncurses::KEY_BACKSPACE
         Ncurses::Form::REQ_DEL_PREV
       when 1 #ctrl-a
