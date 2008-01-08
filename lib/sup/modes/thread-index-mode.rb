@@ -156,6 +156,14 @@ EOS
     BufferManager.draw_screen
   end
 
+  def handle_single_message_deleted_update sender, m
+    @ts_mutex.synchronize do
+      return unless @ts.contains? m
+      @ts.remove_id m.id
+    end
+    update
+  end
+
   def handle_deleted_update sender, m
     @ts_mutex.synchronize do
       return unless @ts.contains? m

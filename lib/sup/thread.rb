@@ -289,14 +289,7 @@ class ThreadSet
     remove_container c
     p.children << c
     c.parent = p
-
-    ## if the child was previously a top-level container, but now is not,
-    ## ditch our thread and kill it if necessary
-    if c.thread && !c.root?
-      c.thread.drop c
-      @threads.delete_if { |k, v| v == c.thread } if c.thread.empty?
-      c.thread = nil
-    end
+    update_threading_for c
   end
   private :link
 
@@ -305,10 +298,17 @@ class ThreadSet
   end
   private :remove_container
 
-  def prune_empty_threads; @threads.delete_if { |k, t| t.empty? } end
-  private :prune_empty_threads
+  def update_threading_for c
+    ## if the child was previously a top-level container, but now is not,
+    ## ditch our thread and kill it if necessary
+    if c.thread && !c.root?
+      c.thread.drop c
+      @threads.delete_if { |k, v| v == c.thread } if c.thread.empty?
+      c.thread = nil
+    end
+  end
+  private :update_threading_for
 
-  ## remove a single message id. not used anywhere, afaik.
   def remove_id mid
     return unless(c = @messages[mid])
     remove_container c
