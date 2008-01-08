@@ -72,20 +72,20 @@ EOS
           "For some bizarre reason, RubyMail was unable to parse this attachment.\n"
         end
 
-      @lines =
+      text =
         case @content_type
         when /^text\/plain\b/
-          @quotable = true
-          Message.convert_from(@raw_content, encoded_content.charset).split("\n")
+          Message.convert_from @raw_content, encoded_content.charset
         else
-          text = HookManager.run "mime-decode", :content_type => content_type,
-                                 :filename => lambda { write_to_disk },
-                                 :sibling_types => sibling_types
-          if text
-            @quotable = true
-            text.split("\n")
-          end
+          HookManager.run "mime-decode", :content_type => content_type,
+                          :filename => lambda { write_to_disk },
+                          :sibling_types => sibling_types
         end
+
+      if text
+        @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+        @quotable = true
+      end
     end
 
     def color; :none end
