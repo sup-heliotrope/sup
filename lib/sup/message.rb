@@ -163,7 +163,7 @@ class Message
   def load_from_source!
     @chunks ||=
       if @source.has_errors?
-        [Chunk::Text.new(error_message(@source.error.message.split("\n")))]
+        [Chunk::Text.new(error_message(@source.error.message).split("\n"))]
       else
         begin
           ## we need to re-read the header because it contains information
@@ -182,7 +182,7 @@ class Message
           ## up the error message one
           @source.error ||= e
           Redwood::report_broken_sources :force_to_top => true
-          [Chunk::Text.new(error_message(e.message))]
+          [Chunk::Text.new(error_message(e.message).split("\n"))]
         end
       end
   end
