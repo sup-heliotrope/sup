@@ -29,7 +29,7 @@ class ReplyMode < EditMessageMode
         AccountManager.default_account
       end
 
-    ## now, determine to: and cc: addressess. we  ignore reply-to for list
+    ## now, determine to: and cc: addressess. we ignore reply-to for list
     ## messages because it's typically set to the list address, which we
     ## explicitly treat with reply type :list
     to = @m.is_list_message? ? @m.from : (@m.replyto || @m.from)
@@ -56,10 +56,11 @@ class ReplyMode < EditMessageMode
 
     @headers[:user] = {}
 
+    not_me_ccs = cc.select { |p| !AccountManager.is_account?(p) }
     @headers[:all] = {
       "To" => [to.full_address],
-      "Cc" => cc.select { |p| !AccountManager.is_account?(p) }.map { |p| p.full_address },
-    } unless cc.empty?
+      "Cc" => not_me_ccs.map { |p| p.full_address },
+    } unless not_me_ccs.empty?
 
     @headers[:list] = {
       "To" => [@m.list_address.full_address],
