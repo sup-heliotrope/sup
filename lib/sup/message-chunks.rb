@@ -1,4 +1,4 @@
-require 'tmpdir'
+require 'tempfile'
 
 ## Here we define all the "chunks" that a message is parsed
 ## into. Chunks are used by ThreadViewMode to render a message. Chunks
@@ -30,6 +30,14 @@ require 'tmpdir'
 ## Independent of all that, a chunk can be quotable, in which case it's
 ## included as quoted text during a reply. Text, Quotes, and mime-parsed
 ## attachments are quotable; Signatures are not.
+
+## monkey-patch time: make temp files have the right extension
+class Tempfile
+  def make_tmpname basename, n
+    sprintf '%d-%d-%s', $$, n, basename
+  end
+end
+
 
 module Redwood
 module Chunk
@@ -103,13 +111,7 @@ EOS
     end
 
     def write_to_disk
-      file =
-        if @filename
-          File.open File.join(Dir::tmpdir, @filename), "w"
-        else
-          Tempfile.new "redwood.attachment"
-        end
-
+      file = Tempfile.new(@filename || "sup-attachment")
       file.print @raw_content
       file.close
       file.path
