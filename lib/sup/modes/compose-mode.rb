@@ -21,9 +21,9 @@ class ComposeMode < EditMessageMode
 
   def self.spawn_nicely opts={}
     to = opts[:to] || BufferManager.ask_for_contacts(:people, "To: ") or return
-    cc = opts[:cc] || BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc]
-    bcc = opts[:bcc] || BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc]
-    subj = opts[:subj] || BufferManager.ask(:subject, "Subject: ") or return if $config[:ask_for_subject]
+    cc = opts[:cc] || (BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc])
+    bcc = opts[:bcc] || (BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc])
+    subj = opts[:subj] || (BufferManager.ask(:subject, "Subject: ") or return if $config[:ask_for_subject])
     
     mode = ComposeMode.new :from => opts[:from], :to => to, :cc => cc, :bcc => bcc, :subj => subj
     BufferManager.spawn "New Message", mode
