@@ -7,7 +7,12 @@ class Hoe
   def extra_deps; @extra_deps.reject { |x| Array(x).first == "hoe" } end
 end # thanks to "Mike H"
 
-Hoe.new('sup', Redwood::VERSION) do |p|
+## allow people who use development versions by running "rake gem"
+## and installing the resulting gem it to be able to do this. (gem
+## versions must be in dotted-digit notation only).
+version = Redwood::VERSION == "git" ? 999 : Redwood::VERSION
+
+Hoe.new('sup', version) do |p|
   p.rubyforge_name = 'sup'
   p.author = "William Morgan"
   p.summary = 'A console-based email client with the best features of GMail, mutt, and emacs. Features full text search, labels, tagged operations, multiple buffers, recent contacts, and more.'
