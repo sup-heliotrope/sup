@@ -1,5 +1,3 @@
-# -*- ruby -*-
-
 require 'rubygems'
 require 'hoe'
 $:.unshift 'lib' # force loading from ./lib/ if it exists
@@ -45,4 +43,5 @@ task :upload_webpage_images => (SCREENSHOTS + SCREENSHOTS_SMALL) do |t|
   sh "scp -C #{t.prerequisites * ' '} wmorgan@rubyforge.org:/var/www/gforge-projects/sup/"
 end
 
-# vim: syntax=Ruby
+# vim: syntax=ruby
+# -*- ruby -*-
