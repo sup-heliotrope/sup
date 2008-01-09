@@ -63,6 +63,7 @@ class Buffer
     @title = opts[:title] || ""
     @force_to_top = opts[:force_to_top] || false
     @x, @y, @width, @height = 0, 0, width, height
+    @in_x = ENV["TERM"] =~ /(xterm|rxvt)/
   end
 
   def content_height; @height - 1; end
@@ -262,7 +263,7 @@ EOS
         get_status_and_title @focus_buf # must be called outside of the ncurses lock
       end
 
-    print "\033]2;#{title}\07" if title
+    print "\033]2;#{title}\07" if title && @in_x
 
     Ncurses.mutex.lock unless opts[:sync] == false
 
