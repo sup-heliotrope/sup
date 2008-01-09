@@ -3,6 +3,7 @@ require 'yaml'
 require 'zlib'
 require 'thread'
 require 'fileutils'
+require 'gettext'
 require 'curses'
 
 class Object
@@ -48,16 +49,6 @@ module Redwood
 
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
-
-## determine encoding and character set
-## probably a better way to do this
-  $ctype = ENV["LC_CTYPE"] || ENV["LANG"] || "en-US.utf-8"
-  $encoding =
-    if $ctype =~ /\.(.*)?/
-      $1
-    else
-      "utf-8"
-    end
 
 ## record exceptions thrown in threads nicely
   def reporting_thread name
@@ -234,6 +225,15 @@ module Redwood
   def log s; Logger.log s; end
   module_function :log
 end
+
+## determine encoding and character set
+  $encoding = Locale.current.charset
+  if $encoding
+    Redwood::log "using character set encoding #{$encoding.inspect}"
+  else
+    Redwood::log "warning: can't find character set by using locale, defaulting to utf-8"
+    $encoding = "utf-8"
+  end
 
 ## now everything else (which can feel free to call Redwood::log at load time)
 require "sup/update"
