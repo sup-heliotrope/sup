@@ -63,7 +63,6 @@ class Buffer
     @title = opts[:title] || ""
     @force_to_top = opts[:force_to_top] || false
     @x, @y, @width, @height = 0, 0, width, height
-    @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
   end
 
   def content_height; @height - 1; end
@@ -178,6 +177,7 @@ EOS
     @textfields = {}
     @flash = nil
     @shelled = @asking = false
+    @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
 
     self.class.i_am_the_instance self
   end
