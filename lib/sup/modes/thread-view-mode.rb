@@ -317,11 +317,11 @@ EOS
     left = l.depth * INDENT_SPACES
     right = left + l.width
 
-    ## jump to the top line unless both top and bottom fit in the current view
-    jump_to_line l.top unless l.top >= topline && l.top <= botline && l.bot >= topline && l.bot <= botline
+    ## jump to the top line
+    jump_to_line l.top
 
-    ## jump to the left columns unless both left and right fit in the current view
-    jump_to_col left unless left >= leftcol && left <= rightcol && right >= leftcol && right <= rightcol
+    ## jump to the left column
+    jump_to_col left
 
     ## either way, move the cursor to the first line
     set_cursor_pos l.top
