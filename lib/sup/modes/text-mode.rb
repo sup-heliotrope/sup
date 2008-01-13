@@ -7,15 +7,16 @@ class TextMode < ScrollMode
     k.add :pipe, "Pipe to process", '|'
   end
 
-  def initialize text=""
+  def initialize text="", filename=nil
     @text = text
+    @filename = filename
     update_lines
     buffer.mark_dirty if buffer
     super()
   end
   
   def save_to_disk
-    fn = BufferManager.ask_for_filename :filename, "Save to file: "
+    fn = BufferManager.ask_for_filename :filename, "Save to file: ", @filename
     save_to_file(fn) { |f| f.puts text } if fn
   end
 
