@@ -101,6 +101,7 @@ class ScrollMode < Mode
   end
 
   def jump_to_col col
+    col = col - (col % COL_JUMP)
     buffer.mark_dirty unless @leftcol == col
     @leftcol = col
   end
