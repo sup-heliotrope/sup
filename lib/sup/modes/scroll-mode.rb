@@ -12,7 +12,7 @@ class ScrollMode < Mode
 
   attr_reader :status, :topline, :botline, :leftcol
 
-  COL_JUMP = 2
+  COL_JUMP = 4
 
   register_keymap do |k|
     k.add :line_down, "Down one line", :down, 'j', 'J'
