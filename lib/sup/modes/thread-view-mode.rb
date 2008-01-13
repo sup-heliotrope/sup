@@ -275,16 +275,16 @@ EOS
     end
   end
 
-  def jump_to_first_open
+  def jump_to_first_open loose_alignment=false
     m = @message_lines[0] or return
     if @layout[m].state != :closed
-      jump_to_message m
+      jump_to_message m, loose_alignment
     else
-      jump_to_next_open
+      jump_to_next_open loose_alignment
     end
   end
 
-  def jump_to_next_open
+  def jump_to_next_open loose_alignment=false
     return continue_search_in_buffer if in_search? # hack: allow 'n' to apply to both operations
     m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
     return unless m
@@ -292,7 +292,7 @@ EOS
       break if @layout[nextm].state != :closed
       m = nextm
     end
-    jump_to_message nextm if nextm
+    jump_to_message nextm, loose_alignment if nextm
   end
 
   def align_current_message
@@ -300,7 +300,7 @@ EOS
     jump_to_message m
   end
 
-  def jump_to_prev_open
+  def jump_to_prev_open loose_alignment=false
     m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] } # bah, .to_a
     return unless m
     ## jump to the top of the current message if we're in the body;
@@ -312,22 +312,32 @@ EOS
         break if @layout[prevm].state != :closed
         m = prevm
       end
-      jump_to_message prevm if prevm
+      jump_to_message prevm, loose_alignment if prevm
     else
-      jump_to_message m
+      jump_to_message m, loose_alignment
     end
   end
 
-  def jump_to_message m
+  def jump_to_message m, loose_alignment=false
     l = @layout[m]
     left = l.depth * INDENT_SPACES
     right = left + l.width
 
     ## jump to the top line
-    jump_to_line l.top
+    if loose_alignment
+      jump_to_line [l.top - 3, 0].max # give 3 lines of top context
+    else
+      jump_to_line l.top
+    end
 
     ## jump to the left column
-    jump_to_col left
+    if loose_alignment
+      ## try and give 4 columns of left context, but not if it means that
+      ## the right of the message is truncated.
+      jump_to_col [[left - 4, rightcol - l.width - 1].min, 0].max
+    else
+      jump_to_col left
+    end
 
     ## either way, move the cursor to the first line
     set_cursor_pos l.top
