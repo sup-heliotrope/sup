@@ -34,6 +34,7 @@ EOS
     k.add :expand_all_quotes, "Expand/collapse all quotes in a message", 'o'
     k.add :jump_to_next_open, "Jump to next open message", 'n'
     k.add :jump_to_prev_open, "Jump to previous open message", 'p'
+    k.add :align_current_message, "Align current message in buffer", 'z'
     k.add :toggle_starred, "Star or unstar message", '*'
     k.add :toggle_new, "Toggle unread/read status of message", 'N'
 #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
@@ -292,6 +293,11 @@ EOS
       m = nextm
     end
     jump_to_message nextm if nextm
+  end
+
+  def align_current_message
+    m = @message_lines[curpos] or return
+    jump_to_message m
   end
 
   def jump_to_prev_open
