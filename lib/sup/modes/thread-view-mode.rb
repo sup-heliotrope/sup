@@ -285,7 +285,8 @@ EOS
 
   def jump_to_next_open
     return continue_search_in_buffer if in_search? # hack: allow 'n' to apply to both operations
-    m = @message_lines[curpos] or return
+    m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
+    return unless m
     while nextm = @layout[m].next
       break if @layout[nextm].state != :closed
       m = nextm
@@ -294,7 +295,8 @@ EOS
   end
 
   def jump_to_prev_open
-    m = @message_lines[curpos] or return
+    m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] } # bah, .to_a
+    return unless m
     ## jump to the top of the current message if we're in the body;
     ## otherwise, to the previous message
     
