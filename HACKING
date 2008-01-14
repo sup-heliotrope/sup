@@ -20,9 +20,8 @@ the installed gem before submitting any bug reports.
 Coding standards
 ----------------
 
-- Don't wrap code unless it really benefits from it. The days of 80-column
-  displays are long over. But do wrap comments and other text at whatever vi
-  gq<region> does.
+- Don't wrap code unless it really benefits from it.
+- Do wrap comments at 72 characters.
 - Old lisp-style comment differentiations:
    # one for comments on the same line as a line of code
    ## two for comments on their own line, except:
@@ -32,7 +31,12 @@ Coding standards
 - The one exception to poetry mode is if-statements that have an assignment in
   the condition. To make it clear this is not a comparison, surround the
   condition by parentheses. E.g.:
-
-  if a == b         BUT        if(a = some.computation)
-    ...                          ... something with a
-  end                          end
+    if a == b                    if(a = some.computation)
+      ...             BUT          ... something with a
+    end                          end
+- and/or versus ||/&&. In Ruby, "and" and "or" bind very loosely---even
+  more loosely than function application. This makes them ideal for
+  end-of-line short-circuit control in poetry mode. So, use || and &&
+  for ordinary logical comparisons, and "and" and "or" for end-of-line
+  flow control. E.g.:
+    x = a || b or raise "neither is true"
