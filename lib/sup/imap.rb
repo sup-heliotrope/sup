@@ -5,39 +5,39 @@ require 'time'
 require 'rmail'
 require 'cgi'
 
-## fucking imap fucking sucks. what the FUCK kind of committee of
-## dunces designed this shit.
+## fucking imap fucking sucks. what the FUCK kind of committee of dunces
+## designed this shit.
 ##
 ## imap talks about 'unique ids' for messages, to be used for
-## cross-session identification. great---just what sup needs! except
-## it turns out the uids can be invalidated every time the
-## 'uidvalidity' value changes on the server, and 'uidvalidity' can
-## change without restriction. it can change any time you log in. it
-## can change EVERY time you log in. of course the imap spec "strongly
-## recommends" that it never change, but there's nothing to stop
-## people from just setting it to the current timestamp, and in fact
-## that's exactly what the one imap server i have at my disposal
-## does. thus the so-called uids are absolutely useless and imap
-## provides no cross-session way of uniquely identifying a
-## message. but thanks for the "strong recommendation", guys!
+## cross-session identification. great---just what sup needs! except it
+## turns out the uids can be invalidated every time the 'uidvalidity'
+## value changes on the server, and 'uidvalidity' can change without
+## restriction. it can change any time you log in. it can change EVERY
+## time you log in. of course the imap spec "strongly recommends" that it
+## never change, but there's nothing to stop people from just setting it
+## to the current timestamp, and in fact that's exactly what the one imap
+## server i have at my disposal does. thus the so-called uids are
+## absolutely useless and imap provides no cross-session way of uniquely
+## identifying a message. but thanks for the "strong recommendation",
+## guys!
 ##
 ## so right now i'm using the 'internal date' and the size of each
 ## message to uniquely identify it, and i scan over the entire mailbox
 ## each time i open it to map those things to message ids. that can be
-## slow for large mailboxes, and we'll just have to hope that there
-## are no collisions. ho ho! a perfectly reasonable solution!
+## slow for large mailboxes, and we'll just have to hope that there are
+## no collisions. ho ho! a perfectly reasonable solution!
 ##
 ## and here's another thing. check out RFC2060 2.2.2 paragraph 5:
 ##
-##   A client MUST be prepared to accept any server response at all times.
-##   This includes server data that was not requested.
+##   A client MUST be prepared to accept any server response at all
+##   times.  This includes server data that was not requested.
 ##
-## yeah. that totally makes a lot of sense. and once again, the idiocy
-## of the spec actually happens in practice. you'll request flags for
-## one message, and get it interspersed with a random bunch of flags
-## for some other messages, including a different set of flags for the
-## same message! totally ok by the imap spec. totally retarded by any
-## other metric.
+## yeah. that totally makes a lot of sense. and once again, the idiocy of
+## the spec actually happens in practice. you'll request flags for one
+## message, and get it interspersed with a random bunch of flags for some
+## other messages, including a different set of flags for the same
+## message! totally ok by the imap spec. totally retarded by any other
+## metric.
 ##
 ## fuck you, imap committee. you managed to design something nearly as
 ## shitty as mbox but goddamn THIRTY YEARS LATER.
@@ -63,12 +63,15 @@ class IMAP < Source
     @username = username
     @password = password
     @imap = nil
+    @imap_mutex = nil
     @imap_state = {}
     @ids = []
     @last_scan = nil
     @labels = ((labels || []) - LabelManager::RESERVED_LABELS).uniq.freeze
     @say_id = nil
     @mutex = Mutex.new
+
+    @@imap_connections ||= {}
   end
 
   def self.suggest_labels_for path
@@ -205,11 +208,11 @@ private
   def unsafe_connect
     say "Connecting to IMAP server #{host}:#{port}..."
 
-    ## apparently imap.rb does a lot of threaded stuff internally and
-    ## if an exception occurs, it will catch it and re-raise it on the
-    ## calling thread. but i can't seem to catch that exception, so
-    ## i've resorted to initializing it in its own thread. surely
-    ## there's a better way.
+    ## apparently imap.rb does a lot of threaded stuff internally and if
+    ## an exception occurs, it will catch it and re-raise it on the
+    ## calling thread. but i can't seem to catch that exception, so i've
+    ## resorted to initializing it in its own thread. surely there's a
+    ## better way.
     exception = nil
     ::Thread.new do
       begin
@@ -217,9 +220,9 @@ private
         @imap = Net::IMAP.new host, port, ssl?
         say "Logging in..."
 
-        ## although RFC1730 claims that "If an AUTHENTICATE command
-        ## fails with a NO response, the client may try another", in
-        ## practice it seems like they can also send a BAD response.
+        ## although RFC1730 claims that "If an AUTHENTICATE command fails
+        ## with a NO response, the client may try another", in practice
+        ## it seems like they can also send a BAD response.
         begin
           raise Net::IMAP::NoResponseError unless @imap.capability().member? "AUTH=CRAM-MD5"
           @imap.authenticate 'CRAM-MD5', @username, @password
@@ -271,19 +274,20 @@ private
     result = fetch(imap_id, (fields + ['RFC822.SIZE', 'INTERNALDATE']).uniq).first
     got_id = make_id result
 
-    ## I've turned off the following sanity check because Microsoft Exchange fails it.
-    ## Exchange actually reports two different INTERNALDATEs for the exact same message
-    ## when queried at different points in time.
+    ## I've turned off the following sanity check because Microsoft
+    ## Exchange fails it.  Exchange actually reports two different
+    ## INTERNALDATEs for the exact same message when queried at different
+    ## points in time.
     ##
-    ##
-    ## RFC2060 defines the semantics of INTERNALDATE for messages that arrive
-    ## via SMTP for via various IMAP commands, but states that "All other
-    ## cases are implementation defined.". Great, thanks guys, yet another
-    ## useless field.
+    ## RFC2060 defines the semantics of INTERNALDATE for messages that
+    ## arrive via SMTP for via various IMAP commands, but states that
+    ## "All other cases are implementation defined.". Great, thanks guys,
+    ## yet another useless field.
     ## 
-    ## Of course no OTHER imap server I've encountered returns DIFFERENT values for
-    ## the SAME message. But it's Microsoft; what do you expect? If their programmers
-    ## were any good they'd be working at Google.
+    ## Of course no OTHER imap server I've encountered returns DIFFERENT
+    ## values for the SAME message. But it's Microsoft; what do you
+    ## expect? If their programmers were any good they'd be working at
+    ## Google.
 
     # raise OutOfSyncSourceError, "IMAP message mismatch: requested #{id}, got #{got_id}." unless got_id == id
 
