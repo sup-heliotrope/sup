@@ -38,6 +38,7 @@ protected
 
   def reload
     regen_text
+    jump_to_start
     buffer.mark_dirty
   end
 
