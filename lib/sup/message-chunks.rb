@@ -82,6 +82,7 @@ EOS
                           :sibling_types => sibling_types
         end
 
+      @lines = nil
       if text
         @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
         @quotable = true

@@ -60,24 +60,27 @@ class Message
 
   def parse_header header
     header.each { |k, v| header[k.downcase] = v }
-    
+
+    fakeid = nil
+    fakename = nil
+
     @id =
       if header["message-id"]
         sanitize_message_id header["message-id"]
       else
-        returning("sup-faked-" + Digest::MD5.hexdigest(raw_header)) do |id|
-          Redwood::log "faking message-id for message from #@from: #{id}"
-        end
+        fakeid = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
       end
     
     @from =
       if header["from"]
         PersonManager.person_for header["from"]
       else
-        name = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
-        Redwood::log "faking from for message #@id: #{name}"
-        PersonManager.person_for name
+        fakename = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
+        PersonManager.person_for fakename
       end
+
+    Redwood::log "faking message-id for message from #@from: #{id}" if fakeid
+    Redwood::log "faking from for message #@id: #{fakename}" if fakename
 
     date = header["date"]
     @date =
