@@ -63,15 +63,12 @@ class IMAP < Source
     @username = username
     @password = password
     @imap = nil
-    @imap_mutex = nil
     @imap_state = {}
     @ids = []
     @last_scan = nil
     @labels = ((labels || []) - LabelManager::RESERVED_LABELS).uniq.freeze
     @say_id = nil
     @mutex = Mutex.new
-
-    @@imap_connections ||= {}
   end
 
   def self.suggest_labels_for path
