@@ -8,7 +8,7 @@ class ResumeMode < EditMessageMode
     header, body = parse_file m.draft_filename
     header.delete "Date"
 
-    super :header => header, :body => body
+    super :header => header, :body => body, :have_signature => true
   end
 
   def killable?

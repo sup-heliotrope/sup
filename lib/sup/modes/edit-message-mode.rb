@@ -59,7 +59,7 @@ EOS
     @header_lines = []
 
     @body = opts.delete(:body) || []
-    @body += sig_lines if $config[:edit_signature]
+    @body += sig_lines if $config[:edit_signature] && !opts.delete(:have_signature)
 
     if opts[:attachments]
       @attachments = opts[:attachments].values
