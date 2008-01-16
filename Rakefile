@@ -20,7 +20,7 @@ Hoe.new('sup', version) do |p|
   p.url = p.paragraphs_of('README.txt', 0).first.split(/\n/)[2].gsub(/^\s+/, "")
   p.changes = p.paragraphs_of('History.txt', 0..0).join("\n\n")
   p.email = "wmorgan-sup@masanjin.net"
-  p.extra_deps = [['ferret', '>= 0.10.13'], ['ncurses', '>= 0.9.1'], ['rmail', '>= 0.17'], 'highline', 'net-ssh', ['trollop', '>= 1.7'], 'lockfile', 'mime-types']
+  p.extra_deps = [['ferret', '>= 0.10.13'], ['ncurses', '>= 0.9.1'], ['rmail', '>= 0.17'], 'highline', 'net-ssh', ['trollop', '>= 1.7'], 'lockfile', 'mime-types', 'gettext']
 end
 
 rule 'ss?.png' => 'ss?-small.png' do |t|

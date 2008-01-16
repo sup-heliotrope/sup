@@ -3,6 +3,7 @@ require 'yaml'
 require 'zlib'
 require 'thread'
 require 'fileutils'
+require 'gettext'
 require 'curses'
 
 class Object
@@ -225,9 +226,8 @@ module Redwood
   module_function :log
 end
 
-## determine encoding and character set. there MUST be a better way to
-## do this.
-  $encoding = `locale -c LC_CTYPE|head -6|tail -1`.chomp
+## determine encoding and character set
+  $encoding = Locale.current.charset
   if $encoding
     Redwood::log "using character set encoding #{$encoding.inspect}"
   else
