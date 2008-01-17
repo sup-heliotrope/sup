@@ -207,7 +207,7 @@ class Container
   def subj; find_attr :subj; end
   def date; find_attr :date; end
 
-  def is_reply?; subj && Message.subject_is_reply?(subj); end
+  def is_reply?; subj && Message.subj_is_reply?(subj); end
 
   def to_s
     [ "<#{id}",
