@@ -349,6 +349,32 @@ class ThreadSet
     t.each { |m, *o| add_message m }
   end
 
+  ## merges two threads together. both must be members of this threadset.
+  ## does its best, heuristically, to determine which is the parent.
+  def join_threads threads
+    return if threads.size < 2
+
+    containers = threads.map do |t|
+      c = @messages[t.first.id]
+      raise "not in threadset: #{t.first.id}" unless c && c.message
+      c
+    end
+
+    ## use subject headers heuristically
+    parent = containers.find { |c| !c.is_reply? }
+
+    ## no thread was rooted by a non-reply, so make a fake parent
+    parent ||= @messages["joining-ref-" + containers.map { |c| c.id }.join("-")]
+
+    containers.each do |c|
+      next if c == parent
+      c.message.add_ref parent.id
+      link parent, c
+    end
+
+    true
+  end
+
   def is_relevant? m
     m.refs.any? { |ref_id| @messages.member? ref_id }
   end

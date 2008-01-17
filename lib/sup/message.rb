@@ -55,6 +55,10 @@ class Message
     @encrypted = false
     @chunks = nil
 
+    ## we need to initialize this. see comments in parse_header as to
+    ## why.
+    @refs = []
+
     parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
@@ -102,7 +106,13 @@ class Message
     @to = PersonManager.people_for header["to"]
     @cc = PersonManager.people_for header["cc"]
     @bcc = PersonManager.people_for header["bcc"]
-    @refs = (header["references"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
+
+    ## before loading our full header from the source, we can actually
+    ## have some extra refs set by the UI. (this happens when the user
+    ## joins threads manually). so we will merge the current refs values
+    ## in here.
+    refs = (header["references"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
+    @refs = (@refs + refs).uniq
     @replytos = (header["in-reply-to"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
 
     @replyto = PersonManager.person_for header["reply-to"]
@@ -119,6 +129,11 @@ class Message
     @list_unsubscribe = header["list-unsubscribe"]
   end
   private :parse_header
+
+  def add_ref ref
+    @refs << ref
+    @dirty = true
+  end
 
   def snippet; @snippet || (chunks && @snippet); end
   def is_list_message?; !@list_address.nil?; end
