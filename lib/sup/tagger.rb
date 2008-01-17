@@ -13,7 +13,7 @@ class Tagger
   def drop_all_tags; @tagged.clear; end
   def drop_tag_for o; @tagged.delete o; end
 
-  def apply_to_tagged
+  def apply_to_tagged action=nil
     targets = @tagged.select_by_value
     num_tagged = targets.size
     if num_tagged == 0
@@ -22,10 +22,14 @@ class Tagger
     end
 
     noun = num_tagged == 1 ? "thread" : "threads"
-    c = BufferManager.ask_getch "apply to #{num_tagged} tagged #{noun}:"
-    return if c.nil? # user cancelled
 
-    if(action = @mode.resolve_input(c))
+    unless action
+      c = BufferManager.ask_getch "apply to #{num_tagged} tagged #{noun}:"
+      return if c.nil? # user cancelled
+      action = @mode.resolve_input c
+    end
+
+    if action
       tagged_sym = "multi_#{action}".intern
       if @mode.respond_to? tagged_sym
         @mode.send tagged_sym, targets
