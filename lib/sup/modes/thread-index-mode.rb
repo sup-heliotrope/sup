@@ -145,7 +145,7 @@ EOS
 
   %w(read unread archived starred unstarred).each do |state|
     define_method "handle_#{state}_update" do |*a|
-      handle_simple_update *a
+      handle_simple_update(*a)
     end
   end
 

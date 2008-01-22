@@ -53,6 +53,16 @@ Variables:
 Return value:
   The decoded text of the attachment, or nil if not decoded.
 EOS
+
+    HookManager.register "mime-view", <<EOS
+Executes when viewing a MIME attachment, i.e., launching a separate
+viewer program.
+Variables:
+   content_type: the content-type of the attachment
+       filename: the filename of the attachment as saved to disk
+Return value:
+  True if the viewing was successful, false otherwise.
+EOS
 #' stupid ruby-mode
 
     ## raw_content is the post-MIME-decode content. this is used for
@@ -105,10 +115,16 @@ EOS
     def expandable?; !viewable? end
     def initial_state; :open end
     def viewable?; @lines.nil? end
-    def view!
-      path = write_to_disk
+    def view_default! path
       system "/usr/bin/run-mailcap --action=view #{@content_type}:#{path} > /dev/null 2> /dev/null"
       $? == 0
+    end
+
+    def view!
+      path = write_to_disk
+      ret = HookManager.run "mime-view", :content_type => @content_type,
+                                         :filename => path
+      view_default! path unless ret
     end
 
     def write_to_disk
