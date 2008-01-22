@@ -144,7 +144,7 @@ private
 
   def make_id fn
     # use 7 digits for the size. why 7? seems nice.
-    sprintf("%d%07d", File.mtime(fn), File.size(fn)).to_i
+    sprintf("%d%07d", File.mtime(fn), File.size(fn) % 10000000).to_i
   end
 
   def with_file_for id

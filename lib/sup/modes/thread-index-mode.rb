@@ -33,6 +33,7 @@ EOS
     k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
     k.add :tag_matching, "Tag matching threads", 'g'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", ';'
+    k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
   end
 
   def initialize hidden_labels=[], load_thread_opts={}
@@ -276,6 +277,18 @@ EOS
   def multi_toggle_tagged threads
     @mutex.synchronize { @tags.drop_all_tags }
     regen_text
+  end
+
+  def join_threads
+    ## this command has no non-tagged form. as a convenience, allow this
+    ## command to be applied to tagged threads without hitting ';'.
+    @tags.apply_to_tagged :join_threads
+  end
+
+  def multi_join_threads threads
+    @ts.join_threads threads or return
+    @tags.drop_all_tags # otherwise we have tag pointers to invalid threads!
+    update
   end
 
   def jump_to_next_new
