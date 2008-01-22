@@ -29,7 +29,7 @@ class Message
 
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
   BLOCK_QUOTE_PATTERN = /^-----\s*Original Message\s*----+$/
-  QUOTE_START_PATTERN = /(^\s*Excerpts from)|(^\s*In message )|(^\s*In article )|(^\s*Quoting )|((wrote|writes|said|says)\s*:\s*$)/
+  QUOTE_START_PATTERN = /\w.*:$/
   SIG_PATTERN = /(^-- ?$)|(^\s*----------+\s*$)|(^\s*_________+\s*$)|(^\s*--~--~-)|(^\s*--\+\+\*\*==)/
 
   MAX_SIG_DISTANCE = 15 # lines from the end
@@ -60,24 +60,27 @@ class Message
 
   def parse_header header
     header.each { |k, v| header[k.downcase] = v }
-    
+
+    fakeid = nil
+    fakename = nil
+
     @id =
       if header["message-id"]
         sanitize_message_id header["message-id"]
       else
-        returning("sup-faked-" + Digest::MD5.hexdigest(raw_header)) do |id|
-          Redwood::log "faking message-id for message from #@from: #{id}"
-        end
+        fakeid = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
       end
     
     @from =
       if header["from"]
         PersonManager.person_for header["from"]
       else
-        name = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
-        Redwood::log "faking from for message #@id: #{name}"
-        PersonManager.person_for name
+        fakename = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
+        PersonManager.person_for fakename
       end
+
+    Redwood::log "faking message-id for message from #@from: #{id}" if fakeid
+    Redwood::log "faking from for message #@id: #{fakename}" if fakename
 
     date = header["date"]
     @date =
@@ -417,7 +420,7 @@ private
       when :text
         newstate = nil
 
-        if line =~ QUOTE_PATTERN || (line =~ QUOTE_START_PATTERN && (nextline =~ QUOTE_PATTERN || nextline =~ QUOTE_START_PATTERN))
+        if line =~ QUOTE_PATTERN || (line =~ QUOTE_START_PATTERN && nextline =~ QUOTE_PATTERN)
           newstate = :quote
         elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE
           newstate = :sig
@@ -436,7 +439,7 @@ private
       when :quote
         newstate = nil
 
-        if line =~ QUOTE_PATTERN || line =~ QUOTE_START_PATTERN #|| line =~ /^\s*$/
+        if line =~ QUOTE_PATTERN || (line =~ /^\s*$/ && nextline =~ QUOTE_PATTERN)
           chunk_lines << line
         elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE
           newstate = :sig

@@ -10,6 +10,14 @@ class ReplyMode < EditMessageMode
     :user => "Customized"
   }
 
+  HookManager.register "quoteline", <<EOS
+Generates a quote line "On 1/4/2007, Joe Bloggs wrote:".
+Variables:
+      message: A message object representing the message being replied to
+Return value:
+  A string containing the text of the quote line (can be multi-line)
+EOS
+
   def initialize message
     @m = message
 
@@ -115,9 +123,14 @@ protected
   end
 
   def reply_body_lines m
-    lines = ["Excerpts from #{@m.from.name}'s message of #{@m.date}:"] + m.quotable_body_lines.map { |l| "> #{l}" }
+    quoteline = HookManager.run("quoteline", :message => m) || default_quoteline(m)
+    lines = quoteline.split("\n") + m.quotable_body_lines.map { |l| "> #{l}" }
     lines.pop while lines.last =~ /^\s*$/
     lines
+  end
+
+  def default_quoteline m
+    "Excerpts from #{@m.from.name}'s message of #{@m.date}:"
   end
 
   def handle_new_text new_header, new_body
