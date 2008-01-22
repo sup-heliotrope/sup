@@ -398,7 +398,7 @@ EOS
 
   def ask_with_completions domain, question, completions, default=nil
     ask domain, question, default do |s|
-      completions.select { |x| x =~ /^#{s}/i }.map { |x| [x, x] }
+      completions.select { |x| x =~ /^#{Regexp::escape s}/i }.map { |x| [x, x] }
     end
   end
 
@@ -414,7 +414,7 @@ EOS
           raise "william screwed up completion: #{partial.inspect}"
         end
 
-      completions.select { |x| x =~ /^#{target}/i }.map { |x| [prefix + x, x] }
+      completions.select { |x| x =~ /^#{Regexp::escape target}/i }.map { |x| [prefix + x, x] }
     end
   end
 
@@ -423,7 +423,7 @@ EOS
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ""
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
-      completions.select { |x| x =~ /^#{target}/i }.map { |x| [prefix + x, x] }
+      completions.select { |x| x =~ /^#{Regexp::escape target}/i }.map { |x| [prefix + x, x] }
     end
   end
 
@@ -436,7 +436,7 @@ EOS
         if dir
           [[s.sub(full, dir), "~#{name}"]]
         else
-          users.select { |u| u =~ /^#{name}/ }.map do |u|
+          users.select { |u| u =~ /^#{Regexp::escape name}/ }.map do |u|
             [s.sub("~#{name}", "~#{u}"), "~#{u}"]
           end
         end
