@@ -10,10 +10,11 @@ class ReplyMode < EditMessageMode
     :user => "Customized"
   }
 
-  HookManager.register "quoteline", <<EOS
-Generates a quote line "On 1/4/2007, Joe Bloggs wrote:".
+  HookManager.register "attribution", <<EOS
+Generates an attribution ("Excerpts from Joe Bloggs's message of Fri Jan 11 09:54:32 -0500 2008:").
 Variables:
-      message: A message object representing the message being replied to
+  message: a message object representing the message being replied to
+    (useful values include message.from.name and message.date)
 Return value:
   A string containing the text of the quote line (can be multi-line)
 EOS
@@ -123,13 +124,13 @@ protected
   end
 
   def reply_body_lines m
-    quoteline = HookManager.run("quoteline", :message => m) || default_quoteline(m)
-    lines = quoteline.split("\n") + m.quotable_body_lines.map { |l| "> #{l}" }
+    attribution = HookManager.run("attribution", :message => m) || default_attribution(m)
+    lines = attribution.split("\n") + m.quotable_body_lines.map { |l| "> #{l}" }
     lines.pop while lines.last =~ /^\s*$/
     lines
   end
 
-  def default_quoteline m
+  def default_attribution m
     "Excerpts from #{@m.from.name}'s message of #{@m.date}:"
   end
 
