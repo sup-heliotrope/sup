@@ -116,7 +116,7 @@ EOS
     def initial_state; :open end
     def viewable?; @lines.nil? end
     def view_default! path
-      system "/usr/bin/run-mailcap --action=view #{@content_type}:#{path} > /dev/null 2> /dev/null"
+      system "/usr/bin/run-mailcap --action=view '#{@content_type}:#{path}' > /dev/null 2> /dev/null"
       $? == 0
     end
 
