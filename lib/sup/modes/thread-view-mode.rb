@@ -49,14 +49,14 @@ EOS
     k.add :unsubscribe_from_list, "Subscribe to/unsubscribe from mailing list", ")"
     k.add :pipe_message, "Pipe message or attachment to a shell command", '|'
 
-    k.add_multi "(A)rchive/(d)elete/mark as (s)pam/mark as u(N)read:", '.' do |kk|
+    k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read:", '.' do |kk|
       kk.add :archive_and_kill, "Archive this thread and kill buffer", 'a'
       kk.add :delete_and_kill, "Delete this thread and kill buffer", 'd'
       kk.add :spam_and_kill, "Mark this thread as spam and kill buffer", 's'
       kk.add :unread_and_kill, "Mark this thread as unread and kill buffer", 'N'
     end
 
-    k.add_multi "(A)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ',' do |kk|
+    k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ',' do |kk|
       kk.add :archive_and_next, "Archive this thread, kill buffer, and view next", 'a'
       kk.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
       kk.add :spam_and_next, "Mark this thread as spam, kill buffer, and view next", 's'
