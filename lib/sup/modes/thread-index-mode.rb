@@ -526,14 +526,12 @@ EOS
 protected
 
   def add_or_unhide m
-    if @hidden_threads[m]
-      @hidden_threads.delete m
-      ## now it will re-appear when #update is called
-    else
-      @ts_mutex.synchronize do
-        return unless is_relevant?(m) || @ts.is_relevant?(m)
+    @ts_mutex.synchronize do
+      if (is_relevant?(m) || @ts.is_relevant?(m)) && !@ts.contains?(m)
         @ts.load_thread_for_message m
       end
+
+      @hidden_threads.delete @ts.thread_for(m)
     end
 
     update
