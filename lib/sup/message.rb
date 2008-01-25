@@ -248,7 +248,8 @@ EOS
     with_source_errors_handled { @source.each_raw_message_line(@source_info, &b) }
   end
 
-  def content
+  ## returns all the content from a message that will be indexed
+  def indexable_content
     load_from_source!
     [
       from && "#{from.name} #{from.email}",
