@@ -186,8 +186,8 @@ EOS
       :body => m.indexable_content,
       :snippet => snippet,
       :label => m.labels.uniq.join(" "),
-      :from => m.from ? m.from.email : "",
-      :to => (m.to + m.cc + m.bcc).map { |x| x.email }.join(" "),
+      :from => m.from ? m.from.indexable_content : "",
+      :to => (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" "),
       :subject => wrap_subj(m.subj),
       :refs => (m.refs + m.replytos).uniq.join(" "),
     }
