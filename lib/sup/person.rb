@@ -162,6 +162,10 @@ class Person
     Person.new name, email
   end
 
+  def indexable_content
+    [name, email, email.split(/@/).first].join(" ")
+  end
+
   def eql? o; email.eql? o.email end
   def hash; email.hash end
 end
