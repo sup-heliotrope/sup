@@ -122,6 +122,7 @@ class SSHFile
   def seek loc; @offset = loc; end
   def tell; @offset; end
   def total; size; end
+  def path; @fn end
 
   def size
     if @file_size.nil? || (Time.now - @last_size_check) > SIZE_CHECK_INTERVAL
