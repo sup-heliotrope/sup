@@ -9,7 +9,7 @@ class PersonManager
 
     ## read in stored people
     IO.readlines(fn).map do |l|
-      l =~ /^(.*)?:\s+(\d+)\s+(.*)$/ or raise "can't parse: #{l}"
+      l =~ /^(.*)?:\s+(\d+)\s+(.*)$/ or next
       email, time, name = $1, $2, $3
       @@people[email] = Person.new name, email, time, false
     end if File.exists? fn
