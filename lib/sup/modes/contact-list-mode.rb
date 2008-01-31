@@ -29,7 +29,7 @@ class ContactListMode < LineCursorMode
 
   def initialize mode=:regular
     @mode = mode
-    @tags = Tagger.new self
+    @tags = Tagger.new self, "contact"
     @num = nil
     @text = []
     super()
