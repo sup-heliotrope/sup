@@ -1,9 +1,11 @@
 module Redwood
 
 class Tagger
-  def initialize mode
+  def initialize mode, noun="thread", plural_noun=nil
     @mode = mode
     @tagged = {}
+    @noun = noun
+    @plural_noun = plural_noun || (@noun + "s")
   end
 
   def tagged? o; @tagged[o]; end
@@ -21,7 +23,7 @@ class Tagger
       return
     end
 
-    noun = num_tagged == 1 ? "thread" : "threads"
+    noun = num_tagged == 1 ? @noun : @plural_noun
 
     unless action
       c = BufferManager.ask_getch "apply to #{num_tagged} tagged #{noun}:"
