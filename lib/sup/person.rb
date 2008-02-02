@@ -21,7 +21,7 @@ class PersonManager
     File.open(@fn, "w") do |f|
       @@people.each do |email, p|
         next if p.email == p.name
-        next if p.email =~ /=/ # drop rfc2047-encoded, and lots of other useless emails. definitely a heuristic.
+        next if p.name =~ /=/ # drop rfc2047-encoded, and lots of other useless emails. definitely a heuristic.
         f.puts "#{p.email}: #{p.timestamp} #{p.name}"
       end
     end
@@ -160,6 +160,10 @@ class Person
       end
 
     Person.new name, email
+  end
+
+  def indexable_content
+    [name, email, email.split(/@/).first].join(" ")
   end
 
   def eql? o; email.eql? o.email end

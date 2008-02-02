@@ -248,13 +248,14 @@ EOS
     with_source_errors_handled { @source.each_raw_message_line(@source_info, &b) }
   end
 
-  def content
+  ## returns all the content from a message that will be indexed
+  def indexable_content
     load_from_source!
     [
-      from && "#{from.name} #{from.email}",
-      to.map { |p| "#{p.name} #{p.email}" },
-      cc.map { |p| "#{p.name} #{p.email}" },
-      bcc.map { |p| "#{p.name} #{p.email}" },
+      from && from.indexable_content,
+      to.map { |p| p.indexable_content },
+      cc.map { |p| p.indexable_content },
+      bcc.map { |p| p.indexable_content },
       chunks.select { |c| c.is_a? Chunk::Text }.map { |c| c.lines },
       Message.normalize_subj(subj),
     ].flatten.compact.join " "
