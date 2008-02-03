@@ -94,7 +94,7 @@ rescue Index::LockError => e
 
   case h.ask("Should I ask that process to kill itself? ")
   when /^\s*y\s*$/i
-    h.say "Ok, suggesting sepuku..."
+    h.say "Ok, suggesting seppuku..."
     FileUtils.touch Redwood::SUICIDE_FN
     sleep SuicideManager::DELAY * 2
     FileUtils.rm_f Redwood::SUICIDE_FN
@@ -298,7 +298,7 @@ ensure
   Redwood::log "stopped cursing"
 
   if SuicideManager.instantiated? && SuicideManager.die?
-    Redwood::log "I've been ordered to commit sepuku. I obey!"
+    Redwood::log "I've been ordered to commit seppuku. I obey!"
   end
 
   if $exceptions.empty?
