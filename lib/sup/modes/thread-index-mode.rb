@@ -123,9 +123,13 @@ EOS
         set_cursor_pos l + 1 # move out of mutex?
         @threads[l + 1]
       end
-    end or return
+    end
 
-    select t, b
+    if t # there's a next thread
+      select t, b
+    elsif b # no next thread. call the block anyways
+      b.call
+    end
   end
   
   def handle_single_message_labeled_update sender, m
@@ -172,10 +176,16 @@ EOS
   end
 
   def handle_deleted_update sender, m
-    @ts_mutex.synchronize do
-      return unless @ts.contains? m
-      @ts.remove_thread_containing_id m.id
-    end
+    t = @ts_mutex.synchronize { @ts.thread_for m }
+    return unless t
+    hide_thread t
+    update
+  end
+
+  def handle_spammed_update sender, m
+    t = @ts_mutex.synchronize { @ts.thread_for m }
+    return unless t
+    hide_thread t
     update
   end
 

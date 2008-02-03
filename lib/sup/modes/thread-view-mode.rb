@@ -422,11 +422,11 @@ EOS
     case op
     when :next
       @index_mode.launch_next_thread_after(@thread) do
-        @thread.save Index if block_given? && yield
+        yield if block_given?
         BufferManager.kill_buffer_safely buffer
       end
     when :kill
-      @thread.save Index if yield
+      yield if block_given?
       BufferManager.kill_buffer_safely buffer
     else
       raise ArgumentError, "unknown thread dispatch operation #{op.inspect}"
