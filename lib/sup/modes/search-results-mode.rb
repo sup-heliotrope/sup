@@ -15,7 +15,7 @@ class SearchResultsMode < ThreadIndexMode
   def refine_search
     query = BufferManager.ask :search, "query: ", (@qobj.to_s + " ")
     return unless query && query !~ /^\s*$/
-    SearchResultsMode.spawn_from_query query, @qopts
+    SearchResultsMode.spawn_from_query query
   end
 
   ## a proper is_relevant? method requires some way of asking ferret
