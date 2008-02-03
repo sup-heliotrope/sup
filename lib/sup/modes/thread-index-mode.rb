@@ -426,6 +426,7 @@ EOS
     return unless user_labels
     thread.labels = keepl + user_labels
     user_labels.each { |l| LabelManager << l }
+    update_text_for_line curpos
     UpdateManager.relay self, :labeled, thread.first
   end
 
