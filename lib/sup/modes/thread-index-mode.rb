@@ -166,10 +166,9 @@ EOS
   end
 
   def handle_deleted_update sender, m
-    @ts_mutex.synchronize do
-      return unless @ts.contains? m
-      @ts.remove_thread_containing_id m.id
-    end
+    t = @ts_mutex.synchronize { @ts.thread_for m }
+    return unless t
+    hide_thread t
     update
   end
 
