@@ -454,6 +454,11 @@ EOS
           spawn_modal "file browser", FileBrowserMode.new
         elsif File.directory?(answer)
           spawn_modal "file browser", FileBrowserMode.new(answer)
+        elsif answer =~ /(~([^\s\/]*))/
+          full = $1
+          name = $2.empty? ? Etc.getlogin : $2
+          dir = Etc.getpwnam(name).dir rescue nil
+          answer.sub(full, dir) if dir
         else
           answer
         end
