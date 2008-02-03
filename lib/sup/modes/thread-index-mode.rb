@@ -16,6 +16,10 @@ EOS
 
   register_keymap do |k|
     k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
+    k.add_multi "Load all threads (! to confirm) :", '!' do |kk|
+      kk.add :load_all_threads, "Load all threads (may list a _lot_ of threads)", '!'
+    end
+    k.add :cancel_search, "Cancel current search", :ctrl_g
     k.add :reload, "Refresh view", '@'
     k.add :toggle_archived, "Toggle archived status", 'a'
     k.add :toggle_starred, "Star or unstar all messages in thread", '*'
@@ -50,6 +54,8 @@ EOS
     @load_thread_opts = load_thread_opts
     @hidden_labels = hidden_labels + LabelManager::HIDDEN_RESERVED_LABELS
     @date_width = DATE_WIDTH
+
+    @interrupt_search = false
     
     initialize_threads # defines @ts and @ts_mutex
     update # defines @text and @lines
@@ -456,16 +462,22 @@ EOS
 
   ## TODO: figure out @ts_mutex in this method
   def load_n_threads n=LOAD_MORE_THREAD_NUM, opts={}
+    @interrupt_search = false
     @mbid = BufferManager.say "Searching for threads..."
+
+    ts_to_load = n
+    ts_to_load = ts_to_load + @ts.size unless n == -1 # -1 means all threads
+
     orig_size = @ts.size
     last_update = Time.now
-    @ts.load_n_threads(@ts.size + n, opts) do |i|
+    @ts.load_n_threads(ts_to_load, opts) do |i|
       if (Time.now - last_update) >= 0.25
-        BufferManager.say "Loaded #{i.pluralize 'thread'}...", @mbid
+        BufferManager.say "Loaded #{i.pluralize 'thread'} (use ^G to cancel)...", @mbid
         update
         BufferManager.draw_screen
         last_update = Time.now
       end
+      break if @interrupt_search
     end
     @ts.threads.each { |th| th.labels.each { |l| LabelManager << l } }
 
@@ -485,13 +497,28 @@ EOS
     end
   end
 
+  def cancel_search
+    @interrupt_search = true
+  end
+
+  def load_all_threads
+    load_threads :num => -1
+  end
+
   def load_threads opts={}
-    n = opts[:num] || ThreadIndexMode::LOAD_MORE_THREAD_NUM
+    if opts[:num].nil?
+      n = ThreadIndexMode::LOAD_MORE_THREAD_NUM
+    else
+      n = opts[:num]
+    end
 
     myopts = @load_thread_opts.merge({ :when_done => (lambda do |num|
       opts[:when_done].call(num) if opts[:when_done]
+
+      cancelled = @interrupt_search?" (search cancelled by user)":""
+
       if num > 0
-        BufferManager.flash "Found #{num.pluralize 'thread'}."
+        BufferManager.flash "Found #{num.pluralize 'thread'}#{cancelled}."
       else
         BufferManager.flash "No matches."
       end

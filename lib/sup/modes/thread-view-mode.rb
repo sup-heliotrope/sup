@@ -318,6 +318,8 @@ EOS
     end
   end
 
+  IDEAL_TOP_CONTEXT = 3 # try and give 3 rows of top context
+  IDEAL_LEFT_CONTEXT = 4 # try and give 4 columns of left context
   def jump_to_message m, loose_alignment=false
     l = @layout[m]
     left = l.depth * INDENT_SPACES
@@ -325,19 +327,20 @@ EOS
 
     ## jump to the top line
     if loose_alignment
-      jump_to_line [l.top - 3, 0].max # give 3 lines of top context
+      jump_to_line [l.top - IDEAL_TOP_CONTEXT, 0].max # give 3 lines of top context
     else
       jump_to_line l.top
     end
 
     ## jump to the left column
-    if loose_alignment
-      ## try and give 4 columns of left context, but not if it means that
-      ## the right of the message is truncated.
-      jump_to_col [[left - 4, rightcol - l.width - 1].min, 0].max
-    else
-      jump_to_col left
-    end
+    ideal_left = left +
+      if loose_alignment
+        -IDEAL_LEFT_CONTEXT + (l.width - buffer.content_width + IDEAL_LEFT_CONTEXT + 1).clamp(0, IDEAL_LEFT_CONTEXT)
+      else
+        0
+      end
+
+    jump_to_col [ideal_left, 0].max
 
     ## either way, move the cursor to the first line
     set_cursor_pos l.top
