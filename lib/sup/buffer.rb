@@ -557,7 +557,6 @@ EOS
 
   def ask_getch question, accept=nil
     raise "impossible!" if @asking
-    @asking = true
 
     accept = accept.split(//).map { |x| x[0] } if accept
 
@@ -570,6 +569,7 @@ EOS
       Ncurses.refresh
     end
 
+    @asking = true
     ret = nil
     done = false
     until done
