@@ -9,13 +9,13 @@ class SearchResultsMode < ThreadIndexMode
   end
 
   register_keymap do |k|
-    k.add :refine_search, "Refine search", '.'
+    k.add :refine_search, "Refine search", '|'
   end
 
   def refine_search
-    query = BufferManager.ask :search, "query: ", (@qobj.to_s + " ")
+    query = BufferManager.ask :search, "refine query: ", (@qobj.to_s + " ")
     return unless query && query !~ /^\s*$/
-    SearchResultsMode.spawn_from_query query, @qopts
+    SearchResultsMode.spawn_from_query query
   end
 
   ## a proper is_relevant? method requires some way of asking ferret
