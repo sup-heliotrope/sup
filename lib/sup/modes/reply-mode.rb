@@ -101,6 +101,10 @@ EOS
         :recipient
       end)
 
+    @headers.each do |k, v|
+      HookManager.run "before-edit", :header => v, :body => body
+    end
+
     super :header => @headers[@type_selector.val], :body => body, :twiddles => false
     add_selector @type_selector
   end
