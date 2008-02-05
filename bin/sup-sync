@@ -227,6 +227,8 @@ begin
     $stderr.puts "Deleted #{num_del} / #{num_scanned} messages"
   end
 
+  index.save
+
   if opts[:optimize]
     $stderr.puts "Optimizing index..."
     optt = time { index.index.optimize unless opts[:dry_run] }
@@ -238,7 +240,6 @@ rescue Exception => e
   File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
   raise
 ensure
-  #index.save # actually, don't want to save!
   Redwood::finish
   index.unlock
 end
