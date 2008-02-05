@@ -63,6 +63,14 @@ EOS
       kk.add :unread_and_next, "Mark this thread as unread, kill buffer, and view next", 'N'
       kk.add :do_nothing_and_next, "Kill buffer, and view next", 'n'
     end
+
+    k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ']' do |kk|
+      kk.add :archive_and_prev, "Archive this thread, kill buffer, and view previous", 'a'
+      kk.add :delete_and_prev, "Delete this thread, kill buffer, and view previous", 'd'
+      kk.add :spam_and_prev, "Mark this thread as spam, kill buffer, and view previous", 's'
+      kk.add :unread_and_prev, "Mark this thread as unread, kill buffer, and view previous", 'N'
+      kk.add :do_nothing_and_prev, "Kill buffer, and view previous", 'n'
+    end
   end
 
   ## there are a couple important instance variables we hold to format
@@ -383,6 +391,12 @@ EOS
   def unread_and_next; unread_and_then :next end
   def do_nothing_and_next; do_nothing_and_then :next end
 
+  def archive_and_prev; archive_and_then :prev end
+  def spam_and_prev; spam_and_then :prev end
+  def delete_and_prev; delete_and_then :prev end
+  def unread_and_prev; unread_and_then :prev end
+  def do_nothing_and_prev; do_nothing_and_then :prev end
+
   def archive_and_then op
     dispatch op do
       @thread.remove_label :inbox
@@ -419,15 +433,18 @@ EOS
     return if @dying
     @dying = true
 
-    case op
-    when :next
-      @index_mode.launch_next_thread_after(@thread) do
-        yield if block_given?
-        BufferManager.kill_buffer_safely buffer
-      end
-    when :kill
+    l = lambda do
       yield if block_given?
       BufferManager.kill_buffer_safely buffer
+    end
+
+    case op
+    when :next
+      @index_mode.launch_next_thread_after @thread, &l
+    when :prev
+      @index_mode.launch_prev_thread_before @thread, &l
+    when :kill
+      l.call
     else
       raise ArgumentError, "unknown thread dispatch operation #{op.inspect}"
     end
