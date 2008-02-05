@@ -113,19 +113,28 @@ EOS
     threads.each { |t| select t }
   end
 
-  ## this is called by thread-view-modes when the user wants to view
-  ## the next thread without going to index-mode. we update the cursor
-  ## as a convenience.
+  ## these two methods are called by thread-view-modes when the user
+  ## wants to view the previous/next thread without going back to
+  ## index-mode. we update the cursor as a convenience.
   def launch_next_thread_after thread, &b
+    launch_another_thread thread, 1, &b
+  end
+
+  def launch_prev_thread_before thread, &b
+    launch_another_thread thread, -1, &b
+  end
+
+  def launch_another_thread thread, direction, &b
     l = @lines[thread] or return
+    target_l = l + direction
     t = @mutex.synchronize do
-      if l < @threads.length - 1
-        set_cursor_pos l + 1 # move out of mutex?
-        @threads[l + 1]
+      if target_l >= 0 && target_l < @threads.length
+        @threads[target_l]
       end
     end
 
     if t # there's a next thread
+      set_cursor_pos target_l # move out of mutex?
       select t, b
     elsif b # no next thread. call the block anyways
       b.call
