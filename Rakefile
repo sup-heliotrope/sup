@@ -9,9 +9,13 @@ end # thanks to "Mike H"
 
 ## allow people who use development versions by running "rake gem"
 ## and installing the resulting gem it to be able to do this. (gem
-## versions must be in dotted-digit notation only).
-version = Redwood::VERSION == "git" ? "999" : Redwood::VERSION
-
+## versions must be in dotted-digit notation only and can be passed
+## with the REL environment variable to "rake gem").
+if ENV['REL']
+  version = ENV['REL']
+else
+  version = Redwood::VERSION == "git" ? "999" : Redwood::VERSION
+end
 Hoe.new('sup', version) do |p|
   p.rubyforge_name = 'sup'
   p.author = "William Morgan"
