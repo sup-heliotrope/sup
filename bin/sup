@@ -35,7 +35,7 @@ EOS
   opt :list_hooks, "List all hooks and descriptions, and quit."
   opt :no_threads, "Turn off threading. Helps with debugging. (Necessarily disables background polling for new messages.)"
   opt :no_initial_poll, "Don't poll for new messages when starting."
-  opt :search, "Search for threads on startup", :type => String
+  opt :search, "Search for this query upon startup", :type => String
 end
 
 if $opts[:list_hooks]
