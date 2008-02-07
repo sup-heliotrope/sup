@@ -135,6 +135,10 @@ class Message
     @dirty = true
   end
 
+  def remove_ref ref
+    @dirty = true if @refs.delete ref
+  end
+
   def snippet; @snippet || (chunks && @snippet); end
   def is_list_message?; !@list_address.nil?; end
   def is_draft?; @source.is_a? DraftLoader; end
@@ -146,8 +150,10 @@ class Message
   def sanitize_message_id mid; mid.gsub(/\s/, "") end
 
   def save index
-    index.sync_message self if @dirty
+    return unless @dirty
+    index.sync_message self
     @dirty = false
+    true
   end
 
   def has_label? t; @labels.member? t; end
