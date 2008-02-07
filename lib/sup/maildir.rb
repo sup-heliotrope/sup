@@ -75,9 +75,11 @@ class Maildir < Source
     with_file_for(id) { |f| f.readlines.join }
   end
 
-  def scan_mailbox
+  def scan_mailbox opts={}
+    return unless @ids.empty? || opts[:rescan]
     return if @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
 
+    Redwood::log "scanning maildir..."
     cdir = File.join(@dir, 'cur')
     ndir = File.join(@dir, 'new')
     
@@ -85,21 +87,21 @@ class Maildir < Source
     raise FatalSourceError, "#{ndir} not a directory" unless File.directory? ndir
 
     begin
-      @ids, @ids_to_fns = @mutex.synchronize do
-        ids, ids_to_fns = [], {}
-        (Dir[File.join(cdir, "*")] + Dir[File.join(ndir, "*")]).map do |fn|
-          id = make_id fn
-          ids << id
-          ids_to_fns[id] = fn
-        end
-        [ids.sort, ids_to_fns]
+      @ids, @ids_to_fns = [], {}
+      (Dir[File.join(cdir, "*")] + Dir[File.join(ndir, "*")]).map do |fn|
+        id = make_id fn
+        @ids << id
+        @ids_to_fns[id] = fn
       end
+      @ids.sort!
     rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem scanning Maildir directories: #{e.message}."
     end
     
+    Redwood::log "done scanning maildir"
     @last_scan = Time.now
   end
+  synchronized :scan_mailbox
 
   def each
     scan_mailbox
@@ -120,7 +122,7 @@ class Maildir < Source
   end
 
   def end_offset
-    scan_mailbox
+    scan_mailbox :rescan => true
     @ids.last
   end
 
