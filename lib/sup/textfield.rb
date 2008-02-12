@@ -100,7 +100,7 @@ class TextField
         Ncurses::Form::REQ_NEXT_CHAR
       when Ncurses::KEY_DC
         Ncurses::Form::REQ_DEL_CHAR
-      when Ncurses::KEY_BACKSPACE
+      when Ncurses::KEY_BACKSPACE, 127 # 127 is also a backspace keysym
         Ncurses::Form::REQ_DEL_PREV
       when 1 #ctrl-a
         Ncurses::Form::REQ_BEG_FIELD
