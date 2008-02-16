@@ -324,7 +324,7 @@ class ThreadSet
   ## load in (at most) num number of threads from the index
   def load_n_threads num, opts={}
     @index.each_id_by_date opts do |mid, builder|
-      break if size >= num
+      break if size >= num unless num == -1
       next if contains_id? mid
 
       m = builder.call
