@@ -125,9 +125,13 @@ EOS
     @sources[source.id] = source
   end
 
-  def source_for uri; @sources.values.find { |s| s.is_source_for? uri }; end
-  def usual_sources; @sources.values.find_all { |s| s.usual? }; end
-  def sources; @sources.values; end
+  def sources
+    ## favour the inbox by listing non-archived sources first
+    @sources.values.sort_by { |s| s.id }.partition { |s| !s.archived? }.flatten
+  end
+
+  def source_for uri; sources.find { |s| s.is_source_for? uri }; end
+  def usual_sources; sources.find_all { |s| s.usual? }; end
 
   def load_index dir=File.join(@dir, "ferret")
     if File.exists? dir
@@ -512,7 +516,7 @@ protected
         File.chmod 0600, fn
         FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(fn) == 0
       end
-      Redwood::save_yaml_obj @sources.values.sort_by { |s| s.id.to_i }, fn, true
+      Redwood::save_yaml_obj sources.sort_by { |s| s.id.to_i }, fn, true
       File.chmod 0600, fn
     end
     @sources_dirty = false

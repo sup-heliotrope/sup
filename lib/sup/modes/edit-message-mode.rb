@@ -148,9 +148,13 @@ EOS
   def attach_file
     fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
     return unless fn
-    @attachments << RMail::Message.make_file_attachment(fn)
-    @attachment_names << fn
-    update
+    begin
+      @attachments << RMail::Message.make_file_attachment(fn)
+      @attachment_names << fn
+      update
+    rescue SystemCallError => e
+      BufferManager.flash "Can't read #{fn}: #{e.message}"
+    end
   end
 
   def delete_attachment
