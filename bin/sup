@@ -138,6 +138,8 @@ begin
            Ncurses::A_BOLD
     c.add :index_starred_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, 
            Ncurses::A_BOLD
+    c.add :index_draft_color, Ncurses::COLOR_RED, Ncurses::COLOR_BLACK,
+           Ncurses::A_BOLD
     c.add :labellist_old_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
     c.add :labellist_new_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK, 
            Ncurses::A_BOLD
