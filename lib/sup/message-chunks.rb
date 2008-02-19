@@ -126,7 +126,7 @@ EOS
       path = write_to_disk
       ret = HookManager.run "mime-view", :content_type => @content_type,
                                          :filename => path
-      view_default! path unless ret
+      ret || view_default!(path)
     end
 
     def write_to_disk
