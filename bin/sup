@@ -39,6 +39,12 @@ EOS
   opt :compose, "Compose message to this recipient upon startup", :type => String
 end
 
+Redwood::HookManager.register "startup", <<EOS
+Executes at startup
+No variables.
+No return value.
+EOS
+
 if $opts[:list_hooks]
   Redwood::HookManager.print_hooks
   exit
@@ -127,6 +133,8 @@ begin
     Redwood::log "no sent mail source, auto-adding..."
     Index.add_source SentManager.new_source
   end
+
+  HookManager.run "startup"
 
   log "starting curses"
   start_cursing
