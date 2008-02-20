@@ -145,7 +145,7 @@ EOS
       field_infos.add_field :source_id
       field_infos.add_field :source_info
       field_infos.add_field :date, :index => :untokenized
-      field_infos.add_field :body, :store => :no
+      field_infos.add_field :body
       field_infos.add_field :label
       field_infos.add_field :subject
       field_infos.add_field :from
