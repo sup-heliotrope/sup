@@ -181,18 +181,27 @@ EOS
         m.snippet
       end
 
-    d = {
-      :message_id => m.id,
-      :source_id => source_id,
-      :source_info => m.source_info,
-      :date => m.date.to_indexable_s,
-      :body => m.indexable_content,
-      :snippet => snippet,
-      :label => m.labels.uniq.join(" "),
-      :from => m.from ? m.from.indexable_content : "",
-      :to => (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" "),
-      :subject => wrap_subj(m.subj),
-      :refs => (m.refs + m.replytos).uniq.join(" "),
+    ## write the new document to the index. if the entry already exists in the
+    ## index, reuse it (which avoids having to reload the entry from the source,
+    ## which can be quite expensive for e.g. large threads of IMAP actions.)
+    ##
+    ## written in this manner to support previous versions of the index which
+    ## did not keep around the entry body. upgrading is thus seamless.
+
+    entry ||= {}
+    d =
+    {
+      :message_id => (entry[:message_id] || m.id),
+      :source_id => (entry[:source_id] || source_id),
+      :source_info => (entry[:source_info] || m.source_info),
+      :date => (entry[:date] || m.date.to_indexable_s),
+      :body => (entry[:body] || m.indexable_content),
+      :snippet => snippet, # always override
+      :label => m.labels.uniq.join(" "), # always override
+      :from => (entry[:from] || (m.from ? m.from.indexable_content : "")),
+      :to => (entry[:to] || (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" ")),
+      :subject => (entry[:subject] || wrap_subj(m.subj)),
+      :refs => (entry[:refs] || (m.refs + m.replytos).uniq.join(" ")),
     }
 
     @index.delete docid if docid
