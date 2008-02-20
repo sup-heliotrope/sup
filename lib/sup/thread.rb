@@ -259,7 +259,7 @@ class ThreadSet
     @thread_by_subj = thread_by_subj
   end
 
-  def thread_for_id mid; (c = @messages[mid]) && c.root.thread end
+  def thread_for_id mid; @messages.member?(mid) && @messages[mid].root.thread end
   def contains_id? id; @messages.member?(id) && !@messages[id].empty? end
   def thread_for m; thread_for_id m.id end
   def contains? m; contains_id? m.id end
