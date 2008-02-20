@@ -64,14 +64,14 @@ class ScrollMode < Mode
     end
 
     start = @search_line || search_start_line
-    line = find_text @search_query, start
+    line, col = find_text @search_query, start
     if line.nil? && (start > 0)
-      line = find_text @search_query, 0
+      line, col = find_text @search_query, 0
       BufferManager.flash "Search wrapped to top!" if line
     end
     if line
       @search_line = line + 1
-      search_goto_line line
+      search_goto_pos line, col, col + @search_query.length
       buffer.mark_dirty
     else
       BufferManager.flash "Not found!"
@@ -86,7 +86,13 @@ class ScrollMode < Mode
   end
 
   ## subclasses can override these two!
-  def search_goto_line line; jump_to_line line end
+  def search_goto_pos line, leftcol, rightcol
+    jump_to_line line
+
+    if rightcol > self.rightcol # if it's occluded...
+      jump_to_col [rightcol - buffer.content_width + 1, 0].max # move right
+    end
+  end
   def search_start_line; @topline end
 
   def col_left
@@ -144,9 +150,18 @@ protected
     (start_line ... lines).each do |i|
       case(s = self[i])
       when String
-        return i if s =~ regex
+        match = s =~ regex
+        return [i, match] if match
       when Array
-        return i if s.any? { |color, string| string =~ regex }
+        offset = 0
+        s.each do |color, string|
+          match = string =~ regex
+          if match
+            return [i, offset + match]
+          else
+            offset += string.length
+          end
+        end
       end
     end
     nil
