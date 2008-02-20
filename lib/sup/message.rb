@@ -95,7 +95,8 @@ class Message
         begin
           Time.parse date
         rescue ArgumentError => e
-          raise MessageFormatError, "unparsable date #{header['date']}: #{e.message}"
+          Redwood::log "faking date header for #{@id} due to error parsing date #{header['date'].inspect}: #{e.message}"
+          Time.now
         end
       else
         Redwood::log "faking date header for #{@id}"
