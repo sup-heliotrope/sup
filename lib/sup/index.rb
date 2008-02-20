@@ -174,7 +174,6 @@ EOS
         m.source.id or raise "unregistered source #{m.source} (id #{m.source.id.inspect})"
       end
 
-    to = (m.to + m.cc + m.bcc).map { |x| x.email }.join(" ")
     snippet = 
       if m.snippet_contains_encrypted_content? && $config[:discard_snippets_from_encrypted_messages]
         ""
