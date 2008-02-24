@@ -147,7 +147,7 @@ class Loader < Source
     end
 
     self.cur_offset = next_offset
-    [returned_offset, (@labels + [:unread]).uniq]
+    [returned_offset, (self.labels + [:unread]).uniq]
   end
 end
 
