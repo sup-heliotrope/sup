@@ -22,7 +22,10 @@ class SentManager
       yield f
     end
 
-    PollManager.add_messages_from @source
+    PollManager.add_messages_from(@source) do |m, o, e|
+      m.remove_label :unread
+      m
+    end
   end
 end
 
