@@ -141,7 +141,7 @@ EOS
     else
       Redwood::log "creating index..."
       field_infos = Ferret::Index::FieldInfos.new :store => :yes
-      field_infos.add_field :message_id
+      field_infos.add_field :message_id, :index => :untokenized
       field_infos.add_field :source_id
       field_infos.add_field :source_info
       field_infos.add_field :date, :index => :untokenized
