@@ -51,7 +51,11 @@ EOS
 end
 
 unless opts[:drop_deleted] || opts[:move_deleted] || opts[:drop_spam] || opts[:move_spam]
-  puts "Nothing to do."
+  puts <<EOS
+Nothing to do. Please specify at least one of --drop-deleted, --move-deleted,
+--drop-spam, or --move-spam.
+EOS
+
   exit
 end
 
