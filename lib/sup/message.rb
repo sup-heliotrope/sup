@@ -148,7 +148,7 @@ class Message
     @source.fn_for_offset @source_info
   end
 
-  def sanitize_message_id mid; mid.gsub(/\s/, "") end
+  def sanitize_message_id mid; mid.gsub(/\s+/, "")[0..254] end
 
   def save index
     return unless @dirty
