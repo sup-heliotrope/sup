@@ -400,18 +400,7 @@ protected
   def parse_user_query_string s
     extraopts = {}
 
-    ## this is a little hacky, but it works, at least until ferret changes
-    ## its api. we parse the user query string with ferret twice: the first
-    ## time we just turn the resulting object back into a string, which has
-    ## the next effect of transforming the original string into a nice
-    ## normalized form with + and - instead of AND, OR, etc. then we do some
-    ## string substitutions which depend on this normalized form, re-parse
-    ## the string with Ferret, and return the resulting query object.
-
-    norms = @qparser.parse(s).to_s
-    Redwood::log "normalized #{s.inspect} to #{norms.inspect}" unless s == norms
-
-    subs = norms.gsub(/\b(to|from):(\S+)\b/) do
+    subs = s.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
         [field, p.email]
@@ -481,7 +470,6 @@ protected
       subs = nil if chronic_failure
     end
     
-    Redwood::log "translated #{norms.inspect} to #{subs.inspect}" unless subs == norms
     if subs
       [@qparser.parse(subs), extraopts]
     else
