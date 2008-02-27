@@ -111,7 +111,7 @@ S: The current solution is to directly modify RubyMail. Change line 159 of
    multipart.rb to:
      chunk = chunk[0..start]
    This is because RubyMail hasn't been updated since like Ruby 1.8.2.
-   Please bug Matt Lickey.
+   Please bug Matt Armstrong.
 
 P: I see this error:
      /usr/local/lib/ruby/1.8/yaml.rb:133:in `transfer': allocator undefined for Bignum (TypeError)
