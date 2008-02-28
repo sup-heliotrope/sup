@@ -40,7 +40,7 @@ class CryptoManager
     raise Error, (output || "gpg command failed: #{cmd}") unless $?.success?
 
     envelope = RMail::Message.new
-    envelope.header["Content-Type"] = 'multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1'
+    envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature; micalg=pgp-sha1'
 
     envelope.add_part payload
     signature = RMail::Message.make_attachment output, "application/pgp-signature", nil, "signature.asc"
