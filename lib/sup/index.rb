@@ -185,19 +185,34 @@ EOS
     ## index, reuse it (which avoids having to reload the entry from the source,
     ## which can be quite expensive for e.g. large threads of IMAP actions.)
     ##
+    ## exception: if the index entry belongs to an earlier version of the
+    ## message, use everything from the new message instead, but union the
+    ## flags. this allows messages sent to mailing lists to have their header
+    ## updated and to have flags set properly.
+    ##
     ## written in this manner to support previous versions of the index which
     ## did not keep around the entry body. upgrading is thus seamless.
-
     entry ||= {}
-    d =
-    {
+    labels = m.labels.uniq # override because this is the new state, unless...
+
+    ## if we are a later version of a message, ignore what's in the index,
+    ## but merge in the labels.
+    if entry[:source_id] && entry[:source_info] && entry[:label] &&
+      ((entry[:source_id] != source_id) || (entry[:source_info] < source_info))
+      labels = (entry[:label].split(/\s+/).map { |l| l.intern } + m.labels).uniq
+      Redwood::log "found updated version of message #{m.id}: #{m.subj}"
+      Redwood::log "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
+      entry = {}
+    end
+
+    d = {
       :message_id => (entry[:message_id] || m.id),
       :source_id => (entry[:source_id] || source_id),
       :source_info => (entry[:source_info] || m.source_info),
       :date => (entry[:date] || m.date.to_indexable_s),
       :body => (entry[:body] || m.indexable_content),
       :snippet => snippet, # always override
-      :label => m.labels.uniq.join(" "), # always override
+      :label => labels.uniq.join(" "),
       :from => (entry[:from] || (m.from ? m.from.indexable_content : "")),
       :to => (entry[:to] || (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" ")),
       :subject => (entry[:subject] || wrap_subj(m.subj)),
