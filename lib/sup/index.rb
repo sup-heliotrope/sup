@@ -161,7 +161,7 @@ EOS
   ## and adding either way. Index state will be determined by m.labels.
   ##
   ## docid and entry can be specified if they're already known.
-  def sync_message m, docid=nil, entry=nil
+  def sync_message m, docid=nil, entry=nil, opts={}
     docid, entry = load_entry_for_id m.id unless docid && entry
 
     raise "no source info for message #{m.id}" unless m.source && m.source_info
@@ -210,6 +210,10 @@ EOS
       #Redwood::log "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
       entry = {}
     end
+
+    ## if force_overwite is true, ignore what's in the index. this is used
+    ## primarily by sup-sync to force index updates.
+    entry = {} if opts[:force_overwrite]
 
     d = {
       :message_id => m.id,

@@ -134,7 +134,7 @@ EOS
   ## labels. it is likely that callers will want to replace these with
   ## the index labels, if they exist, so that state is not lost when
   ## e.g. a new version of a message from a mailing list comes in.
-  def add_messages_from source
+  def add_messages_from source, opts={}
     begin
       return if source.done? || source.has_errors?
       
@@ -157,7 +157,7 @@ EOS
           docid, entry = Index.load_entry_for_id m.id
           HookManager.run "before-add-message", :message => m
           m = yield(m, offset, entry) or next
-          Index.sync_message m, docid, entry
+          Index.sync_message m, docid, entry, opts
           UpdateManager.relay self, :added, m unless entry
         rescue MessageFormatError => e
           Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"

@@ -133,7 +133,7 @@ begin
     num_added = num_updated = num_scanned = num_restored = 0
     last_info_time = start_time = Time.now
 
-    Redwood::PollManager.add_messages_from source do |m, offset, entry|
+    Redwood::PollManager.add_messages_from source, :force_overwrite => true do |m, offset, entry|
       num_scanned += 1
       seen[m.id] = true
 
