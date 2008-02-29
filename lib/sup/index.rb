@@ -198,9 +198,10 @@ EOS
     ## if we are a later version of a message, ignore what's in the index,
     ## but merge in the labels.
     if entry[:source_id] && entry[:source_info] && entry[:label] &&
-      ((entry[:source_id] != source_id) || (entry[:source_info] < source_info))
+      ((entry[:source_id].to_i != source_id) || (entry[:source_info].to_i < m.source_info))
       labels = (entry[:label].split(/\s+/).map { |l| l.intern } + m.labels).uniq
       Redwood::log "found updated version of message #{m.id}: #{m.subj}"
+      Redwood::log "previous version was at #{entry[:source_id].inspect}:#{entry[:source_info].inspect}, this version at #{source_id.inspect}:#{m.source_info.inspect}"
       Redwood::log "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
       entry = {}
     end
