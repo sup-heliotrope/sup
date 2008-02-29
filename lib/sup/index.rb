@@ -212,9 +212,9 @@ EOS
     end
 
     d = {
-      :message_id => (entry[:message_id] || m.id),
-      :source_id => (entry[:source_id] || source_id),
-      :source_info => (entry[:source_info] || m.source_info),
+      :message_id => m.id,
+      :source_id => source_id,
+      :source_info => m.source_info,
       :date => (entry[:date] || m.date.to_indexable_s),
       :body => (entry[:body] || m.indexable_content),
       :snippet => snippet, # always override
