@@ -161,7 +161,7 @@ EOS
   ## and adding either way. Index state will be determined by m.labels.
   ##
   ## docid and entry can be specified if they're already known.
-  def sync_message m, docid=nil, entry=nil
+  def sync_message m, docid=nil, entry=nil, opts={}
     docid, entry = load_entry_for_id m.id unless docid && entry
 
     raise "no source info for message #{m.id}" unless m.source && m.source_info
@@ -205,16 +205,20 @@ EOS
     if entry[:source_id] && entry[:source_info] && entry[:label] &&
       ((entry[:source_id].to_i > source_id) || (entry[:source_info].to_i < m.source_info))
       labels = (entry[:label].split(/\s+/).map { |l| l.intern } + m.labels).uniq
-      Redwood::log "found updated version of message #{m.id}: #{m.subj}"
-      Redwood::log "previous version was at #{entry[:source_id].inspect}:#{entry[:source_info].inspect}, this version at #{source_id.inspect}:#{m.source_info.inspect}"
-      Redwood::log "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
+      #Redwood::log "found updated version of message #{m.id}: #{m.subj}"
+      #Redwood::log "previous version was at #{entry[:source_id].inspect}:#{entry[:source_info].inspect}, this version at #{source_id.inspect}:#{m.source_info.inspect}"
+      #Redwood::log "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
       entry = {}
     end
 
+    ## if force_overwite is true, ignore what's in the index. this is used
+    ## primarily by sup-sync to force index updates.
+    entry = {} if opts[:force_overwrite]
+
     d = {
-      :message_id => (entry[:message_id] || m.id),
-      :source_id => (entry[:source_id] || source_id),
-      :source_info => (entry[:source_info] || m.source_info),
+      :message_id => m.id,
+      :source_id => source_id,
+      :source_info => m.source_info,
       :date => (entry[:date] || m.date.to_indexable_s),
       :body => (entry[:body] || m.indexable_content),
       :snippet => snippet, # always override
