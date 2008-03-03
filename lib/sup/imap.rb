@@ -176,7 +176,7 @@ class IMAP < Source
 
   def end_offset
     unsynchronized_scan_mailbox
-    @ids.last
+    @ids.last + 1
   end
   synchronized :end_offset
 

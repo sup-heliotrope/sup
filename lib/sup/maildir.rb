@@ -123,7 +123,7 @@ class Maildir < Source
 
   def end_offset
     scan_mailbox :rescan => true
-    @ids.last
+    @ids.last + 1
   end
 
   def pct_done; 100.0 * (@ids.index(cur_offset) || 0).to_f / (@ids.length - 1).to_f; end
