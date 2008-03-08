@@ -6,6 +6,7 @@ module MBox
 
 class Loader < Source
   yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
+  attr_accessor :labels
 
   ## uri_or_fp is horrific. need to refactor.
   def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=[]
@@ -147,7 +148,7 @@ class Loader < Source
     end
 
     self.cur_offset = next_offset
-    [returned_offset, (@labels + [:unread]).uniq]
+    [returned_offset, (self.labels + [:unread]).uniq]
   end
 end
 

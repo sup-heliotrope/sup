@@ -156,7 +156,7 @@ EOS
 
           docid, entry = Index.load_entry_for_id m.id
           HookManager.run "before-add-message", :message => m
-          m = yield(m, offset, entry) or next
+          m = yield(m, offset, entry) or next if block_given?
           Index.sync_message m, docid, entry
           UpdateManager.relay self, :added, m unless entry
         rescue MessageFormatError => e

@@ -22,10 +22,9 @@ class SentManager
       yield f
     end
 
-    @source.each do |offset, labels|
-      m = Message.new :source => @source, :source_info => offset, :labels => @source.labels
-      Index.sync_message m
-      UpdateManager.relay self, :added, m
+    PollManager.add_messages_from(@source) do |m, o, e|
+      m.remove_label :unread
+      m
     end
   end
 end
