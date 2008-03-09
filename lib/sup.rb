@@ -169,7 +169,8 @@ if File.exists? Redwood::CONFIG_FN
 else
   require 'etc'
   require 'socket'
-  name = Etc.getpwnam(ENV["USER"]).gecos.split(/,/).first
+  name = Etc.getpwnam(ENV["USER"]).gecos.split(/,/).first rescue nil
+  name ||= ENV["USER"]
   email = ENV["USER"] + "@" + 
     begin
       Socket.gethostbyname(Socket.gethostname).first
