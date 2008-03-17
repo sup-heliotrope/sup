@@ -415,14 +415,8 @@ class ThreadSet
     ## that we first added a child message with a different
     ## subject)
     if root.thread
-      unless @threads[key] == root.thread
-        if @threads[key]
-          root.thread.empty!
-          @threads[key] << root
-          root.thread = @threads[key]
-        else
-          @threads[key] = root.thread
-        end
+      if @threads.member?(key) && @threads[key] != root.thread
+        @threads.delete key
       end
     else
       thread = @threads[key]

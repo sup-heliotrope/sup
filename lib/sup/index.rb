@@ -225,7 +225,7 @@ EOS
       :label => labels.uniq.join(" "),
       :from => (entry[:from] || (m.from ? m.from.indexable_content : "")),
       :to => (entry[:to] || (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" ")),
-      :subject => (entry[:subject] || wrap_subj(m.subj)),
+      :subject => (entry[:subject] || wrap_subj(Message.normalize_subj(m.subj))),
       :refs => (entry[:refs] || (m.refs + m.replytos).uniq.join(" ")),
     }
 
@@ -287,6 +287,7 @@ EOS
     searched = {}
     num_queries = 0
 
+    pending = [m.id]
     if $config[:thread_by_subject] # do subject queries
       date_min = m.date - (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
       date_max = m.date + (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
@@ -301,10 +302,13 @@ EOS
 
       q = build_query :qobj => q
 
-      pending = @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] }
-      Redwood::log "found #{pending.size} results for subject query #{q}"
-    else
-      pending = [m.id]
+      p1 = @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] }
+      Redwood::log "found #{p1.size} results for subject query #{q}"
+
+      p2 = @index.search(q.to_s, :limit => :all).hits.map { |hit| @index[hit.doc][:message_id] }
+      Redwood::log "found #{p2.size} results in string form"
+
+      pending = (pending + p1 + p2).uniq
     end
 
     until pending.empty? || (opts[:limit] && messages.size >= opts[:limit])
