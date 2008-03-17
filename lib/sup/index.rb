@@ -254,6 +254,7 @@ EOS
     searched = {}
     num_queries = 0
 
+    pending = [m.id]
     if $config[:thread_by_subject] # do subject queries
       date_min = m.date - (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
       date_max = m.date + (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
@@ -268,10 +269,13 @@ EOS
 
       q = build_query :qobj => q
 
-      pending = @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] }
-      Redwood::log "found #{pending.size} results for subject query #{q}"
-    else
-      pending = [m.id]
+      p1 = @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] }
+      Redwood::log "found #{p1.size} results for subject query #{q}"
+
+      p2 = @index.search(q.to_s, :limit => :all).hits.map { |hit| @index[hit.doc][:message_id] }
+      Redwood::log "found #{p2.size} results in string form"
+
+      pending = (pending + p1 + p2).uniq
     end
 
     until pending.empty? || (opts[:limit] && messages.size >= opts[:limit])
