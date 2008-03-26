@@ -51,7 +51,7 @@ class ContactManager
 
   def save
     File.open(@fn, "w") do |f|
-      @p2a.each do |p, a|
+      @p2a.sort_by { |(p, a)| [p.full_address, a] }.each do |(p, a)|
         f.puts "#{a || ''}: #{p.full_address}"
       end
     end
