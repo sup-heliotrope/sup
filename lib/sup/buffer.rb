@@ -263,7 +263,11 @@ EOS
         get_status_and_title @focus_buf # must be called outside of the ncurses lock
       end
 
-    print "\033]2;#{title}\07" if title && @in_x
+    if title && @in_x
+      ## http://rtfm.etla.org/xterm/ctlseq.html (see Operating System Controls)
+      print "\033]2;#{title}\07" # window
+      print "\033]0;#{title}\07" # icon title
+    end
 
     Ncurses.mutex.lock unless opts[:sync] == false
 
