@@ -41,8 +41,8 @@ module MBox
         /^(X-Original-To):\s+(.*)$/i,
         /^(Envelope-To):\s+(.*)$/i: header[last = $1] ||= $2
 
-      when /^$/: break
-      when /^\S+: /: last = nil # some other header we don't care about
+      when /^\r*$/: break
+      when /^\S+:/: last = nil # some other header we don't care about
       else
         header[last] += " " + line.chomp.gsub(/^\s+/, "") if last
       end
@@ -65,6 +65,7 @@ module MBox
     header
   end
   
+  ## never actually called
   def read_body f
     body = []
     f.each_line do |l|

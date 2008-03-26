@@ -85,7 +85,7 @@ class Loader < Source
     ret = ""
     @mutex.synchronize do
       @f.seek offset
-      until @f.eof? || (l = @f.gets) =~ /^$/
+      until @f.eof? || (l = @f.gets) =~ /^\r*$/
         ret += l
       end
     end
