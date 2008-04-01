@@ -29,6 +29,11 @@ class LabelListMode < LineCursorMode
       BufferManager.flash "No labels messages with unread messages."
     end
   end
+
+  def focus
+    reload # make sure unread message counts are up-to-date
+  end
+
 protected
 
   def toggle_show_unread_only
