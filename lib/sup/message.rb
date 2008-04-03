@@ -423,7 +423,7 @@ private
       Iconv.iconv($encoding + "//IGNORE", charset, body + " ").join[0 .. -2]
     rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence, MessageFormatError => e
       Redwood::log "warning: error (#{e.class.name}) decoding message body from #{charset}: #{e.message}"
-      File.open("sup-unable-to-decode.txt", "w") { |f| f.write body }
+      File.open(File.join(BASE_DIR,"unable-to-decode.txt"), "w") { |f| f.write body }
       body
     end
   end

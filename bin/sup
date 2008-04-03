@@ -327,7 +327,7 @@ ensure
 end
 
 unless $exceptions.empty?
-  File.open("sup-exception-log.txt", "w") do |f|
+  File.open(File.join(BASE_DIR, "exception-log.txt"), "w") do |f|
     $exceptions.each do |e, name|
       f.puts "--- #{e.class.name} from thread: #{name}"
       f.puts e.message, e.backtrace
@@ -337,7 +337,7 @@ unless $exceptions.empty?
 ----------------------------------------------------------------
 I'm very sorry. It seems that an error occurred in Sup. Please
 accept my sincere apologies. If you don't mind, please send the
-contents of sup-exception-log.txt and a brief report of the
+contents of ~/.sup/exception-log.txt and a brief report of the
 circumstances to sup-talk at rubyforge dot orgs so that I might
 address this problem. Thank you!
 
