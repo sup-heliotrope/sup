@@ -72,7 +72,7 @@ class Maildir < Source
 
   def raw_message id
     scan_mailbox
-    with_file_for(id) { |f| f.readlines.join }
+    with_file_for(id) { |f| f.read }
   end
 
   def scan_mailbox opts={}

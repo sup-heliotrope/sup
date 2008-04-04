@@ -106,7 +106,7 @@ class DraftLoader < Source
   end
 
   def raw_message offset
-    IO.readlines(fn_for_offset(offset)).join
+    IO.read(fn_for_offset(offset))
   end
 
   def start_offset; 0; end

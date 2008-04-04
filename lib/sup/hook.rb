@@ -120,7 +120,7 @@ private
     unless @hooks.member? name
       @hooks[name] =
         begin
-          returning IO.readlines(fn_for(name)).join do
+          returning IO.read(fn_for(name)) do
             log "read '#{name}' from #{fn_for(name)}"
           end
         rescue SystemCallError => e

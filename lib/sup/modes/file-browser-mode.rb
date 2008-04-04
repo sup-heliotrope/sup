@@ -47,7 +47,7 @@ protected
     return unless f && f.file?
 
     begin
-      BufferManager.spawn f.to_s, TextMode.new(f.readlines.join)
+      BufferManager.spawn f.to_s, TextMode.new(f.read)
     rescue SystemCallError => e
       BufferManager.flash e.message
     end
