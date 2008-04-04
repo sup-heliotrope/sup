@@ -321,7 +321,7 @@ protected
     ## do whatever crypto transformation is necessary
     if @crypto_selector && @crypto_selector.val != :none
       from_email = PersonManager.person_for(@header["From"]).email
-      to_email = (@header["To"] + @header["Cc"] + @header["Bcc"]).map { |p| PersonManager.person_for(p).email }
+      to_email = [@header["To"], @header["Cc"], @header["Bcc"]].flatten.compact.map { |p| PersonManager.person_for(p).email }
 
       m = CryptoManager.send @crypto_selector.val, from_email, to_email, m
     end
