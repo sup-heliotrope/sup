@@ -440,9 +440,8 @@ EOS
   end
 
   def multi_edit_labels threads
-    answer = BufferManager.ask :add_labels, "add labels: "
-    return unless answer
-    user_labels = answer.split(/\s+/).map { |l| l.intern }
+    user_labels = BufferManager.ask_for_labels :add_labels, "Add labels: ", [], @hidden_labels
+    return unless user_labels
     
     hl = user_labels.select { |l| @hidden_labels.member? l }
     if hl.empty?
