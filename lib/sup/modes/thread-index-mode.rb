@@ -14,6 +14,12 @@ Variables:
   thread: The message thread to be formatted.
 EOS
 
+  HookManager.register "mark-as-spam", <<EOS
+This hook is run when a thread is marked as spam
+Variables:
+  thread: The message thread being marked as spam.
+EOS
+
   register_keymap do |k|
     k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
     k.add_multi "Load all threads (! to confirm) :", '!' do |kk|
@@ -333,6 +339,7 @@ EOS
   def toggle_spam
     t = cursor_thread or return
     multi_toggle_spam [t]
+    HookManager.run("mark-as-spam", :thread => t)
   end
 
   ## both spam and deleted have the curious characteristic that you
