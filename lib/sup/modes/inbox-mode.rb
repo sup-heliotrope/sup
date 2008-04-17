@@ -6,6 +6,7 @@ class InboxMode < ThreadIndexMode
   register_keymap do |k|
     ## overwrite toggle_archived with archive
     k.add :archive, "Archive thread (remove from inbox)", 'a'
+    k.add :read_and_archive, "Archive thread (remove from inbox) and mark read", 'A'
   end
 
   def initialize
@@ -32,6 +33,23 @@ class InboxMode < ThreadIndexMode
 
   def multi_archive threads
     threads.each do |t|
+      t.remove_label :inbox
+      hide_thread t
+    end
+    regen_text
+  end
+
+  def read_and_archive
+    return unless cursor_thread
+    cursor_thread.remove_label :unread
+    cursor_thread.remove_label :inbox
+    hide_thread cursor_thread
+    regen_text
+  end
+
+  def multi_read_and_archive threads
+    threads.each do |t|
+      t.remove_label :unread
       t.remove_label :inbox
       hide_thread t
     end
