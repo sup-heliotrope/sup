@@ -167,6 +167,15 @@ Variables: the same as status-bar-text hook.
 Return value: a string to be used as the terminal title.
 EOS
 
+  HookManager.register "extra-contact-addresses", <<EOS
+A list of extra addresses to propose for tab completion, etc. when the
+user is entering an email address. Can be plain email addresses or can
+be full "User Name <email@domain.tld>" entries.
+
+Variables: none
+Return value: an array of email address strings.
+EOS
+
   def initialize
     @name_map = {}
     @buffers = []
@@ -493,6 +502,7 @@ EOS
     contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.full_address, c.email] }
 
     completions = (recent + contacts).flatten.uniq.sort
+    completions += HookManager.run("extra-contact-addresses") || []
     answer = BufferManager.ask_many_emails_with_completions domain, question, completions, default
 
     if answer

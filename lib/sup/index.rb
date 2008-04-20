@@ -141,11 +141,11 @@ EOS
     else
       Redwood::log "creating index..."
       field_infos = Ferret::Index::FieldInfos.new :store => :yes
-      field_infos.add_field :message_id
+      field_infos.add_field :message_id, :index => :untokenized
       field_infos.add_field :source_id
       field_infos.add_field :source_info
       field_infos.add_field :date, :index => :untokenized
-      field_infos.add_field :body, :store => :no
+      field_infos.add_field :body
       field_infos.add_field :label
       field_infos.add_field :subject
       field_infos.add_field :from
@@ -161,7 +161,7 @@ EOS
   ## and adding either way. Index state will be determined by m.labels.
   ##
   ## docid and entry can be specified if they're already known.
-  def sync_message m, docid=nil, entry=nil
+  def sync_message m, docid=nil, entry=nil, opts={}
     docid, entry = load_entry_for_id m.id unless docid && entry
 
     raise "no source info for message #{m.id}" unless m.source && m.source_info
@@ -174,7 +174,6 @@ EOS
         m.source.id or raise "unregistered source #{m.source} (id #{m.source.id.inspect})"
       end
 
-    to = (m.to + m.cc + m.bcc).map { |x| x.email }.join(" ")
     snippet = 
       if m.snippet_contains_encrypted_content? && $config[:discard_snippets_from_encrypted_messages]
         ""
@@ -182,18 +181,52 @@ EOS
         m.snippet
       end
 
+    ## write the new document to the index. if the entry already exists in the
+    ## index, reuse it (which avoids having to reload the entry from the source,
+    ## which can be quite expensive for e.g. large threads of IMAP actions.)
+    ##
+    ## exception: if the index entry belongs to an earlier version of the
+    ## message, use everything from the new message instead, but union the
+    ## flags. this allows messages sent to mailing lists to have their header
+    ## updated and to have flags set properly.
+    ##
+    ## minor hack: messages in sources with lower ids have priority over
+    ## messages in sources with higher ids. so messages in the inbox will
+    ## override everyone, and messages in the sent box will be overridden
+    ## by everyone else.
+    ##
+    ## written in this manner to support previous versions of the index which
+    ## did not keep around the entry body. upgrading is thus seamless.
+    entry ||= {}
+    labels = m.labels.uniq # override because this is the new state, unless...
+
+    ## if we are a later version of a message, ignore what's in the index,
+    ## but merge in the labels.
+    if entry[:source_id] && entry[:source_info] && entry[:label] &&
+      ((entry[:source_id].to_i > source_id) || (entry[:source_info].to_i < m.source_info))
+      labels = (entry[:label].split(/\s+/).map { |l| l.intern } + m.labels).uniq
+      #Redwood::log "found updated version of message #{m.id}: #{m.subj}"
+      #Redwood::log "previous version was at #{entry[:source_id].inspect}:#{entry[:source_info].inspect}, this version at #{source_id.inspect}:#{m.source_info.inspect}"
+      #Redwood::log "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
+      entry = {}
+    end
+
+    ## if force_overwite is true, ignore what's in the index. this is used
+    ## primarily by sup-sync to force index updates.
+    entry = {} if opts[:force_overwrite]
+
     d = {
       :message_id => m.id,
       :source_id => source_id,
       :source_info => m.source_info,
-      :date => m.date.to_indexable_s,
-      :body => m.indexable_content,
-      :snippet => snippet,
-      :label => m.labels.uniq.join(" "),
-      :from => m.from ? m.from.indexable_content : "",
-      :to => (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" "),
-      :subject => wrap_subj(m.subj),
-      :refs => (m.refs + m.replytos).uniq.join(" "),
+      :date => (entry[:date] || m.date.to_indexable_s),
+      :body => (entry[:body] || m.indexable_content),
+      :snippet => snippet, # always override
+      :label => labels.uniq.join(" "),
+      :from => (entry[:from] || (m.from ? m.from.indexable_content : "")),
+      :to => (entry[:to] || (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" ")),
+      :subject => (entry[:subject] || wrap_subj(Message.normalize_subj(m.subj))),
+      :refs => (entry[:refs] || (m.refs + m.replytos).uniq.join(" ")),
     }
 
     @index.delete docid if docid
@@ -254,6 +287,7 @@ EOS
     searched = {}
     num_queries = 0
 
+    pending = [m.id]
     if $config[:thread_by_subject] # do subject queries
       date_min = m.date - (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
       date_max = m.date + (SAME_SUBJECT_DATE_LIMIT * 12 * 3600)
@@ -268,10 +302,13 @@ EOS
 
       q = build_query :qobj => q
 
-      pending = @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] }
-      Redwood::log "found #{pending.size} results for subject query #{q}"
-    else
-      pending = [m.id]
+      p1 = @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] }
+      Redwood::log "found #{p1.size} results for subject query #{q}"
+
+      p2 = @index.search(q.to_s, :limit => :all).hits.map { |hit| @index[hit.doc][:message_id] }
+      Redwood::log "found #{p2.size} results in string form"
+
+      pending = (pending + p1 + p2).uniq
     end
 
     until pending.empty? || (opts[:limit] && messages.size >= opts[:limit])
@@ -400,18 +437,7 @@ protected
   def parse_user_query_string s
     extraopts = {}
 
-    ## this is a little hacky, but it works, at least until ferret changes
-    ## its api. we parse the user query string with ferret twice: the first
-    ## time we just turn the resulting object back into a string, which has
-    ## the next effect of transforming the original string into a nice
-    ## normalized form with + and - instead of AND, OR, etc. then we do some
-    ## string substitutions which depend on this normalized form, re-parse
-    ## the string with Ferret, and return the resulting query object.
-
-    norms = @qparser.parse(s).to_s
-    Redwood::log "normalized #{s.inspect} to #{norms.inspect}" unless s == norms
-
-    subs = norms.gsub(/\b(to|from):(\S+)\b/) do
+    subs = s.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
         [field, p.email]
@@ -481,7 +507,6 @@ protected
       subs = nil if chronic_failure
     end
     
-    Redwood::log "translated #{norms.inspect} to #{subs.inspect}" unless subs == norms
     if subs
       [@qparser.parse(subs), extraopts]
     else

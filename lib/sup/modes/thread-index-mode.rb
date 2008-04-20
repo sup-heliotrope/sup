@@ -655,7 +655,6 @@ protected
 
     date = t.date.to_nice_s
 
-    new = t.has_label?(:unread)
     starred = t.has_label?(:starred)
 
     ## format the from column
@@ -692,7 +691,9 @@ protected
     p = dp || t.participants.any? { |p| AccountManager.is_account? p }
 
     subj_color =
-      if new
+      if t.has_label?(:draft)
+        :index_draft_color
+      elsif t.has_label?(:unread)
         :index_new_color
       elsif starred
         :index_starred_color
