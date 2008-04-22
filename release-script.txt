@@ -1,0 +1,16 @@
+Just a few simple steps to make a new release.
+
+ditz release <releasename>
+ditz changelog <releasename> > tmp.txt
+cat History.txt >> tmp.txt
+mv tmp.txt History.txt
+vi History.txt    # and cleanup
+vi ReleaseNotes   # and add whatever's necessary
+vi lib/sup.rb     # and bump version number
+vi www/index.html # and bump version number
+rake release VERSION=<releasename>
+git commit -a -v
+git tag -a release-<releasename> -m "release <releasename>"
+git push
+git push --tags
+rake upload_report
