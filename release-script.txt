@@ -6,11 +6,14 @@ cat History.txt >> tmp.txt
 mv tmp.txt History.txt
 vi History.txt    # and cleanup
 vi ReleaseNotes   # and add whatever's necessary
-vi lib/sup.rb     # and bump version number
-vi www/index.html # and bump version number
+vi www/index.html  # and bump version number
+# ... git add, commit, etc
+git checkout -b release-<releasename>
+vi lib/sup.rb bin/sup # and bump BOTH version numbers
+# ... git add, commit, etc
 rake release VERSION=<releasename>
-git commit -a -v
-git tag -a release-<releasename> -m "release <releasename>"
-git push
-git push --tags
+git publish-branch
+rake upload_webpage
 rake upload_report
+git checkout next
+git merge master
