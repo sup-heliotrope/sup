@@ -54,3 +54,7 @@ end
 
 # vim: syntax=ruby
 # -*- ruby -*-
+task :upload_report do |t|
+  sh "ditz html ditz"
+  sh "rsync -essh -cavz ditz wmorgan@rubyforge.org:/var/www/gforge-projects/sup/"
+end
