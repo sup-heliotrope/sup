@@ -4,6 +4,7 @@ LICENSE
 Manifest.txt
 README.txt
 Rakefile
+ReleaseNotes
 bin/sup
 bin/sup-add
 bin/sup-config

@@ -1,0 +1,6 @@
+Release 0.5:
+
+Saving message state (pressing "$") has been sped up. However, this is only
+automatically in effect for new messages. To make it effective for older
+messages (i.e. messages indexed with versions of Sup before 0.5), you must
+reindex them, e.g. by running sup-sync --all on a source.
