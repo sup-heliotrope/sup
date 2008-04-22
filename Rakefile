@@ -45,11 +45,11 @@ SCREENSHOTS.each do |fn|
 end
 
 task :upload_webpage => WWW_FILES do |t|
-  sh "scp -C #{t.prerequisites * ' '} wmorgan@rubyforge.org:/var/www/gforge-projects/sup/"
+  sh "rsync -essh -cavz #{t.prerequisites * ' '} wmorgan@rubyforge.org:/var/www/gforge-projects/sup/"
 end
 
 task :upload_webpage_images => (SCREENSHOTS + SCREENSHOTS_SMALL) do |t|
-  sh "scp -C #{t.prerequisites * ' '} wmorgan@rubyforge.org:/var/www/gforge-projects/sup/"
+  sh "rsync -essh -cavz #{t.prerequisites * ' '} wmorgan@rubyforge.org:/var/www/gforge-projects/sup/"
 end
 
 # vim: syntax=ruby
