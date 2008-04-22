@@ -7,7 +7,7 @@ require 'fileutils'
 require 'trollop'
 require "sup"
 
-BIN_VERSION = "git"
+BIN_VERSION = "0.5"
 
 unless Redwood::VERSION == BIN_VERSION
   $stderr.puts <<EOS
