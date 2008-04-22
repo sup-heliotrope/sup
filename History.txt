@@ -1,3 +1,11 @@
+== 0.5 / 2008-04-22
+* new hooks: extra-contact-addresses, startup
+* '!!' now loads all threads in current search
+* general state saving speedup
+* threads with unsent draft messages are now shown in red
+* --compose spawns a compose-message buffer on startup
+* Many bugfixes and UI improvements
+
 == 0.4 / 2008-01-23
 * GPG support for signing and encrypting outgoing mail
 * New hooks: mime attachment, attribution line
