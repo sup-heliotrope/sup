@@ -42,7 +42,7 @@ class ForwardMode < EditMessageMode
     end
 
     attachments.each do |c|
-      mime_type = MIME::Types[c.content_type].first || MIME::Types["application/octet-stream"]
+      mime_type = MIME::Types[c.content_type].first || MIME::Types["application/octet-stream"].first
       attachment_hash[c.filename] = RMail::Message.make_attachment c.raw_content, mime_type.content_type, mime_type.encoding, c.filename
     end
 
