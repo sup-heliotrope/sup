@@ -15,12 +15,14 @@ class ScrollMode < Mode
   COL_JUMP = 2
 
   register_keymap do |k|
-    k.add :line_down, "Down one line", :down, 'j', 'J'
-    k.add :line_up, "Up one line", :up, 'k', 'K'
+    k.add :line_down, "Down one line", :down, 'j', 'J', "\C-e"
+    k.add :line_up, "Up one line", :up, 'k', 'K', "\C-y"
     k.add :col_left, "Left one column", :left, 'h'
     k.add :col_right, "Right one column", :right, 'l'
-    k.add :page_down, "Down one page", :page_down, ' '
-    k.add :page_up, "Up one page", :page_up, 'p', :backspace
+    k.add :page_down, "Down one page", :page_down, ' ', "\C-f"
+    k.add :page_up, "Up one page", :page_up, 'p', :backspace, "\C-b"
+    k.add :half_page_down, "Down one half page", "\C-d"
+    k.add :half_page_up, "Up one half page", "\C-u"
     k.add :jump_to_start, "Jump to top", :home, '^', '1'
     k.add :jump_to_end, "Jump to bottom", :end, '$', '0'
     k.add :jump_to_left, "Jump to the left", '['
@@ -130,6 +132,8 @@ class ScrollMode < Mode
   def line_up;  jump_to_line @topline - 1; end
   def page_down; jump_to_line @topline + buffer.content_height - @slip_rows; end
   def page_up; jump_to_line @topline - buffer.content_height + @slip_rows; end
+  def half_page_down; jump_to_line @topline + buffer.content_height / 2; end
+  def half_page_up; jump_to_line @topline - buffer.content_height / 2; end
   def jump_to_start; jump_to_line 0; end
   def jump_to_end; jump_to_line lines - buffer.content_height; end
 
