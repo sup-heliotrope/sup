@@ -14,7 +14,7 @@ require 'curses'
 require 'dl/import'
 module LibC
   extend DL::Importable
-  dlload "libc.so.6"
+  dlload Config::CONFIG['arch'] =~ /darwin/ ? "libc.dylib" : "libc.so.6"
   extern "void setlocale(int, const char *)"
 end
 LibC.setlocale(6, "")  # LC_ALL == 6
