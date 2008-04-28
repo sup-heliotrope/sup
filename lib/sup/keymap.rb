@@ -46,7 +46,7 @@ class Keymap
     when :tab: "tab"
     when " ": "<space>"
     else
-      Curses::keyname(keysym_to_keycode k)
+      Curses::keyname(keysym_to_keycode(k))
     end
   end
 
