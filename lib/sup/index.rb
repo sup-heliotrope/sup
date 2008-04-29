@@ -147,6 +147,7 @@ EOS
       field_infos.add_field :date, :index => :untokenized
       field_infos.add_field :body
       field_infos.add_field :label
+      field_infos.add_field :attachments
       field_infos.add_field :subject
       field_infos.add_field :from
       field_infos.add_field :to
@@ -223,6 +224,7 @@ EOS
       :body => (entry[:body] || m.indexable_content),
       :snippet => snippet, # always override
       :label => labels.uniq.join(" "),
+      :attachments => (entry[:attachments] || m.attachments.uniq.join(" ")),
       :from => (entry[:from] || (m.from ? m.from.indexable_content : "")),
       :to => (entry[:to] || (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" ")),
       :subject => (entry[:subject] || wrap_subj(Message.normalize_subj(m.subj))),
@@ -465,7 +467,7 @@ protected
     extraopts[:load_deleted] = true if subs =~ /\blabel:deleted\b/
 
     ## gmail style "is" operator
-    subs = subs.gsub(/\b(is):(\S+)\b/) do
+    subs = subs.gsub(/\b(is|has):(\S+)\b/) do
       field, label = $1, $2
       case label
       when "read"
@@ -478,6 +480,19 @@ protected
         "label:deleted"
       else
         "label:#{$2}"
+      end
+    end
+
+    ## gmail style attachments "filename" and "filetype" searches
+    subs = subs.gsub(/\b(filename|filetype):(\((.+?)\)\B|(\S+)\b)/) do
+      field, name = $1, ($3 || $4)
+      case field
+      when "filename"
+        Redwood::log "filename - translated #{field}:#{name} to attachments:(#{name.downcase})"
+        "attachments:(#{name.downcase})"
+      when "filetype"
+        Redwood::log "filetype - translated #{field}:#{name} to attachments:(*.#{name.downcase})"
+        "attachments:(*.#{name.downcase})"
       end
     end
 

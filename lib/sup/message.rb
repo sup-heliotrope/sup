@@ -37,7 +37,7 @@ class Message
   DEFAULT_SENDER = "(missing sender)"
 
   attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :source,
-              :cc, :bcc, :labels, :list_address, :recipient_email, :replyto,
+              :cc, :bcc, :labels, :attachments, :list_address, :recipient_email, :replyto,
               :source_info, :list_subscribe, :list_unsubscribe
 
   bool_reader :dirty, :source_marked_read, :snippet_contains_encrypted_content
@@ -54,6 +54,7 @@ class Message
     @dirty = false
     @encrypted = false
     @chunks = nil
+    @attachments = []
 
     ## we need to initialize this. see comments in parse_header as to
     ## why.
@@ -405,6 +406,11 @@ private
 
       ## if there's a filename, we'll treat it as an attachment.
       if filename
+        # add this to the attachments list if its not a generated html
+        # attachment (should we allow images with generated names?).
+        # Lowercase the filename because searches are easier that way 
+        @attachments.push filename.downcase unless filename =~ /^sup-attachment-/
+        add_label :attachment unless filename =~ /^sup-attachment-/
         [Chunk::Attachment.new(m.header.content_type, filename, m, sibling_types)]
 
       ## otherwise, it's body text
