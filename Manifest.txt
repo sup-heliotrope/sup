@@ -18,7 +18,6 @@ doc/FAQ.txt
 doc/Hooks.txt
 doc/NewUserGuide.txt
 doc/Philosophy.txt
-doc/TODO
 lib/sup.rb
 lib/sup/account.rb
 lib/sup/buffer.rb
