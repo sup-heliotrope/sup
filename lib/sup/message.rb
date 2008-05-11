@@ -148,7 +148,18 @@ class Message
     @source.fn_for_offset @source_info
   end
 
-  def sanitize_message_id mid; mid.gsub(/\s+/, "")[0..254] end
+  ## sanitize message ids by removing spaces and non-ascii characters.
+  ## also, truncate to 255 characters. all these steps are necessary
+  ## to make ferret happy. of course, we probably fuck up a couple
+  ## valid message ids as well. as long as we're consistent, this
+  ## should be fine, though.
+  ##
+  ## also, mostly the message ids that are changed by this belong to
+  ## spam email.
+  ##
+  ## an alternative would be to SHA1 or MD5 all message ids on a regular basis.
+  ## don't tempt me.
+  def sanitize_message_id mid; mid.gsub(/(\s|[^\000-\177])+/, "")[0..254] end
 
   def save index
     return unless @dirty
