@@ -383,6 +383,7 @@ protected
       default =
         case field
         when *MULTI_HEADERS
+	  @header[field] ||= []
           @header[field].join(", ")
         else
           @header[field]
