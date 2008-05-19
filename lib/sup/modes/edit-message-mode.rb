@@ -305,8 +305,9 @@ protected
     m = RMail::Message.new
     m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
     m.body = @body.join
-    m.body = m.body
     m.body += sig_lines.join("\n") unless $config[:edit_signature]
+    ## body must end in a newline or GPG signatures will be WRONG!
+    m.body += "\n" unless m.body =~ /\n\Z/
 
     ## there are attachments, so wrap body in an attachment of its own
     unless @attachments.empty?

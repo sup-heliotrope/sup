@@ -150,6 +150,8 @@ private
     ["Can't find gpg binary in path."]
   end
 
+  ## here's where we munge rmail output into the format that signed/encrypted
+  ## PGP/GPG messages should be
   def format_payload payload
     payload.to_s.gsub(/(^|[^\r])\n/, "\\1\r\n").gsub(/^MIME-Version: .*\r\n/, "")
   end
