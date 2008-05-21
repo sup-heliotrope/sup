@@ -12,14 +12,14 @@ class Maildir < Source
   SCAN_INTERVAL = 30 # seconds
 
   ## remind me never to use inheritance again.
-  yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
-  def initialize uri, last_date=nil, usual=true, archived=false, id=nil, labels=[]
+  yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels, :mtimes
+  def initialize uri, last_date=nil, usual=true, archived=false, id=nil, labels=[], mtimes={}
     super uri, last_date, usual, archived, id
     uri = URI(Source.expand_filesystem_uri(uri))
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
-    raise ArgumentError, "mbox URI must have a path component" unless uri.path
+    raise ArgumentError, "maildir URI must have a path component" unless uri.path
 
     @dir = uri.path
     @labels = (labels || []).freeze
@@ -27,6 +27,11 @@ class Maildir < Source
     @ids_to_fns = {}
     @last_scan = nil
     @mutex = Mutex.new
+    #the mtime from the subdirs in the maildir with the unix epoch as default.
+    #these are used to determine whether scanning the directory for new mail
+    #is a worthwhile effort
+    @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }.merge(mtimes)
+    @dir_ids = { 'cur' => [], 'new' => [] }
   end
 
   def file_path; @dir end
@@ -79,21 +84,34 @@ class Maildir < Source
     return unless @ids.empty? || opts[:rescan]
     return if @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
 
-    Redwood::log "scanning maildir..."
-    cdir = File.join(@dir, 'cur')
-    ndir = File.join(@dir, 'new')
-    
-    raise FatalSourceError, "#{cdir} not a directory" unless File.directory? cdir
-    raise FatalSourceError, "#{ndir} not a directory" unless File.directory? ndir
+    initial_poll = @ids.empty?
 
+    Redwood::log "scanning maildir #@dir..."
     begin
-      @ids, @ids_to_fns = [], {}
-      (Dir[File.join(cdir, "*")] + Dir[File.join(ndir, "*")]).map do |fn|
-        id = make_id fn
-        @ids << id
-        @ids_to_fns[id] = fn
+      @mtimes.each_key do |d|
+	subdir = File.join(@dir, d)
+	raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
+
+	mtime = File.mtime subdir
+
+	#only scan the dir if the mtime is more recent (or we haven't polled
+	#since startup)
+	if @mtimes[d] < mtime || initial_poll
+	  @mtimes[d] = mtime
+	  @dir_ids[d] = []
+	  Dir[File.join(subdir, '*')].map do |fn|
+	    id = make_id fn
+	    @dir_ids[d] << id
+	    @ids_to_fns[id] = fn
+	  end
+	else
+	  Redwood::log "no poll on #{d}.  mtime on indicates no new messages."
+	end
       end
-      @ids.sort!
+      @ids = @dir_ids.values.flatten.uniq.sort!
+      #remove old id to fn mappings...hopefully this doesn't actually change
+      #anything...normally, we'll add to this list but never remove mail.
+      @ids_to_fns.delete_if { |k, v| !@ids.include?(k) }
     rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem scanning Maildir directories: #{e.message}."
     end
@@ -145,8 +163,11 @@ class Maildir < Source
 private
 
   def make_id fn
+    #doing this means 1 syscall instead of 2 (File.mtime, File.size).
+    #makes a noticeable difference on nfs.
+    stat = File.stat(fn)
     # use 7 digits for the size. why 7? seems nice.
-    sprintf("%d%07d", File.mtime(fn), File.size(fn) % 10000000).to_i
+    sprintf("%d%07d", stat.mtime, stat.size % 10000000).to_i
   end
 
   def with_file_for id
