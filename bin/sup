@@ -55,7 +55,8 @@ Thread.abort_on_exception = true # make debugging possible
 module Redwood
 
 global_keymap = Keymap.new do |k|
-  k.add :quit, "Quit Redwood", 'q'
+  k.add :quit_ask, "Quit Sup, but ask first", 'q'
+  k.add :quit_now, "Quit Sup immediately", 'Q'
   k.add :help, "Show help", 'H', '?'
   k.add :roll_buffers, "Switch to next buffer", 'b'
 #  k.add :roll_buffers_backwards, "Switch to previous buffer", 'B'
@@ -240,8 +241,12 @@ begin
       end
 
     case action
-    when :quit
+    when :quit_now
       break if bm.kill_all_buffers_safely
+    when :quit_ask
+      if bm.ask_yes_or_no "Really quit?"
+        break if bm.kill_all_buffers_safely
+      end
     when :help
       curmode = bm.focus_buf.mode
       bm.spawn_unless_exists("<help for #{curmode.name}>") { HelpMode.new curmode, global_keymap }
