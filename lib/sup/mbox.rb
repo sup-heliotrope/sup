@@ -11,6 +11,7 @@ module Redwood
 ## TODO: move functionality to somewhere better, like message.rb
 module MBox
   BREAK_RE = /^From \S+/
+  HEADER_RE = /\s*(.*?\S)\s*/
 
   def read_header f
     header = {}
@@ -20,26 +21,26 @@ module MBox
     ## when scanning over large mbox files.
     while(line = f.gets)
       case line
-      when /^(From):\s*(.*?)\s*$/i,
-        /^(To):\s*(.*?)\s*$/i,
-        /^(Cc):\s*(.*?)\s*$/i,
-        /^(Bcc):\s*(.*?)\s*$/i,
-        /^(Subject):\s*(.*?)\s*$/i,
-        /^(Date):\s*(.*?)\s*$/i,
-        /^(References):\s*(.*?)\s*$/i,
-        /^(In-Reply-To):\s*(.*?)\s*$/i,
-        /^(Reply-To):\s*(.*?)\s*$/i,
-        /^(List-Post):\s*(.*?)\s*$/i,
-        /^(List-Subscribe):\s*(.*?)\s*$/i,
-        /^(List-Unsubscribe):\s*(.*?)\s*$/i,
-        /^(Status):\s*(.*?)\s*$/i: header[last = $1] = $2
-      when /^(Message-Id):\s*(.*?)\s*$/i: header[mid_field = last = $1] = $2
+      when /^(From):#{HEADER_RE}$/i,
+        /^(To):#{HEADER_RE}$/i,
+        /^(Cc):#{HEADER_RE}$/i,
+        /^(Bcc):#{HEADER_RE}$/i,
+        /^(Subject):#{HEADER_RE}$/i,
+        /^(Date):#{HEADER_RE}$/i,
+        /^(References):#{HEADER_RE}$/i,
+        /^(In-Reply-To):#{HEADER_RE}$/i,
+        /^(Reply-To):#{HEADER_RE}$/i,
+        /^(List-Post):#{HEADER_RE}$/i,
+        /^(List-Subscribe):#{HEADER_RE}$/i,
+        /^(List-Unsubscribe):#{HEADER_RE}$/i,
+        /^(Status):#{HEADER_RE}$/i: header[last = $1] = $2
+      when /^(Message-Id):#{HEADER_RE}$/i: header[mid_field = last = $1] = $2
 
       ## these next three can occur multiple times, and we want the
       ## first one
-      when /^(Delivered-To):\s*(.*)$/i,
-        /^(X-Original-To):\s*(.*)$/i,
-        /^(Envelope-To):\s*(.*)$/i: header[last = $1] ||= $2
+      when /^(Delivered-To):#{HEADER_RE}$/i,
+        /^(X-Original-To):#{HEADER_RE}$/i,
+        /^(Envelope-To):#{HEADER_RE}$/i: header[last = $1] ||= $2
 
       when /^\r*$/: break
       when /^\S+:/: last = nil # some other header we don't care about
