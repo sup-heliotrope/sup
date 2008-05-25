@@ -188,7 +188,7 @@ EOS
   def compose
     p = @person_lines[curpos]
     if p
-      ComposeMode.spawn_nicely :to => [p]
+      ComposeMode.spawn_nicely :to_default => p
     else
       ComposeMode.spawn_nicely
     end
