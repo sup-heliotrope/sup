@@ -37,6 +37,7 @@ module Redwood
 
   BASE_DIR   = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
   CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
+  COLOR_FN   = File.join(BASE_DIR, "colors.yaml")
   SOURCE_FN  = File.join(BASE_DIR, "sources.yaml")
   LABEL_FN   = File.join(BASE_DIR, "labels.txt")
   PERSON_FN  = File.join(BASE_DIR, "people.txt")
