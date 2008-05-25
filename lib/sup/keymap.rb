@@ -43,16 +43,10 @@ class Keymap
     when :home: "<home>"
     when :end: "<end>"
     when :enter, :return: "<enter>"
-    when :ctrl_l: "ctrl-l"
-    when :ctrl_g: "ctrl-g"
     when :tab: "tab"
     when " ": "<space>"
     else
-      if k.is_a?(String) && k.length == 1
-        k
-      else
-        raise ArgumentError, "unknown key name \"#{k}\""
-      end
+      Curses::keyname(keysym_to_keycode(k))
     end
   end
 
