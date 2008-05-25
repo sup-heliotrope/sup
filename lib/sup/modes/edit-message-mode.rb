@@ -378,13 +378,11 @@ protected
        if text
          @header[field] = parse_header field, text
          update
-         field
        end
     else
-      default =
-        case field
+      default = case field
         when *MULTI_HEADERS
-	  @header[field] ||= []
+          @header[field] ||= []
           @header[field].join(", ")
         else
           @header[field]
@@ -395,7 +393,6 @@ protected
         text = contacts.map { |s| s.longname }.join(", ")
         @header[field] = parse_header field, text
         update
-        field
       end
     end
   end
