@@ -122,7 +122,7 @@ EOS
     @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
     @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
-    @file.puts @body
+    @file.puts @body.join("\n")
     @file.close
 
     editor = $config[:editor] || ENV['EDITOR'] || "/usr/bin/vi"
@@ -213,7 +213,7 @@ protected
   def parse_file fn
     File.open(fn) do |f|
       header = MBox::read_header f
-      body = f.readlines
+      body = f.readlines.map { |l| l.chomp }
 
       header.delete_if { |k, v| NON_EDITABLE_HEADERS.member? k }
       header.each { |k, v| header[k] = parse_header k, v }
@@ -304,7 +304,7 @@ protected
   def build_message date
     m = RMail::Message.new
     m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
-    m.body = @body.join
+    m.body = @body.join("\n")
     m.body += sig_lines.join("\n") unless $config[:edit_signature]
     ## body must end in a newline or GPG signatures will be WRONG!
     m.body += "\n" unless m.body =~ /\n\Z/
@@ -365,7 +365,7 @@ EOS
     end
 
     f.puts
-    f.puts sanitize_body(@body.join)
+    f.puts sanitize_body(@body.join("\n"))
     f.puts sig_lines if full unless $config[:edit_signature]
   end  
 
@@ -408,7 +408,7 @@ private
   end
 
   def top_posting?
-    @body.join =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
+    @body.join("\n") =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
   end
 
   def sig_lines
