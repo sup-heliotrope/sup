@@ -30,7 +30,7 @@ class Maildir < Source
     #the mtime from the subdirs in the maildir with the unix epoch as default.
     #these are used to determine whether scanning the directory for new mail
     #is a worthwhile effort
-    @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }.merge(mtimes)
+    @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }.merge(mtimes || {})
     @dir_ids = { 'cur' => [], 'new' => [] }
   end
 
