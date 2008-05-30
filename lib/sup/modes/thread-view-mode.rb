@@ -562,29 +562,29 @@ private
 
     open_widget = [color, (state == :closed ? "+ " : "- ")]
     new_widget = [color, (m.has_label?(:unread) ? "N" : " ")]
-    starred_widget = 
-      if m.has_label?(:starred)
-        [star_color, "* "]
+    starred_widget = if m.has_label?(:starred)
+        [star_color, "*"]
       else
-        [color, "  "]
+        [color, " "]
       end
+    attach_widget = [color, (m.has_label?(:attachment) ? "@" : " ")]
 
     case state
     when :open
       @person_lines[start] = m.from
-      [[prefix_widget, open_widget, new_widget, starred_widget,
+      [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
         [color, 
             "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
 
     when :closed
       @person_lines[start] = m.from
-      [[prefix_widget, open_widget, new_widget, starred_widget,
+      [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
         [color, 
         "#{m.from ? m.from.mediumname : '?'}, #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})  #{m.snippet}"]]]
 
     when :detailed
       @person_lines[start] = m.from
-      from_line = [[prefix_widget, open_widget, new_widget, starred_widget,
+      from_line = [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
           [color, "From: #{m.from ? format_person(m.from) : '?'}"]]]
 
       addressee_lines = []
