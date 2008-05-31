@@ -9,6 +9,8 @@ class ComposeMode < EditMessageMode
     header["Cc"] = opts[:cc].map { |p| p.full_address }.join(", ") if opts[:cc]
     header["Bcc"] = opts[:bcc].map { |p| p.full_address }.join(", ") if opts[:bcc]
     header["Subject"] = opts[:subj] if opts[:subj]
+    header["References"] = opts[:refs].map { |r| "<#{r}>" }.join(" ") if opts[:refs]
+    header["In-Reply-To"] = opts[:replytos].map { |r| "<#{r}>" }.join(" ") if opts[:replytos]
 
     super :header => header, :body => (opts[:body] || [])
   end
