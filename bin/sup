@@ -5,6 +5,7 @@ require 'ncurses'
 require 'curses'
 require 'fileutils'
 require 'trollop'
+require 'fastthread'
 require "sup"
 
 BIN_VERSION = "git"
@@ -21,7 +22,6 @@ EOS
   exit(-1)
 end
 
-$exceptions = []
 $opts = Trollop::options do
   version "sup v#{Redwood::VERSION}"
   banner <<EOS
@@ -224,7 +224,7 @@ begin
     SearchResultsMode.spawn_from_query $opts[:search]
   end
 
-  until $exceptions.nonempty? || SuicideManager.die?
+  until Redwood::exceptions.nonempty? || SuicideManager.die?
     c = Ncurses.nonblocking_getch
     next unless c
     bm.erase_flash
@@ -305,7 +305,7 @@ begin
 
   bm.kill_all_buffers if SuicideManager.die?
 rescue Exception => e
-  $exceptions << [e, "main"]
+  Redwood::record_exception e, "main"
 ensure
   unless $opts[:no_threads]
     PollManager.stop if PollManager.instantiated?
@@ -321,7 +321,7 @@ ensure
     Redwood::log "I've been ordered to commit seppuku. I obey!"
   end
 
-  if $exceptions.empty?
+  if Redwood::exceptions.empty?
     Redwood::log "no fatal errors. good job, william."
     Index.save
   else
@@ -331,9 +331,9 @@ ensure
   Index.unlock
 end
 
-unless $exceptions.empty?
+unless Redwood::exceptions.empty?
   File.open(File.join(BASE_DIR, "exception-log.txt"), "w") do |f|
-    $exceptions.each do |e, name|
+    Redwood::exceptions.each do |e, name|
       f.puts "--- #{e.class.name} from thread: #{name}"
       f.puts e.message, e.backtrace
     end
@@ -350,7 +350,7 @@ Sincerely,
 William
 ----------------------------------------------------------------
 EOS
-  $exceptions.each do |e, name|
+  Redwood::exceptions.each do |e, name|
     puts "--- #{e.class.name} from thread: #{name}"
     puts e.message, e.backtrace
   end

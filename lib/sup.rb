@@ -50,7 +50,18 @@ module Redwood
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
 
-## record exceptions thrown in threads nicely
+  ## record exceptions thrown in threads nicely
+  @exceptions = []
+  @exception_mutex = Mutex.new
+
+  attr_reader :exceptions
+  def record_exception e, name
+    @exception_mutex.synchronize do
+      @exceptions ||= []
+      @exceptions << [e, name]
+    end
+  end
+
   def reporting_thread name
     if $opts[:no_threads]
       yield
@@ -59,14 +70,13 @@ module Redwood
         begin
           yield
         rescue Exception => e
-          $exceptions ||= []
-          $exceptions << [e, name]
-          raise
+          record_exception e, name
         end
       end
     end
   end
-  module_function :reporting_thread
+
+  module_function :reporting_thread, :record_exception, :exceptions
 
 ## one-stop shop for yamliciousness
   def save_yaml_obj object, fn, safe=false
