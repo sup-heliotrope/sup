@@ -60,7 +60,6 @@ class Colormap
     @entries[highlight_sym(:none)] = highlight_for(Curses::COLOR_WHITE,
                                                    Curses::COLOR_BLACK,
                                                    []) + [nil]
-    populate_colormap
   end
 
   def add sym, fg, bg, attr=nil, opts={}
@@ -152,43 +151,58 @@ class Colormap
   ## Try to use the user defined colors, in case of an error fall back
   ## to the default ones.
   def populate_colormap
-    if File.exists? Redwood::COLOR_FN
-      user_colors = Redwood::load_yaml_obj Redwood::COLOR_FN
+    user_colors = if File.exists? Redwood::COLOR_FN
+      Redwood::log "loading user colors from #{Redwood::COLOR_FN}"
+      Redwood::load_yaml_obj Redwood::COLOR_FN
     end
 
-    errors = []
-
+    error = nil
     Colormap::DEFAULT_COLORS.each_pair do |k, v|
       fg = Curses.const_get "COLOR_#{v[:fg].upcase}"
       bg = Curses.const_get "COLOR_#{v[:bg].upcase}"
-      attrs = v[:attrs].map { |a| Curses.const_get "A_#{a.upcase}" } rescue attrs
+      attrs = v[:attrs] ? v[:attrs].map { |a| Curses.const_get "A_#{a.upcase}" } : []
 
-      if(ucolor = user_colors[:colors][k])
-        begin
-          fg = Curses.const_get "COLOR_#{ucolor[:fg].upcase}"
-        rescue NameError
-          errors << "Warning: There is no color named \"#{ucolor[:fg]}\", using fallback."
-          Redwood::log "Warning: There is no color named \"#{ucolor[:fg]}\""
+      if user_colors && (ucolor = user_colors[k])
+        if(ufg = ucolor[:fg])
+          begin
+            fg = Curses.const_get "COLOR_#{ufg.upcase}"
+          rescue NameError
+            error ||= "Warning: there is no color named \"#{ufg}\", using fallback."
+            Redwood::log "Warning: there is no color named \"#{ufg}\""
+          end
         end
-        begin
-          bg = Curses.const_get "COLOR_#{ucolor[:bg].upcase}"
-        rescue NameError
-          errors << "Warning: There is no color named \"#{ucolor[:bg]}\", using fallback."
-          Redwood::log "Warning: There is no color named \"#{ucolor[:bg]}\""
+
+        if(ubg = ucolor[:bg])
+          begin
+            bg = Curses.const_get "COLOR_#{ubg.upcase}"
+          rescue NameError
+            error ||= "Warning: there is no color named \"#{ubg}\", using fallback."
+            Redwood::log "Warning: there is no color named \"#{ubg}\""
+          end
         end
-        attrs = ucolor[:attrs].map {|a| Curses.const_get "A_#{a.upcase}" } rescue attrs
+
+        if(uattrs = ucolor[:attrs])
+          attrs = [*uattrs].flatten.map do |a|
+            begin
+              Curses.const_get "A_#{a.upcase}"
+            rescue NameError
+              error ||= "Warning: there is no attribute named \"#{a}\", using fallback."
+              Redwood::log "Warning: there is no attribute named \"#{a}\", using fallback."
+            end
+          end
+        end
       end
 
       symbol = (k.to_s + "_color").to_sym
       add symbol, fg, bg, attrs
     end
 
-    errors.each { |e| BufferManager.flash e }
+    BufferManager.flash error if error
   end
 
   def self.instance; @@instance; end
   def self.method_missing meth, *a
-    Colorcolors.new unless @@instance
+    Colormap.new unless @@instance
     @@instance.send meth, *a
   end
 end
