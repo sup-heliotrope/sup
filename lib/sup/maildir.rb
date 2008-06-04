@@ -109,9 +109,6 @@ class Maildir < Source
 	end
       end
       @ids = @dir_ids.values.flatten.uniq.sort!
-      #remove old id to fn mappings...hopefully this doesn't actually change
-      #anything...normally, we'll add to this list but never remove mail.
-      @ids_to_fns.delete_if { |k, v| !@ids.include?(k) }
     rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem scanning Maildir directories: #{e.message}."
     end
