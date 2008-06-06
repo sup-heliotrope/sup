@@ -23,7 +23,7 @@ Variables:
   from_email: the email part of the From: line, or nil if empty
 Return value:
   A string (multi-line ok) containing the text of the signature, or nil to
-  use the default signature.
+  use the default signature, or :none for no signature.
 EOS
 
   HookManager.register "before-edit", <<EOS
@@ -417,6 +417,8 @@ private
 
     ## first run the hook
     hook_sig = HookManager.run "signature", :header => @header, :from_email => from_email
+
+    return [] if hook_sig == :none
     return ["", "-- "] + hook_sig.split("\n") if hook_sig
 
     ## no hook, do default signature generation based on config.yaml
