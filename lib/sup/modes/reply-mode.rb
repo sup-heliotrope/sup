@@ -19,6 +19,16 @@ Return value:
   A string containing the text of the quote line (can be multi-line)
 EOS
 
+  HookManager.register "reply-from", <<EOS
+Selects a default address for the From: header of a new reply.
+Variables:
+  message: a message object representing the message being replied to
+    (useful values include message.recipient_email, message.to, and message.cc)
+Return value:
+  A Person to be used as the default for the From: header, or nil to use the
+  default behavior.
+EOS
+
   def initialize message
     @m = message
 
@@ -29,8 +39,19 @@ EOS
 
     ## first, determine the address at which we received this email. this will
     ## become our From: address in the reply.
+    hook_reply_from = HookManager.run "reply-from", :message => @m
+
+    ## sanity check that selection is a Person (or we'll fail below)
+    ## don't check that it's an Account, though; assume they know what they're doing.
+    if hook_reply_from && !(hook_reply_from.is_a? Person)
+        Redwood::log "reply-from returned non-Person, using default from."
+        hook_reply_from = nil
+    end
+
     from =
-      if @m.recipient_email && AccountManager.is_account_email?(@m.recipient_email)
+      if hook_reply_from
+        hook_reply_from
+      elsif @m.recipient_email && AccountManager.is_account_email?(@m.recipient_email)
         PersonManager.person_for(@m.recipient_email)
       elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
         b
