@@ -41,7 +41,7 @@ class Colormap
     :alternate_starred_patina => { :fg => "yellow", :bg => "blue", :attrs => ["bold"] },
     :snippet => { :fg => "cyan", :bg => "black" },
     :option => { :fg => "white", :bg => "black" },
-    :tagged => { :fg => "red", :bg => "black", :attrs => ["bold"] },
+    :tagged => { :fg => "yellow", :bg => "black", :attrs => ["bold"] },
     :draft_notification => { :fg => "red", :bg => "black", :attrs => ["bold"] },
     :completion_character => { :fg => "white", :bg => "black", :attrs => ["bold"] },
     :horizontal_selector_selected => { :fg => "yellow", :bg => "black", :attrs => ["bold"] },
