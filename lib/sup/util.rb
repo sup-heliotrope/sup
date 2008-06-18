@@ -108,7 +108,9 @@ class Module
   def defer_all_other_method_calls_to obj
     class_eval %{
       def method_missing meth, *a, &b; @#{obj}.send meth, *a, &b; end
-      def respond_to? meth; @#{obj}.respond_to?(meth); end
+      def respond_to?(m, include_private = false)
+        @#{obj}.respond_to?(m, include_private)
+      end
     }
   end
 end
@@ -527,7 +529,9 @@ class Recoverable
   def to_yaml x; __pass :to_yaml, x; end
   def is_a? c; @o.is_a? c; end
 
-  def respond_to? m; @o.respond_to? m end
+  def respond_to?(m, include_private=false)
+    @o.respond_to?(m, include_private)
+  end
 
   def __pass m, *a, &b
     begin
