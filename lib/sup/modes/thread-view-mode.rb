@@ -250,7 +250,7 @@ EOS
 
   def edit_as_new
     m = @message_lines[curpos] or return
-    mode = ComposeMode.new(:body => m.quotable_body_lines, :to => m.to, :cc => m.cc, :subj => m.subj, :bcc => m.bcc)
+    mode = ComposeMode.new(:body => m.quotable_body_lines, :to => m.to, :cc => m.cc, :subj => m.subj, :bcc => m.bcc, :refs => m.refs, :replytos => m.replytos)
     BufferManager.spawn "edit as new", mode
     mode.edit_message
   end
