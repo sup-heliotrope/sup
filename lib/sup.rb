@@ -6,6 +6,19 @@ require 'fileutils'
 require 'gettext'
 require 'curses'
 
+## the following magic enables wide characters when used with a ruby
+## ncurses.so that's been compiled against libncursesw. (note the w.) why
+## this works, i have no idea. much like pretty much every aspect of
+## dealing with curses.  cargo cult programming at its best.
+
+require 'dl/import'
+module LibC
+  extend DL::Importable
+  dlload Config::CONFIG['arch'] =~ /darwin/ ? "libc.dylib" : "libc.so.6"
+  extern "void setlocale(int, const char *)"
+end
+LibC.setlocale(6, "")  # LC_ALL == 6
+
 class Object
   ## this is for debugging purposes because i keep calling #id on the
   ## wrong object and i want it to throw an exception
