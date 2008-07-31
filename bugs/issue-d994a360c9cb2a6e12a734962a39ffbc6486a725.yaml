@@ -10,7 +10,7 @@ desc: |
 
 type: :feature
 component: sup
-release: "0.6"
+release: 
 reporter: William Morgan <wmorgan-sup@masanjin.net>
 status: :unstarted
 disposition: 
@@ -27,3 +27,8 @@ log_events:
   - William Morgan <wmorgan-sup@masanjin.net>
   - assigned to release 0.6 from 0.5
   - ""
+- - 2008-07-31 00:54:37.881077 Z
+  - William Morgan <wmorgan-sup@masanjin.net>
+  - unassigned from release 0.6
+  - ""
+git_branch: 
