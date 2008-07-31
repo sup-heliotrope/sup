@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: killed threads showing up in inbox-mode
+desc: this goddamn problem is recurring
+type: :bugfix
+component: indexing
+release: "0.6"
+reporter: William Morgan <wmorgan-sup@masanjin.net>
+status: :unstarted
+disposition: 
+creation_time: 2008-04-25 19:28:51.369257 Z
+references: []
+
+id: 60d86dd32054533a6206f698033ec668af6a7574
+log_events: 
+- - 2008-04-25 19:28:52.476687 Z
+  - William Morgan <wmorgan-sup@masanjin.net>
+  - created
+  - ""

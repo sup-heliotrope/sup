@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: remove email->name mapping
+desc: it doesn't work and wouldn't buy that much even if it did
+type: :bugfix
+component: sup
+release: "0.6"
+reporter: William Morgan <wmorgan-sup@masanjin.net>
+status: :unstarted
+disposition: 
+creation_time: 2008-05-19 23:42:25.910550 Z
+references: []
+
+id: aae5ae6378afa9bd2a8e1b15d28ba7ccef867791
+log_events: 
+- - 2008-05-19 23:42:26.490587 Z
+  - William Morgan <wmorgan-sup@masanjin.net>
+  - created
+  - ""
