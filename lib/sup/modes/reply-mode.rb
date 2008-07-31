@@ -29,6 +29,17 @@ Return value:
   default behavior.
 EOS
 
+  HookManager.register "reply-to", <<EOS
+Set the default reply-to mode.
+Variables:
+  modes: array of valid modes to choose from, which will be a subset of
+             [:#{REPLY_TYPES * ', :'}]
+         The default behavior is equivalent to
+             ([:list, :sender, :recipent] & modes)[0]
+Return value:
+  The reply mode you desire, or nil to use the default behavior.
+EOS
+
   def initialize message
     @m = message
 
@@ -113,8 +124,12 @@ EOS
     types = REPLY_TYPES.select { |t| @headers.member?(t) }
     @type_selector = HorizontalSelector.new "Reply to:", types, types.map { |x| TYPE_DESCRIPTIONS[x] }
 
+    hook_reply = HookManager.run "reply-to", :modes => types
+
     @type_selector.set_to(
-      if @m.is_list_message?
+      if types.include? hook_reply
+        hook_reply
+      elsif @m.is_list_message?
         :list
       elsif @headers.member? :sender
         :sender
