@@ -140,53 +140,8 @@ begin
   log "starting curses"
   start_cursing
 
-  Colormap.new do |c|
-    c.add :status_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLUE, Ncurses::A_BOLD
-    c.add :index_old_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
-    c.add :index_new_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK, 
-           Ncurses::A_BOLD
-    c.add :index_starred_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, 
-           Ncurses::A_BOLD
-    c.add :index_draft_color, Ncurses::COLOR_RED, Ncurses::COLOR_BLACK,
-           Ncurses::A_BOLD
-    c.add :labellist_old_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
-    c.add :labellist_new_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK, 
-           Ncurses::A_BOLD
-    c.add :twiddle_color, Ncurses::COLOR_BLUE, Ncurses::COLOR_BLACK
-    c.add :label_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
-    c.add :message_patina_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_GREEN
-    c.add :alternate_patina_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_BLUE
-    c.add :missing_message_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_RED
-    c.add :attachment_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
-    c.add :cryptosig_valid_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, Ncurses::A_BOLD
-    c.add :cryptosig_unknown_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
-    c.add :cryptosig_invalid_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_RED, Ncurses::A_BOLD
-    c.add :generic_notice_patina_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
-    c.add :quote_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
-    c.add :sig_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
-    c.add :quote_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
-    c.add :sig_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK
-    c.add :to_me_color, Ncurses::COLOR_GREEN, Ncurses::COLOR_BLACK
-    c.add :starred_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK,
-          Ncurses::A_BOLD
-    c.add :starred_patina_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_GREEN,
-          Ncurses::A_BOLD
-    c.add :alternate_starred_patina_color, Ncurses::COLOR_YELLOW,
-          Ncurses::COLOR_BLUE, Ncurses::A_BOLD
-    c.add :snippet_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
-    c.add :option_color, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
-    c.add :tagged_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK,
-          Ncurses::A_BOLD
-    c.add :draft_notification_color, Ncurses::COLOR_RED, Ncurses::COLOR_BLACK,
-          Ncurses::A_BOLD
-    c.add :completion_character_color, Ncurses::COLOR_WHITE,
-          Ncurses::COLOR_BLACK, Ncurses::A_BOLD
-    c.add :horizontal_selector_selected_color, Ncurses::COLOR_YELLOW, Ncurses::COLOR_BLACK, Ncurses::A_BOLD
-    c.add :horizontal_selector_unselected_color, Ncurses::COLOR_CYAN, Ncurses::COLOR_BLACK
-    c.add :search_highlight_color, Ncurses::COLOR_BLACK, Ncurses::COLOR_YELLOW, Ncurses::A_BOLD, :highlight => :search_highlight_color
-  end
-
   bm = BufferManager.new
+  Colormap.new.populate_colormap
 
   log "initializing mail index buffer"
   imode = InboxMode.new

@@ -1,3 +1,7 @@
+module Curses
+  COLOR_DEFAULT = -1
+end
+
 module Redwood
 
 class Colormap
@@ -6,8 +10,44 @@ class Colormap
   CURSES_COLORS = [Curses::COLOR_BLACK, Curses::COLOR_RED, Curses::COLOR_GREEN,
                    Curses::COLOR_YELLOW, Curses::COLOR_BLUE,
                    Curses::COLOR_MAGENTA, Curses::COLOR_CYAN,
-                   Curses::COLOR_WHITE]
+                   Curses::COLOR_WHITE, Curses::COLOR_DEFAULT]
   NUM_COLORS = 15
+
+  DEFAULT_COLORS = {
+    :status => { :fg => "white", :bg => "blue", :attrs => ["bold"] },
+    :index_old => { :fg => "white", :bg => "black" },
+    :index_new => { :fg => "white", :bg => "black", :attrs => ["bold"] },
+    :index_starred => { :fg => "yellow", :bg => "black", :attrs => ["bold"] },
+    :index_draft => { :fg => "red", :bg => "black", :attrs => ["bold"] },
+    :labellist_old => { :fg => "white", :bg => "black" },
+    :labellist_new => { :fg => "white", :bg => "black", :attrs => ["bold"] },
+    :twiddle => { :fg => "blue", :bg => "black" },
+    :label => { :fg => "yellow", :bg => "black" },
+    :message_patina => { :fg => "black", :bg => "green" },
+    :alternate_patina => { :fg => "black", :bg => "blue" },
+    :missing_message => { :fg => "black", :bg => "red" },
+    :attachment => { :fg => "cyan", :bg => "black" },
+    :cryptosig_valid => { :fg => "yellow", :bg => "black", :attrs => ["bold"] },
+    :cryptosig_unknown => { :fg => "cyan", :bg => "black" },
+    :cryptosig_invalid => { :fg => "yellow", :bg => "red", :attrs => ["bold"] },
+    :generic_notice_patina => { :fg => "cyan", :bg => "black" },
+    :quote_patina => { :fg => "yellow", :bg => "black" },
+    :sig_patina => { :fg => "yellow", :bg => "black" },
+    :quote => { :fg => "yellow", :bg => "black" },
+    :sig => { :fg => "yellow", :bg => "black" },
+    :to_me => { :fg => "green", :bg => "black" },
+    :starred => { :fg => "yellow", :bg => "black", :attrs => ["bold"] },
+    :starred_patina => { :fg => "yellow", :bg => "green", :attrs => ["bold"] },
+    :alternate_starred_patina => { :fg => "yellow", :bg => "blue", :attrs => ["bold"] },
+    :snippet => { :fg => "cyan", :bg => "black" },
+    :option => { :fg => "white", :bg => "black" },
+    :tagged => { :fg => "yellow", :bg => "black", :attrs => ["bold"] },
+    :draft_notification => { :fg => "red", :bg => "black", :attrs => ["bold"] },
+    :completion_character => { :fg => "white", :bg => "black", :attrs => ["bold"] },
+    :horizontal_selector_selected => { :fg => "yellow", :bg => "black", :attrs => ["bold"] },
+    :horizontal_selector_unselected => { :fg => "cyan", :bg => "black" },
+    :search_highlight => { :fg => "black", :bg => "yellow", :attrs => ["bold"] }
+  }
   
   def initialize
     raise "only one instance can be created" if @@instance
@@ -108,9 +148,61 @@ class Colormap
     color
   end
 
+  ## Try to use the user defined colors, in case of an error fall back
+  ## to the default ones.
+  def populate_colormap
+    user_colors = if File.exists? Redwood::COLOR_FN
+      Redwood::log "loading user colors from #{Redwood::COLOR_FN}"
+      Redwood::load_yaml_obj Redwood::COLOR_FN
+    end
+
+    error = nil
+    Colormap::DEFAULT_COLORS.each_pair do |k, v|
+      fg = Curses.const_get "COLOR_#{v[:fg].upcase}"
+      bg = Curses.const_get "COLOR_#{v[:bg].upcase}"
+      attrs = v[:attrs] ? v[:attrs].map { |a| Curses.const_get "A_#{a.upcase}" } : []
+
+      if user_colors && (ucolor = user_colors[k])
+        if(ufg = ucolor[:fg])
+          begin
+            fg = Curses.const_get "COLOR_#{ufg.upcase}"
+          rescue NameError
+            error ||= "Warning: there is no color named \"#{ufg}\", using fallback."
+            Redwood::log "Warning: there is no color named \"#{ufg}\""
+          end
+        end
+
+        if(ubg = ucolor[:bg])
+          begin
+            bg = Curses.const_get "COLOR_#{ubg.upcase}"
+          rescue NameError
+            error ||= "Warning: there is no color named \"#{ubg}\", using fallback."
+            Redwood::log "Warning: there is no color named \"#{ubg}\""
+          end
+        end
+
+        if(uattrs = ucolor[:attrs])
+          attrs = [*uattrs].flatten.map do |a|
+            begin
+              Curses.const_get "A_#{a.upcase}"
+            rescue NameError
+              error ||= "Warning: there is no attribute named \"#{a}\", using fallback."
+              Redwood::log "Warning: there is no attribute named \"#{a}\", using fallback."
+            end
+          end
+        end
+      end
+
+      symbol = (k.to_s + "_color").to_sym
+      add symbol, fg, bg, attrs
+    end
+
+    BufferManager.flash error if error
+  end
+
   def self.instance; @@instance; end
   def self.method_missing meth, *a
-    Colorcolors.new unless @@instance
+    Colormap.new unless @@instance
     @@instance.send meth, *a
   end
 end
