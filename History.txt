@@ -1,3 +1,13 @@
+== 0.6 / 2008-08-04
+* new hooks: mark-as-spam, reply-to, reply-from
+* configurable colors. finally!
+* many bugfixes
+* more vi keys added, and 'q' now asks before quitting
+* attachment markers (little @ signs!) in thread-index-mode
+* maildir speedups
+* attachment name searchability
+* archive-and-mark-read command in inbox-mode
+
 == 0.5 / 2008-04-22
 * new hooks: extra-contact-addresses, startup
 * '!!' now loads all threads in current search

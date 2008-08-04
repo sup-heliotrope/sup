@@ -1,3 +1,9 @@
+Release 0.6:
+
+Message attachment searchability automatically takes effect on new messages,
+but if you want it on older ones, you'll have to reindex them. See the
+instructions below, and the help for sup-sync, for how to do this.
+
 Release 0.5:
 
 Saving message state (pressing "$") has been sped up. However, this is only
