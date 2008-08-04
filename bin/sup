@@ -8,7 +8,7 @@ require 'trollop'
 require 'fastthread'
 require "sup"
 
-BIN_VERSION = "git"
+BIN_VERSION = "0.6"
 
 unless Redwood::VERSION == BIN_VERSION
   $stderr.puts <<EOS
