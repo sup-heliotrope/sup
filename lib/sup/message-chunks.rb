@@ -206,7 +206,7 @@ EOS
     def inlineable?; false end
     def quotable?; false end
     def expandable?; true end
-    def initial_state; :open end
+    def initial_state; :closed end
     def viewable?; false end
 
     def patina_color; :generic_notice_patina_color end

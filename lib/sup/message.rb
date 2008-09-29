@@ -392,7 +392,8 @@ private
       payload = RMail::Parser.read(m.body)
       from = payload.header.from.first
       from_person = from ? PersonManager.person_for(from.format) : nil
-      [Chunk::EnclosedMessage.new(from_person, payload.to_s)]
+      [Chunk::EnclosedMessage.new(from_person, payload.to_s)] +
+        message_to_chunks(payload, encrypted)
     else
       filename =
         ## first, paw through the headers looking for a filename
