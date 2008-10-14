@@ -118,12 +118,15 @@ class IMAP < Source
     ids = [ids].flatten # accept single arguments
     unsynchronized_scan_mailbox
     imap_ids = ids.map { |i| @imap_state[i] && @imap_state[i][:id] }.compact
+    return if imap_ids.empty?
     @imap.store imap_ids, "+FLAGS", [:Deleted]
   end
   synchronized :mark_as_deleted
 
   def expunge
     @imap.expunge
+    unsynchronized_scan_mailbox true
+    true
   end
   synchronized :expunge
 
@@ -133,14 +136,15 @@ class IMAP < Source
   end
   synchronized :connect
 
-  def scan_mailbox
-    return if @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
+  def scan_mailbox force=false
+    return if !force && @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
     last_id = safely do
       @imap.examine mailbox
       @imap.responses["EXISTS"].last
     end
     @last_scan = Time.now
 
+    @ids = [] if force
     return if last_id == @ids.length
 
     range = (@ids.length + 1) .. last_id
