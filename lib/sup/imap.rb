@@ -114,6 +114,19 @@ class IMAP < Source
   end
   synchronized :raw_message
 
+  def mark_as_deleted ids
+    ids = [ids].flatten # accept single arguments
+    unsynchronized_scan_mailbox
+    imap_ids = ids.map { |i| @imap_state[i] && @imap_state[i][:id] }.compact
+    @imap.store imap_ids, "+FLAGS", [:Deleted]
+  end
+  synchronized :mark_as_deleted
+
+  def expunge
+    @imap.expunge
+  end
+  synchronized :expunge
+
   def connect
     return if @imap
     safely { } # do nothing!
@@ -259,7 +272,7 @@ private
     %w(RFC822.SIZE INTERNALDATE).each do |w|
       raise FatalSourceError, "requested data not in IMAP response: #{w}" unless imap_stuff.attr[w]
     end
-    
+
     msize, mdate = imap_stuff.attr['RFC822.SIZE'] % 10000000, Time.parse(imap_stuff.attr["INTERNALDATE"])
     sprintf("%d%07d", mdate.to_i, msize).to_i
   end
