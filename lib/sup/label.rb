@@ -78,7 +78,7 @@ class LabelManager
 
   def save
     return unless @modified
-    File.open(@fn, "w") { |f| f.puts @labels.keys }
+    File.open(@fn, "w") { |f| f.puts @labels.keys.sort }
   end
 end
 

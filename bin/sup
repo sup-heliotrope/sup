@@ -65,6 +65,7 @@ global_keymap = Keymap.new do |k|
   k.add :list_contacts, "List contacts", 'C'
   k.add :redraw, "Redraw screen", :ctrl_l
   k.add :search, "Search all messages", '\\', 'F'
+  k.add :search_unread, "Show all unread messages", 'U'
   k.add :list_labels, "List labels", 'L'
   k.add :poll, "Poll for new messages", 'P'
   k.add :compose, "Compose new message", 'm', 'c'
@@ -220,6 +221,8 @@ begin
       query = BufferManager.ask :search, "search all messages: "
       next unless query && query !~ /^\s*$/
       SearchResultsMode.spawn_from_query query
+    when :search_unread
+      SearchResultsMode.spawn_from_query "is:unread"
     when :list_labels
       labels = LabelManager.listable_labels.map { |l| LabelManager.string_for l }
       user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
