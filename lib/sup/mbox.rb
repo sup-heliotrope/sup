@@ -21,6 +21,11 @@ module MBox
     ## when scanning over large mbox files.
     while(line = f.gets)
       case line
+      ## these three can occur multiple times, and we want the first one
+      when /^(Delivered-To):#{HEADER_RE}$/i,
+        /^(X-Original-To):#{HEADER_RE}$/i,
+        /^(Envelope-To):#{HEADER_RE}$/i: header[last = $1] ||= $2
+
       when /^(From):#{HEADER_RE}$/i,
         /^(To):#{HEADER_RE}$/i,
         /^(Cc):#{HEADER_RE}$/i,
@@ -33,14 +38,9 @@ module MBox
         /^(List-Post):#{HEADER_RE}$/i,
         /^(List-Subscribe):#{HEADER_RE}$/i,
         /^(List-Unsubscribe):#{HEADER_RE}$/i,
-        /^(Status):#{HEADER_RE}$/i: header[last = $1] = $2
+        /^(Status):#{HEADER_RE}$/i,
+	/^(X-\S+):#{HEADER_RE}$/: header[last = $1] = $2
       when /^(Message-Id):#{HEADER_RE}$/i: header[mid_field = last = $1] = $2
-
-      ## these next three can occur multiple times, and we want the
-      ## first one
-      when /^(Delivered-To):#{HEADER_RE}$/i,
-        /^(X-Original-To):#{HEADER_RE}$/i,
-        /^(Envelope-To):#{HEADER_RE}$/i: header[last = $1] ||= $2
 
       when /^\r*$/: break
       when /^\S+:/: last = nil # some other header we don't care about
