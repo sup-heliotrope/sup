@@ -102,7 +102,7 @@ rescue Index::LockError => e
   h.say Index.fancy_lock_error_message_for(e)
 
   case h.ask("Should I ask that process to kill itself? ")
-  when /^\s*y\s*$/i
+  when /^\s*y(es)?\s*$/i
     h.say "Ok, suggesting seppuku..."
     FileUtils.touch Redwood::SUICIDE_FN
     sleep SuicideManager::DELAY * 2
