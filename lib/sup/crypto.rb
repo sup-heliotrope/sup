@@ -53,7 +53,7 @@ class CryptoManager
     payload_fn.write format_payload(payload)
     payload_fn.close
 
-    recipient_opts = to.map { |r| "--recipient '<#{r}>'" }.join(" ")
+    recipient_opts = (to + [ from ] ).map { |r| "--recipient '<#{r}>'" }.join(" ")
     sign_opts = sign ? "--sign --local-user '#{from}'" : ""
     gpg_output = run_gpg "--output - --armor --encrypt --textmode #{sign_opts} #{recipient_opts} #{payload_fn.path}"
     raise Error, (gpg_output || "gpg command failed: #{cmd}") unless $?.success?
