@@ -66,14 +66,19 @@ class Index
     @lock_update_thread = nil
   end
 
+  def possibly_pluralize number_of, kind
+    "#{number_of} #{kind}" +
+        if number_of == 1 then "" else "s" end
+  end
+
   def fancy_lock_error_message_for e
-    secs = Time.now - e.mtime
-    mins = secs.to_i / 60
+    secs = (Time.now - e.mtime).to_i
+    mins = secs / 60
     time =
       if mins == 0
-        "#{secs.to_i} seconds"
+        possibly_pluralize secs , "second"
       else
-        "#{mins} minutes"
+        possibly_pluralize mins, "minute"
       end
 
     <<EOS
