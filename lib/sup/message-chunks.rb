@@ -41,6 +41,8 @@ end
 
 module Redwood
 module Chunk
+  WRAP_LEN = 80 # wrap messages and text attachments at this width
+
   class Attachment
     HookManager.register "mime-decode", <<EOS
 Executes when decoding a MIME attachment.
@@ -95,6 +97,7 @@ EOS
       @lines = nil
       if text
         @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+        @lines = lines.map {|l| l.chomp.wrap WRAP_LEN}.flatten
         @quotable = true
       end
     end
@@ -143,7 +146,6 @@ EOS
   end
 
   class Text
-    WRAP_LEN = 80 # wrap at this width
 
     attr_reader :lines
     def initialize lines
