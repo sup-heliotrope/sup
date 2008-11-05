@@ -3,9 +3,10 @@ require 'hoe'
 $:.unshift 'lib' # force loading from ./lib/ if it exists
 require 'sup'
 
+## remove hoe dependency entirely
 class Hoe
-  def extra_deps; @extra_deps.reject { |x| Array(x).first == "hoe" } end
-end # thanks to "Mike H"
+  def extra_dev_deps; @extra_dev_deps.reject { |x| x[0] == "hoe" } end
+end
 
 ## allow people who use development versions by running "rake gem"
 ## and installing the resulting gem it to be able to do this. (gem
