@@ -2,6 +2,8 @@
 
 require 'fileutils'
 require 'ferret'
+require 'fastthread'
+
 begin
   require 'chronic'
   $have_chronic = true
@@ -23,12 +25,18 @@ class Index
 
   include Singleton
 
+  ## these two accessors should ONLY be used by single-threaded programs.
+  ## otherwise you will have a naughty ferret on your hands.
   attr_reader :index
   alias ferret index
+
   def initialize dir=BASE_DIR
+    @index_mutex = Monitor.new
+
     @dir = dir
     @sources = {}
     @sources_dirty = false
+    @source_mutex = Monitor.new
 
     wsa = Ferret::Analysis::WhiteSpaceAnalyzer.new false
     sa = Ferret::Analysis::StandardAnalyzer.new [], true
@@ -122,17 +130,19 @@ EOS
   end
 
   def add_source source
-    raise "duplicate source!" if @sources.include? source
-    @sources_dirty = true
-    max = @sources.max_of { |id, s| s.is_a?(DraftLoader) || s.is_a?(SentLoader) ? 0 : id }
-    source.id ||= (max || 0) + 1
-    ##source.id += 1 while @sources.member? source.id
-    @sources[source.id] = source
+    @source_mutex.synchronize do
+      raise "duplicate source!" if @sources.include? source
+      @sources_dirty = true
+      max = @sources.max_of { |id, s| s.is_a?(DraftLoader) || s.is_a?(SentLoader) ? 0 : id }
+      source.id ||= (max || 0) + 1
+      ##source.id += 1 while @sources.member? source.id
+      @sources[source.id] = source
+    end
   end
 
   def sources
     ## favour the inbox by listing non-archived sources first
-    @sources.values.sort_by { |s| s.id }.partition { |s| !s.archived? }.flatten
+    @source_mutex.synchronize { @sources.values }.sort_by { |s| s.id }.partition { |s| !s.archived? }.flatten
   end
 
   def source_for uri; sources.find { |s| s.is_source_for? uri }; end
@@ -141,25 +151,29 @@ EOS
   def load_index dir=File.join(@dir, "ferret")
     if File.exists? dir
       Redwood::log "loading index..."
-      @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer)
-      Redwood::log "loaded index of #{@index.size} messages"
+      @index_mutex.synchronize do
+        @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer)
+        Redwood::log "loaded index of #{@index.size} messages"
+      end
     else
       Redwood::log "creating index..."
-      field_infos = Ferret::Index::FieldInfos.new :store => :yes
-      field_infos.add_field :message_id, :index => :untokenized
-      field_infos.add_field :source_id
-      field_infos.add_field :source_info
-      field_infos.add_field :date, :index => :untokenized
-      field_infos.add_field :body
-      field_infos.add_field :label
-      field_infos.add_field :attachments
-      field_infos.add_field :subject
-      field_infos.add_field :from
-      field_infos.add_field :to
-      field_infos.add_field :refs
-      field_infos.add_field :snippet, :index => :no, :term_vector => :no
-      field_infos.create_index dir
-      @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer)
+      @index_mutex.synchronize do
+        field_infos = Ferret::Index::FieldInfos.new :store => :yes
+        field_infos.add_field :message_id, :index => :untokenized
+        field_infos.add_field :source_id
+        field_infos.add_field :source_info
+        field_infos.add_field :date, :index => :untokenized
+        field_infos.add_field :body
+        field_infos.add_field :label
+        field_infos.add_field :attachments
+        field_infos.add_field :subject
+        field_infos.add_field :from
+        field_infos.add_field :to
+        field_infos.add_field :refs
+        field_infos.add_field :snippet, :index => :no, :term_vector => :no
+        field_infos.create_index dir
+        @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer)
+      end
     end
   end
 
@@ -171,7 +185,9 @@ EOS
     docid, entry = load_entry_for_id m.id unless docid && entry
 
     raise "no source info for message #{m.id}" unless m.source && m.source_info
-    raise "trying to delete non-corresponding entry #{docid} with index message-id #{@index[docid][:message_id].inspect} and parameter message id #{m.id.inspect}" if docid && @index[docid][:message_id] != m.id
+    @index_mutex.synchronize do
+      raise "trying to delete non-corresponding entry #{docid} with index message-id #{@index[docid][:message_id].inspect} and parameter message id #{m.id.inspect}" if docid && @index[docid][:message_id] != m.id
+    end
 
     source_id = 
       if m.source.is_a? Integer
@@ -236,9 +252,11 @@ EOS
       :refs => (entry[:refs] || (m.refs + m.replytos).uniq.join(" ")),
     }
 
-    @index.delete docid if docid
-    @index.add_document d
-    
+    @index_mutex.synchronize  do
+      @index.delete docid if docid
+      @index.add_document d
+    end
+
     docid, entry = load_entry_for_id m.id
     ## this hasn't been triggered in a long time. TODO: decide whether it's still a problem.
     raise "just added message #{m.id.inspect} but couldn't find it in a search" unless docid
@@ -250,32 +268,35 @@ EOS
   end
 
   def contains_id? id
-    @index.search(Ferret::Search::TermQuery.new(:message_id, id)).total_hits > 0
+    @index_mutex.synchronize { @index.search(Ferret::Search::TermQuery.new(:message_id, id)).total_hits > 0 }
   end
-  def contains? m; contains_id? m.id; end
-  def size; @index.size; end
+  def contains? m; contains_id? m.id end
+  def size; @index_mutex.synchronize { @index.size } end
+  def empty?; size == 0 end
 
   ## you should probably not call this on a block that doesn't break
   ## rather quickly because the results can be very large.
   EACH_BY_DATE_NUM = 100
   def each_id_by_date opts={}
-    return if @index.size == 0 # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
+    return if empty? # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
     query = build_query opts
     offset = 0
     while true
-      results = @index.search(query, :sort => "date DESC", :limit => EACH_BY_DATE_NUM, :offset => offset)
+      results = @index_mutex.synchronize { @index.search query, :sort => "date DESC", :limit => EACH_BY_DATE_NUM, :offset => offset }
       Redwood::log "got #{results.total_hits} results for query (offset #{offset}) #{query.inspect}"
-      results.hits.each { |hit| yield @index[hit.doc][:message_id], lambda { build_message hit.doc } }
+      results.hits.each do |hit|
+        yield @index_mutex.synchronize { @index[hit.doc][:message_id] }, lambda { build_message hit.doc }
+      end
       break if offset >= results.total_hits - EACH_BY_DATE_NUM
       offset += EACH_BY_DATE_NUM
     end
   end
 
   def num_results_for opts={}
-    return 0 if @index.size == 0 # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
+    return 0 if empty? # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
 
     q = build_query opts
-    index.search(q, :limit => 1).total_hits
+    @index_mutex.synchronize { @index.search(q, :limit => 1).total_hits }
   end
 
   ## yield all messages in the thread containing 'm' by repeatedly
@@ -309,10 +330,10 @@ EOS
 
       q = build_query :qobj => q
 
-      p1 = @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] }
+      p1 = @index_mutex.synchronize { @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] } }
       Redwood::log "found #{p1.size} results for subject query #{q}"
 
-      p2 = @index.search(q.to_s, :limit => :all).hits.map { |hit| @index[hit.doc][:message_id] }
+      p2 = @index_mutex.synchronize { @index.search(q.to_s, :limit => :all).hits.map { |hit| @index[hit.doc][:message_id] } }
       Redwood::log "found #{p2.size} results in string form"
 
       pending = (pending + p1 + p2).uniq
@@ -335,18 +356,20 @@ EOS
 
       num_queries += 1
       killed = false
-      @index.search_each(q, :limit => :all) do |docid, score|
-        break if opts[:limit] && messages.size >= opts[:limit]
-        if @index[docid][:label].split(/\s+/).include?("killed") && opts[:skip_killed]
-          killed = true
-          break
-        end
-        mid = @index[docid][:message_id]
-        unless messages.member?(mid)
-          #Redwood::log "got #{mid} as a child of #{id}"
-          messages[mid] ||= lambda { build_message docid }
-          refs = @index[docid][:refs].split(" ")
-          pending += refs.select { |id| !searched[id] }
+      @index_mutex.synchronize do
+        @index.search_each(q, :limit => :all) do |docid, score|
+          break if opts[:limit] && messages.size >= opts[:limit]
+          if @index[docid][:label].split(/\s+/).include?("killed") && opts[:skip_killed]
+            killed = true
+            break
+          end
+          mid = @index[docid][:message_id]
+          unless messages.member?(mid)
+            #Redwood::log "got #{mid} as a child of #{id}"
+            messages[mid] ||= lambda { build_message docid }
+            refs = @index[docid][:refs].split(" ")
+            pending += refs.select { |id| !searched[id] }
+          end
         end
       end
     end
@@ -363,8 +386,8 @@ EOS
 
   ## builds a message object from a ferret result
   def build_message docid
-    doc = @index[docid]
-    source = @sources[doc[:source_id].to_i]
+    doc = @index_mutex.synchronize { @index[docid] }
+    source = @source_mutex.synchronize { @sources[doc[:source_id].to_i] }
     #puts "building message #{doc[:message_id]} (#{source}##{doc[:source_info]})"
     raise "invalid source #{doc[:source_id]}" unless source
 
@@ -386,13 +409,13 @@ EOS
   def wrap_subj subj; "__START_SUBJECT__ #{subj} __END_SUBJECT__"; end
   def unwrap_subj subj; subj =~ /__START_SUBJECT__ (.*?) __END_SUBJECT__/ && $1; end
 
-  def drop_entry docno; @index.delete docno; end
+  def drop_entry docno; @index_mutex.synchronize { @index.delete docno } end
 
   def load_entry_for_id mid
-    results = @index.search(Ferret::Search::TermQuery.new(:message_id, mid))
+    results = @index_mutex.synchronize { @index.search Ferret::Search::TermQuery.new(:message_id, mid) }
     return if results.total_hits == 0
     docid = results.hits[0].doc
-    [docid, @index[docid]]
+    [docid, @index_mutex.synchronize { @index[docid] } ]
   end
 
   def load_contacts emails, h={}
@@ -408,16 +431,18 @@ EOS
     Redwood::log "contact search: #{q}"
     contacts = {}
     num = h[:num] || 20
-    @index.search_each(q, :sort => "date DESC", :limit => :all) do |docid, score|
-      break if contacts.size >= num
-      #Redwood::log "got message #{docid} to: #{@index[docid][:to].inspect} and from: #{@index[docid][:from].inspect}"
-      f = @index[docid][:from]
-      t = @index[docid][:to]
+    @index_mutex.synchronize do
+      @index.search_each q, :sort => "date DESC", :limit => :all do |docid, score|
+        break if contacts.size >= num
+        #Redwood::log "got message #{docid} to: #{@index[docid][:to].inspect} and from: #{@index[docid][:from].inspect}"
+        f = @index[docid][:from]
+        t = @index[docid][:to]
 
-      if AccountManager.is_account_email? f
-        t.split(" ").each { |e| contacts[PersonManager.person_for(e)] = true }
-      else
-        contacts[PersonManager.person_for(f)] = true
+        if AccountManager.is_account_email? f
+          t.split(" ").each { |e| contacts[PersonManager.person_for(e)] = true }
+        else
+          contacts[PersonManager.person_for(f)] = true
+        end
       end
     end
 
@@ -426,15 +451,17 @@ EOS
 
   def load_sources fn=Redwood::SOURCE_FN
     source_array = (Redwood::load_yaml_obj(fn) || []).map { |o| Recoverable.new o }
-    @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
-    @sources_dirty = false
+    @source_mutex.synchronize do
+      @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
+      @sources_dirty = false
+    end
   end
 
   def has_any_from_source_with_label? source, label
     q = Ferret::Search::BooleanQuery.new
     q.add_query Ferret::Search::TermQuery.new("source_id", source.id.to_s), :must
     q.add_query Ferret::Search::TermQuery.new("label", label.to_s), :must
-    index.search(q, :limit => 1).total_hits > 0
+    @index_mutex.synchronize { index.search(q, :limit => 1).total_hits > 0 }
   end
 
 protected
@@ -555,16 +582,18 @@ protected
   end
 
   def save_sources fn=Redwood::SOURCE_FN
-    if @sources_dirty || @sources.any? { |id, s| s.dirty? }
-      bakfn = fn + ".bak"
-      if File.exists? fn
+    @source_mutex.synchronize do
+      if @sources_dirty || @sources.any? { |id, s| s.dirty? }
+        bakfn = fn + ".bak"
+        if File.exists? fn
+          File.chmod 0600, fn
+          FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(fn) == 0
+        end
+        Redwood::save_yaml_obj sources.sort_by { |s| s.id.to_i }, fn, true
         File.chmod 0600, fn
-        FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(fn) == 0
       end
-      Redwood::save_yaml_obj sources.sort_by { |s| s.id.to_i }, fn, true
-      File.chmod 0600, fn
+      @sources_dirty = false
     end
-    @sources_dirty = false
   end
 end
 

@@ -5,6 +5,9 @@ require 'time'
 require 'rmail'
 require 'cgi'
 
+## TODO: remove synchronized method protector calls; use a Monitor instead
+## (ruby's reentrant mutex)
+
 ## fucking imap fucking sucks. what the FUCK kind of committee of dunces
 ## designed this shit.
 ##
@@ -15,7 +18,7 @@ require 'cgi'
 ## restriction. it can change any time you log in. it can change EVERY
 ## time you log in. of course the imap spec "strongly recommends" that it
 ## never change, but there's nothing to stop people from just setting it
-## to the current timestamp, and in fact that's exactly what the one imap
+## to the current timestamp, and in fact that's EXACTLY what the one imap
 ## server i have at my disposal does. thus the so-called uids are
 ## absolutely useless and imap provides no cross-session way of uniquely
 ## identifying a message. but thanks for the "strong recommendation",
