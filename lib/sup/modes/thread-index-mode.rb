@@ -386,6 +386,7 @@ EOS
   end
 
   def save
+    BufferManager.say("Saving contacts...") { ContactManager.instance.save }
     dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
     return if dirty_threads.empty?
 
