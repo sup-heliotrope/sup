@@ -506,7 +506,7 @@ EOS
     answer = BufferManager.ask_many_emails_with_completions domain, question, completions, default
 
     if answer
-      answer.split_on_commas.map { |x| ContactManager.contact_for(x.downcase) || PersonManager.person_for(x) }
+      answer.split_on_commas.map { |x| ContactManager.contact_for(x) || PersonManager.person_for(x) }
     end
   end
 
