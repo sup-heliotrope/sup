@@ -386,23 +386,27 @@ EOS
 
   ## builds a message object from a ferret result
   def build_message docid
-    doc = @index_mutex.synchronize { @index[docid] }
-    source = @source_mutex.synchronize { @sources[doc[:source_id].to_i] }
-    #puts "building message #{doc[:message_id]} (#{source}##{doc[:source_info]})"
-    raise "invalid source #{doc[:source_id]}" unless source
+    @index_mutex.synchronize do
+      doc = @index[docid]
 
-    fake_header = {
-      "date" => Time.at(doc[:date].to_i),
-      "subject" => unwrap_subj(doc[:subject]),
-      "from" => doc[:from],
-      "to" => doc[:to].split(/\s+/).join(", "), # reformat
-      "message-id" => doc[:message_id],
-      "references" => doc[:refs].split(/\s+/).map { |x| "<#{x}>" }.join(" "),
-    }
+      source = @source_mutex.synchronize { @sources[doc[:source_id].to_i] }
+      raise "invalid source #{doc[:source_id]}" unless source
 
-    Message.new :source => source, :source_info => doc[:source_info].to_i, 
-                :labels => doc[:label].split(" ").map { |s| s.intern },
-                :snippet => doc[:snippet], :header => fake_header
+      #puts "building message #{doc[:message_id]} (#{source}##{doc[:source_info]})"
+
+      fake_header = {
+        "date" => Time.at(doc[:date].to_i),
+        "subject" => unwrap_subj(doc[:subject]),
+        "from" => doc[:from],
+        "to" => doc[:to].split(/\s+/).join(", "), # reformat
+        "message-id" => doc[:message_id],
+        "references" => doc[:refs].split(/\s+/).map { |x| "<#{x}>" }.join(" "),
+      }
+
+      Message.new :source => source, :source_info => doc[:source_info].to_i,
+                  :labels => doc[:label].split(" ").map { |s| s.intern },
+                  :snippet => doc[:snippet], :header => fake_header
+    end
   end
 
   def fresh_thread_id; @next_thread_id += 1; end
