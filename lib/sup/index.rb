@@ -416,10 +416,14 @@ EOS
   def drop_entry docno; @index_mutex.synchronize { @index.delete docno } end
 
   def load_entry_for_id mid
-    results = @index_mutex.synchronize { @index.search Ferret::Search::TermQuery.new(:message_id, mid) }
-    return if results.total_hits == 0
-    docid = results.hits[0].doc
-    [docid, @index_mutex.synchronize { @index[docid] } ]
+    @index_mutex.synchronize do
+      results = @index.search Ferret::Search::TermQuery.new(:message_id, mid)
+      return if results.total_hits == 0
+      docid = results.hits[0].doc
+      entry = @index[docid]
+      entry_dup = entry.fields.inject({}) { |h, f| h[f] = entry[f]; h }
+      [docid, entry_dup]
+    end
   end
 
   def load_contacts emails, h={}
@@ -465,7 +469,7 @@ EOS
     q = Ferret::Search::BooleanQuery.new
     q.add_query Ferret::Search::TermQuery.new("source_id", source.id.to_s), :must
     q.add_query Ferret::Search::TermQuery.new("label", label.to_s), :must
-    @index_mutex.synchronize { index.search(q, :limit => 1).total_hits > 0 }
+    @index_mutex.synchronize { @index.search(q, :limit => 1).total_hits > 0 }
   end
 
 protected
