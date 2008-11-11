@@ -32,7 +32,10 @@ class DraftManager
 
   def discard m
     docid, entry = Index.load_entry_for_id m.id
-    raise ArgumentError, "can't find entry for draft: #{m.id.inspect}" unless entry
+    unless entry
+      Redwood::log "can't find entry for draft: #{m.id.inspect}. You probably already discarded it."
+      return
+    end
     raise ArgumentError, "not a draft: source id #{entry[:source_id].inspect}, should be #{DraftManager.source_id.inspect} for #{m.id.inspect} / docno #{docid}" unless entry[:source_id].to_i == DraftManager.source_id
     Index.drop_entry docid
     File.delete @source.fn_for_offset(entry[:source_info])
