@@ -6,7 +6,7 @@ require 'stringio'
 
 include Redwood
 
-class TestMessage < Test::Unit::TestCase
+class TestMBoxParsing < Test::Unit::TestCase
   def setup
   end
 
