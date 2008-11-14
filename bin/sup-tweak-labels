@@ -39,6 +39,7 @@ Options:
 EOS
   opt :add, "One or more labels (comma-separated) to add to every message from the specified sources", :type => String
   opt :remove, "One or more labels (comma-separated) to remove from every message from the specified sources, if those labels are present", :type => String
+  opt :query, "A Sup search query", :type => String
 
   text <<EOS
 
@@ -76,6 +77,10 @@ begin
     ## query to only messages with those labels
     query += " +(" + remove_labels.map { |l| "label:#{l}" }.join(" ") + ")"
   end
+  query += ' ' + opts[:query] if opts[:query]
+
+  qobj, opts = Redwood::Index.parse_user_query_string query
+  query = Redwood::Index.build_query opts.merge(:qobj => qobj)
 
   results = index.ferret.search query, :limit => :all
   num_total = results.total_hits
