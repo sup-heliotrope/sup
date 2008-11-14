@@ -617,3 +617,19 @@ class FinishLine
     @m.synchronize { !@over && @over = true }
   end
 end
+
+class Iconv
+  def self.easy_decode target, charset, text
+    return text if charset =~ /^x-unknown$/i
+    charset = case charset
+                when /UTF[-_]?8/i: "utf-8"
+                when /(iso[-_])?latin[-_]?1$/i: "ISO-8859-1"
+                else charset
+              end
+
+    # Convert:
+    #
+    # Remember - Iconv.open(to, from)!
+    Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]
+  end
+end

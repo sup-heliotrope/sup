@@ -434,11 +434,10 @@ private
   end
 
   def self.convert_from body, charset
-    charset = "utf-8" if charset =~ /UTF_?8/i
     begin
       raise MessageFormatError, "RubyMail decode returned a null body" unless body
       return body unless charset
-      Iconv.iconv($encoding + "//IGNORE", charset, body + " ").join[0 .. -2]
+      Iconv.easy_decode($encoding, charset, body)
     rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence, MessageFormatError => e
       Redwood::log "warning: error (#{e.class.name}) decoding message body from #{charset}: #{e.message}"
       File.open(File.join(BASE_DIR,"unable-to-decode.txt"), "w") { |f| f.write body }

@@ -52,13 +52,8 @@ module Rfc2047
         # WORD.
       end
 
-      charset = "utf-8" if charset =~ /UTF_?8/i
-
-      # Convert:
-      #
-      # Remember - Iconv.open(to, from)!
       begin
-        text = Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]
+        Iconv.easy_decode(target, charset, text)
       rescue Iconv::InvalidCharacter
         text
       end
