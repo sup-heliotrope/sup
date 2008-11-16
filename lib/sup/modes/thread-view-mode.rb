@@ -30,6 +30,7 @@ EOS
     k.add :activate_chunk, "Expand/collapse or activate item", :enter
     k.add :expand_all_messages, "Expand/collapse all messages", 'E'
     k.add :edit_draft, "Edit draft", 'e'
+    k.add :send_draft, "Send draft", 'y'
     k.add :edit_labels, "Edit or add labels for a thread", 'l'
     k.add :expand_all_quotes, "Expand/collapse all quotes in a message", 'o'
     k.add :jump_to_next_open, "Jump to next open message", 'n'
@@ -278,6 +279,18 @@ EOS
       BufferManager.spawn "Edit message", mode
       BufferManager.kill_buffer self.buffer
       mode.edit_message
+    else
+      BufferManager.flash "Not a draft message!"
+    end
+  end
+
+  def send_draft
+    m = @message_lines[curpos] or return
+    if m.is_draft?
+      mode = ResumeMode.new m
+      BufferManager.spawn "Send message", mode
+      BufferManager.kill_buffer self.buffer
+      mode.send_message
     else
       BufferManager.flash "Not a draft message!"
     end
@@ -642,7 +655,7 @@ private
       [[[:missing_message_color, "#{prefix}<an unreceived message>"]]]
     when Message
       message_patina_lines(chunk, state, start, parent, prefix, color, star_color) +
-        (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. To edit, hit 'e'. <<<"]]] : [])
+        (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. Hit 'e' to edit, 'y' to send. <<<"]]] : [])
 
     else
       raise "Bad chunk: #{chunk.inspect}" unless chunk.respond_to?(:inlineable?) ## debugging
