@@ -620,10 +620,11 @@ end
 
 class Iconv
   def self.easy_decode target, charset, text
-    return text if charset =~ /^(x-unknown|unknown-8bit)$/i
+    return text if charset =~ /^(x-unknown|unknown[-_]?8bit|ascii[-_]?7[-_]?bit)$/i
     charset = case charset
                 when /UTF[-_]?8/i: "utf-8"
                 when /(iso[-_])?latin[-_]?1$/i: "ISO-8859-1"
+                when /unicode[-_]1[-_]1[-_]utf[-_]7/i: "utf-7"
                 else charset
               end
 
