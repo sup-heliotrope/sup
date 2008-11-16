@@ -282,13 +282,15 @@ EOS
     query = build_query opts
     offset = 0
     while true
-      results = @index_mutex.synchronize { @index.search query, :sort => "date DESC", :limit => EACH_BY_DATE_NUM, :offset => offset }
+      limit = (opts[:limit])? [EACH_BY_DATE_NUM, opts[:limit] - offset].min : EACH_BY_DATE_NUM
+      results = @index_mutex.synchronize { @index.search query, :sort => "date DESC", :limit => limit, :offset => offset }
       Redwood::log "got #{results.total_hits} results for query (offset #{offset}) #{query.inspect}"
       results.hits.each do |hit|
         yield @index_mutex.synchronize { @index[hit.doc][:message_id] }, lambda { build_message hit.doc }
       end
-      break if offset >= results.total_hits - EACH_BY_DATE_NUM
-      offset += EACH_BY_DATE_NUM
+      break if opts[:limit] and offset >= opts[:limit] - limit
+      break if offset >= results.total_hits - limit
+      offset += limit
     end
   end
 
@@ -560,6 +562,18 @@ protected
         end
       end
       subs = nil if chronic_failure
+    end
+
+    ## limit:42 restrict the search to 42 results
+    subs = subs.gsub(/\blimit:(\S+)\b/) do
+      lim = $1
+      if lim =~ /^\d+$/
+        extraopts[:limit] = lim.to_i
+        ''
+      else
+        BufferManager.flash "Can't understand limit #{lim.inspect}!"
+        subs = nil
+      end
     end
     
     if subs
