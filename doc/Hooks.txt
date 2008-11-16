@@ -12,8 +12,28 @@ class or method definitions, just the executable code itself.
 
 Information passes from Sup to the hook code via Ruby variables
 (actually method calls), and from the hook code back to Sup via a
-return value. Each hook description lists the variables and return
-value expected, if any.
+return value. The values of variables persists across calls to the
+same hook, but is NOT available to other hooks. To make the value of a
+variable available to other hooks, use the get and set methods.  Each
+hook description lists the variables and return value expected, if
+any.
+
+The following special functions are available to hooks:
+* say msg
+  Displays the string msg to the user at the bottom of the screen.
+* log msg
+  Adds the string msg to the log, which the user can access via the
+  buffer list.
+* ask_yes_or_no question
+  Prompts the user with the string question for a yes or no
+  response. Returns true if the user answered yes, false otherwise.
+* get key
+  Gets the cross-hook value associated with key (which is typically a
+  string). If there is no value for a given key, nil is returned.
+* set key value
+  Sets the cross-hook value associated with key to value. key is
+  typically a string, while value can be whatever type it needs to be,
+  including nil.
 
 Some example hooks:
 
@@ -36,3 +56,19 @@ mime-decode:
       `/usr/bin/w3m -dump -T #{content_type} '#{filename}'`
     end
   end
+
+startup:
+  ## runs a background task
+  @bgtask_pid = fork
+  if @bgtask_pid
+    set 'bgtask_pid' @bgtask_pid
+    Process.detach(@bgtask_pid) # so we don't have to wait on it when we go to kill it
+  else
+    exec "background-task args 2&>1 >> /tmp/logfile"
+  end
+
+after-poll:
+  ## kills the background task after the first poll
+  @bgtask_pid = get 'bgtask_pid'
+  Process.kill("TERM", @bgtask_pid) unless @bgtask_pid == nil
+  set 'bgtask_pid' nil

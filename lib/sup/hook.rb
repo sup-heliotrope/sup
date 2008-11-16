@@ -52,6 +52,14 @@ class HookManager
       end
     end
 
+    def get tag
+      HookManager.tags[tag]
+    end
+
+    def set tag, value
+      HookManager.tags[tag] = value
+    end
+
     def __binding 
       binding
     end
@@ -68,11 +76,14 @@ class HookManager
     @hooks = {}
     @descs = {}
     @contexts = {}
-    
+    @tags = {}
+
     Dir.mkdir dir unless File.exists? dir
 
     self.class.i_am_the_instance self
   end
+
+  attr_reader :tags
 
   def run name, locals={}
     hook = hook_for(name) or return
