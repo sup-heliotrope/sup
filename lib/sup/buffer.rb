@@ -433,7 +433,7 @@ EOS
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ""
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
-      completions.select { |x| x =~ /^#{Regexp::escape target}/i }.map { |x| [prefix + x, x] }
+      completions.select { |x| x =~ /^#{Regexp::escape target}/i }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
     end
   end
 
@@ -501,7 +501,7 @@ EOS
     recent = Index.load_contacts(AccountManager.user_emails, :num => 10).map { |c| [c.full_address, c.email] }
     contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.full_address, c.email] }
 
-    completions = (recent + contacts).flatten.uniq.sort
+    completions = (recent + contacts).flatten.uniq
     completions += HookManager.run("extra-contact-addresses") || []
     answer = BufferManager.ask_many_emails_with_completions domain, question, completions, default
 
