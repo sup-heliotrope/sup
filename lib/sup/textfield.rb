@@ -33,7 +33,7 @@ class TextField
     @w, @y, @x, @width = window, y, x, width
     @question = question
     @completion_block = block
-    @field = Ncurses::Form.new_field 1, @width - question.length, @y, @x + question.length, 0, 0
+    @field = Ncurses::Form.new_field 1, @width - question.length, @y, @x + question.length, 256, 0
     @form = Ncurses::Form.new_form [@field]
     @value = default
     Ncurses::Form.post_form @form
