@@ -1,3 +1,5 @@
 # i use vi
 *.swp
 .ditz-config
+# i use emacs
+*~
