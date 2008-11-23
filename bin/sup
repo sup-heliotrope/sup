@@ -194,7 +194,16 @@ begin
   end
 
   until Redwood::exceptions.nonempty? || SuicideManager.die?
-    c = Ncurses.nonblocking_getch
+    c = 
+       begin
+         Ncurses.nonblocking_getch
+       rescue Exception => e
+         if e.is_a?(Interrupt)
+           raise if BufferManager.ask_yes_or_no("Die ungracefully now?")
+           bm.draw_screen
+           nil
+         end
+       end
     next unless c
     bm.erase_flash
 
@@ -208,7 +217,6 @@ begin
       rescue InputSequenceAborted
         :nothing
       end
-
     case action
     when :quit_now
       break if bm.kill_all_buffers_safely
