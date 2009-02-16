@@ -44,6 +44,7 @@ EOS
     k.add :tag_matching, "Tag matching threads", 'g'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", ';'
     k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
+    k.add :undo, "Undo the previous action", 'u'
   end
 
   def initialize hidden_labels=[], load_thread_opts={}
@@ -83,6 +84,7 @@ EOS
 
   def reload
     drop_all_threads
+    UndoManager.clear
     BufferManager.draw_screen
     load_threads :num => buffer.content_height
   end
@@ -206,6 +208,10 @@ EOS
 
   def handle_undeleted_update sender, m
     add_or_unhide m
+  end
+
+  def undo
+    UndoManager.undo
   end
 
   def update
