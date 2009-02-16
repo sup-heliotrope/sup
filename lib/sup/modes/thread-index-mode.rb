@@ -300,13 +300,28 @@ EOS
   end
 
   def actually_toggle_spammed t
+    thread = t
     if t.has_label? :spam
+      undo = lambda {
+        thread.apply_label :spam
+        self.hide_thread thread
+        UpdateManager.relay self,:spammed, thread.first
+      }
       t.remove_label :spam
+      add_or_unhide t.first
       UpdateManager.relay self, :unspammed, t.first
     else
+      undo = lambda {
+        thread.remove_label :spam
+        add_or_unhide thread.first
+        UpdateManager.relay self,:unspammed, thread.first
+      }
       t.apply_label :spam
+      hide_thread t
       UpdateManager.relay self, :spammed, t.first
     end
+
+    return undo
   end
 
   def actually_toggle_deleted t
@@ -390,10 +405,9 @@ EOS
   ## see deleted or spam emails, and when you undelete or unspam them
   ## you also want them to disappear immediately.
   def multi_toggle_spam threads
-    threads.each do |t|
-      actually_toggle_spammed t
-      hide_thread t 
-    end
+    undo = threads.map{ |t| actually_toggle_spammed t}
+    UndoManager.register("marking/unmarking #{threads.size} #{threads.size.pluralize 'thread'} as spam",
+                         undo <<  lambda {self.regen_text})
     regen_text
   end
 
