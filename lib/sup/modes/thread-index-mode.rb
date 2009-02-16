@@ -326,12 +326,26 @@ EOS
 
   def actually_toggle_deleted t
     if t.has_label? :deleted
+      undo = lambda {
+        t.apply_label :deleted
+        hide_thread t
+        UpdateManager.relay self, :deleted, t.first
+      }
       t.remove_label :deleted
+      add_or_unhide t.first
       UpdateManager.relay self, :undeleted, t.first
     else
+      undo = lambda {
+        t.remove_label :deleted
+        add_or_unhide t.first
+        UpdateManager.relay self, :undeleted, t.first
+      }
       t.apply_label :deleted
+  hide_thread t
       UpdateManager.relay self, :deleted, t.first
     end
+
+    return undo
   end
 
   def toggle_archived 
@@ -418,10 +432,9 @@ EOS
 
   ## see comment for multi_toggle_spam
   def multi_toggle_deleted threads
-    threads.each do |t|
-      actually_toggle_deleted t
-      hide_thread t 
-    end
+    undo = threads.map{ |t| actually_toggle_deleted t}
+    UndoManager.register("deleting/undeleting #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda {regen_text})
     regen_text
   end
 
