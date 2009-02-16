@@ -259,13 +259,27 @@ EOS
   end
 
   def actually_toggle_archived t
+    thread = t
+    pos = curpos
     if t.has_label? :inbox
       t.remove_label :inbox
+      undo = lambda {
+        thread.apply_label :inbox
+        update_text_for_line pos
+        UpdateManager.relay self,:unarchived, thread.first
+      }
       UpdateManager.relay self, :archived, t.first
     else
       t.apply_label :inbox
+      undo = lambda {
+        thread.remove_label :inbox
+        update_text_for_line pos
+        UpdateManager.relay self, :unarchived, thread.first
+      }
       UpdateManager.relay self, :unarchived, t.first
     end
+
+    return undo
   end
 
   def actually_toggle_spammed t
@@ -290,12 +304,15 @@ EOS
 
   def toggle_archived 
     t = cursor_thread or return
-    actually_toggle_archived t
+    undo = [actually_toggle_archived(t), lambda {self.update_text_for_line curpos}]
+    UndoManager.register("deleting/undeleting thread #{t.first.id}",undo)
     update_text_for_line curpos
   end
 
   def multi_toggle_archived threads
-    threads.each { |t| actually_toggle_archived t }
+    undo = threads.map { |t| actually_toggle_archived t}
+    UndoManager.register("deleting/undeleting #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda {self.regen_text})
     regen_text
   end
 
