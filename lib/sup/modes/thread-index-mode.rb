@@ -443,11 +443,18 @@ EOS
     multi_kill [t]
   end
 
+  ## m-m-m-m-MULTI-KILL
   def multi_kill threads
-    threads.each do |t|
+    undo = threads.map do |t|
       t.apply_label :killed
       hide_thread t
+      thread = t
+      lambda { thread.remove_label :killed
+        add_or_unhide thread.first
+      }
     end
+    UndoManager.register("killing #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda {regen_text})
     regen_text
     BufferManager.flash "#{threads.size.pluralize 'Thread'} killed."
   end
