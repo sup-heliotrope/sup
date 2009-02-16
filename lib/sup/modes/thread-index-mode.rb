@@ -237,24 +237,41 @@ EOS
   end
 
   def actually_toggle_starred t
+    thread = t # cargo cult programming
+    pos = curpos
     if t.has_label? :starred # if ANY message has a star
+      undo = lambda {
+        thread.first.add_label :starred
+        update_text_for_line pos
+        UpdateManager.relay self, :starred, thread.first
+      }
       t.remove_label :starred # remove from all
       UpdateManager.relay self, :unstarred, t.first
     else
+      undo = lambda {
+        thread.remove_label :starred
+        update_text_for_line pos
+        UpdateManager.relay self, :unstarred, thread.first
+      }
       t.first.add_label :starred # add only to first
       UpdateManager.relay self, :starred, t.first
     end
+
+    return undo
   end  
 
   def toggle_starred 
     t = cursor_thread or return
-    actually_toggle_starred t
+    undo = actually_toggle_starred t
+    UndoManager.register("starring/unstarring thread #{t.first.id}",undo)
     update_text_for_line curpos
     cursor_down
   end
 
   def multi_toggle_starred threads
-    threads.each { |t| actually_toggle_starred t }
+    undo = threads.map { |t| actually_toggle_starred t }
+    UndoManager.register("starring/unstarring #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo)
     regen_text
   end
 
