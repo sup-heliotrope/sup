@@ -509,6 +509,10 @@ EOS
   def edit_labels
     thread = cursor_thread or return
     speciall = (@hidden_labels + LabelManager::RESERVED_LABELS).uniq
+
+    old_labels = thread.labels
+    pos = curpos
+
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
     user_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", modifyl, @hidden_labels
@@ -517,6 +521,15 @@ EOS
     thread.labels = keepl + user_labels
     user_labels.each { |l| LabelManager << l }
     update_text_for_line curpos
+
+    undo = lambda{
+      thread.labels = old_labels
+      update_text_for_line pos
+      UpdateManager.relay self, :labeled, thread.first
+    }
+
+    UndoManager.register("labeling thread #{thread.first.id}", undo)
+
     UpdateManager.relay self, :labeled, thread.first
   end
 
@@ -526,8 +539,18 @@ EOS
     
     hl = user_labels.select { |l| @hidden_labels.member? l }
     if hl.empty?
-      threads.each { |t| user_labels.each { |l| t.apply_label l } }
-      user_labels.each { |l| LabelManager << l }
+      undo = threads.map { |t| old_labels = t.labels
+        user_labels.each { |l| t.apply_label l }
+        ## UpdateManager or some other regresh mechanism?
+        UpdateManager.relay self, :labeled, t.first
+        lambda {
+          t.labels = old_labels
+          UpdateManager.relay self, :labeled, t.first
+        }
+      }
+    user_labels.each { |l| LabelManager << l }
+    UndoManager.register("labeling #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda { regen_text})
     else
       BufferManager.flash "'#{hl}' is a reserved label!"
     end
