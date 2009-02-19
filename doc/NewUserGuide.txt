@@ -190,7 +190,7 @@ and another MUA on the same source, so it's good to be aware of it.
 
 Have fun, and let me know if you have any problems!
 
-Appending A: sup-add and sup-sync
+Appendix A: sup-add and sup-sync
 ---------------------------------
 
 Instead of using sup-config to add a new source, you can manually run
