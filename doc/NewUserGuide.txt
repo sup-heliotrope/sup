@@ -42,7 +42,7 @@ Congratulations, you've got Sup working!
 If you're coming from the world of traditional MUAs, there are a
 couple differences you should be aware of at this point. First, Sup
 has no folders. Instead, you organize and find messages by a
-combination of search and labels (knowns as 'tags' everywhere else in
+combination of search and labels (known as 'tags' everywhere else in
 the world). Search and labels are an integral part of Sup because in
 Sup, rather than viewing the contents of a folder, you view the
 results of a search. I mentioned above that your inbox is, by
