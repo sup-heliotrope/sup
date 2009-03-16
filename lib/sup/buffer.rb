@@ -478,7 +478,9 @@ EOS
     default = default_labels.join(" ")
     default += " " unless default.empty?
 
-    applyable_labels = (LabelManager.applyable_labels - forbidden_labels).map { |l| LabelManager.string_for l }.sort_by { |s| s.downcase }
+    # here I would prefer to give more control and allow all_labels instead of
+    # user_defined_labels only
+    applyable_labels = (LabelManager.user_defined_labels - forbidden_labels).map { |l| LabelManager.string_for l }.sort_by { |s| s.downcase }
 
     answer = ask_many_with_completions domain, question, applyable_labels, default
 
