@@ -567,7 +567,7 @@ protected
   def add_or_unhide m
     @ts_mutex.synchronize do
       if (is_relevant?(m) || @ts.is_relevant?(m)) && !@ts.contains?(m)
-        @ts.load_thread_for_message m
+        @ts.load_thread_for_message m, @load_thread_opts
       end
 
       @hidden_threads.delete @ts.thread_for(m)

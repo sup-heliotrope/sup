@@ -5,8 +5,8 @@ type: :bugfix
 component: indexing
 release: 
 reporter: William Morgan <wmorgan-sup@masanjin.net>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-04-25 19:28:51.369257 Z
 references: []
 
@@ -20,4 +20,10 @@ log_events:
   - William Morgan <wmorgan-sup@masanjin.net>
   - unassigned from release 0.6
   - ""
+- - 2008-11-21 14:23:17.566852 Z
+  - Nicolas Pouillard <nicolas.pouillard@gmail.com>
+  - closed with disposition fixed
+  - |-
+    Loading options was not given to load_thread_for_message in
+    ThreadIndexMode.add_or_unhide.
 git_branch: 
