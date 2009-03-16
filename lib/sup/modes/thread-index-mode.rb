@@ -44,6 +44,7 @@ EOS
     k.add :tag_matching, "Tag matching threads", 'g'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", ';'
     k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
+    k.add :undo, "Undo the previous action", 'u'
   end
 
   def initialize hidden_labels=[], load_thread_opts={}
@@ -83,6 +84,7 @@ EOS
 
   def reload
     drop_all_threads
+    UndoManager.clear
     BufferManager.draw_screen
     load_threads :num => buffer.content_height
   end
@@ -208,6 +210,10 @@ EOS
     add_or_unhide m
   end
 
+  def undo
+    UndoManager.undo
+  end
+
   def update
     @mutex.synchronize do
       ## let's see you do THIS in python
@@ -231,65 +237,128 @@ EOS
   end
 
   def actually_toggle_starred t
+    thread = t # cargo cult programming
+    pos = curpos
     if t.has_label? :starred # if ANY message has a star
+      undo = lambda {
+        thread.first.add_label :starred
+        update_text_for_line pos
+        UpdateManager.relay self, :starred, thread.first
+      }
       t.remove_label :starred # remove from all
       UpdateManager.relay self, :unstarred, t.first
     else
+      undo = lambda {
+        thread.remove_label :starred
+        update_text_for_line pos
+        UpdateManager.relay self, :unstarred, thread.first
+      }
       t.first.add_label :starred # add only to first
       UpdateManager.relay self, :starred, t.first
     end
+
+    return undo
   end  
 
   def toggle_starred 
     t = cursor_thread or return
-    actually_toggle_starred t
+    undo = actually_toggle_starred t
+    UndoManager.register("starring/unstarring thread #{t.first.id}",undo)
     update_text_for_line curpos
     cursor_down
   end
 
   def multi_toggle_starred threads
-    threads.each { |t| actually_toggle_starred t }
+    undo = threads.map { |t| actually_toggle_starred t }
+    UndoManager.register("starring/unstarring #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo)
     regen_text
   end
 
   def actually_toggle_archived t
+    thread = t
+    pos = curpos
     if t.has_label? :inbox
       t.remove_label :inbox
+      undo = lambda {
+        thread.apply_label :inbox
+        update_text_for_line pos
+        UpdateManager.relay self,:unarchived, thread.first
+      }
       UpdateManager.relay self, :archived, t.first
     else
       t.apply_label :inbox
+      undo = lambda {
+        thread.remove_label :inbox
+        update_text_for_line pos
+        UpdateManager.relay self, :unarchived, thread.first
+      }
       UpdateManager.relay self, :unarchived, t.first
     end
+
+    return undo
   end
 
   def actually_toggle_spammed t
+    thread = t
     if t.has_label? :spam
+      undo = lambda {
+        thread.apply_label :spam
+        self.hide_thread thread
+        UpdateManager.relay self,:spammed, thread.first
+      }
       t.remove_label :spam
+      add_or_unhide t.first
       UpdateManager.relay self, :unspammed, t.first
     else
+      undo = lambda {
+        thread.remove_label :spam
+        add_or_unhide thread.first
+        UpdateManager.relay self,:unspammed, thread.first
+      }
       t.apply_label :spam
+      hide_thread t
       UpdateManager.relay self, :spammed, t.first
     end
+
+    return undo
   end
 
   def actually_toggle_deleted t
     if t.has_label? :deleted
+      undo = lambda {
+        t.apply_label :deleted
+        hide_thread t
+        UpdateManager.relay self, :deleted, t.first
+      }
       t.remove_label :deleted
+      add_or_unhide t.first
       UpdateManager.relay self, :undeleted, t.first
     else
+      undo = lambda {
+        t.remove_label :deleted
+        add_or_unhide t.first
+        UpdateManager.relay self, :undeleted, t.first
+      }
       t.apply_label :deleted
+  hide_thread t
       UpdateManager.relay self, :deleted, t.first
     end
+
+    return undo
   end
 
   def toggle_archived 
     t = cursor_thread or return
-    actually_toggle_archived t
+    undo = [actually_toggle_archived(t), lambda {self.update_text_for_line curpos}]
+    UndoManager.register("deleting/undeleting thread #{t.first.id}",undo)
     update_text_for_line curpos
   end
 
   def multi_toggle_archived threads
-    threads.each { |t| actually_toggle_archived t }
+    undo = threads.map { |t| actually_toggle_archived t}
+    UndoManager.register("deleting/undeleting #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda {self.regen_text})
     regen_text
   end
 
@@ -350,10 +419,9 @@ EOS
   ## see deleted or spam emails, and when you undelete or unspam them
   ## you also want them to disappear immediately.
   def multi_toggle_spam threads
-    threads.each do |t|
-      actually_toggle_spammed t
-      hide_thread t 
-    end
+    undo = threads.map{ |t| actually_toggle_spammed t}
+    UndoManager.register("marking/unmarking #{threads.size} #{threads.size.pluralize 'thread'} as spam",
+                         undo <<  lambda {self.regen_text})
     regen_text
   end
 
@@ -364,10 +432,9 @@ EOS
 
   ## see comment for multi_toggle_spam
   def multi_toggle_deleted threads
-    threads.each do |t|
-      actually_toggle_deleted t
-      hide_thread t 
-    end
+    undo = threads.map{ |t| actually_toggle_deleted t}
+    UndoManager.register("deleting/undeleting #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda {regen_text})
     regen_text
   end
 
@@ -376,11 +443,18 @@ EOS
     multi_kill [t]
   end
 
+  ## m-m-m-m-MULTI-KILL
   def multi_kill threads
-    threads.each do |t|
+    undo = threads.map do |t|
       t.apply_label :killed
       hide_thread t
+      thread = t
+      lambda { thread.remove_label :killed
+        add_or_unhide thread.first
+      }
     end
+    UndoManager.register("killing #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda {regen_text})
     regen_text
     BufferManager.flash "#{threads.size.pluralize 'Thread'} killed."
   end
@@ -436,6 +510,10 @@ EOS
   def edit_labels
     thread = cursor_thread or return
     speciall = (@hidden_labels + LabelManager::RESERVED_LABELS).uniq
+
+    old_labels = thread.labels
+    pos = curpos
+
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
     user_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", modifyl, @hidden_labels
@@ -444,6 +522,15 @@ EOS
     thread.labels = keepl + user_labels
     user_labels.each { |l| LabelManager << l }
     update_text_for_line curpos
+
+    undo = lambda{
+      thread.labels = old_labels
+      update_text_for_line pos
+      UpdateManager.relay self, :labeled, thread.first
+    }
+
+    UndoManager.register("labeling thread #{thread.first.id}", undo)
+
     UpdateManager.relay self, :labeled, thread.first
   end
 
@@ -453,8 +540,18 @@ EOS
     
     hl = user_labels.select { |l| @hidden_labels.member? l }
     if hl.empty?
-      threads.each { |t| user_labels.each { |l| t.apply_label l } }
-      user_labels.each { |l| LabelManager << l }
+      undo = threads.map { |t| old_labels = t.labels
+        user_labels.each { |l| t.apply_label l }
+        ## UpdateManager or some other regresh mechanism?
+        UpdateManager.relay self, :labeled, t.first
+        lambda {
+          t.labels = old_labels
+          UpdateManager.relay self, :labeled, t.first
+        }
+      }
+    user_labels.each { |l| LabelManager << l }
+    UndoManager.register("labeling #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda { regen_text})
     else
       BufferManager.flash "'#{hl}' is a reserved label!"
     end

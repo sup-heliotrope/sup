@@ -125,6 +125,7 @@ module Redwood
     Redwood::PollManager.new
     Redwood::SuicideManager.new Redwood::SUICIDE_FN
     Redwood::CryptoManager.new
+    Redwood::UndoManager.new
   end
 
   def finish
@@ -282,6 +283,7 @@ require "sup/tagger"
 require "sup/draft"
 require "sup/poll"
 require "sup/crypto"
+require "sup/undo"
 require "sup/horizontal-selector"
 require "sup/modes/line-cursor-mode"
 require "sup/modes/help-mode"

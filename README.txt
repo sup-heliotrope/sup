@@ -80,7 +80,7 @@ Current limitations which will be fixed:
 - Unix-centrism in MIME attachment handling and in sendmail
   invocation.
 
-- Several obvious missing features, like undo, filters / saved
+- Several obvious missing features, like filters / saved
   searches, message annotations, etc.
 
 == SYNOPSYS:

@@ -26,12 +26,28 @@ class InboxMode < ThreadIndexMode
 
   def archive
     return unless cursor_thread
+    thread = cursor_thread # to make sure lambda only knows about 'old' cursor_thread
+
+    undo = lambda {
+      thread.apply_label :inbox
+      add_or_unhide thread.first
+    }
+    UndoManager.register("archiving thread #{thread.first.id}", undo)
+
     cursor_thread.remove_label :inbox
     hide_thread cursor_thread
     regen_text
   end
 
   def multi_archive threads
+    undo = threads.map {|t|
+             lambda{
+               t.apply_label :inbox
+               add_or_unhide t.first
+             }}
+    UndoManager.register("archiving #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda {regen_text} )
+
     threads.each do |t|
       t.remove_label :inbox
       hide_thread t
@@ -41,6 +57,15 @@ class InboxMode < ThreadIndexMode
 
   def read_and_archive
     return unless cursor_thread
+    thread = cursor_thread # to make sure lambda only knows about 'old' cursor_thread
+
+    undo = lambda {
+      thread.apply_label :inbox
+      thread.apply_label :unread
+      add_or_unhide thread.first
+    }
+    UndoManager.register("reading and archiving thread ", undo)
+
     cursor_thread.remove_label :unread
     cursor_thread.remove_label :inbox
     hide_thread cursor_thread
@@ -48,6 +73,16 @@ class InboxMode < ThreadIndexMode
   end
 
   def multi_read_and_archive threads
+    undo = threads.map {|t|
+      lambda {
+        t.apply_label :inbox
+        t.apply_label :unread
+        add_or_unhide t.first
+      }
+    }
+    UndoManager.register("reading and archiving #{threads.size} #{threads.size.pluralize 'thread'}",
+                         undo << lambda {regen_text})
+
     threads.each do |t|
       t.remove_label :unread
       t.remove_label :inbox
