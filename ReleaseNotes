@@ -1,3 +1,14 @@
+Release 0.7:
+
+The big win in this release is that Ferret index corruption issues should now
+be fixed, thanks to an extensive programming of locking and
+thread-safety-adding.
+
+The other nice change is that text entry will now scroll to the right upon
+overflow, thanks to some arcane Curses magic that Steve Goldman discovered.
+
+As always, this release includes many other bugfixes and enhancements.
+
 Release 0.6:
 
 Message attachment searchability automatically takes effect on new messages,
