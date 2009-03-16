@@ -448,13 +448,22 @@ EOS
   end
 
   def multi_edit_labels threads
-    user_labels = BufferManager.ask_for_labels :add_labels, "Add labels: ", [], @hidden_labels
+    user_labels = BufferManager.ask_for_labels :labels, "Add/remove labels (use -label to remove): ", [], @hidden_labels
     return unless user_labels
-    
-    hl = user_labels.select { |l| @hidden_labels.member? l }
+
+    user_labels.map! { |l| (l.to_s =~ /^-/)? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
+    hl = user_labels.select { |(l,_)| @hidden_labels.member? l }
     if hl.empty?
-      threads.each { |t| user_labels.each { |l| t.apply_label l } }
-      user_labels.each { |l| LabelManager << l }
+      threads.each do |t|
+        user_labels.each do |(l, to_remove)|
+          if to_remove
+            t.remove_label l
+          else
+            t.apply_label l
+          end
+        end
+      end
+      user_labels.each { |(l,_)| LabelManager << l }
     else
       BufferManager.flash "'#{hl}' is a reserved label!"
     end
