@@ -143,12 +143,7 @@ begin
       next if target == :changed && entry && entry[:source_id].to_i == source.id && entry[:source_info].to_i == offset
 
       ## get the state currently in the index
-      index_state =
-        if entry
-          entry[:label].split(/\s+/).map { |x| x.intern }
-        else
-          nil
-        end
+      index_state = entry[:label].split(/\s+/).map { |x| x.intern } if entry
 
       ## skip if we're operating on restored messages, and this one
       ## ain't.
@@ -163,7 +158,7 @@ begin
       ## assign message labels based on the operation we're performing
       case op
       when :asis
-        m.labels = index_state if index_state
+        m.labels = (m.labels + index_state).uniq if index_state
       when :restore
         ## if the entry exists on disk
         if restored_state[m.id]
