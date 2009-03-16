@@ -1,22 +1,5 @@
 module Redwood
 
-class PersonManager
-  include Singleton
-
-  def initialize
-    self.class.i_am_the_instance self
-  end
-
-  def self.people_for s
-    return [] if s.nil?
-    s.split_on_commas.map { |ss| self.person_for ss }
-  end
-
-  def self.person_for s
-    Person.from_address(s)
-  end
-end
-
 class Person 
   attr_accessor :name, :email
 
@@ -108,6 +91,11 @@ class Person
       end
 
     Person.new name, email
+  end
+
+  def self.from_address_list ss
+    return [] if ss.nil?
+    ss.split_on_commas.map { |s| self.from_address s }
   end
 
   def indexable_content

@@ -78,10 +78,10 @@ class Message
     
     @from =
       if header["from"]
-        PersonManager.person_for header["from"]
+        Person.from_address header["from"]
       else
         fakename = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
-        PersonManager.person_for fakename
+        Person.from_address fakename
       end
 
     Redwood::log "faking message-id for message from #@from: #{id}" if fakeid
@@ -105,9 +105,9 @@ class Message
       end
 
     @subj = header.member?("subject") ? header["subject"].gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
-    @to = PersonManager.people_for header["to"]
-    @cc = PersonManager.people_for header["cc"]
-    @bcc = PersonManager.people_for header["bcc"]
+    @to = Person.from_address_list header["to"]
+    @cc = Person.from_address_list header["cc"]
+    @bcc = Person.from_address_list header["bcc"]
 
     ## before loading our full header from the source, we can actually
     ## have some extra refs set by the UI. (this happens when the user
@@ -117,10 +117,10 @@ class Message
     @refs = (@refs + refs).uniq
     @replytos = (header["in-reply-to"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
 
-    @replyto = PersonManager.person_for header["reply-to"]
+    @replyto = Person.from_address header["reply-to"]
     @list_address =
       if header["list-post"]
-        @list_address = PersonManager.person_for header["list-post"].gsub(/^<mailto:|>$/, "")
+        @list_address = Person.from_address header["list-post"].gsub(/^<mailto:|>$/, "")
       else
         nil
       end
@@ -391,7 +391,7 @@ private
     elsif m.header.content_type == "message/rfc822"
       payload = RMail::Parser.read(m.body)
       from = payload.header.from.first
-      from_person = from ? PersonManager.person_for(from.format) : nil
+      from_person = from ? Person.from_address(from.format) : nil
       [Chunk::EnclosedMessage.new(from_person, payload.to_s)] +
         message_to_chunks(payload, encrypted)
     else

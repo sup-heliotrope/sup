@@ -114,7 +114,6 @@ module Redwood
   end
 
   def start
-    Redwood::PersonManager.new
     Redwood::SentManager.new Redwood::SENT_FN
     Redwood::ContactManager.new Redwood::CONTACT_FN
     Redwood::LabelManager.new Redwood::LABEL_FN

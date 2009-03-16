@@ -449,9 +449,9 @@ EOS
         t = @index[docid][:to]
 
         if AccountManager.is_account_email? f
-          t.split(" ").each { |e| contacts[PersonManager.person_for(e)] = true }
+          t.split(" ").each { |e| contacts[Person.from_address(e)] = true }
         else
-          contacts[PersonManager.person_for(f)] = true
+          contacts[Person.from_address(f)] = true
         end
       end
     end
