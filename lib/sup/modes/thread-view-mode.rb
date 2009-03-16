@@ -260,7 +260,8 @@ EOS
     chunk = @chunk_lines[curpos] or return
     case chunk
     when Chunk::Attachment
-      fn = BufferManager.ask_for_filename :filename, "Save attachment to file: ", ($config[:default_attachment_save_dir] + chunk.filename)
+      default_dir = File.join(($config[:default_attachment_save_dir] || "."), chunk.filename)
+      fn = BufferManager.ask_for_filename :filename, "Save attachment to file: ", default_dir
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn
     else
       m = @message_lines[curpos]
