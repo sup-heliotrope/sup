@@ -11,7 +11,7 @@ module Redwood
 ## TODO: move functionality to somewhere better, like message.rb
 module MBox
   BREAK_RE = /^From \S+/
-  HEADER_RE = /\s*(.*?\S)\s*/
+  HEADER_RE = /\s*(.*?)\s*/
 
   def read_header f
     header = {}
