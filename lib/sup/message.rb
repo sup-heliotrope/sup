@@ -64,7 +64,7 @@ class Message
   end
 
   def parse_header header
-    header.keys.each { |k| header[k.downcase] = v } # canonicalize
+    header.keys.each { |k| header[k.downcase] = header[k] } # canonicalize
 
     fakeid = nil
     fakename = nil
