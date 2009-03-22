@@ -39,7 +39,7 @@ module MBox
         /^(List-Subscribe):#{HEADER_RE}$/i,
         /^(List-Unsubscribe):#{HEADER_RE}$/i,
         /^(Status):#{HEADER_RE}$/i,
-	/^(X-\S+):#{HEADER_RE}$/: header[last = $1] = $2
+        /^(X-\S+):#{HEADER_RE}$/: header[last = $1] = $2
       when /^(Message-Id):#{HEADER_RE}$/i: header[mid_field = last = $1] = $2
 
       when /^\r*$/: break
