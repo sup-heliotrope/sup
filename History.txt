@@ -1,3 +1,15 @@
+== 0.7 / 2009-03-16
+* Ferret index corruption issues fixed (hopefully!)
+* Text entry now scrolls to the right on overflow, i.e. is actually usable
+* Ctrl-C now asks user if Sup should die ungracefully
+* Add a limit:<int> search operator to limit the number of results
+* Added a --query option to sup-tweak-labels
+* Added a new hook: shutdown
+* Automatically add self as recipient on crypted sent messages
+* Read in X-Foo headers
+* Added global keybinding 'U' shows only unread messages
+* As always, many bugfixes and tweaks
+
 == 0.6 / 2008-08-04
 * new hooks: mark-as-spam, reply-to, reply-from
 * configurable colors. finally!

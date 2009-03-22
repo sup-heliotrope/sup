@@ -11,7 +11,7 @@ module Redwood
 ## TODO: move functionality to somewhere better, like message.rb
 module MBox
   BREAK_RE = /^From \S+/
-  HEADER_RE = /\s*(.*?\S)\s*/
+  HEADER_RE = /\s*(.*?)\s*/
 
   def read_header f
     header = {}
@@ -39,7 +39,7 @@ module MBox
         /^(List-Subscribe):#{HEADER_RE}$/i,
         /^(List-Unsubscribe):#{HEADER_RE}$/i,
         /^(Status):#{HEADER_RE}$/i,
-	/^(X-\S+):#{HEADER_RE}$/: header[last = $1] = $2
+        /^(X-\S+):#{HEADER_RE}$/: header[last = $1] = $2
       when /^(Message-Id):#{HEADER_RE}$/i: header[mid_field = last = $1] = $2
 
       when /^\r*$/: break
