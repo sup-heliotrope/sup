@@ -163,7 +163,6 @@ begin
   Logger.make_buf
 
   bm.draw_screen
-  trap("SIGWINCH") { bm.completely_redraw_screen }
 
   Index.usual_sources.each do |s|
     next unless s.respond_to? :connect
