@@ -71,7 +71,7 @@ begin
   end.map { |s| s.id }
   Trollop::die "nothing to do: no sources" if source_ids.empty?
 
-  query = "+(" + source_ids.map { |id| "source_id:#{id}" }.join(" ") + ")"
+  query = "+(" + source_ids.map { |id| "source_id:#{id}" }.join(" OR ") + ")"
   if add_labels.empty?
     ## if all we're doing is removing labels, we can further restrict the
     ## query to only messages with those labels
