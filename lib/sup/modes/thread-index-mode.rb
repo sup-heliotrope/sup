@@ -535,23 +535,31 @@ EOS
   end
 
   def multi_edit_labels threads
-    user_labels = BufferManager.ask_for_labels :add_labels, "Add labels: ", [], @hidden_labels
+    user_labels = BufferManager.ask_for_labels :labels, "Add/remove labels (use -label to remove): ", [], @hidden_labels
     return unless user_labels
-    
-    hl = user_labels.select { |l| @hidden_labels.member? l }
+
+    user_labels.map! { |l| (l.to_s =~ /^-/)? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
+    hl = user_labels.select { |(l,_)| @hidden_labels.member? l }
     if hl.empty?
-      undo = threads.map { |t| old_labels = t.labels
-        user_labels.each { |l| t.apply_label l }
+      undo = threads.map do |t|
+        old_labels = t.labels
+        user_labels.each do |(l, to_remove)|
+          if to_remove
+            t.remove_label l
+          else
+            t.apply_label l
+          end
+        end
         ## UpdateManager or some other regresh mechanism?
         UpdateManager.relay self, :labeled, t.first
-        lambda {
+        lambda do
           t.labels = old_labels
           UpdateManager.relay self, :labeled, t.first
-        }
-      }
-    user_labels.each { |l| LabelManager << l }
-    UndoManager.register("labeling #{threads.size} #{threads.size.pluralize 'thread'}",
-                         undo << lambda { regen_text})
+        end
+      end
+      user_labels.each { |(l,_)| LabelManager << l }
+      UndoManager.register("labeling #{threads.size} #{threads.size.pluralize 'thread'}",
+                          undo << lambda { regen_text})
     else
       BufferManager.flash "'#{hl}' is a reserved label!"
     end
