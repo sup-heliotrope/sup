@@ -158,7 +158,7 @@ begin
       ## assign message labels based on the operation we're performing
       case op
       when :asis
-        m.labels = (m.labels + index_state).uniq if index_state
+        m.labels = ((m.labels - [:unread, :inbox]) + index_state).uniq if index_state
       when :restore
         ## if the entry exists on disk
         if restored_state[m.id]
