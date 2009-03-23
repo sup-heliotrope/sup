@@ -23,9 +23,9 @@ class Colormap
     :labellist_new => { :fg => "white", :bg => "default", :attrs => ["bold"] },
     :twiddle => { :fg => "blue", :bg => "default" },
     :label => { :fg => "yellow", :bg => "default" },
-    :message_patina => { :fg => "default", :bg => "green" },
-    :alternate_patina => { :fg => "default", :bg => "blue" },
-    :missing_message => { :fg => "default", :bg => "red" },
+    :message_patina => { :fg => "black", :bg => "green" },
+    :alternate_patina => { :fg => "black", :bg => "blue" },
+    :missing_message => { :fg => "black", :bg => "red" },
     :attachment => { :fg => "cyan", :bg => "default" },
     :cryptosig_valid => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
     :cryptosig_unknown => { :fg => "cyan", :bg => "default" },
@@ -46,7 +46,7 @@ class Colormap
     :completion_character => { :fg => "white", :bg => "default", :attrs => ["bold"] },
     :horizontal_selector_selected => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
     :horizontal_selector_unselected => { :fg => "cyan", :bg => "default" },
-    :search_highlight => { :fg => "default", :bg => "yellow", :attrs => ["bold"] }
+    :search_highlight => { :fg => "black", :bg => "yellow", :attrs => ["bold"] }
   }
   
   def initialize
