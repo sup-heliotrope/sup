@@ -108,7 +108,7 @@ Current limitations which will be fixed:
 
 == INSTALL:
 
-* gem install sup -y
+* gem install sup
 
 == PROBLEMS:
 
@@ -116,7 +116,7 @@ See FAQ.txt for some common problems and their solutions.
 
 == LICENSE:
 
-Copyright (c) 2006, 2007 William Morgan.
+Copyright (c) 2006--2009 William Morgan.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
