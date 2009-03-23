@@ -74,15 +74,19 @@ EOS
     end
   end
 
-  def test_ignore_empty_lines
+  def test_blank_lines
+    h = MBox.read_header StringIO.new("")
+    assert_equal nil, h["Message-Id"]
+  end
+
+  def test_empty_headers
     variants = [
-      "",
       "Message-Id:       \n",
       "Message-Id:\n",
     ]
     variants.each do |s|
       h = MBox.read_header StringIO.new(s)
-      assert_nil h["Message-Id"]
+      assert_equal "", h["Message-Id"]
     end
   end
 
