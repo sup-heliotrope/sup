@@ -86,6 +86,7 @@ def start_cursing
   Ncurses.noecho
   Ncurses.cbreak
   Ncurses.stdscr.keypad 1
+  Ncurses.use_default_colors
   Ncurses.curs_set 0
   Ncurses.start_color
   $cursing = true
