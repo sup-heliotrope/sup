@@ -246,8 +246,17 @@ EOS
       :snippet => snippet, # always override
       :label => labels.uniq.join(" "),
       :attachments => (entry[:attachments] || m.attachments.uniq.join(" ")),
-      :from => (entry[:from] || (m.from ? m.from.indexable_content : "")),
-      :to => (entry[:to] || (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" ")),
+
+      ## always override :from and :to.
+      ## older versions of Sup would often store the wrong thing in the index
+      ## (because they were canonicalizing email addresses, resulting in the
+      ## wrong name associated with each.) the correct address is read from
+      ## the original header when these messages are opened in thread-view-mode,
+      ## so this allows people to forcibly update the address in the index by
+      ## marking those threads for saving.
+      :from => (m.from ? m.from.indexable_content : ""),
+      :to => (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" "),
+
       :subject => (entry[:subject] || wrap_subj(Message.normalize_subj(m.subj))),
       :refs => (entry[:refs] || (m.refs + m.replytos).uniq.join(" ")),
     }
