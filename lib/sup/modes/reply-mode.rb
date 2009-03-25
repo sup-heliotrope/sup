@@ -63,7 +63,7 @@ EOS
       if hook_reply_from
         hook_reply_from
       elsif @m.recipient_email && AccountManager.is_account_email?(@m.recipient_email)
-        PersonManager.person_for(@m.recipient_email)
+        Person.from_address(@m.recipient_email)
       elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
         b
       else

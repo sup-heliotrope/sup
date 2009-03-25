@@ -53,7 +53,6 @@ module Redwood
   COLOR_FN   = File.join(BASE_DIR, "colors.yaml")
   SOURCE_FN  = File.join(BASE_DIR, "sources.yaml")
   LABEL_FN   = File.join(BASE_DIR, "labels.txt")
-  PERSON_FN  = File.join(BASE_DIR, "people.txt")
   CONTACT_FN = File.join(BASE_DIR, "contacts.txt")
   DRAFT_DIR  = File.join(BASE_DIR, "drafts")
   SENT_FN    = File.join(BASE_DIR, "sent.mbox")
@@ -115,7 +114,6 @@ module Redwood
   end
 
   def start
-    Redwood::PersonManager.new Redwood::PERSON_FN
     Redwood::SentManager.new Redwood::SENT_FN
     Redwood::ContactManager.new Redwood::CONTACT_FN
     Redwood::LabelManager.new Redwood::LABEL_FN
@@ -131,7 +129,6 @@ module Redwood
   def finish
     Redwood::LabelManager.save if Redwood::LabelManager.instantiated?
     Redwood::ContactManager.save if Redwood::ContactManager.instantiated?
-    Redwood::PersonManager.save if Redwood::PersonManager.instantiated?
     Redwood::BufferManager.deinstantiate! if Redwood::BufferManager.instantiated?
   end
 

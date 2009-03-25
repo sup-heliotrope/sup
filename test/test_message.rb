@@ -29,11 +29,6 @@ module Redwood
 class TestMessage < Test::Unit::TestCase
   
   def setup
-    person_file = StringIO.new("")
-    # this is a singleton
-    if not PersonManager.instantiated?
-      @person_manager = PersonManager.new(person_file)
-    end
   end
   
   def teardown

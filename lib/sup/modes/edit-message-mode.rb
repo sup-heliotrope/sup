@@ -321,8 +321,8 @@ protected
 
     ## do whatever crypto transformation is necessary
     if @crypto_selector && @crypto_selector.val != :none
-      from_email = PersonManager.person_for(@header["From"]).email
-      to_email = [@header["To"], @header["Cc"], @header["Bcc"]].flatten.compact.map { |p| PersonManager.person_for(p).email }
+      from_email = Person.from_address(@header["From"]).email
+      to_email = [@header["To"], @header["Cc"], @header["Bcc"]].flatten.compact.map { |p| Person.from_address(p).email }
 
       m = CryptoManager.send @crypto_selector.val, from_email, to_email, m
     end
@@ -412,7 +412,7 @@ private
   end
 
   def sig_lines
-    p = PersonManager.person_for(@header["From"])
+    p = Person.from_address(@header["From"])
     from_email = p && p.email
 
     ## first run the hook

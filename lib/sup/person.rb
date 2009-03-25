@@ -1,62 +1,9 @@
 module Redwood
 
-class PersonManager
-  include Singleton
-
-  def initialize fn
-    @fn = fn
-    @@people = {}
-
-    ## read in stored people
-    IO.readlines(fn).map do |l|
-      l =~ /^(.*)?:\s+(\d+)\s+(.*)$/ or next
-      email, time, name = $1, $2, $3
-      @@people[email] = Person.new name, email, time, false
-    end if File.exists? fn
-
-    self.class.i_am_the_instance self
-  end
-
-  def save
-    File.open(@fn, "w") do |f|
-      @@people.each do |email, p|
-        next if p.email == p.name
-        next if p.name =~ /=/ # drop rfc2047-encoded, and lots of other useless emails. definitely a heuristic.
-        f.puts "#{p.email}: #{p.timestamp} #{p.name}"
-      end
-    end
-  end
-
-  def self.people_for s, opts={}
-    return [] if s.nil?
-    s.split_on_commas.map { |ss| self.person_for ss, opts }
-  end
-
-  def self.person_for s, opts={}
-    p = Person.from_address(s) or return nil
-    p.definitive = true if opts[:definitive]
-    register p
-  end
-  
-  def self.register p
-    oldp = @@people[p.email]
-
-    if oldp.nil? || p.better_than?(oldp)
-      @@people[p.email] = p
-    end
-
-    @@people[p.email].touch!
-    @@people[p.email]
-  end
-end
-
-## don't create these by hand. rather, go through personmanager, to
-## ensure uniqueness and overriding.
 class Person 
-  attr_accessor :name, :email, :timestamp
-  bool_accessor :definitive
+  attr_accessor :name, :email
 
-  def initialize name, email, timestamp=0, definitive=false
+  def initialize name, email
     raise ArgumentError, "email can't be nil" unless email
     
     if name
@@ -67,25 +14,9 @@ class Person
     end
 
     @email = email.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ").downcase
-    @definitive = definitive
-    @timestamp = timestamp
-  end
-
-  ## heuristic: whether the name attached to this email is "real", i.e. 
-  ## we should bother to store it.
-  def generic?
-    @email =~ /no\-?reply/
-  end
-
-  def better_than? o
-    return false if o.definitive? || generic?
-    return true if definitive?
-    o.name.nil? || (name && name.length > o.name.length && name =~ /[a-z]/)
   end
 
   def to_s; "#@name <#@email>" end
-
-  def touch!; @timestamp = Time.now.to_i end
 
 #   def == o; o && o.email == email; end
 #   alias :eql? :==
@@ -146,8 +77,20 @@ class Person
     return nil if s.nil?
 
     ## try and parse an email address and name
-    name, email =
-      case s
+    name, email = case s
+      when /(.+?) ((\S+?)@\S+) \3/
+        ## ok, this first match cause is insane, but bear with me.  email
+        ## addresses are stored in the to/from/etc fields of the index in a
+        ## weird format: "name address first-part-of-address", i.e.  spaces
+        ## separating those three bits, and no <>'s. this is the output of
+        ## #indexable_content. here, we reverse-engineer that format to extract
+        ## a valid address.
+        ##
+        ## we store things this way to allow searches on a to/from/etc field to
+        ## match any of those parts. a more robust solution would be to store a
+        ## separate, non-indexed field with the proper headers. but this way we
+        ## save precious bits, and it's backwards-compatible with older indexes.
+        [$1, $2]
       when /["'](.*?)["'] <(.*?)>/, /([^,]+) <(.*?)>/
         a, b = $1, $2
         [a.gsub('\"', '"'), b]
@@ -162,6 +105,12 @@ class Person
     Person.new name, email
   end
 
+  def self.from_address_list ss
+    return [] if ss.nil?
+    ss.split_on_commas.map { |s| self.from_address s }
+  end
+
+  ## see comments in self.from_address
   def indexable_content
     [name, email, email.split(/@/).first].join(" ")
   end

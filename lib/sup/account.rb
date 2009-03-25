@@ -5,8 +5,8 @@ class Account < Person
 
   def initialize h
     raise ArgumentError, "no name for account" unless h[:name]
-    raise ArgumentError, "no name for email" unless h[:name]
-    super h[:name], h[:email], 0, true
+    raise ArgumentError, "no email for account" unless h[:email]
+    super h[:name], h[:email]
     @sendmail = h[:sendmail]
     @signature = h[:signature]
   end
@@ -42,7 +42,6 @@ class AccountManager
     hash[:alternates] ||= []
 
     a = Account.new hash
-    PersonManager.register a
     @accounts[a] = true
 
     if default
