@@ -14,7 +14,8 @@ vi www/index.html # and include CONTRIBUTORS
 git checkout -b release-<releasename>
 vi lib/sup.rb bin/sup # and bump BOTH version numbers
 # ... git add, commit, etc
-gem1.8 build sup.gemspec
+rake gem
+rake tarball
 # manually upload
 git publish-branch
 rake upload_webpage
