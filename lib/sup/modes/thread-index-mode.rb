@@ -68,6 +68,8 @@ EOS
 
     UpdateManager.register self
 
+    @save_thread_mutex = Mutex.new
+
     @last_load_more_size = nil
     to_load_more do |size|
       next if @last_load_more_size == 0
@@ -386,14 +388,18 @@ EOS
   end
 
   def save
-    BufferManager.say("Saving contacts...") { ContactManager.instance.save }
-    dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
-    return if dirty_threads.empty?
+    Redwood::reporting_thread("saving thread") do
+      @save_thread_mutex.synchronize do
+        BufferManager.say("Saving contacts...") { ContactManager.instance.save }
+        dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
+        return if dirty_threads.empty?
 
-    BufferManager.say("Saving threads...") do |say_id|
-      dirty_threads.each_with_index do |t, i|
-        BufferManager.say "Saving modified thread #{i + 1} of #{dirty_threads.length}...", say_id
-        t.save Index
+        BufferManager.say("Saving threads...") do |say_id|
+          dirty_threads.each_with_index do |t, i|
+            BufferManager.say "Saving modified thread #{i + 1} of #{dirty_threads.length}...", say_id
+            t.save Index
+          end
+        end
       end
     end
   end
