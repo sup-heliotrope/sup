@@ -53,22 +53,29 @@ EOS
     hook_reply_from = HookManager.run "reply-from", :message => @m
 
     ## sanity check that selection is a Person (or we'll fail below)
-    ## don't check that it's an Account, though; assume they know what they're doing.
+    ## don't check that it's an Account, though; assume they know what they're
+    ## doing.
     if hook_reply_from && !(hook_reply_from.is_a? Person)
-        Redwood::log "reply-from returned non-Person, using default from."
-        hook_reply_from = nil
+      Redwood::log "reply-from returned non-Person, using default from."
+      hook_reply_from = nil
     end
 
-    from =
-      if hook_reply_from
-        hook_reply_from
-      elsif @m.recipient_email && AccountManager.is_account_email?(@m.recipient_email)
-        Person.from_address(@m.recipient_email)
-      elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
-        b
-      else
-        AccountManager.default_account
-      end
+    ## determine the from address of a reply.
+    ## if we have a value from a hook, use it.
+    from = if hook_reply_from
+      hook_reply_from
+    ## otherwise, if the original email was addressed to a particular
+    ## address via an envelope-to or whatever, try and use that one.
+    elsif @m.recipient_email && (a = AccountManager.account_for(@m.recipient_email))
+      a
+    ## otherwise, try and find an account somewhere in the list of to's
+    ## and cc's.
+    elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
+      b
+    ## if all else fails, use the default
+    else
+      AccountManager.default_account
+    end
 
     ## now, determine to: and cc: addressess. we ignore reply-to for list
     ## messages because it's typically set to the list address, which we
