@@ -64,10 +64,14 @@ EOS
     ## if we have a value from a hook, use it.
     from = if hook_reply_from
       hook_reply_from
-    ## otherwise, if the original email was addressed to a particular
-    ## address via an envelope-to or whatever, try and use that one.
+    ## otherwise, if the original email had an envelope-to header, try and use
+    ## it, and look up the corresponding name form the list of accounts.
+    ##
+    ## this is for the case where mail is received from a mailing lists (so the
+    ## To: is the list id itself). if the user subscribes via a particular
+    ## alias, we want to use that alias in the reply.
     elsif @m.recipient_email && (a = AccountManager.account_for(@m.recipient_email))
-      a
+      Person.new a.name, @m.recipient_email
     ## otherwise, try and find an account somewhere in the list of to's
     ## and cc's.
     elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
