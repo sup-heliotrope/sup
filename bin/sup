@@ -243,7 +243,7 @@ begin
     when :search_unread
       SearchResultsMode.spawn_from_query "is:unread"
     when :list_labels
-      labels = LabelManager.listable_labels.map { |l| LabelManager.string_for l }
+      labels = LabelManager.all_labels.map { |l| LabelManager.string_for l }
       user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
       unless user_label.nil?
         if user_label.empty?
