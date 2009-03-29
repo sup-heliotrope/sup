@@ -424,9 +424,14 @@ EOS
   end
 
   def tag_matching
-    query = BufferManager.ask :search, "tag threads matching: "
+    query = BufferManager.ask :search, "tag threads matching (regex): "
     return if query.nil? || query.empty?
-    query = /#{query}/i
+    query = begin
+      /#{query}/i
+    rescue RegexpError => e
+      BufferManager.flash "error interpreting '#{query}': #{e.message}"
+      return
+    end
     @mutex.synchronize { @threads.each { |t| @tags.tag t if thread_matches?(t, query) } }
     regen_text
   end
