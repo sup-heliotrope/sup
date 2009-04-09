@@ -51,8 +51,8 @@ module Redwood
 class InputSequenceAborted < StandardError; end
 
 class Buffer
-  attr_reader :mode, :x, :y, :width, :height, :title
-  bool_reader :dirty
+  attr_reader :mode, :x, :y, :width, :height, :title, :atime
+  bool_reader :dirty, :system
   bool_accessor :force_to_top
 
   def initialize window, mode, width, height, opts={}
@@ -63,6 +63,8 @@ class Buffer
     @title = opts[:title] || ""
     @force_to_top = opts[:force_to_top] || false
     @x, @y, @width, @height = 0, 0, width, height
+    @atime = Time.at 0
+    @system = opts[:system] || false
   end
 
   def content_height; @height - 1; end
@@ -97,6 +99,7 @@ class Buffer
     @mode.draw
     draw_status status
     commit
+    @atime = Time.now
   end
 
   ## s nil means a blank line!
@@ -338,7 +341,7 @@ EOS
     ## w = Ncurses::WINDOW.new(height, width, (opts[:top] || 0),
     ## (opts[:left] || 0))
     w = Ncurses.stdscr
-    b = Buffer.new w, mode, width, height, :title => realtitle, :force_to_top => (opts[:force_to_top] || false)
+    b = Buffer.new w, mode, width, height, :title => realtitle, :force_to_top => opts[:force_to_top], :system => opts[:system]
     mode.buffer = b
     @name_map[realtitle] = b
 
