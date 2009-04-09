@@ -53,22 +53,33 @@ EOS
     hook_reply_from = HookManager.run "reply-from", :message => @m
 
     ## sanity check that selection is a Person (or we'll fail below)
-    ## don't check that it's an Account, though; assume they know what they're doing.
+    ## don't check that it's an Account, though; assume they know what they're
+    ## doing.
     if hook_reply_from && !(hook_reply_from.is_a? Person)
-        Redwood::log "reply-from returned non-Person, using default from."
-        hook_reply_from = nil
+      Redwood::log "reply-from returned non-Person, using default from."
+      hook_reply_from = nil
     end
 
-    from =
-      if hook_reply_from
-        hook_reply_from
-      elsif @m.recipient_email && AccountManager.is_account_email?(@m.recipient_email)
-        PersonManager.person_for(@m.recipient_email)
-      elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
-        b
-      else
-        AccountManager.default_account
-      end
+    ## determine the from address of a reply.
+    ## if we have a value from a hook, use it.
+    from = if hook_reply_from
+      hook_reply_from
+    ## otherwise, if the original email had an envelope-to header, try and use
+    ## it, and look up the corresponding name form the list of accounts.
+    ##
+    ## this is for the case where mail is received from a mailing lists (so the
+    ## To: is the list id itself). if the user subscribes via a particular
+    ## alias, we want to use that alias in the reply.
+    elsif @m.recipient_email && (a = AccountManager.account_for(@m.recipient_email))
+      Person.new a.name, @m.recipient_email
+    ## otherwise, try and find an account somewhere in the list of to's
+    ## and cc's.
+    elsif(b = (@m.to + @m.cc).find { |p| AccountManager.is_account? p })
+      b
+    ## if all else fails, use the default
+    else
+      AccountManager.default_account
+    end
 
     ## now, determine to: and cc: addressess. we ignore reply-to for list
     ## messages because it's typically set to the list address, which we

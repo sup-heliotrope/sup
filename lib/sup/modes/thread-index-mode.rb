@@ -68,6 +68,8 @@ EOS
 
     UpdateManager.register self
 
+    @save_thread_mutex = Mutex.new
+
     @last_load_more_size = nil
     to_load_more do |size|
       next if @last_load_more_size == 0
@@ -385,15 +387,25 @@ EOS
     BufferManager.flash "#{threads.size.pluralize 'Thread'} killed."
   end
 
-  def save
-    BufferManager.say("Saving contacts...") { ContactManager.instance.save }
-    dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
-    return if dirty_threads.empty?
+  def save background=true
+    if background
+      Redwood::reporting_thread("saving thread") { actually_save }
+    else
+      actually_save
+    end
+  end
 
-    BufferManager.say("Saving threads...") do |say_id|
-      dirty_threads.each_with_index do |t, i|
-        BufferManager.say "Saving modified thread #{i + 1} of #{dirty_threads.length}...", say_id
-        t.save Index
+  def actually_save
+    @save_thread_mutex.synchronize do
+      BufferManager.say("Saving contacts...") { ContactManager.instance.save }
+      dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
+      next if dirty_threads.empty?
+
+      BufferManager.say("Saving threads...") do |say_id|
+        dirty_threads.each_with_index do |t, i|
+          BufferManager.say "Saving modified thread #{i + 1} of #{dirty_threads.length}...", say_id
+          t.save Index
+        end
       end
     end
   end
@@ -407,7 +419,7 @@ EOS
       sleep 0.1 # TODO: necessary?
       BufferManager.erase_flash
     end
-    save
+    save false
     super
   end
 
@@ -453,13 +465,22 @@ EOS
   end
 
   def multi_edit_labels threads
-    user_labels = BufferManager.ask_for_labels :add_labels, "Add labels: ", [], @hidden_labels
+    user_labels = BufferManager.ask_for_labels :labels, "Add/remove labels (use -label to remove): ", [], @hidden_labels
     return unless user_labels
-    
-    hl = user_labels.select { |l| @hidden_labels.member? l }
+
+    user_labels.map! { |l| (l.to_s =~ /^-/)? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
+    hl = user_labels.select { |(l,_)| @hidden_labels.member? l }
     if hl.empty?
-      threads.each { |t| user_labels.each { |l| t.apply_label l } }
-      user_labels.each { |l| LabelManager << l }
+      threads.each do |t|
+        user_labels.each do |(l, to_remove)|
+          if to_remove
+            t.remove_label l
+          else
+            t.apply_label l
+          end
+        end
+      end
+      user_labels.each { |(l,_)| LabelManager << l }
     else
       BufferManager.flash "'#{hl}' is a reserved label!"
     end
