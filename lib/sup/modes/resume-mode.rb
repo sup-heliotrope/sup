@@ -11,6 +11,8 @@ class ResumeMode < EditMessageMode
     super :header => header, :body => body, :have_signature => true
   end
 
+  def unsaved?; !@safe end
+
   def killable?
     return true if @safe
 

@@ -42,7 +42,7 @@ EOS
     k.add :toggle_tagged, "Tag/untag selected thread", 't'
     k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
     k.add :tag_matching, "Tag matching threads", 'g'
-    k.add :apply_to_tagged, "Apply next command to all tagged threads", ';'
+    k.add :apply_to_tagged, "Apply next command to all tagged threads", '+'
     k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
     k.add :undo, "Undo the previous action", 'u'
   end
@@ -80,6 +80,7 @@ EOS
     end
   end
 
+  def unsaved?; dirty? end
   def lines; @text.length; end
   def [] i; @text[i]; end
   def contains_thread? t; @threads.include?(t) end
@@ -849,7 +850,6 @@ protected
       (t.labels - @hidden_labels).map { |label| [:label_color, "+#{label} "] } +
       [[:snippet_color, snippet]
     ]
-
   end
 
   def dirty?; @mutex.synchronize { (@hidden_threads.keys + @threads).any? { |t| t.dirty? } } end
