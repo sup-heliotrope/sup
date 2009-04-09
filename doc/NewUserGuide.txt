@@ -98,9 +98,9 @@ press 'n' and 'p' to jump forward and backward between open messages,
 aligning the display as necessary.
 
 Now press 'x' to kill the thread view buffer. You should see the inbox
-again. If you don't, you can cycle through the buffers by pressing
-'b', or you can press 'B' to see a list of all buffers and simply
-select the inbox.
+again. If you don't, you can cycle through the buffers by pressing 'b'
+and 'B' (forwards and backwards, respectively), or you can press ';' to
+see a list of all buffers and simply select the inbox.
 
 There are many operations you can perform on threads beyond viewing
 them. To archive a thread, press 'a'. The thread will disappear from
@@ -125,8 +125,8 @@ in the labels as a sequence of space-separated words. To cancel the
 input, press Ctrl-G.
 
 Many of these operations can be applied to a group of threads. Press
-'t' to tag a thread. Tag a couple, then press ';' to apply the next
-command to the set of threads. ';t', of course, will untag all tagged
+'t' to tag a thread. Tag a couple, then press '+' to apply the next
+command to the set of threads. '+t', of course, will untag all tagged
 messages.
 
 Ok, let's try using labels and search. Press 'L' to do a quick label
@@ -244,7 +244,6 @@ Here's what I recommend:
 3. Voila! Sup will load new messages into the index but not into the
    inbox, and you can browse the mailing list traffic at any point by
    searching for that label.
-
 
 Appendix C: Reading blogs with Sup
 ----------------------------------
