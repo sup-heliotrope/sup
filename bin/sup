@@ -105,6 +105,9 @@ module LibC
   rescue RuntimeError => e
     Redwood::log "cannot dlload setlocale(); ncurses wide character support probably broken."
     Redwood::log "dlload error was #{e.class}: #{e.message}"
+    if Config::CONFIG['arch'] =~ /bsd/
+      Redwood::log "BSD variant detected. You may have to install a compat6x package to acquire libc."
+    end
   end
 end
 
