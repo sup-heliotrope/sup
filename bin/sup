@@ -66,10 +66,8 @@ global_keymap = Keymap.new do |k|
   k.add :quit_ask, "Quit Sup, but ask first", 'q'
   k.add :quit_now, "Quit Sup immediately", 'Q'
   k.add :help, "Show help", '?'
-  k.add_multi "(n)ext/(p)revious:", 'b' do |kk|
-    kk.add :roll_buffers, "Switch to next buffer", 'n'
-    kk.add :roll_buffers_backwards, "Switch to previous buffer", 'p'
-  end
+  k.add :roll_buffers, "Switch to next buffer", 'b'
+#  k.add :roll_buffers_backwards, "Switch to previous buffer", 'B'
   k.add :kill_buffer, "Kill the current buffer", 'x'
   k.add :list_buffers, "List all buffers", 'B'
   k.add :list_contacts, "List contacts", 'C'
