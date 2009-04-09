@@ -16,6 +16,7 @@ class BufferListMode < LineCursorMode
 
   def focus
     reload # buffers may have been killed or created since last view
+    set_cursor_pos 0
   end
 
 protected
@@ -26,10 +27,13 @@ protected
   end
 
   def regen_text
-    @bufs = BufferManager.buffers.sort_by { |name, buf| name }
+    @bufs = BufferManager.buffers.reject { |name, buf| buf.mode == self }.sort_by { |name, buf| buf.atime }.reverse
     width = @bufs.max_of { |name, buf| buf.mode.name.length }
     @text = @bufs.map do |name, buf|
-      sprintf "%#{width}s  %s", buf.mode.name, name
+      base_color = buf.system? ? :system_buf_color : :regular_buf_color
+      [[base_color, sprintf("%#{width}s ", buf.mode.name)],
+       [:modified_buffer_color, (buf.mode.unsaved? ? '*' : ' ')],
+       [base_color, " " + name]]
     end
   end
 

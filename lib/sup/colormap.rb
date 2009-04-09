@@ -46,7 +46,10 @@ class Colormap
     :completion_character => { :fg => "white", :bg => "default", :attrs => ["bold"] },
     :horizontal_selector_selected => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
     :horizontal_selector_unselected => { :fg => "cyan", :bg => "default" },
-    :search_highlight => { :fg => "black", :bg => "yellow", :attrs => ["bold"] }
+    :search_highlight => { :fg => "black", :bg => "yellow", :attrs => ["bold"] },
+    :system_buf => { :fg => "blue", :bg => "default" },
+    :regular_buf => { :fg => "white", :bg => "default" },
+    :modified_buffer => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
   }
   
   def initialize
