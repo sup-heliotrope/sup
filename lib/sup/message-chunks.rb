@@ -108,7 +108,7 @@ EOS
       if expandable?
         "Attachment: #{filename} (#{lines.length} lines)"
       else
-        "Attachment: #{filename} (#{content_type})"
+        "Attachment: #{filename} (#{content_type}; #{@raw_content.size.to_human_size})"
       end
     end
 
