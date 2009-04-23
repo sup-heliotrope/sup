@@ -392,7 +392,7 @@ protected
 
       contacts = BufferManager.ask_for_contacts :people, "#{field}: ", default
       if contacts
-        text = contacts.map { |s| s.longname }.join(", ")
+        text = contacts.map { |s| s.full_address }.join(", ")
         @header[field] = parse_header field, text
         update
       end
