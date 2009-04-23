@@ -45,7 +45,10 @@ module Chunk
 
   class Attachment
     HookManager.register "mime-decode", <<EOS
-Executes when decoding a MIME attachment.
+Decodes a MIME attachment into text form. The text will be displayed
+directly in Sup. For attachments that you wish to use a separate program
+to view (e.g. images), you should use the mime-view hook instead.
+
 Variables:
    content_type: the content-type of the message
        filename: the filename of the attachment as saved to disk
@@ -57,13 +60,22 @@ Return value:
 EOS
 
     HookManager.register "mime-view", <<EOS
-Executes when viewing a MIME attachment, i.e., launching a separate
-viewer program.
+Views a non-text MIME attachment. This hook allows you to run
+third-party programs for attachments that require such a thing (e.g.
+images). To instead display a text version of the attachment directly in
+Sup, use the mime-decode hook instead.
+
+Note that by default (at least on systems that have a run-mailcap command),
+Sup uses the default mailcap handler for the attachment's MIME type. If
+you want a particular behavior to be global, you may wish to change your
+mailcap instead.
+
 Variables:
    content_type: the content-type of the attachment
        filename: the filename of the attachment as saved to disk
 Return value:
-  True if the viewing was successful, false otherwise.
+  True if the viewing was successful, false otherwise. If false, calling
+  /usr/bin/run-mailcap will be tried.
 EOS
 #' stupid ruby-mode
 
