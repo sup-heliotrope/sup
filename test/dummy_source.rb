@@ -26,7 +26,7 @@ class DummySource < Source
   end
 
   def load_header offset
-    MBox::read_header StringIO.new(raw_header(offset))
+    Source.parse_raw_email_header StringIO.new(raw_header(offset))
   end
   
   def load_message offset
