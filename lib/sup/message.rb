@@ -60,7 +60,7 @@ class Message
     ## why.
     @refs = []
 
-    parse_header(opts[:header] || @source.load_header(@source_info))
+    #parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
   def parse_header header
@@ -123,7 +123,6 @@ class Message
     @list_subscribe = header["list-subscribe"]
     @list_unsubscribe = header["list-unsubscribe"]
   end
-  private :parse_header
 
   def add_ref ref
     @refs << ref

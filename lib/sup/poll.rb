@@ -149,6 +149,8 @@ EOS
 
         begin
           m = Message.new :source => source, :source_info => offset, :labels => labels
+          m.load_from_source!
+
           if m.source_marked_read?
             m.remove_label :unread
             labels.delete :unread

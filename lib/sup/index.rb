@@ -413,9 +413,11 @@ EOS
         "references" => doc[:refs].split(/\s+/).map { |x| "<#{x}>" }.join(" "),
       }
 
-      Message.new :source => source, :source_info => doc[:source_info].to_i,
+      m = Message.new :source => source, :source_info => doc[:source_info].to_i,
                   :labels => doc[:label].split(" ").map { |s| s.intern },
-                  :snippet => doc[:snippet], :header => fake_header
+                  :snippet => doc[:snippet]
+      m.parse_header fake_header
+      m
     end
   end
 
