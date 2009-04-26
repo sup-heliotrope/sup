@@ -66,16 +66,6 @@ module MBox
     header
   end
   
-  ## never actually called
-  def read_body f
-    body = []
-    f.each_line do |l|
-      break if l =~ BREAK_RE
-      body << l.chomp
-    end
-    body
-  end
-
-  module_function :read_header, :read_body
+  module_function :read_header
 end
 end
