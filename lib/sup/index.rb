@@ -261,15 +261,14 @@ EOS
       :refs => (entry[:refs] || (m.refs + m.replytos).uniq.join(" ")),
     }
 
-    @index_mutex.synchronize  do
+    @index_mutex.synchronize do
       @index.delete docid if docid
       @index.add_document d
     end
 
-    docid, entry = load_entry_for_id m.id
-    ## this hasn't been triggered in a long time. TODO: decide whether it's still a problem.
-    raise "just added message #{m.id.inspect} but couldn't find it in a search" unless docid
-    true
+    ## this hasn't been triggered in a long time.
+    ## docid, entry = load_entry_for_id m.id
+    ## raise "just added message #{m.id.inspect} but couldn't find it in a search" unless docid
   end
 
   def save_index fn=File.join(@dir, "ferret")
