@@ -93,7 +93,7 @@ class IMAP < Source
   def == o; o.is_a?(IMAP) && o.uri == self.uri && o.username == self.username; end
 
   def load_header id
-    MBox::read_header StringIO.new(raw_header(id))
+    parse_raw_email_header StringIO.new(raw_header(id))
   end
 
   def load_message id

@@ -212,7 +212,7 @@ protected
 
   def parse_file fn
     File.open(fn) do |f|
-      header = MBox::read_header f
+      header = Source.parse_raw_email_header f
       body = f.readlines.map { |l| l.chomp }
 
       header.delete_if { |k, v| NON_EDITABLE_HEADERS.member? k }

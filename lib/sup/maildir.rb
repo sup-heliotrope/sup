@@ -56,7 +56,7 @@ class Maildir < Source
 
   def load_header id
     scan_mailbox
-    with_file_for(id) { |f| MBox::read_header f }
+    with_file_for(id) { |f| parse_raw_email_header f }
   end
 
   def load_message id

@@ -59,7 +59,7 @@ class Loader < Source
       unless l =~ BREAK_RE
         raise OutOfSyncSourceError, "mismatch in mbox file offset #{offset.inspect}: #{l.inspect}." 
       end
-      header = MBox::read_header @f
+      header = parse_raw_email_header @f
     end
     header
   end
