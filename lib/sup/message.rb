@@ -78,7 +78,7 @@ class Message
       header["from"]
     else
       name = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
-      Redwood::log "faking non-existent sender for message #@id: #{name}"
+      #Redwood::log "faking non-existent sender for message #@id: #{name}"
       name
     end)
 
@@ -89,11 +89,11 @@ class Message
       begin
         Time.parse date
       rescue ArgumentError => e
-        Redwood::log "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
+        #Redwood::log "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
         Time.now
       end
     else
-      Redwood::log "faking non-existent date header for #{@id}"
+      #Redwood::log "faking non-existent date header for #{@id}"
       Time.now
     end
 
