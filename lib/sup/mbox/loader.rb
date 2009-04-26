@@ -86,7 +86,7 @@ class Loader < Source
     @mutex.synchronize do
       @f.seek offset
       until @f.eof? || (l = @f.gets) =~ /^\r*$/
-        ret += l
+        ret << l
       end
     end
     ret
@@ -94,7 +94,7 @@ class Loader < Source
 
   def raw_message offset
     ret = ""
-    each_raw_message_line(offset) { |l| ret += l }
+    each_raw_message_line(offset) { |l| ret << l }
     ret
   end
 
