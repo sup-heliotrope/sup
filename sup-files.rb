@@ -5,3 +5,7 @@ SUP_FILES =
   SUP_EXTRA_FILES +
   SUP_EXECUTABLES.map { |f| "bin/#{f}" } +
   SUP_LIB_DIRS.map { |d| Dir["#{d}/*.rb"] }.flatten
+
+if $0 == __FILE__ # if executed from commandline
+  puts SUP_FILES
+end
