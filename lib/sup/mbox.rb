@@ -10,58 +10,40 @@ module Redwood
 ##
 ## TODO: move functionality to somewhere better, like message.rb
 module MBox
-  BREAK_RE = /^From \S+/
-  HEADER_RE = /\s*(.*?)\s*/
+  BREAK_RE = /^From \S+/ ######### TODO REMOVE ME
 
+  ## WARNING! THIS IS A SPEED-CRITICAL SECTION. Everything you do here will have
+  ## a significant effect on Sup's processing speed of email from ALL sources.
+  ## Little things like string interpolation, regexp interpolation, += vs <<,
+  ## all have DRAMATIC effects. BE CAREFUL WHAT YOU DO!
   def read_header f
     header = {}
     last = nil
 
-    ## i do it in this weird way because i am trying to speed things up
-    ## when scanning over large mbox files.
     while(line = f.gets)
       case line
       ## these three can occur multiple times, and we want the first one
-      when /^(Delivered-To):#{HEADER_RE}$/i,
-        /^(X-Original-To):#{HEADER_RE}$/i,
-        /^(Envelope-To):#{HEADER_RE}$/i: header[last = $1] ||= $2
-
-      when /^(From):#{HEADER_RE}$/i,
-        /^(To):#{HEADER_RE}$/i,
-        /^(Cc):#{HEADER_RE}$/i,
-        /^(Bcc):#{HEADER_RE}$/i,
-        /^(Subject):#{HEADER_RE}$/i,
-        /^(Date):#{HEADER_RE}$/i,
-        /^(References):#{HEADER_RE}$/i,
-        /^(In-Reply-To):#{HEADER_RE}$/i,
-        /^(Reply-To):#{HEADER_RE}$/i,
-        /^(List-Post):#{HEADER_RE}$/i,
-        /^(List-Subscribe):#{HEADER_RE}$/i,
-        /^(List-Unsubscribe):#{HEADER_RE}$/i,
-        /^(Status):#{HEADER_RE}$/i,
-        /^(X-\S+):#{HEADER_RE}$/: header[last = $1] = $2
-      when /^(Message-Id):#{HEADER_RE}$/i: header[mid_field = last = $1] = $2
-
-      when /^\r*$/: break
-      when /^\S+:/: last = nil # some other header we don't care about
+      when /^(Delivered-To|X-Original-To|Envelope-To):\s*(.*?)\s*$/i; header[last = $1.downcase] ||= $2
+      ## mark this guy specially. not sure why i care.
+      when /^([^:\s]+):\s*(.*?)\s*$/i; header[last = $1.downcase] = $2
+      when /^\r*$/; break
       else
-        header[last] += " " + line.chomp.gsub(/^\s+/, "") if last
+        if last
+          header[last] << " " unless header[last].empty?
+          header[last] << line.strip
+        end
       end
     end
 
-    if mid_field && header[mid_field] && header[mid_field] =~ /<(.*?)>/
-      header[mid_field] = $1
-    end
-
-    header.each do |k, v|
+    %w(subject from to cc bcc).each do |k|
+      v = header[k] or next
       next unless Rfc2047.is_encoded? v
-      header[k] =
-        begin
-          Rfc2047.decode_to $encoding, v
-        rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
-          Redwood::log "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
-          v
-        end
+      header[k] = begin
+        Rfc2047.decode_to $encoding, v
+      rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
+        Redwood::log "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
+        v
+      end
     end
     header
   end

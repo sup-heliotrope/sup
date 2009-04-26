@@ -19,18 +19,9 @@ From: Bob <bob@bob.com>
 To: Sally <sally@sally.com>
 EOS
 
-    assert_equal "Bob <bob@bob.com>", h["From"]
-    assert_equal "Sally <sally@sally.com>", h["To"]
-    assert_nil h["Message-Id"]
-  end
-
-  ## this is shitty behavior in retrospect, but it's built in now.
-  def test_message_id_stripping
-    h = MBox.read_header StringIO.new("Message-Id: <one@bob.com>\n")
-    assert_equal "one@bob.com", h["Message-Id"]
-
-    h = MBox.read_header StringIO.new("Message-Id: one@bob.com\n")
-    assert_equal "one@bob.com", h["Message-Id"]
+    assert_equal "Bob <bob@bob.com>", h["from"]
+    assert_equal "Sally <sally@sally.com>", h["to"]
+    assert_nil h["message-id"]
   end
 
   def test_multiline
@@ -39,14 +30,14 @@ From: Bob <bob@bob.com>
 Subject: one two three
   four five six
 To: Sally <sally@sally.com>
-References: seven
-  eight
+References: <seven>
+  <eight>
 Seven: Eight
 EOS
 
-    assert_equal "one two three four five six", h["Subject"]
-    assert_equal "Sally <sally@sally.com>", h["To"]
-    assert_equal "seven eight", h["References"]
+    assert_equal "one two three four five six", h["subject"]
+    assert_equal "Sally <sally@sally.com>", h["to"]
+    assert_equal "<seven> <eight>", h["references"]
   end
 
   def test_ignore_spacing
@@ -57,26 +48,24 @@ EOS
     ]
     variants.each do |s|
       h = MBox.read_header StringIO.new(s)
-      assert_equal "one two  three   end", h["Subject"]
+      assert_equal "one two  three   end", h["subject"]
     end
   end
 
   def test_message_id_ignore_spacing
     variants = [
       "Message-Id:     <one@bob.com>       \n",
-      "Message-Id:      one@bob.com        \n",
       "Message-Id:<one@bob.com>       \n",
-      "Message-Id:one@bob.com       \n",
     ]
     variants.each do |s|
       h = MBox.read_header StringIO.new(s)
-      assert_equal "one@bob.com", h["Message-Id"]
+      assert_equal "<one@bob.com>", h["message-id"]
     end
   end
 
   def test_blank_lines
     h = MBox.read_header StringIO.new("")
-    assert_equal nil, h["Message-Id"]
+    assert_equal nil, h["message-id"]
   end
 
   def test_empty_headers
@@ -86,7 +75,7 @@ EOS
     ]
     variants.each do |s|
       h = MBox.read_header StringIO.new(s)
-      assert_equal "", h["Message-Id"]
+      assert_equal "", h["message-id"]
     end
   end
 
@@ -96,23 +85,23 @@ From: Bob <bob@bob.com>
 
 To: a dear friend
 EOS
-  assert_equal "Bob <bob@bob.com>", h["From"]
-  assert_nil h["To"]
+  assert_equal "Bob <bob@bob.com>", h["from"]
+  assert_nil h["to"]
 
   h = MBox.read_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 \r
 To: a dear friend
 EOS
-  assert_equal "Bob <bob@bob.com>", h["From"]
-  assert_nil h["To"]
+  assert_equal "Bob <bob@bob.com>", h["from"]
+  assert_nil h["to"]
 
   h = MBox.read_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 \r\n\r
 To: a dear friend
 EOS
-  assert_equal "Bob <bob@bob.com>", h["From"]
-  assert_nil h["To"]
+  assert_equal "Bob <bob@bob.com>", h["from"]
+  assert_nil h["to"]
   end
 end
