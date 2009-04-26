@@ -5,6 +5,8 @@ require 'rubygems'
 require 'trollop'
 require "sup"
 
+PROGRESS_UPDATE_INTERVAL = 15 # seconds
+
 class Float
   def to_s; sprintf '%.2f', self; end
    def to_time_s
@@ -171,12 +173,12 @@ begin
         ## nothin! use default source labels
       end
 
-      if Time.now - last_info_time > 60
+      if Time.now - last_info_time > PROGRESS_UPDATE_INTERVAL
         last_info_time = Time.now
         elapsed = last_info_time - start_time
         pctdone = source.respond_to?(:pct_done) ? source.pct_done : 100.0 * (source.cur_offset.to_f - source.start_offset).to_f / (source.end_offset - source.start_offset).to_f
         remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
-        $stderr.puts "## #{num_scanned} (#{pctdone}%) read; #{elapsed.to_time_s} elapsed; #{remaining.to_time_s} remaining"
+        $stderr.printf "## read %dm (about %.0f%%) @ %.1fm/s. %s elapsed, about %s remaining\n", num_scanned, pctdone, num_scanned / elapsed, elapsed.to_time_s, remaining.to_time_s
       end
 
       if index_state.nil?
@@ -200,8 +202,6 @@ begin
   ## API.
   ##
   ## TODO: move this to Index, i suppose.
-
-
   if target == :all || target == :changed
     $stderr.puts "Deleting missing messages from the index..."
     num_del, num_scanned = 0, 0
