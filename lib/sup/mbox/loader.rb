@@ -68,13 +68,12 @@ class Loader < Source
     @mutex.synchronize do
       @f.seek offset
       begin
-        RMail::Mailbox::MBoxReader.new(@f).each_message do |input|
-          m = RMail::Parser.read(input)
-          if m.body && m.body.is_a?(String)
-            m.body.gsub!(/^>From /, "From ")
-          end
-          return m
-        end
+        ## don't use RMail::Mailbox::MBoxReader because it doesn't properly ignore
+        ## "From" at the start of a message body line.
+        string = ""
+        l = @f.gets
+        string << l until @f.eof? || (l = @f.gets) =~ BREAK_RE
+        RMail::Parser.read string
       rescue RMail::Parser::Error => e
         raise FatalSourceError, "error parsing mbox file: #{e.message}"
       end
