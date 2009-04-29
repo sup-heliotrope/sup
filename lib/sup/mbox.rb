@@ -6,6 +6,6 @@ require "sup/rfc2047"
 module Redwood
 
 module MBox
-  BREAK_RE = /^From \S+/ ######### TODO REMOVE ME
+  BREAK_RE = /^From \S+@\S+ /
 end
 end
