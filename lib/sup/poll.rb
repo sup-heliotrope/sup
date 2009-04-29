@@ -86,7 +86,7 @@ EOS
       Index.usual_sources.each do |source|
 #        yield "source #{source} is done? #{source.done?} (cur_offset #{source.cur_offset} >= #{source.end_offset})"
         begin
-          yield "Loading from #{source}... " unless source.done? || source.has_errors?
+          yield "Loading from #{source}... " unless source.done? || (source.respond_to?(:has_errors?) && source.has_errors?)
         rescue SourceError => e
           Redwood::log "problem getting messages from #{source}: #{e.message}"
           Redwood::report_broken_sources :force_to_top => true
