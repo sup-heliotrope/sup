@@ -93,7 +93,7 @@ class Loader < Source
 
   def raw_message offset
     ret = ""
-    each_raw_message_line(offset) { |l| ret += l }
+    each_raw_message_line(offset) { |l| ret << l }
     ret
   end
 
