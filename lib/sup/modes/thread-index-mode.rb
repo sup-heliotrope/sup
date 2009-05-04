@@ -42,7 +42,7 @@ EOS
     k.add :toggle_tagged, "Tag/untag selected thread", 't'
     k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
     k.add :tag_matching, "Tag matching threads", 'g'
-    k.add :apply_to_tagged, "Apply next command to all tagged threads", '+'
+    k.add :apply_to_tagged, "Apply next command to all tagged threads", '+', '='
     k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
   end
 
