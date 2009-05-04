@@ -101,9 +101,9 @@ EOS
           yield "Found message at #{offset} with labels {#{m.labels * ', '}}"
           unless entry
             num += 1
-            from_and_subj << [m.from.longname, m.subj]
+            from_and_subj << [m.from && m.from.longname, m.subj]
             if m.has_label?(:inbox) && ([:spam, :deleted, :killed] & m.labels).empty?
-              from_and_subj_inbox << [m.from.longname, m.subj]
+              from_and_subj_inbox << [m.from && m.from.longname, m.subj]
               numi += 1 
             end
           end
