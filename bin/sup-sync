@@ -122,7 +122,9 @@ begin
 
   unless target == :new
     if opts[:start_at]
-      sources.each { |s| s.seek_to! opts[:start_at] }
+      Trollop::die :start_at, "can only be used on one source" unless sources.size == 1
+      sources.first.seek_to! opts[:start_at]
+      sources.first.correct_offset! if sources.first.respond_to?(:correct_offset!)
     else
       sources.each { |s| s.reset! }
     end
@@ -200,9 +202,7 @@ begin
   ## API.
   ##
   ## TODO: move this to Index, i suppose.
-
-
-  if target == :all || target == :changed
+  if (target == :all || target == :changed) && !opts[:start_at]
     $stderr.puts "Deleting missing messages from the index..."
     num_del, num_scanned = 0, 0
     sources.each do |source|
