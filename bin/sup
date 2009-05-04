@@ -96,7 +96,7 @@ module LibC
     else; "libc.so.6"
   end
 
-  Redwood::log "dyamically loading setlocale() from #{setlocale_lib}"
+  Redwood::log "dynamically loading setlocale() from #{setlocale_lib}"
   begin
     dlload setlocale_lib
     extern "void setlocale(int, const char *)"
