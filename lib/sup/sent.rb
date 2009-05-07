@@ -53,7 +53,7 @@ class SentLoader < MBox::Loader
   def uri; 'sup://sent' end
 
   def id; 9998; end
-  def labels; [:sent, :inbox]; end
+  def labels; [:inbox]; end
 end
 
 end

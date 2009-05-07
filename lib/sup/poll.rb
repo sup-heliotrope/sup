@@ -143,7 +143,8 @@ EOS
           Redwood::log "error loading messages from #{source}: #{source.error.message}"
           return
         end
-      
+
+        labels << :sent if source.uri.eql?($config[:sent_source])
         labels.each { |l| LabelManager << l }
         labels = labels + (source.archived? ? [] : [:inbox])
 
