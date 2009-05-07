@@ -111,6 +111,14 @@ class IMAP < Source
   end
   synchronized :raw_header
 
+  def store_message date, from_email, &block
+    message = StringIO.new
+    yield message
+    message.string.gsub! /\n/, "\r\n"
+
+    safely { @imap.append mailbox, message.string, [:Seen], Time.now }
+  end
+
   def raw_message id
     unsynchronized_scan_mailbox
     get_imap_fields(id, 'RFC822').first.gsub(/\r\n/, "\n")

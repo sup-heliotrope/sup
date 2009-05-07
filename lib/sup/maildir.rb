@@ -10,6 +10,7 @@ module Redwood
 
 class Maildir < Source
   SCAN_INTERVAL = 30 # seconds
+  MYHOSTNAME = Socket.gethostname
 
   ## remind me never to use inheritance again.
   yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels, :mtimes
@@ -44,7 +45,35 @@ class Maildir < Source
 
     start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
   end
-  
+
+  def store_message date, from_email, &block
+    stored = false
+    new_fn = new_maildir_basefn + ':2,S'
+    Dir.chdir(@dir) do |d|
+      tmp_path = File.join(@dir, 'tmp', new_fn)
+      new_path = File.join(@dir, 'new', new_fn)
+      begin
+        sleep 2 if File.stat(tmp_path)
+
+        File.stat(tmp_path)
+      rescue Errno::ENOENT #this is what we want.
+        begin
+          File.open(tmp_path, 'w') do |f|
+            yield f #provide a writable interface for the caller
+            f.fsync
+          end
+
+          File.link tmp_path, new_path
+          stored = true
+        ensure
+          File.unlink tmp_path if File.exists? tmp_path
+        end
+      end #rescue Errno...
+    end #Dir.chdir
+
+    stored
+  end
+
   def each_raw_message_line id
     scan_mailbox
     with_file_for(id) do |f|
@@ -165,6 +194,11 @@ private
     stat = File.stat(fn)
     # use 7 digits for the size. why 7? seems nice.
     sprintf("%d%07d", stat.mtime, stat.size % 10000000).to_i
+  end
+
+  def new_maildir_basefn
+    Kernel::srand()
+    "#{Time.now.to_i.to_s}.#{$$}#{Kernel.rand(1000000)}.#{MYHOSTNAME}"
   end
 
   def with_file_for id
