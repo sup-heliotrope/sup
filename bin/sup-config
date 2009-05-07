@@ -187,9 +187,6 @@ $config[:accounts][:default][:alternates] = alts
 $config[:accounts][:default][:signature] = sigfn
 $config[:editor] = editor
 
-Redwood::save_yaml_obj $config, Redwood::CONFIG_FN
-
-say "Ok, I've saved you up a nice lil' #{Redwood::CONFIG_FN}."
 
 done = false
 until done
@@ -209,6 +206,36 @@ until done
     menu.choice("Done adding sources!") { done = true }
   end
 end
+
+say "\nSup needs to know where to store your sent messages."
+say "Only sources capable of storing mail will be listed.\n\n"
+
+index.load_sources
+if index.sources.empty?
+  say "\nUsing the default sup://sent, since you haven't configured other sources yet."
+  $config[:sent_source] = 'sup://sent'
+else
+  # this handles the event that source.yaml already contains the SentLoader
+  # source.
+  have_sup_sent = false
+
+  choose do |menu|
+    menu.prompt = "Store my sent mail in? "
+
+    valid_sents = index.sources.each do |s|
+      have_sup_sent = true if s.to_s.eql?('sup://sent')
+
+      menu.choice(s.to_s) { $config[:sent_source] = s.to_s } if s.respond_to? :store_message
+    end
+
+    menu.choice('Default (sup://sent)') { $config[:sent_source] = 'sup://sent'} unless have_sup_sent
+
+  end
+end
+
+Redwood::save_yaml_obj $config, Redwood::CONFIG_FN
+
+say "Ok, I've saved you up a nice lil' #{Redwood::CONFIG_FN}."
 
 say <<EOS
 
