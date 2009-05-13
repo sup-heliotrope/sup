@@ -43,7 +43,7 @@ class LabelManager
   ## reverse the label->string mapping, for convenience!
   def string_for l
     if RESERVED_LABELS.include? l
-      l.to_s.ucfirst
+      l.to_s.capitalize
     else
       l.to_s
     end
