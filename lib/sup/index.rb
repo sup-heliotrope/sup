@@ -333,7 +333,7 @@ EOS
 
       q = Ferret::Search::BooleanQuery.new true
       sq = Ferret::Search::PhraseQuery.new(:subject)
-      wrap_subj(Message.normalize_subj(m.subj)).split(/\s+/).each do |t|
+      wrap_subj(Message.normalize_subj(m.subj)).split.each do |t|
         sq.add_term t
       end
       q.add_query sq, :must
@@ -378,7 +378,7 @@ EOS
           unless messages.member?(mid)
             #Redwood::log "got #{mid} as a child of #{id}"
             messages[mid] ||= lambda { build_message docid }
-            refs = @index[docid][:refs].split(" ")
+            refs = @index[docid][:refs].split
             pending += refs.select { |id| !searched[id] }
           end
         end
@@ -409,9 +409,9 @@ EOS
         "date" => Time.at(doc[:date].to_i),
         "subject" => unwrap_subj(doc[:subject]),
         "from" => doc[:from],
-        "to" => doc[:to].split(/\s+/).join(", "), # reformat
+        "to" => doc[:to].split.join(", "), # reformat
         "message-id" => doc[:message_id],
-        "references" => doc[:refs].split(/\s+/).map { |x| "<#{x}>" }.join(" "),
+        "references" => doc[:refs].split.map { |x| "<#{x}>" }.join(" "),
       }
 
       Message.new :source => source, :source_info => doc[:source_info].to_i,
