@@ -188,11 +188,6 @@ class String
     ret
   end
 
-  ## one of the few things i miss from perl
-  def ucfirst
-    self[0 .. 0].upcase + self[1 .. -1]
-  end
-
   ## a very complicated regex found on teh internets to split on
   ## commas, unless they occurr within double quotes.
   def split_on_commas
