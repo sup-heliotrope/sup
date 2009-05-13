@@ -271,6 +271,11 @@ class String
   def normalize_whitespace
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
+
+  ## takes a space-separated list of words, and returns an array of symbols.
+  ## typically used in Sup for translating Ferret's representation of a list
+  ## of labels (a string) to an array of label symbols.
+  def symbolistize; split.map { |x| x.intern } end
 end
 
 class Numeric
