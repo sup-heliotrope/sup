@@ -489,7 +489,7 @@ EOS
 
     return unless answer
 
-    user_labels = answer.split(/\s+/).map { |l| l.intern }
+    user_labels = answer.symbolistize
     user_labels.each do |l|
       if forbidden_labels.include?(l) || LabelManager::RESERVED_LABELS.include?(l)
         BufferManager.flash "'#{l}' is a reserved label!"

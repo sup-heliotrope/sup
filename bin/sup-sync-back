@@ -109,7 +109,7 @@ EOS
       num_scanned += 1
 
       if entry
-        labels = entry[:label].split.map { |x| x.intern }.to_boolean_h
+        labels = entry[:label].symbolistize.to_boolean_h
 
         if labels.member? :deleted
           if opts[:drop_deleted]
