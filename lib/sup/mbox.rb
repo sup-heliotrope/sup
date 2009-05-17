@@ -10,8 +10,22 @@ module Redwood
 ##
 ## TODO: move functionality to somewhere better, like message.rb
 module MBox
-  BREAK_RE = /^From \S+@\S+ /
+  BREAK_RE = /^From \S+ (.+)$/
   HEADER_RE = /\s*(.*?)\s*/
+
+  def is_break_line? l
+    l =~ BREAK_RE or return false
+    time = $1
+    begin
+      ## hack -- make Time.parse fail when trying to substitute values from Time.now
+      Time.parse time, 0
+      true
+    rescue NoMethodError
+      Redwood::log "found invalid date in potential mbox split line, not splitting: #{l.inspect}"
+      false
+    end
+  end
+  module_function :is_break_line?
 
   def read_header f
     header = {}
@@ -70,7 +84,7 @@ module MBox
   def read_body f
     body = []
     f.each_line do |l|
-      break if l =~ BREAK_RE
+      break if is_break_line?(l)
       body << l.chomp
     end
     body

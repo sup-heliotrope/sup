@@ -115,4 +115,54 @@ EOS
   assert_equal "Bob <bob@bob.com>", h["From"]
   assert_nil h["To"]
   end
+
+  def test_from_line_splitting
+    l = MBox::Loader.new StringIO.new(<<EOS)
+From sup-talk-bounces@rubyforge.org Mon Apr 27 12:56:18 2009
+From: Bob <bob@bob.com>
+To: a dear friend
+
+Hello there friend. How are you?
+
+From sea to shining sea
+
+From bob@bob.com I get only spam.
+
+From bob@bob.com   
+
+From bob@bob.com
+
+(that second one has spaces at the endj
+
+This is the end of the email.
+EOS
+    offset, labels = l.next
+    assert_equal 0, offset
+    offset, labels = l.next
+    assert_nil offset
+  end
+
+  def test_more_from_line_splitting
+    l = MBox::Loader.new StringIO.new(<<EOS)
+From sup-talk-bounces@rubyforge.org Mon Apr 27 12:56:18 2009
+From: Bob <bob@bob.com>
+To: a dear friend
+
+Hello there friend. How are you?
+
+From bob@bob.com Mon Apr 27 12:56:19 2009
+From: Bob <bob@bob.com>
+To: a dear friend
+
+Hello again! Would you like to buy my products?
+EOS
+    offset, labels = l.next
+    assert_not_nil offset
+
+    offset, labels = l.next
+    assert_not_nil offset
+
+    offset, labels = l.next
+    assert_nil offset
+  end
 end

@@ -56,7 +56,7 @@ class Loader < Source
     @mutex.synchronize do
       @f.seek offset
       l = @f.gets
-      unless l =~ BREAK_RE
+      unless MBox::is_break_line? l
         raise OutOfSyncSourceError, "mismatch in mbox file offset #{offset.inspect}: #{l.inspect}." 
       end
       header = MBox::read_header @f
@@ -72,7 +72,7 @@ class Loader < Source
         ## "From" at the start of a message body line.
         string = ""
         l = @f.gets
-        string << l until @f.eof? || (l = @f.gets) =~ BREAK_RE
+        string << l until @f.eof? || MBox::is_break_line?(l = @f.gets)
         RMail::Parser.read string
       rescue RMail::Parser::Error => e
         raise FatalSourceError, "error parsing mbox file: #{e.message}"
@@ -107,7 +107,7 @@ class Loader < Source
     @mutex.synchronize do
       @f.seek offset
       yield @f.gets
-      until @f.eof? || (l = @f.gets) =~ BREAK_RE
+      until @f.eof? || MBox::is_break_line?(l = @f.gets)
         yield l
       end
     end
@@ -138,7 +138,7 @@ class Loader < Source
         end
 
         while(line = @f.gets)
-          break if line =~ BREAK_RE
+          break if MBox::is_break_line? line
           next_offset = @f.tell
         end
       end
