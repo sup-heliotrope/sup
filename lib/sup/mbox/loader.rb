@@ -9,7 +9,7 @@ class Loader < Source
   attr_accessor :labels
 
   ## uri_or_fp is horrific. need to refactor.
-  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=[]
+  def initialize uri_or_fp, start_offset=0, usual=true, archived=false, id=nil, labels=[]
     @mutex = Mutex.new
     @labels = ((labels || []) - LabelManager::RESERVED_LABELS).uniq.freeze
 
