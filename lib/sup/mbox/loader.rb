@@ -128,7 +128,7 @@ class Loader < Source
         ## 2. at the beginning of an mbox separator (in all other
         ##    cases).
 
-        l = @f.gets or raise "next while at EOF"
+        l = @f.gets or return nil
         if l =~ /^\s*$/ # case 1
           returned_offset = @f.tell
           @f.gets # now we're at a BREAK_RE, so skip past it
