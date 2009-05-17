@@ -15,23 +15,20 @@ class UndoManager
     self.class.i_am_the_instance self
   end
 
-  def register desc, actions
-    actions = [actions] unless actions.is_a?Array
-    raise StandardError, "when would I need to undo 'nothing?'" unless actions.length > 0
-    Redwood::log "registering #{actions.length} actions: #{desc}"
-    @@actionlist.push({:desc => desc, :actions => actions})
+  def register desc, *actions, &b
+    actions = [*actions.flatten]
+    actions << b if b
+    raise ArgumentError, "need at least one action" unless actions.length > 0
+    @@actionlist.push :desc => desc, :actions => actions
   end
 
   def undo
-    unless @@actionlist.length == 0 then
+    unless @@actionlist.empty?
       actionset = @@actionlist.pop
-      Redwood::log "undoing #{actionset[:desc]}..."
-      actionset[:actions].each{|action|
-        action.call
-      }
+      actionset[:actions].each { |action| action.call }
       BufferManager.flash "undid #{actionset[:desc]}"
     else
-      BufferManager.flash "nothing more to undo"
+      BufferManager.flash "nothing more to undo!"
     end
   end
 
