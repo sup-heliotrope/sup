@@ -32,8 +32,8 @@ class SearchResultsMode < ThreadIndexMode
       mode = SearchResultsMode.new qobj, extraopts
       BufferManager.spawn "search: \"#{short_text}\"", mode
       mode.load_threads :num => mode.buffer.content_height
-    rescue Ferret::QueryParser::QueryParseException => e
-      BufferManager.flash "Couldn't parse query."
+    rescue Index::ParseError => e
+      BufferManager.flash "Problem: #{e.message}!"
     end
   end
 end
