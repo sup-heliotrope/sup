@@ -46,10 +46,12 @@ EOS
 Other options:
 EOS
   opt :verbose, "Print message ids as they're processed."
+  opt :very_verbose, "Print message names and subjects as they're processed."
   opt :all_sources, "Scan over all sources.", :short => :none
   opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
   opt :version, "Show version information", :short => :none
 end
+opts[:verbose] = true if opts[:very_verbose]
 
 add_labels = (opts[:add] || "").split(",").map { |l| l.intern }.uniq
 remove_labels = (opts[:remove] || "").split(",").map { |l| l.intern }.uniq
@@ -102,7 +104,9 @@ begin
 
     unless m.labels.sort_by { |s| s.to_s } == old_labels.sort_by { |s| s.to_s }
       num_changed += 1
+      puts "From #{m.from}, subject: #{m.subj}" if opts[:very_verbose]
       puts "#{m.id}: {#{old_labels.join ','}} => {#{m.labels.join ','}}" if opts[:verbose]
+      puts if opts[:very_verbose]
       index.sync_message m unless opts[:dry_run]
     end
 
