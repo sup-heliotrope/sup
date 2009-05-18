@@ -9,7 +9,7 @@ class Loader < Source
   attr_accessor :labels
 
   ## uri_or_fp is horrific. need to refactor.
-  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=[]
+  def initialize uri_or_fp, start_offset=0, usual=true, archived=false, id=nil, labels=[]
     @mutex = Mutex.new
     @labels = ((labels || []) - LabelManager::RESERVED_LABELS).uniq.freeze
 
@@ -56,7 +56,7 @@ class Loader < Source
     @mutex.synchronize do
       @f.seek offset
       l = @f.gets
-      unless l =~ BREAK_RE
+      unless MBox::is_break_line? l
         raise OutOfSyncSourceError, "mismatch in mbox file offset #{offset.inspect}: #{l.inspect}." 
       end
       header = parse_raw_email_header @f
@@ -72,7 +72,7 @@ class Loader < Source
         ## "From" at the start of a message body line.
         string = ""
         l = @f.gets
-        string << l until @f.eof? || (l = @f.gets) =~ BREAK_RE
+        string << l until @f.eof? || MBox::is_break_line?(l = @f.gets)
         RMail::Parser.read string
       rescue RMail::Parser::Error => e
         raise FatalSourceError, "error parsing mbox file: #{e.message}"
@@ -85,7 +85,7 @@ class Loader < Source
     @mutex.synchronize do
       @f.seek cur_offset
       string = ""
-      until @f.eof? || (l = @f.gets) =~ BREAK_RE
+      until @f.eof? || MBox::is_break_line?(l = @f.gets)
         string << l
       end
       self.cur_offset += string.length
@@ -119,7 +119,7 @@ class Loader < Source
     @mutex.synchronize do
       @f.seek offset
       yield @f.gets
-      until @f.eof? || (l = @f.gets) =~ BREAK_RE
+      until @f.eof? || MBox::is_break_line?(l = @f.gets)
         yield l
       end
     end
@@ -140,7 +140,7 @@ class Loader < Source
         ## 2. at the beginning of an mbox separator (in all other
         ##    cases).
 
-        l = @f.gets or raise "next while at EOF"
+        l = @f.gets or return nil
         if l =~ /^\s*$/ # case 1
           returned_offset = @f.tell
           @f.gets # now we're at a BREAK_RE, so skip past it
@@ -150,7 +150,7 @@ class Loader < Source
         end
 
         while(line = @f.gets)
-          break if line =~ BREAK_RE
+          break if MBox::is_break_line? line
           next_offset = @f.tell
         end
       end
