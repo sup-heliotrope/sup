@@ -483,6 +483,19 @@ EOS
     @index_mutex.synchronize { @index.search(q, :limit => 1).total_hits > 0 }
   end
 
+  ## takes a user query string and returns the list of docids for messages
+  ## that match the query.
+  ##
+  ## messages can then be loaded from the index with #build_message.
+  ##
+  ## raises a ParseError if the parsing failed.
+  def run_query query
+    qobj, opts = Redwood::Index.parse_user_query_string query
+    query = Redwood::Index.build_query opts.merge(:qobj => qobj)
+    results = @index.search query, :limit => (opts[:limit] || :all)
+    results.hits.map { |hit| hit.doc }
+  end
+
 protected
 
   class ParseError < StandardError; end
