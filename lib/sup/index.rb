@@ -484,10 +484,27 @@ EOS
     @index_mutex.synchronize { @index.search(q, :limit => 1).total_hits > 0 }
   end
 
+  ## takes a user query string and returns the list of docids for messages
+  ## that match the query.
+  ##
+  ## messages can then be loaded from the index with #build_message.
+  ##
+  ## raises a ParseError if the parsing failed.
+  def run_query query
+    qobj, opts = Redwood::Index.parse_user_query_string query
+    query = Redwood::Index.build_query opts.merge(:qobj => qobj)
+    results = @index.search query, :limit => (opts[:limit] || :all)
+    results.hits.map { |hit| hit.doc }
+  end
+
 protected
 
-  ## do any specialized parsing
-  ## returns nil and flashes error message if parsing failed
+  class ParseError < StandardError; end
+
+  ## parse a query string from the user. returns a query object and a set of
+  ## extra flags; both of these are meant to be passed to #build_query.
+  ##
+  ## raises a ParseError if something went wrong.
   def parse_user_query_string s
     extraopts = {}
 
@@ -549,11 +566,9 @@ protected
     end
 
     if $have_chronic
-      chronic_failure = false
       subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
-        break if chronic_failure
         field, datestr = $1, ($3 || $4)
-        realdate = Chronic.parse(datestr, :guess => false, :context => :past)
+        realdate = Chronic.parse datestr, :guess => false, :context => :past
         if realdate
           case field
           when "after"
@@ -567,11 +582,9 @@ protected
             "date:(<= #{sprintf "%012d", realdate.end.to_i}) date:(>= #{sprintf "%012d", realdate.begin.to_i})"
           end
         else
-          BufferManager.flash "Can't understand date #{datestr.inspect}!"
-          chronic_failure = true
+          raise ParseError, "can't understand date #{datestr.inspect}"
         end
       end
-      subs = nil if chronic_failure
     end
 
     ## limit:42 restrict the search to 42 results
@@ -581,15 +594,14 @@ protected
         extraopts[:limit] = lim.to_i
         ''
       else
-        BufferManager.flash "Can't understand limit #{lim.inspect}!"
-        subs = nil
+        raise ParseError, "non-numeric limit #{lim.inspect}"
       end
     end
     
-    if subs
+    begin
       [@qparser.parse(subs), extraopts]
-    else
-      nil
+    rescue Ferret::QueryParser::QueryParseException => e
+      raise ParseError, e.message
     end
   end
 
