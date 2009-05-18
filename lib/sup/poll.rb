@@ -97,7 +97,7 @@ EOS
         numi = 0
         add_messages_from source do |m, offset, entry|
           ## always preserve the labels on disk.
-          m.labels = ((m.labels - [:unread, :inbox]) + entry[:label].split(/\s+/).map { |x| x.intern }).uniq if entry
+          m.labels = ((m.labels - [:unread, :inbox]) + entry[:label].symbolistize).uniq if entry
           yield "Found message at #{offset} with labels {#{m.labels * ', '}}"
           unless entry
             num += 1

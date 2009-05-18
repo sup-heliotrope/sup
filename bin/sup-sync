@@ -100,7 +100,7 @@ restored_state =
     IO.foreach opts[:restore] do |l|
       l =~ /^(\S+) \((.*?)\)$/ or raise "Can't read dump line: #{l.inspect}"
       mid, labels = $1, $2
-      dump[mid] = labels.split(" ").map { |x| x.intern }
+      dump[mid] = labels.symbolistize
     end
     $stderr.puts "Read #{dump.size} entries from dump file."
     dump
@@ -143,7 +143,7 @@ begin
       next if target == :changed && entry && entry[:source_id].to_i == source.id && entry[:source_info].to_i == offset
 
       ## get the state currently in the index
-      index_state = entry[:label].split(/\s+/).map { |x| x.intern } if entry
+      index_state = entry[:label].symbolistize if entry
 
       ## skip if we're operating on restored messages, and this one
       ## ain't.
@@ -153,7 +153,7 @@ begin
       ## to default source state modification flags.
       m.labels -= [:inbox] if opts[:archive]
       m.labels -= [:unread] if opts[:read]
-      m.labels += opts[:extra_labels].split(/\s*,\s*/).map { |x| x.intern } if opts[:extra_labels]
+      m.labels += opts[:extra_labels].strip.split(/\s*,\s*/).map { |x| x.intern } if opts[:extra_labels]
 
       ## assign message labels based on the operation we're performing
       case op

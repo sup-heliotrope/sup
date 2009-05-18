@@ -226,7 +226,7 @@ EOS
     ## but merge in the labels.
     if entry[:source_id] && entry[:source_info] && entry[:label] &&
       ((entry[:source_id].to_i > source_id) || (entry[:source_info].to_i < m.source_info))
-      labels = (entry[:label].split(/\s+/).map { |l| l.intern } + m.labels).uniq
+      labels = (entry[:label].symbolistize + m.labels).uniq
       #Redwood::log "found updated version of message #{m.id}: #{m.subj}"
       #Redwood::log "previous version was at #{entry[:source_id].inspect}:#{entry[:source_info].inspect}, this version at #{source_id.inspect}:#{m.source_info.inspect}"
       #Redwood::log "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
@@ -333,7 +333,7 @@ EOS
 
       q = Ferret::Search::BooleanQuery.new true
       sq = Ferret::Search::PhraseQuery.new(:subject)
-      wrap_subj(Message.normalize_subj(m.subj)).split(/\s+/).each do |t|
+      wrap_subj(Message.normalize_subj(m.subj)).split.each do |t|
         sq.add_term t
       end
       q.add_query sq, :must
@@ -378,7 +378,7 @@ EOS
           unless messages.member?(mid)
             #Redwood::log "got #{mid} as a child of #{id}"
             messages[mid] ||= lambda { build_message docid }
-            refs = @index[docid][:refs].split(" ")
+            refs = @index[docid][:refs].split
             pending += refs.select { |id| !searched[id] }
           end
         end
@@ -409,13 +409,13 @@ EOS
         "date" => Time.at(doc[:date].to_i),
         "subject" => unwrap_subj(doc[:subject]),
         "from" => doc[:from],
-        "to" => doc[:to].split(/\s+/).join(", "), # reformat
+        "to" => doc[:to].split.join(", "), # reformat
         "message-id" => doc[:message_id],
-        "references" => doc[:refs].split(/\s+/).map { |x| "<#{x}>" }.join(" "),
+        "references" => doc[:refs].split.map { |x| "<#{x}>" }.join(" "),
       }
 
       Message.new :source => source, :source_info => doc[:source_info].to_i,
-                  :labels => doc[:label].split(" ").map { |s| s.intern },
+                  :labels => doc[:label].symbolistize,
                   :snippet => doc[:snippet], :header => fake_header
     end
   end
