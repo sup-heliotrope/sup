@@ -19,11 +19,14 @@ class LabelManager
         []
       end
     @labels = {}
+    @new_labels = {}
     @modified = false
     labels.each { |t| @labels[t] = true }
 
     self.class.i_am_the_instance self
   end
+
+  def new_label? l; @new_labels.include?(l) end
 
   ## all labels user-defined and system, ordered
   ## nicely and converted to pretty strings. use #label_for to recover
@@ -63,12 +66,13 @@ class LabelManager
     t = t.intern unless t.is_a? Symbol
     unless @labels.member?(t) || RESERVED_LABELS.member?(t)
       @labels[t] = true
+      @new_labels[t] = true
       @modified = true
     end
   end
 
   def delete t
-    if @labels.delete t
+    if @labels.delete(t)
       @modified = true
     end
   end
@@ -76,6 +80,7 @@ class LabelManager
   def save
     return unless @modified
     File.open(@fn, "w") { |f| f.puts @labels.keys.sort_by { |l| l.to_s } }
+    @new_labels = {}
   end
 end
 
