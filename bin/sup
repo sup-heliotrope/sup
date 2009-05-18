@@ -81,6 +81,36 @@ global_keymap = Keymap.new do |k|
   k.add :recall_draft, "Edit most recent draft message", 'R'
 end
 
+## the following magic enables wide characters when used with a ruby
+## ncurses.so that's been compiled against libncursesw. (note the w.) why
+## this works, i have no idea. much like pretty much every aspect of
+## dealing with curses.  cargo cult programming at its best.
+##
+## BSD users: if libc.so.6 is not found, try installing compat6x.
+require 'dl/import'
+module LibC
+  extend DL::Importable
+  setlocale_lib = case Config::CONFIG['arch']
+    when /darwin/; "libc.dylib"
+    when /cygwin/; "cygwin1.dll"
+    else; "libc.so.6"
+  end
+
+  Redwood::log "dynamically loading setlocale() from #{setlocale_lib}"
+  begin
+    dlload setlocale_lib
+    extern "void setlocale(int, const char *)"
+    Redwood::log "setting locale..."
+    LibC.setlocale(6, "")  # LC_ALL == 6
+  rescue RuntimeError => e
+    Redwood::log "cannot dlload setlocale(); ncurses wide character support probably broken."
+    Redwood::log "dlload error was #{e.class}: #{e.message}"
+    if Config::CONFIG['arch'] =~ /bsd/
+      Redwood::log "BSD variant detected. You may have to install a compat6x package to acquire libc."
+    end
+  end
+end
+
 def start_cursing
   Ncurses.initscr
   Ncurses.noecho
