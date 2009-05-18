@@ -67,9 +67,9 @@ global_keymap = Keymap.new do |k|
   k.add :quit_now, "Quit Sup immediately", 'Q'
   k.add :help, "Show help", '?'
   k.add :roll_buffers, "Switch to next buffer", 'b'
-#  k.add :roll_buffers_backwards, "Switch to previous buffer", 'B'
+  k.add :roll_buffers_backwards, "Switch to previous buffer", 'B'
   k.add :kill_buffer, "Kill the current buffer", 'x'
-  k.add :list_buffers, "List all buffers", 'B'
+  k.add :list_buffers, "List all buffers", ';'
   k.add :list_contacts, "List contacts", 'C'
   k.add :redraw, "Redraw screen", :ctrl_l
   k.add :search, "Search all messages", '\\', 'F'
@@ -260,7 +260,7 @@ begin
     when :kill_buffer
       bm.kill_buffer_safely bm.focus_buf
     when :list_buffers
-      bm.spawn_unless_exists("Buffer List") { BufferListMode.new }
+      bm.spawn_unless_exists("buffer list", :system => true) { BufferListMode.new }
     when :list_contacts
       b, new = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
       b.mode.load_in_background if new

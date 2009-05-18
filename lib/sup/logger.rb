@@ -18,7 +18,7 @@ class Logger
   def make_buf
     return if @mode.buffer || !BufferManager.instantiated? || !@respawn || @spawning
     @spawning = true
-    @mode.buffer = BufferManager.instance.spawn "<log>", @mode, :hidden => true
+    @mode.buffer = BufferManager.instance.spawn "log", @mode, :hidden => true, :system => true
     @spawning = false
   end
 

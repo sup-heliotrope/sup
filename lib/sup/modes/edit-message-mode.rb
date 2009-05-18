@@ -145,6 +145,8 @@ EOS
     !edited? || BufferManager.ask_yes_or_no("Discard message?")
   end
 
+  def unsaved?; edited? end
+
   def attach_file
     fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
     return unless fn

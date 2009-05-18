@@ -23,7 +23,7 @@ class ContactListMode < LineCursorMode
     k.add :reload, "Drop contact list and reload", 'D'
     k.add :alias, "Edit alias/or name for contact", 'a', 'i'
     k.add :toggle_tagged, "Tag/untag current line", 't'
-    k.add :apply_to_tagged, "Apply next command to all tagged items", ';'
+    k.add :apply_to_tagged, "Apply next command to all tagged items", '+'
     k.add :search, "Search for messages from particular people", 'S'
   end
 

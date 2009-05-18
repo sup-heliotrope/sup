@@ -24,6 +24,7 @@ class Mode
   end
 
   def killable?; true; end
+  def unsaved?; false end
   def draw; end
   def focus; end
   def blur; end
