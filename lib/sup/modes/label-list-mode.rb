@@ -48,12 +48,12 @@ protected
 
   def regen_text
     @text = []
-    labels = LabelManager.listable_labels
+    labels = LabelManager.all_labels
 
     counts = labels.map do |label|
       string = LabelManager.string_for label
       total = Index.num_results_for :label => label
-      unread = Index.num_results_for :labels => [label, :unread]
+      unread = (label == :unread)? total : Index.num_results_for(:labels => [label, :unread])
       [label, string, total, unread]
     end.sort_by { |l, s, t, u| s.downcase }
 

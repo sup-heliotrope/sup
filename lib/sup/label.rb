@@ -7,9 +7,6 @@ class LabelManager
   ## add/remove these via normal label mechanisms.
   RESERVED_LABELS = [ :starred, :spam, :draft, :unread, :killed, :sent, :deleted, :inbox, :attachment ]
 
-  ## labels which it nonetheless makes sense to search for by
-  LISTABLE_RESERVED_LABELS = [ :starred, :spam, :draft, :sent, :killed, :deleted, :inbox, :attachment ]
-
   ## labels that will typically be hidden from the user
   HIDDEN_RESERVED_LABELS = [ :starred, :unread, :attachment ]
 
@@ -28,18 +25,18 @@ class LabelManager
     self.class.i_am_the_instance self
   end
 
-  ## all listable (just user-defined at the moment) labels, ordered
+  ## all labels user-defined and system, ordered
   ## nicely and converted to pretty strings. use #label_for to recover
   ## the original label.
-  def listable_labels
+  def all_labels
     ## uniq's only necessary here because of certain upgrade issues
-    (LISTABLE_RESERVED_LABELS + @labels.keys).uniq
+    (RESERVED_LABELS + @labels.keys).uniq
   end
 
-  ## all apply-able (user-defined and system listable) labels, ordered
+  ## all user-defined labels, ordered
   ## nicely and converted to pretty strings. use #label_for to recover
   ## the original label.
-  def applyable_labels
+  def user_defined_labels
     @labels.keys
   end
 
