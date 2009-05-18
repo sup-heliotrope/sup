@@ -65,7 +65,14 @@ protected
 
     @labels = []
     counts.map do |label, string, total, unread|
-      if total == 0 && !LabelManager::RESERVED_LABELS.include?(label)
+      ## if we've done a search and there are no messages for this label, we can delete it from the
+      ## list. BUT if it's a brand-new label, the user may not have sync'ed it to the index yet, so
+      ## don't delete it in this case.
+      ##
+      ## this is all a hack. what should happen is:
+      ##   TODO make the labelmanager responsible for label counts
+      ## and then it can listen to labeled and unlabeled events, etc.
+      if total == 0 && !LabelManager::RESERVED_LABELS.include?(label) && !LabelManager.new_label?(label)
         Redwood::log "no hits for label #{label}, deleting"
         LabelManager.delete label
         next
