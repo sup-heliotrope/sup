@@ -81,6 +81,18 @@ class Loader < Source
     end
   end
 
+  ## scan forward until we're at the valid start of a message
+  def correct_offset!
+    @mutex.synchronize do
+      @f.seek cur_offset
+      string = ""
+      until @f.eof? || (l = @f.gets) =~ BREAK_RE
+        string << l
+      end
+      self.cur_offset += string.length
+    end
+  end
+
   def raw_header offset
     ret = ""
     @mutex.synchronize do
