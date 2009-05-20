@@ -216,7 +216,7 @@ EOS
       ## let's see you do THIS in python
       @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| [t.date, t.first.id] }.reverse
       @size_widgets = @threads.map { |t| size_widget_for_thread t }
-      @size_widget_width = @size_widgets.max_of { |w| w.length }
+      @size_widget_width = @size_widgets.max_of { |w| w.display_length }
     end
 
     regen_text
@@ -700,9 +700,9 @@ protected
       last = i == ann.length - 1
 
       abbrev =
-        if cur_width + name.length > from_width
+        if cur_width + name.display_length > from_width
           name[0 ... (from_width - cur_width - 1)] + "."
-        elsif cur_width + name.length == from_width
+        elsif cur_width + name.display_length == from_width
           name[0 ... (from_width - cur_width)]
         else
           if last
@@ -712,7 +712,7 @@ protected
           end
         end
 
-      cur_width += abbrev.length
+      cur_width += abbrev.display_length
 
       if last && from_width > cur_width
         abbrev += " " * (from_width - cur_width)

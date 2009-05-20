@@ -73,7 +73,7 @@ class ScrollMode < Mode
     end
     if line
       @search_line = line + 1
-      search_goto_pos line, col, col + @search_query.length
+      search_goto_pos line, col, col + @search_query.display_length
       buffer.mark_dirty
     else
       BufferManager.flash "Not found!"
@@ -164,7 +164,7 @@ protected
           if match
             return [i, offset + match]
           else
-            offset += string.length
+            offset += string.display_length
           end
         end
       end
@@ -222,20 +222,20 @@ protected
     a.each do |color, text|
       raise "nil text for color '#{color}'" if text.nil? # good for debugging
       
-      if xpos + text.length < @leftcol
+      if xpos + text.display_length < @leftcol
         buffer.write ln - @topline, 0, "", :color => color,
                      :highlight => opts[:highlight]
-        xpos += text.length
+        xpos += text.display_length
       elsif xpos < @leftcol
         ## partial
         buffer.write ln - @topline, 0, text[(@leftcol - xpos) .. -1],
                      :color => color,
                      :highlight => opts[:highlight]
-        xpos += text.length
+        xpos += text.display_length
       else
         buffer.write ln - @topline, xpos - @leftcol, text,
                      :color => color, :highlight => opts[:highlight]
-        xpos += text.length
+        xpos += text.display_length
       end
     end
   end
