@@ -11,7 +11,7 @@ class Colormap
                    Curses::COLOR_YELLOW, Curses::COLOR_BLUE,
                    Curses::COLOR_MAGENTA, Curses::COLOR_CYAN,
                    Curses::COLOR_WHITE, Curses::COLOR_DEFAULT]
-  NUM_COLORS = 15
+  NUM_COLORS = (CURSES_COLORS.size - 1) * (CURSES_COLORS.size - 1)
 
   DEFAULT_COLORS = {
     :status => { :fg => "white", :bg => "blue", :attrs => ["bold"] },
