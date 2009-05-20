@@ -540,7 +540,7 @@ private
       (0 ... text.length).each do |i|
         @chunk_lines[@text.length + i] = m
         @message_lines[@text.length + i] = m
-        lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.length }.sum
+        lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.display_length }.sum
       end
 
       @text += text
@@ -561,7 +561,7 @@ private
           (0 ... text.length).each do |i|
             @chunk_lines[@text.length + i] = c
             @message_lines[@text.length + i] = m
-            lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.length }.sum - (depth * INDENT_SPACES)
+            lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.display_length }.sum - (depth * INDENT_SPACES)
             l.width = lw if lw > l.width
           end
           @text += text
@@ -635,7 +635,7 @@ private
 
   def format_person_list prefix, people
     ptext = people.map { |p| format_person p }
-    pad = " " * prefix.length
+    pad = "." * prefix.display_length
     [prefix + ptext.first + (ptext.length > 1 ? "," : "")] + 
       ptext[1 .. -1].map_with_index do |e, i|
         pad + e + (i == ptext.length - 1 ? "" : ",")

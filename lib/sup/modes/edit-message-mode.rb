@@ -283,7 +283,7 @@ protected
           if i == 0
             header + " " + name
           else
-            (" " * (header.length + 1)) + name
+            (" " * (header.display_length + 1)) + name
           end + (i == things.length - 1 ? "" : ",")
         end
       end
