@@ -635,7 +635,7 @@ private
 
   def format_person_list prefix, people
     ptext = people.map { |p| format_person p }
-    pad = "." * prefix.display_length
+    pad = " " * prefix.display_length
     [prefix + ptext.first + (ptext.length > 1 ? "," : "")] + 
       ptext[1 .. -1].map_with_index do |e, i|
         pad + e + (i == ptext.length - 1 ? "" : ",")
