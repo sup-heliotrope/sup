@@ -13,8 +13,8 @@ class MessageFormatError < StandardError; end
 ## specific module that would detect and link to /ruby-talk:\d+/
 ## sequences in the text of an email. (how sweet would that be?)
 ##
-## this class cathces all source exceptions. if the underlying source throws
-## an error, it is caught and handled.
+## this class catches all source exceptions. if the underlying source
+## throws an error, it is caught and handled.
 
 class Message
   SNIPPET_LEN = 80
@@ -50,7 +50,7 @@ class Message
     @snippet = opts[:snippet]
     @snippet_contains_encrypted_content = false
     @have_snippet = !(opts[:snippet].nil? || opts[:snippet].empty?)
-    @labels = [] + (opts[:labels] || [])
+    @labels = (opts[:labels] || []).to_set_of_symbols
     @dirty = false
     @encrypted = false
     @chunks = nil
@@ -164,7 +164,7 @@ class Message
   def has_label? t; @labels.member? t; end
   def add_label t
     return if @labels.member? t
-    @labels.push t
+    @labels = (@labels + [t]).to_set_of_symbols
     @dirty = true
   end
   def remove_label t
@@ -178,7 +178,7 @@ class Message
   end
 
   def labels= l
-    @labels = l
+    @labels = l.to_set_of_symbols
     @dirty = true
   end
 

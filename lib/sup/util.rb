@@ -405,6 +405,10 @@ class Array
 
   def last= e; self[-1] = e end
   def nonempty?; !empty? end
+
+  def to_set_of_symbols
+    map { |x| x.is_a?(Symbol) ? x : x.intern }.uniq
+  end
 end
 
 class Time
