@@ -389,7 +389,7 @@ EOS
       Redwood::log "thread for #{m.id} is killed, ignoring"
       false
     else
-      Redwood::log "ran #{num_queries} queries to build thread of #{messages.size + 1} messages for #{m.id}: #{m.subj}" if num_queries > 0
+      Redwood::log "ran #{num_queries} queries to build thread of #{messages.size} messages for #{m.id}: #{m.subj}" if num_queries > 0
       messages.each { |mid, builder| yield mid, builder }
       true
     end
