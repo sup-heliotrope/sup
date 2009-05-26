@@ -13,8 +13,8 @@ class MessageFormatError < StandardError; end
 ## specific module that would detect and link to /ruby-talk:\d+/
 ## sequences in the text of an email. (how sweet would that be?)
 ##
-## this class cathces all source exceptions. if the underlying source throws
-## an error, it is caught and handled.
+## this class catches all source exceptions. if the underlying source
+## throws an error, it is caught and handled.
 
 class Message
   SNIPPET_LEN = 80
