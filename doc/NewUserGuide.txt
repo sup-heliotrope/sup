@@ -1,6 +1,6 @@
 Welcome to Sup! Here's how to get started.
 
-First, try running 'sup'. Since this is your first time, you'll be
+First, try running `sup`. Since this is your first time, you'll be
 confronted with a mostly blank screen, and a notice at the bottom that
 you have no new messages. That's because Sup doesn't hasn't loaded
 anything into its index yet, and has no idea where to look for them
@@ -28,21 +28,21 @@ talks only to the index (stored locally on disk). When you view a
 thread, Sup requests the full content of all the messages from the
 source.
 
-The easiest way to set up all your sources is to run "sup-config".
+The easiest way to set up all your sources is to run `sup-config`.
 This will interactively walk you through some basic configuration,
 prompt you for all the sources you need, and optionally import
 messages from them. Sup-config uses two other tools, sup-add and
 sup-sync, to load messages into the index. In the future you may make
 use of these tools directly (see below).
 
-Once you've run sup-config, you're ready to run 'sup'. You should see
+Once you've run sup-config, you're ready to run `sup`. You should see
 the most recent unarchived messages appear in your inbox.
 Congratulations, you've got Sup working!
 
 If you're coming from the world of traditional MUAs, there are a
 couple differences you should be aware of at this point. First, Sup
 has no folders. Instead, you organize and find messages by a
-combination of search and labels (knowns as 'tags' everywhere else in
+combination of search and labels (known as "tags" everywhere else in
 the world). Search and labels are an integral part of Sup because in
 Sup, rather than viewing the contents of a folder, you view the
 results of a search. I mentioned above that your inbox is, by
@@ -136,7 +136,7 @@ special labels (Draft, Starred, Sent, Spam, etc.). Highlight a label
 and press enter to view all the messages with that label.
 
 What you just did was actually a specific search. For a general search,
-press "\" (backslash---forward slash is used for in-buffer search,
+press '\' (backslash---forward slash is used for in-buffer search,
 following console conventions). Now type in your query (again, Ctrl-G to
 cancel at any point.) You can just type in arbitrary text, which will be
 matched on a per-word basis against the bodies of all email in the
@@ -183,18 +183,18 @@ offsets will be wrong.
 
 That's the bad news. The good news is that Sup is pretty good at being
 able to detect this type of situation, and fixing it is just a matter
-of running sup-sync --changed on the source. Sup will even tell you
+of running `sup-sync --changed` on the source. Sup will even tell you
 how to invoke sup-sync when it detects a problem. This is a
 complication you will almost certainly run in to if you use both Sup
 and another MUA on the same source, so it's good to be aware of it.
 
 Have fun, and let me know if you have any problems!
 
-Appending A: sup-add and sup-sync
+Appendix A: sup-add and sup-sync
 ---------------------------------
 
 Instead of using sup-config to add a new source, you can manually run
-'sup-add' with a URI pointing to it. The URI should be of the form:
+`sup-add` with a URI pointing to it. The URI should be of the form:
 - mbox://path/to/a/filename, for an mbox file on disk.
 - maildir://path/to/a/filename, for a maildir directory on disk.
 - imap://imap.server/folder for an unsecure IMAP folder.
