@@ -137,13 +137,14 @@ EOS
   def add_messages_from source, opts={}
     begin
       return if source.done? || source.has_errors?
-      
+
       source.each do |offset, labels|
         if source.has_errors?
           Redwood::log "error loading messages from #{source}: #{source.error.message}"
           return
         end
-      
+
+        labels << :sent if source.uri.eql?(SentManager.source_uri)
         labels.each { |l| LabelManager << l }
         labels = labels + (source.archived? ? [] : [:inbox])
 

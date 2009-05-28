@@ -168,11 +168,10 @@ begin
     Index.add_source DraftManager.new_source
   end
 
-  if(s = Index.source_for SentManager.source_name)
+  if(s = Index.source_for SentManager.source_uri)
     SentManager.source = s
   else
-    Redwood::log "no sent mail source, auto-adding..."
-    Index.add_source SentManager.new_source
+    Index.add_source SentManager.default_source
   end
 
   HookManager.run "startup"
