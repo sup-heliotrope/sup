@@ -53,13 +53,6 @@ class DummySource < Source
       yield f.gets
     end
   end
-
-  # FIXME: this one was not mentioned in the source documentation, but
-  # it's still required
-  def has_errors?
-
-  end
-
 end
 
 end

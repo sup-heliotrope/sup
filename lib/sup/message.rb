@@ -190,7 +190,7 @@ class Message
   ## this is called when the message body needs to actually be loaded.
   def load_from_source!
     @chunks ||=
-      if @source.has_errors?
+      if @source.respond_to?(:has_errors?) && @source.has_errors?
         [Chunk::Text.new(error_message(@source.error.message).split("\n"))]
       else
         begin
@@ -364,6 +364,7 @@ private
     [notice, sig, children].flatten.compact
   end
 
+  ## takes a RMail::Message, breaks it into Chunk:: classes.
   def message_to_chunks m, encrypted=false, sibling_types=[]
     if m.multipart?
       chunks =
