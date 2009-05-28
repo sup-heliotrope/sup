@@ -177,31 +177,31 @@ EOS
     end
   end
 
-  ## Syncs the message to the index: deleting if it's already there,
-  ## and adding either way. Index state will be determined by m.labels.
+  ## Syncs the message to the index, replacing any previous version.  adding
+  ## either way. Index state will be determined by the message's #labels
+  ## accessor.
   ##
-  ## docid and entry can be specified if they're already known.
-  def sync_message m, docid=nil, entry=nil, opts={}
-    docid, entry = load_entry_for_id m.id unless docid && entry
+  ## if need_load is false, docid and entry are assumed to be set to the
+  ## result of load_entry_for_id (which can be nil).
+  def sync_message m, need_load=true, docid=nil, entry=nil, opts={}
+    docid, entry = load_entry_for_id m.id if need_load
 
     raise "no source info for message #{m.id}" unless m.source && m.source_info
     @index_mutex.synchronize do
       raise "trying to delete non-corresponding entry #{docid} with index message-id #{@index[docid][:message_id].inspect} and parameter message id #{m.id.inspect}" if docid && @index[docid][:message_id] != m.id
     end
 
-    source_id = 
-      if m.source.is_a? Integer
-        m.source
-      else
-        m.source.id or raise "unregistered source #{m.source} (id #{m.source.id.inspect})"
-      end
+    source_id = if m.source.is_a? Integer
+      m.source
+    else
+      m.source.id or raise "unregistered source #{m.source} (id #{m.source.id.inspect})"
+    end
 
-    snippet = 
-      if m.snippet_contains_encrypted_content? && $config[:discard_snippets_from_encrypted_messages]
-        ""
-      else
-        m.snippet
-      end
+    snippet = if m.snippet_contains_encrypted_content? && $config[:discard_snippets_from_encrypted_messages]
+      ""
+    else
+      m.snippet
+    end
 
     ## write the new document to the index. if the entry already exists in the
     ## index, reuse it (which avoids having to reload the entry from the source,
@@ -261,15 +261,14 @@ EOS
       :refs => (entry[:refs] || (m.refs + m.replytos).uniq.join(" ")),
     }
 
-    @index_mutex.synchronize  do
+    @index_mutex.synchronize do
       @index.delete docid if docid
       @index.add_document d
     end
 
-    docid, entry = load_entry_for_id m.id
-    ## this hasn't been triggered in a long time. TODO: decide whether it's still a problem.
-    raise "just added message #{m.id.inspect} but couldn't find it in a search" unless docid
-    true
+    ## this hasn't been triggered in a long time.
+    ## docid, entry = load_entry_for_id m.id
+    ## raise "just added message #{m.id.inspect} but couldn't find it in a search" unless docid
   end
 
   def save_index fn=File.join(@dir, "ferret")
@@ -414,9 +413,11 @@ EOS
         "references" => doc[:refs].split.map { |x| "<#{x}>" }.join(" "),
       }
 
-      Message.new :source => source, :source_info => doc[:source_info].to_i,
+      m = Message.new :source => source, :source_info => doc[:source_info].to_i,
                   :labels => doc[:label].symbolistize,
-                  :snippet => doc[:snippet], :header => fake_header
+                  :snippet => doc[:snippet]
+      m.parse_header fake_header
+      m
     end
   end
 

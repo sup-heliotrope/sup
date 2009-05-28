@@ -149,6 +149,8 @@ EOS
 
         begin
           m = Message.new :source => source, :source_info => offset, :labels => labels
+          m.load_from_source!
+
           if m.source_marked_read?
             m.remove_label :unread
             labels.delete :unread
@@ -157,7 +159,7 @@ EOS
           docid, entry = Index.load_entry_for_id m.id
           HookManager.run "before-add-message", :message => m
           m = yield(m, offset, entry) or next if block_given?
-          Index.sync_message m, docid, entry, opts
+          times = Index.sync_message m, false, docid, entry, opts
           UpdateManager.relay self, :added, m unless entry
         rescue MessageFormatError => e
           Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"

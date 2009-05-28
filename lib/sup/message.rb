@@ -60,49 +60,42 @@ class Message
     ## why.
     @refs = []
 
-    parse_header(opts[:header] || @source.load_header(@source_info))
+    #parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
   def parse_header header
-    header.keys.each { |k| header[k.downcase] = header[k] } # canonicalize
-
-    fakeid = nil
-    fakename = nil
-
-    @id =
-      if header["message-id"]
-        sanitize_message_id header["message-id"]
-      else
-        fakeid = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
-      end
+    @id = if header["message-id"]
+      mid = header["message-id"] =~ /<(.+?)>/ ? $1 : header["message-id"]
+      sanitize_message_id mid
+    else
+      id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
+      from = header["from"]
+      #Redwood::log "faking non-existent message-id for message from #{from}: #{id}"
+      id
+    end
     
-    @from =
-      if header["from"]
-        Person.from_address header["from"]
-      else
-        fakename = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
-        Person.from_address fakename
-      end
+    @from = Person.from_address(if header["from"]
+      header["from"]
+    else
+      name = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
+      #Redwood::log "faking non-existent sender for message #@id: #{name}"
+      name
+    end)
 
-    Redwood::log "faking message-id for message from #@from: #{id}" if fakeid
-    Redwood::log "faking from for message #@id: #{fakename}" if fakename
-
-    date = header["date"]
-    @date =
-      case date
-      when Time
-        date
-      when String
-        begin
-          Time.parse date
-        rescue ArgumentError => e
-          Redwood::log "faking date header for #{@id} due to error parsing date #{header['date'].inspect}: #{e.message}"
-          Time.now
-        end
-      else
-        Redwood::log "faking date header for #{@id}"
+    @date = case(date = header["date"])
+    when Time
+      date
+    when String
+      begin
+        Time.parse date
+      rescue ArgumentError => e
+        #Redwood::log "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
         Time.now
       end
+    else
+      #Redwood::log "faking non-existent date header for #{@id}"
+      Time.now
+    end
 
     @subj = header.member?("subject") ? header["subject"].gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
     @to = Person.from_address_list header["to"]
@@ -130,7 +123,6 @@ class Message
     @list_subscribe = header["list-subscribe"]
     @list_unsubscribe = header["list-unsubscribe"]
   end
-  private :parse_header
 
   def add_ref ref
     @refs << ref

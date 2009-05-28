@@ -12,7 +12,7 @@ class EditMessageMode < LineCursorMode
 
   FORCE_HEADERS = %w(From To Cc Bcc Subject)
   MULTI_HEADERS = %w(To Cc Bcc)
-  NON_EDITABLE_HEADERS = %w(Message-Id Date)
+  NON_EDITABLE_HEADERS = %w(Message-id Date)
 
   HookManager.register "signature", <<EOS
 Generates a message signature.
@@ -214,7 +214,7 @@ protected
 
   def parse_file fn
     File.open(fn) do |f|
-      header = MBox::read_header f
+      header = Source.parse_raw_email_header(f).inject({}) { |h, (k, v)| h[k.capitalize] = v; h } # lousy HACK
       body = f.readlines.map { |l| l.chomp }
 
       header.delete_if { |k, v| NON_EDITABLE_HEADERS.member? k }
