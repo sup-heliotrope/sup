@@ -81,19 +81,15 @@ begin
   end
   query += ' ' + opts[:query] if opts[:query]
 
-  qobj, opts = Redwood::Index.parse_user_query_string query
-  query = Redwood::Index.build_query opts.merge(:qobj => qobj)
-
-  results = index.ferret.search query, :limit => :all
-  num_total = results.total_hits
+  docs = Redwood::Index.run_query query
+  num_total = docs.size
 
   $stderr.puts "Found #{num_total} documents across #{source_ids.length} sources. Scanning..."
 
   num_changed = num_scanned = 0
   last_info_time = start_time = Time.now
-  results.hits.each do |hit|
+  docs.each do |id|
     num_scanned += 1
-    id = hit.doc
 
     m = index.build_message id
     old_labels = m.labels.clone
