@@ -2,6 +2,7 @@ require 'tempfile'
 require 'socket' # just for gethostname!
 require 'pathname'
 require 'rmail'
+require 'jcode' # for RE_UTF8
 
 module Redwood
 
@@ -170,6 +171,29 @@ EOS
 
 protected
 
+  def mime_encode string
+    string = [string].pack('M') # basic quoted-printable
+    string.gsub!(/=\n/,'')      # .. remove trailing newline
+    string.gsub!(/_/,'=96')     # .. encode underscores
+    string.gsub!(/\?/,'=3F')    # .. encode question marks
+    string.gsub!(/ /,'_')       # .. translate space to underscores
+    "=?utf-8?q?#{string}?="
+  end
+
+  def mime_encode_subject string
+    return string unless string.match(String::RE_UTF8)
+    mime_encode string
+  end
+
+  RE_ADDRESS = /(.+)( <.*@.*>)/
+
+  # Encode "bælammet mitt <user@example.com>" into
+  # "=?utf-8?q?b=C3=A6lammet_mitt?= <user@example.com>
+  def mime_encode_address string
+    return string unless string.match(String::RE_UTF8)
+    string.sub(RE_ADDRESS) { |match| mime_encode($1) + $2 }
+  end
+
   def move_cursor_left
     if curpos < @selectors.length
       @selectors[curpos].roll_left
@@ -259,7 +283,7 @@ protected
           if i == 0
             header + " " + name
           else
-            (" " * (header.length + 1)) + name
+            (" " * (header.display_length + 1)) + name
           end + (i == things.length - 1 ? "" : ",")
         end
       end
@@ -335,14 +359,16 @@ protected
       m.header[k] = 
         case v
         when String
-          v
+          k.match(/subject/i) ? mime_encode_subject(v) : mime_encode_address(v)
         when Array
-          v.join ", "
+          v.map { |v| mime_encode_address v }.join ", "
         end
     end
+
     m.header["Date"] = date.rfc2822
     m.header["Message-Id"] = @message_id
     m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
+    m.header["Content-Transfer-Encoding"] = '8bit'
     m
   end
 

@@ -172,6 +172,8 @@ class Object
 end
 
 class String
+  def display_length; scan(/./u).size end
+
   def camel_to_hyphy
     self.gsub(/([a-z])([A-Z0-9])/, '\1-\2').downcase
   end

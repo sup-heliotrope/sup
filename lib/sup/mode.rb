@@ -58,7 +58,7 @@ class Mode
       title = "Keybindings from #{Mode.make_name klass.name}"
       s = <<EOS
 #{title}
-#{'-' * title.length}
+#{'-' * title.display_length}
 
 #{km.help_text used_keys}
 EOS
