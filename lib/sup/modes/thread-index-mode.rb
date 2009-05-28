@@ -537,7 +537,7 @@ EOS
     user_labels.each { |l| LabelManager << l }
     update_text_for_line curpos
 
-    UndoManager.register "labeling thread #{thread.first.id}" do
+    UndoManager.register "labeling thread" do
       thread.labels = old_labels
       update_text_for_line pos
       UpdateManager.relay self, :labeled, thread.first
@@ -565,8 +565,8 @@ EOS
           t.remove_label l
         else
           t.apply_label l
+          LabelManager << l
         end
-        LabelManager << l
       end
       UpdateManager.relay self, :labeled, t.first
     end
