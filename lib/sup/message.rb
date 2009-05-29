@@ -387,10 +387,19 @@ private
       chunks
     elsif m.header.content_type == "message/rfc822"
       payload = RMail::Parser.read(m.body)
-      from = payload.header.from.first
-      from_person = from ? Person.from_address(from.format) : nil
-      [Chunk::EnclosedMessage.new(from_person, payload.to_s)] +
-        message_to_chunks(payload, encrypted)
+      from = payload.header.from.first ? payload.header.from.first.format : ""
+      to = payload.header.to.map { |p| p.format }.join(", ")
+      cc = payload.header.cc.map { |p| p.format }.join(", ")
+      subj = payload.header.subject
+      subj = subj ? Message.normalize_subj(payload.header.subject.gsub(/\s+/, " ").gsub(/\s+$/, "")) : subj
+      if Rfc2047.is_encoded? subj
+        subj = Rfc2047.decode_to $encoding, subj
+      end
+      msgdate = payload.header.date
+      from_person = from ? Person.from_address(from) : nil
+      to_people = to ? Person.from_address_list(to) : nil
+      cc_people = cc ? Person.from_address_list(cc) : nil
+      [Chunk::EnclosedMessage.new(from_person, to_people, cc_people, msgdate, subj)] + message_to_chunks(payload, encrypted)
     else
       filename =
         ## first, paw through the headers looking for a filename
