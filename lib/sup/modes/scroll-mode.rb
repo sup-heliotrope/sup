@@ -219,8 +219,9 @@ protected
 
   def draw_line_from_array ln, a, opts
     xpos = 0
-    a.each do |color, text|
+    a.each_with_index do |(color, text), i|
       raise "nil text for color '#{color}'" if text.nil? # good for debugging
+      no_fill = i != a.size - 1
       
       if xpos + text.display_length < @leftcol
         buffer.write ln - @topline, 0, "", :color => color,
@@ -230,11 +231,12 @@ protected
         ## partial
         buffer.write ln - @topline, 0, text[(@leftcol - xpos) .. -1],
                      :color => color,
-                     :highlight => opts[:highlight]
+                     :highlight => opts[:highlight], :no_fill => no_fill
         xpos += text.display_length
       else
         buffer.write ln - @topline, xpos - @leftcol, text,
-                     :color => color, :highlight => opts[:highlight]
+                     :color => color, :highlight => opts[:highlight],
+                     :no_fill => no_fill
         xpos += text.display_length
       end
     end
