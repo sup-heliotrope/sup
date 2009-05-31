@@ -1,3 +1,5 @@
+require "sup/rfc2047"
+
 module Redwood
 
 class SourceError < StandardError
