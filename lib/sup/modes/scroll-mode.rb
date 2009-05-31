@@ -221,24 +221,23 @@ protected
     xpos = 0
     a.each_with_index do |(color, text), i|
       raise "nil text for color '#{color}'" if text.nil? # good for debugging
+      l = text.display_length
       no_fill = i != a.size - 1
       
-      if xpos + text.display_length < @leftcol
+      if xpos + l < @leftcol
         buffer.write ln - @topline, 0, "", :color => color,
                      :highlight => opts[:highlight]
-        xpos += text.display_length
       elsif xpos < @leftcol
         ## partial
         buffer.write ln - @topline, 0, text[(@leftcol - xpos) .. -1],
                      :color => color,
                      :highlight => opts[:highlight], :no_fill => no_fill
-        xpos += text.display_length
       else
         buffer.write ln - @topline, xpos - @leftcol, text,
                      :color => color, :highlight => opts[:highlight],
                      :no_fill => no_fill
-        xpos += text.display_length
       end
+      xpos += l
     end
   end
 
