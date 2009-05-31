@@ -3,3 +3,5 @@
 .ditz-config
 # i use emacs
 *~
+# i use rake package task
+pkg/
