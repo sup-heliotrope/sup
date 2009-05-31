@@ -108,11 +108,16 @@ class Buffer
 
     @w.attrset Colormap.color_for(opts[:color] || :none, opts[:highlight])
     s ||= ""
-    maxl = @width - x
-    @w.mvaddstr y, x, s[0 ... maxl]
-    l = s.display_length
-    unless l >= maxl || opts[:no_fill]
-      @w.mvaddstr(y, x + l, " " * (maxl - l))
+    maxl = @width - x # maximum display width width
+    stringl = maxl    # string "length"
+    ## the next horribleness is thanks to ruby's lack of widechar support
+    stringl += 1 while stringl < s.length && s[0 ... stringl].display_length < maxl
+    @w.mvaddstr y, x, s[0 ... stringl]
+    unless opts[:no_fill]
+      l = s.display_length
+      unless l >= maxl
+        @w.mvaddstr(y, x + l, " " * (maxl - l))
+      end
     end
   end
 
