@@ -110,8 +110,9 @@ class Buffer
     s ||= ""
     maxl = @width - x
     @w.mvaddstr y, x, s[0 ... maxl]
-    unless s.length >= maxl || opts[:no_fill]
-      @w.mvaddstr(y, x + s.length, " " * (maxl - s.length))
+    l = s.display_length
+    unless l >= maxl || opts[:no_fill]
+      @w.mvaddstr(y, x + l, " " * (maxl - l))
     end
   end
 
