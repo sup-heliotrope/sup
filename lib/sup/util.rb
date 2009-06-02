@@ -642,7 +642,4 @@ class Iconv
       text
     end
   end
-
-  ## normalize a string to be in the current encoding ($encoding)
-  def self.normalize s; easy_decode $encoding, $encoding, s end
 end
