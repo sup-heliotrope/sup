@@ -1,9 +1,6 @@
 require 'time'
-require 'iconv'
 
 module Redwood
-
-class MessageFormatError < StandardError; end
 
 ## a Message is what's threaded.
 ##
@@ -64,6 +61,13 @@ class Message
   end
 
   def parse_header header
+    ## forcibly decode these headers from and to the current encoding,
+    ## which serves to strip out characters that aren't displayable
+    ## (and which would otherwise be screwing up the display)
+    %w(from to subject cc bcc).each do |f|
+      header[f] = Iconv.easy_decode($encoding, $encoding, header[f]) if header[f]
+    end
+
     @id = if header["message-id"]
       mid = header["message-id"] =~ /<(.+?)>/ ? $1 : header["message-id"]
       sanitize_message_id mid
@@ -73,7 +77,7 @@ class Message
       #Redwood::log "faking non-existent message-id for message from #{from}: #{id}"
       id
     end
-    
+
     @from = Person.from_address(if header["from"]
       header["from"]
     else
@@ -204,7 +208,7 @@ class Message
           ## so i will keep this.
           parse_header @source.load_header(@source_info)
           message_to_chunks @source.load_message(@source_info)
-        rescue SourceError, SocketError, MessageFormatError => e
+        rescue SourceError, SocketError => e
           Redwood::log "problem getting messages from #{@source}: #{e.message}"
           ## we need force_to_top here otherwise this window will cover
           ## up the error message one
@@ -421,21 +425,12 @@ private
 
       ## otherwise, it's body text
       else
-        body = Message.convert_from m.decode, m.charset if m.body
+        ## if there's no charset, use the current encoding as the charset.
+        ## this ensures that the body is normalized to avoid non-displayable
+        ## characters
+        body = Iconv.easy_decode($encoding, m.charset || $encoding, m.decode) if m.body
         text_to_chunks((body || "").normalize_whitespace.split("\n"), encrypted)
       end
-    end
-  end
-
-  def self.convert_from body, charset
-    begin
-      raise MessageFormatError, "RubyMail decode returned a null body" unless body
-      return body unless charset
-      Iconv.easy_decode($encoding, charset, body)
-    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence, MessageFormatError => e
-      Redwood::log "warning: error (#{e.class.name}) decoding message body from #{charset}: #{e.message}"
-      File.open(File.join(BASE_DIR,"unable-to-decode.txt"), "w") { |f| f.write body }
-      body
     end
   end
 

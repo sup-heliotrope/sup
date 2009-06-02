@@ -137,33 +137,29 @@ EOS
   def add_messages_from source, opts={}
     begin
       return if source.done? || source.has_errors?
-      
+
       source.each do |offset, labels|
         if source.has_errors?
           Redwood::log "error loading messages from #{source}: #{source.error.message}"
           return
         end
-      
+
         labels.each { |l| LabelManager << l }
         labels = labels + (source.archived? ? [] : [:inbox])
 
-        begin
-          m = Message.new :source => source, :source_info => offset, :labels => labels
-          m.load_from_source!
+        m = Message.new :source => source, :source_info => offset, :labels => labels
+        m.load_from_source!
 
-          if m.source_marked_read?
-            m.remove_label :unread
-            labels.delete :unread
-          end
-
-          docid, entry = Index.load_entry_for_id m.id
-          HookManager.run "before-add-message", :message => m
-          m = yield(m, offset, entry) or next if block_given?
-          times = Index.sync_message m, false, docid, entry, opts
-          UpdateManager.relay self, :added, m unless entry
-        rescue MessageFormatError => e
-          Redwood::log "ignoring erroneous message at #{source}##{offset}: #{e.message}"
+        if m.source_marked_read?
+          m.remove_label :unread
+          labels.delete :unread
         end
+
+        docid, entry = Index.load_entry_for_id m.id
+        HookManager.run "before-add-message", :message => m
+        m = yield(m, offset, entry) or next if block_given?
+        times = Index.sync_message m, false, docid, entry, opts
+        UpdateManager.relay self, :added, m unless entry
       end
     rescue SourceError => e
       Redwood::log "problem getting messages from #{source}: #{e.message}"

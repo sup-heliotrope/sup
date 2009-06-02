@@ -72,18 +72,14 @@ ARGV.each do |fn|
   source_ids = {}
   count = 0
   source.each do |offset, labels|
-    begin
-      m = Redwood::Message.new :source => source, :source_info => offset
-      docid, entry = index.load_entry_for_id m.id
-      next unless entry
-      #puts "# #{source} #{offset} #{entry[:source_id]}"
+    m = Redwood::Message.new :source => source, :source_info => offset
+    docid, entry = index.load_entry_for_id m.id
+    next unless entry
+    #puts "# #{source} #{offset} #{entry[:source_id]}"
 
-      source_ids[entry[:source_id]] = (source_ids[entry[:source_id]] || 0) + 1
-      count += 1
-      break if count == $opts[:scan_num]
-    rescue Redwood::MessageFormatError => e
-      puts "# #{e.message}"
-    end
+    source_ids[entry[:source_id]] = (source_ids[entry[:source_id]] || 0) + 1
+    count += 1
+    break if count == $opts[:scan_num]
   end
 
   if source_ids.size == 1
