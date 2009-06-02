@@ -628,16 +628,21 @@ class Iconv
   def self.easy_decode target, charset, text
     return text if charset =~ /^(x-unknown|unknown[-_ ]?8bit|ascii[-_ ]?7[-_ ]?bit)$/i
     charset = case charset
-                when /UTF[-_ ]?8/i: "utf-8"
-                when /(iso[-_ ])?latin[-_ ]?1$/i: "ISO-8859-1"
-                when /iso[-_ ]?8859[-_ ]?15/i: 'ISO-8859-15'
-                when /unicode[-_ ]1[-_ ]1[-_ ]utf[-_]7/i: "utf-7"
-                else charset
-              end
+      when /UTF[-_ ]?8/i: "utf-8"
+      when /(iso[-_ ])?latin[-_ ]?1$/i: "ISO-8859-1"
+      when /iso[-_ ]?8859[-_ ]?15/i: 'ISO-8859-15'
+      when /unicode[-_ ]1[-_ ]1[-_ ]utf[-_]7/i: "utf-7"
+      else charset
+    end
 
-    # Convert:
-    #
-    # Remember - Iconv.open(to, from)!
-    Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]
+    begin
+      Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]
+    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
+      Redwood::log "warning: error (#{e.class.name}) decoding text from #{charset} to #{target}: #{text[0 ... 20]}"
+      text
+    end
   end
+
+  ## normalize a string to be in the current encoding ($encoding)
+  def self.normalize s; easy_decode $encoding, $encoding, s end
 end
