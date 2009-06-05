@@ -13,22 +13,20 @@ Sup makes it easy to:
 - Handle massive amounts of email.
 
 - Mix email from different sources: mbox files (even across different
-  machines), Maildir directories, IMAP folders, POP accounts, and
-  GMail accounts.
+  machines), Maildir directories, IMAP folders, and GMail accounts.
 
-- Instantaneously search over your entire email collection. Search
-  over body text, or use a query language to combine search
-  predicates in any way.
+- Instantaneously search over your entire email collection. Search over
+  body text, or use a query language to combine search predicates in any
+  way.
 
 - Handle multiple accounts. Replying to email sent to a particular
-  account will use the correct SMTP server, signature, and from
-  address.
+  account will use the correct SMTP server, signature, and from address.
 
-- Add custom code to handle certain types of messages or to handle
-  certain types of text within messages.
+- Add custom code to customize Sup to whatever particular and bizarre
+  needs you may have.
 
-- Organize email with user-defined labels, automatically track
-  recent contacts, and much more!
+- Organize email with user-defined labels, automatically track recent
+  contacts, and much more!
 
 The goal of Sup is to become the email client of choice for nerds
 everywhere.
@@ -48,40 +46,41 @@ Features:
   message level. Entire threads are manipulated and viewed (with
   redundancies removed) at a time.
 
-- Labels instead of folders. Drop that tired old metaphor and you'll
-  see how much easier it is to organize email.
+- Labels instead of folders. Drop that tired old metaphor and you'll see
+  how much easier it is to organize email.
 
-- GMail-style thread management (but better!). Archive a thread, and
-  it will disappear from your inbox until someone replies. Kill a
-  thread, and it will never come back to your inbox (but will still
-  show up in searches.) Mark a thread as spam and you'll never again
-  see it unless explicitly searching for spam.
+- GMail-style thread management. Archive a thread, and it will disappear
+  from your inbox until someone replies. Kill a thread, and it will
+  never come back to your inbox (but will still show up in searches.)
+  Mark a thread as spam and you'll never again see it unless explicitly
+  searching for spam.
 
 - Console based interface. No mouse clicking required!
 
-- Programmability. It's in Ruby. The code is good. It's easy to
-  extend.
+- Programmability. It's in Ruby. The code is good. It has an extensive
+  hook system that makes it easy to extend and customize.
 
-- Multiple buffer support. Why be limited to viewing one thread at a
+- Multiple buffer support. Why be limited to viewing one thing at a
   time?
 
-- Tons of other little features, like automatic context-sensitive
-  help, multi-message operations, MIME attachment viewing, recent
-  contact list generation, etc.
+- Tons of other little features, like automatic context-sensitive help,
+  multi-message operations, MIME attachment viewing, recent contact list
+  generation, etc.
 
 Current limitations which will be fixed:
 
-- Support for mbox, remote mbox, and IMAP only at this point. No
-  support for POP, mh, or GMail mailstores.
+- Sup doesn't play nicely with other mail clients. If you alter a mail
+  source (read, move, delete, etc) with another client Sup will punish
+  you with a lengthy reindexing process.
 
-- No internationalization support. No wide characters, no subject
-  demangling. 
+- Support for mbox, Maildir, and IMAP only at this point. No support for
+  POP or mh.
 
-- Unix-centrism in MIME attachment handling and in sendmail
-  invocation.
+- IMAP support is very slow due mostly to Ruby's IMAP library.  You may
+  consider something like offlineimap to mirror your IMAP folders with
+  local Maildir ones.
 
-- Several obvious missing features, like filters / saved
-  searches, message annotations, etc.
+- Unix-centrism in MIME attachment handling and in sendmail invocation.
 
 == SYNOPSYS:
 
@@ -90,21 +89,23 @@ Current limitations which will be fixed:
 
   Note that Sup never changes the contents of any mailboxes; it only
   indexes in to them. So it shouldn't ever corrupt your mail. The flip
-  side is that if you change a mailbox (e.g. delete messages, or, in
-  the case of mbox files, read an unread message) then Sup will be
-  unable to load messages from that source and will ask you to run
-  sup-sync --changed.
+  side is that if you change a mailbox (e.g. delete messages, or, in the
+  case of mbox files, read an unread message) then Sup will be unable to
+  load messages from that source and will ask you to run sup-sync
+  --changed.
 
 == REQUIREMENTS:
 
-* ferret >= 0.10.13
-* ncurses
-* rmail
-* highline
-* net-ssh
-* trollop >= 1.7
-* lockfile
-* mime-types
+ - ferret >= 0.11.6
+ - ncurses >= 0.9.1
+ - rmail >= 0.17
+ - highline
+ - net-ssh
+ - trollop >= 1.12
+ - lockfile
+ - mime-types
+ - gettext
+ - fastthread
 
 == INSTALL:
 
