@@ -27,6 +27,7 @@ EOS
   register_keymap do |k|
     k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
+    k.add :show_message, "Show full message (raw form)", 'V'
     k.add :activate_chunk, "Expand/collapse or activate item", :enter
     k.add :expand_all_messages, "Expand/collapse all messages", 'E'
     k.add :edit_draft, "Edit draft", 'e'
@@ -131,6 +132,13 @@ EOS
     m = @message_lines[curpos] or return
     BufferManager.spawn_unless_exists("Full header for #{m.id}") do
       TextMode.new m.raw_header
+    end
+  end
+
+  def show_message
+    m = @message_lines[curpos] or return
+    BufferManager.spawn_unless_exists("Raw message for #{m.id}") do
+      TextMode.new m.raw_message
     end
   end
 
@@ -253,7 +261,7 @@ EOS
     end
     if chunk.is_a?(Message)
       jump_to_message chunk
-      jump_to_next_open
+      jump_to_next_open if layout.state == :closed
     end
   end
 
