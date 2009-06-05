@@ -261,7 +261,7 @@ EOS
     end
     if chunk.is_a?(Message)
       jump_to_message chunk
-      jump_to_next_open
+      jump_to_next_open if layout.state == :closed
     end
   end
 
