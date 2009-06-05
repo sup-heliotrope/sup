@@ -234,18 +234,26 @@ EOS
   ## view.
   def activate_chunk
     chunk = @chunk_lines[curpos] or return
-    layout = 
-      if chunk.is_a?(Message)
-        @layout[chunk]
-      elsif chunk.expandable?
-        @chunk_layout[chunk]
-      end
+    if chunk.is_a? Chunk::Text
+      ## if the cursor is over a text region, expand/collapse the
+      ## entire message
+      chunk = @message_lines[curpos]
+    end
+    layout = if chunk.is_a?(Message)
+      @layout[chunk]
+    elsif chunk.expandable?
+      @chunk_layout[chunk]
+    end
     if layout
       layout.state = (layout.state != :closed ? :closed : :open)
       #cursor_down if layout.state == :closed # too annoying
       update
     elsif chunk.viewable?
       view chunk
+    end
+    if chunk.is_a?(Message)
+      jump_to_message chunk
+      jump_to_next_open
     end
   end
 
