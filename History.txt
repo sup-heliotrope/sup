@@ -1,3 +1,22 @@
+== 0.8 / 2009-06-05
+* Undo support on many operations. Yay!
+* Mbox splitting fixes. No more "From "-line problems.
+* Mail parsing speedups.
+* Many utf8 and widechar fixes. Display of crazy characters should be pretty
+  close.
+* Outgoing email with non-ASCII headers is now properly encoded.
+* Email addresses are no longer permanently attached to names. This was
+  causing problems with automated email systems that used different names
+  with the same address.
+* Curses background now retains the terminal default color. This also makes
+  Sup work better on transparent terminals.
+* Improve dynamic loading of setlocale for Cygwin and BSD systems.
+* Labels can now be removed from multiple tagged threads.
+* Applying operations to tagged threads is now invoked with '='.
+* Buffer list is betterified and is now invoked with ';'.
+* Zsh autocompletion support.
+* As always, many bugfixes and tweaks.
+
 == 0.7 / 2009-03-16
 * Ferret index corruption issues fixed (hopefully!)
 * Text entry now scrolls to the right on overflow, i.e. is actually usable

@@ -1,3 +1,9 @@
+Release 0.8:
+
+The big wins are undo support, mbox splitting fixes, and the various UI
+speedups and bugfixes. Parsing new email should also be faster, although
+IMAP remains tragically slow, as usual.
+
 Release 0.7:
 
 The big win in this release is that Ferret index corruption issues should now
