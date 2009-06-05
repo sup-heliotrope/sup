@@ -7,11 +7,12 @@ anything into its index yet, and has no idea where to look for them
 anyways.
 
 If you want to play around a little at this point, you can press 'b'
-to cycle between buffers and 'x' to kill a buffer. There's probably
-not too much interesting there, but there's a log buffer with some
-cryptic messages. You can also press '?' at any point to get a list of
-keyboard commands, but in the absence of any email, these will be
-mostly useless. When you get bored, press 'q' to quit.
+to cycle between buffers, ';' to get a list of the open buffers, and
+'x' to kill a buffer. There's probably not too much interesting there,
+but there's a log buffer with some cryptic messages. You can also
+press '?' at any point to get a list of keyboard commands, but in the
+absence of any email, these will be mostly useless. When you get
+bored, press 'q' to quit.
 
 To use Sup for email, we need to load messages into the index. The
 index is where Sup stores all message state (e.g. read or unread, any
@@ -20,18 +21,17 @@ threading messages. Sup only knows about messages in its index.
 
 We can add messages to the index by telling Sup about the "source"
 where the messages reside. Sources are things like IMAP folders, mbox
-folders, maildir directories, and Gmail accounts (in the future). Sup
-doesn't duplicate the actual message content in the index; it only
-stores whatever information is necessary for searching, threading and
-labelling. So when you search for messages or view your inbox, Sup
-talks only to the index (stored locally on disk). When you view a
-thread, Sup requests the full content of all the messages from the
-source.
+folders, and maildir directories. Sup doesn't duplicate the actual
+message content in the index; it only stores whatever information is
+necessary for searching, threading and labelling. So when you search
+for messages or view your inbox, Sup talks only to the index (stored
+locally on disk). When you view a thread, Sup requests the full
+content of all the messages from the source.
 
 The easiest way to set up all your sources is to run `sup-config`.
 This will interactively walk you through some basic configuration,
 prompt you for all the sources you need, and optionally import
-messages from them. Sup-config uses two other tools, sup-add and
+messages from them.  Sup-config uses two other tools, sup-add and
 sup-sync, to load messages into the index. In the future you may make
 use of these tools directly (see below).
 
@@ -49,7 +49,8 @@ results of a search. I mentioned above that your inbox is, by
 definition, the set of all messages that aren't archived. This means
 that your inbox is nothing more than the result of the search for all
 messages with the label "inbox". (It's actually slightly more
-complicated---we omit messages marked as killed, deleted or spam.)
+complicated---we also omit messages marked as killed, deleted or
+spam.)
 
 You could replicate the folder paradigm easily under this scheme, by
 giving each message exactly one label and only viewing the results of
@@ -59,8 +60,7 @@ labels judiciously for things that are too hard to find with search.
 The idea is that a labeling system that allows arbitrary, user-defined
 labels, supplemented by a quick and easy-to-access search mechanism
 provides all the functionality that folders does, plus much more, at a
-far lower cost to the user. (The Sup philosophical treatise has a
-little more on this.)
+far lower cost to the user.
 
 Now let's take a look at your inbox. You'll see that Sup groups
 messages together into threads: each line in the inbox is a thread,
@@ -88,19 +88,25 @@ expand or collapse all messages or 'N' to expand only the new
 messages. You'll also notice that Sup hides quoted text and
 signatures. If you highlight a particular hidden chunk, you can press
 enter to expand it, or you can press 'o' to toggle every hidden chunk
-in a particular message. (Remember, you can hit '?' to see the full
-list of keyboard commands at any point.)
+in a particular message.
 
-A few other useful commands while viewing a thread. Press 'd' to
-toggle a detailed header for a message. If you've scrolled too far to
-the right, press '[' to jump all the way to the left. Finally, you can
-press 'n' and 'p' to jump forward and backward between open messages,
-aligning the display as necessary.
+Other useful keyboard commands when viewing a thread are: 'n' and 'p'
+to jump to the next and previous open messages, 'h' to toggle the
+detailed headers for the current message, and enter to expand or
+collapse the current message (when it's on a text region). Enter and
+'n' in combination are useful for scanning through a thread---press
+enter to close the current message and jump to the next open one, and
+'n' to keep it open and jump. If the buffer is misaligned with a
+message, you can press 'z' to highlight it.
+
+This is a lot to remember, but you can always hit '?' to see the full
+list of keyboard commands at any point. There's a lot of useful stuff
+in there---once you learn some, try out some of the others!
 
 Now press 'x' to kill the thread view buffer. You should see the inbox
-again. If you don't, you can cycle through the buffers by pressing 'b'
-and 'B' (forwards and backwards, respectively), or you can press ';' to
-see a list of all buffers and simply select the inbox.
+again. If you don't, you can cycle through the buffers by pressing
+'b', or you can press ';' to see a list of all buffers and simply
+select the inbox.
 
 There are many operations you can perform on threads beyond viewing
 them. To archive a thread, press 'a'. The thread will disappear from
@@ -108,8 +114,8 @@ your inbox, but will still appear in search results. If someone
 replies an archived thread, it will reappear in your inbox. To kill a
 thread, press '&'. Killed threads will never come back to your inbox,
 even if people reply, but will still be searchable. (This is useful
-for those interminable threads that you really have no interest in,
-but which seem to pop up on every mailing list.)
+for those interminable threads that you really have no immediate
+interest in, but which seem to pop up on every mailing list.)
 
 If a thread is spam, press 'S'. It will disappear and won't come back.
 It won't even appear in search results, unless you explicitly search
@@ -125,8 +131,8 @@ in the labels as a sequence of space-separated words. To cancel the
 input, press Ctrl-G.
 
 Many of these operations can be applied to a group of threads. Press
-'t' to tag a thread. Tag a couple, then press '+' to apply the next
-command to the set of threads. '+t', of course, will untag all tagged
+'t' to tag a thread. Tag a couple, then press '=' to apply the next
+command to the set of threads. '=t', of course, will untag all tagged
 messages.
 
 Ok, let's try using labels and search. Press 'L' to do a quick label
@@ -188,7 +194,7 @@ how to invoke sup-sync when it detects a problem. This is a
 complication you will almost certainly run in to if you use both Sup
 and another MUA on the same source, so it's good to be aware of it.
 
-Have fun, and let me know if you have any problems!
+Have fun, and email sup-talk@rubyforge.org if you have any problems!
 
 Appendix A: sup-add and sup-sync
 ---------------------------------
@@ -233,17 +239,17 @@ Sup-sync will now load all the messages from the source into the
 index. Depending on the size of the source, this may take a while.
 Don't panic! It's a one-time process.
 
-Appendix B: Handling high-volume mailing lists
-----------------------------------------------
+Appendix B: Automatically labeling incoming email
+-------------------------------------------------
 
-Here's what I recommend:
-1. Use procmail to filter messages from the list into a distinct source.
-2. Add that source to Sup as a usual source with auto-archive turned
-   on, and with a label corresponding to the mailing list name.
-   (E.g.: sup-add mbox:/home/me/Mail/ruby-talk -a -l ruby-talk)
-3. Voila! Sup will load new messages into the index but not into the
-   inbox, and you can browse the mailing list traffic at any point by
-   searching for that label.
+One option is to filter incoming email into different sources with
+something like procmail, and have each of these sources auto-apply
+labels by using sup-add --labels.
+
+But the better option is to learn Ruby and write a before-add hook.
+This will allow you to apply labels based on whatever crazy logic you
+can come up with. See http://sup.rubyforge.org/wiki/wiki.pl?Hooks for
+examples.
 
 Appendix C: Reading blogs with Sup
 ----------------------------------
