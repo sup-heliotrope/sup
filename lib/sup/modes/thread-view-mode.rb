@@ -24,6 +24,18 @@ Return value:
   None. The variable 'headers' should be modified in place.
 EOS
 
+  HookManager.register "bounce-command", <<EOS
+Determines the command used to bounce a message.
+Variables:
+      from: The From header of the message being bounced
+            (eg: likely _not_ your address).
+        to: The addresses you asked the message to be bounced to as an array.
+Return value:
+  A string representing the command to pipe the mail into.  This
+  should include the entire command except for the destination addresses,
+  which will be appended by sup.
+EOS
+
   register_keymap do |k|
     k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
@@ -184,9 +196,9 @@ EOS
       end
     end
 
-    cmd = case $config[:bounce_sendmail]
+    cmd = case HookManager.run "bounce-command", :from => m.from, :to => to
           when nil, /^$/ then defcmd
-          else $config[:bounce_sendmail]
+          else hookcmd
           end + ' ' + to.map { |t| t.email }.join(' ')
 
     bt = to.size > 1 ? "#{to.size} recipients" : to.to_s

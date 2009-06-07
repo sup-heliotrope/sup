@@ -207,7 +207,6 @@ else
     :confirm_top_posting => true,
     :discard_snippets_from_encrypted_messages => false,
     :default_attachment_save_dir => "",
-    :bounce_sendmail => "",
   }
   begin
     FileUtils.mkdir_p Redwood::BASE_DIR
