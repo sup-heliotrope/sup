@@ -41,6 +41,7 @@ EOS
 #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message or attachment", 'f'
+    k.add :bounce, "Bounce message to other recipient(s)", '!'
     k.add :alias, "Edit alias/nickname for a person", 'i'
     k.add :edit_as_new, "Edit message as new", 'D'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
@@ -169,6 +170,38 @@ EOS
       ForwardMode.spawn_nicely :attachments => [chunk]
     elsif(m = @message_lines[curpos])
       ForwardMode.spawn_nicely :message => m
+    end
+  end
+
+  def bounce
+    m = @message_lines[curpos] or return
+    to = BufferManager.ask_for_contacts(:people, "Bounce To: ") or return
+
+    defcmd = AccountManager.default_account.sendmail.sub(/\s(\-(ti|it|t))\b/) do |match|
+      case "$1"
+        when '-t' then ''
+        else ' -i'
+      end
+    end
+
+    cmd = case $config[:bounce_sendmail]
+          when nil, /^$/ then defcmd
+          else $config[:bounce_sendmail]
+          end + ' ' + to.map { |t| t.email }.join(' ')
+
+    bt = to.size > 1 ? "#{to.size} recipients" : to.to_s
+
+    if BufferManager.ask_yes_or_no "Really bounce to #{bt}?"
+      Redwood::log "Bounce Command: #{cmd}"
+      begin
+        IO.popen(cmd, 'w') do |sm|
+          sm.puts m.raw_message
+        end
+        raise SendmailCommandFailed, "Couldn't execute #{cmd}" unless $? == 0
+      rescue SystemCallError, SendmailCommandFailed => e
+        Redwood::log "Problem sending mail: #{e.message}"
+        BufferManager.flash "Problem sending mail: #{e.message}"
+      end
     end
   end
 
