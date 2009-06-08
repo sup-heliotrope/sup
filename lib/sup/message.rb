@@ -26,7 +26,6 @@ class Message
 
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
   BLOCK_QUOTE_PATTERN = /^-----\s*Original Message\s*----+$/
-  QUOTE_START_PATTERN = /\w.*:$/
   SIG_PATTERN = /(^-- ?$)|(^\s*----------+\s*$)|(^\s*_________+\s*$)|(^\s*--~--~-)|(^\s*--\+\+\*\*==)/
 
   MAX_SIG_DISTANCE = 15 # lines from the end
@@ -449,7 +448,11 @@ private
       when :text
         newstate = nil
 
-        if line =~ QUOTE_PATTERN || (line =~ QUOTE_START_PATTERN && nextline =~ QUOTE_PATTERN)
+        ## the following /:$/ followed by /\w/ is an attempt to detect the
+        ## start of a quote. this is split into two regexen because the
+        ## original regex /\w.*:$/ had very poor behavior on long lines
+        ## like ":a:a:a:a:a" that occurred in certain emails.
+        if line =~ QUOTE_PATTERN || (line =~ /:$/ && line =~ /\w/ && nextline =~ QUOTE_PATTERN)
           newstate = :quote
         elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE
           newstate = :sig
