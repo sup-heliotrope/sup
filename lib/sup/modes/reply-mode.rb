@@ -126,7 +126,7 @@ EOS
                "To" => [],
                "Cc" => [],
                "Bcc" => [],
-               "In-Reply-To" => "<#{@m.id}>",
+               "In-reply-to" => "<#{@m.id}>",
                "Subject" => Message.reify_subj(@m.subj),
                "References" => refs,
              }.merge v
