@@ -340,7 +340,7 @@ EOS
     query = {}
 
     subs = HookManager.run("custom-search", :subs => s) || s
-    subs = s.gsub(/\b(to|from):(\S+)\b/) do
+    subs = subs.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
         [field, p.email]
