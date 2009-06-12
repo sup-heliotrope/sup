@@ -133,8 +133,8 @@ class Object
   ## clone of java-style whole-method synchronization
   ## assumes a @mutex variable
   ## TODO: clean up, try harder to avoid namespace collisions
-  def synchronized *meth
-    meth.each do
+  def synchronized *methods
+    methods.each do |meth|
       class_eval <<-EOF
         alias unsynchronized_#{meth} #{meth}
         def #{meth}(*a, &b)
@@ -144,8 +144,8 @@ class Object
     end
   end
 
-  def ignore_concurrent_calls *meth
-    meth.each do
+  def ignore_concurrent_calls *methods
+    methods.each do |meth|
       mutex = "@__concurrent_protector_#{meth}"
       flag = "@__concurrent_flag_#{meth}"
       oldmeth = "__unprotected_#{meth}"
@@ -213,7 +213,7 @@ class String
     region_start = 0
     while pos <= length
       newpos = case state
-        when :escaped_instring, :escaped_outstring: pos
+        when :escaped_instring, :escaped_outstring then pos
         else index(/[,"\\]/, pos)
       end 
       
@@ -227,26 +227,26 @@ class String
       case char
       when ?"
         state = case state
-          when :outstring: :instring
-          when :instring: :outstring
-          when :escaped_instring: :instring
-          when :escaped_outstring: :outstring
+          when :outstring then :instring
+          when :instring then :outstring
+          when :escaped_instring then :instring
+          when :escaped_outstring then :outstring
         end
       when ?,, nil
         state = case state
-          when :outstring, :escaped_outstring:
+          when :outstring, :escaped_outstring then
             ret << self[region_start ... newpos].gsub(/^\s+|\s+$/, "")
             region_start = newpos + 1
             :outstring
-          when :instring: :instring
-          when :escaped_instring: :instring
+          when :instring then :instring
+          when :escaped_instring then :instring
         end
       when ?\\
         state = case state
-          when :instring: :escaped_instring
-          when :outstring: :escaped_outstring
-          when :escaped_instring: :instring
-          when :escaped_outstring: :outstring
+          when :instring then :escaped_instring
+          when :outstring then :escaped_outstring
+          when :escaped_instring then :instring
+          when :escaped_outstring then :outstring
         end
       end
       pos = newpos + 1
@@ -280,6 +280,12 @@ class String
 
   def normalize_whitespace
     gsub(/\t/, "    ").gsub(/\r/, "")
+  end
+
+  if not defined? ord
+    def ord
+      self[0]
+    end
   end
 
   ## takes a space-separated list of words, and returns an array of symbols.
@@ -636,10 +642,10 @@ class Iconv
   def self.easy_decode target, charset, text
     return text if charset =~ /^(x-unknown|unknown[-_ ]?8bit|ascii[-_ ]?7[-_ ]?bit)$/i
     charset = case charset
-      when /UTF[-_ ]?8/i: "utf-8"
-      when /(iso[-_ ])?latin[-_ ]?1$/i: "ISO-8859-1"
-      when /iso[-_ ]?8859[-_ ]?15/i: 'ISO-8859-15'
-      when /unicode[-_ ]1[-_ ]1[-_ ]utf[-_]7/i: "utf-7"
+      when /UTF[-_ ]?8/i then "utf-8"
+      when /(iso[-_ ])?latin[-_ ]?1$/i then "ISO-8859-1"
+      when /iso[-_ ]?8859[-_ ]?15/i then 'ISO-8859-15'
+      when /unicode[-_ ]1[-_ ]1[-_ ]utf[-_]7/i then "utf-7"
       else charset
     end
 

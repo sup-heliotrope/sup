@@ -9,22 +9,22 @@ class Keymap
 
   def self.keysym_to_keycode k
     case k
-    when :down: Curses::KEY_DOWN
-    when :up: Curses::KEY_UP
-    when :left: Curses::KEY_LEFT
-    when :right: Curses::KEY_RIGHT
-    when :page_down: Curses::KEY_NPAGE
-    when :page_up: Curses::KEY_PPAGE
-    when :backspace: Curses::KEY_BACKSPACE
-    when :home: Curses::KEY_HOME
-    when :end: Curses::KEY_END
-    when :ctrl_l: "\f"[0]
-    when :ctrl_g: "\a"[0]
-    when :tab: "\t"[0]
-    when :enter, :return: 10 #Curses::KEY_ENTER
+    when :down then Curses::KEY_DOWN
+    when :up then Curses::KEY_UP
+    when :left then Curses::KEY_LEFT
+    when :right then Curses::KEY_RIGHT
+    when :page_down then Curses::KEY_NPAGE
+    when :page_up then Curses::KEY_PPAGE
+    when :backspace then Curses::KEY_BACKSPACE
+    when :home then Curses::KEY_HOME
+    when :end then Curses::KEY_END
+    when :ctrl_l then "\f".ord
+    when :ctrl_g then "\a".ord
+    when :tab then "\t".ord
+    when :enter, :return then 10 #Curses::KEY_ENTER
     else
       if k.is_a?(String) && k.length == 1
-        k[0]
+        k.ord
       else
         raise ArgumentError, "unknown key name '#{k}'"
       end
@@ -33,18 +33,18 @@ class Keymap
 
   def self.keysym_to_string k
     case k
-    when :down: "<down arrow>"
-    when :up: "<up arrow>"
-    when :left: "<left arrow>"
-    when :right: "<right arrow>"
-    when :page_down: "<page down>"
-    when :page_up: "<page up>"
-    when :backspace: "<backspace>"
-    when :home: "<home>"
-    when :end: "<end>"
-    when :enter, :return: "<enter>"
-    when :tab: "tab"
-    when " ": "<space>"
+    when :down then "<down arrow>"
+    when :up then "<up arrow>"
+    when :left then "<left arrow>"
+    when :right then "<right arrow>"
+    when :page_down then "<page down>"
+    when :page_up then "<page up>"
+    when :backspace then "<backspace>"
+    when :home then "<home>"
+    when :end then "<end>"
+    when :enter, :return then "<enter>"
+    when :tab then "tab"
+    when " " then "<space>"
     else
       Curses::keyname(keysym_to_keycode(k))
     end

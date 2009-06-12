@@ -405,8 +405,8 @@ private
         elsif m.header["Content-Type"] && m.header["Content-Type"] !~ /^text\/plain/
           extension =
             case m.header["Content-Type"]
-            when /text\/html/: "html"
-            when /image\/(.*)/: $1
+            when /text\/html/ then "html"
+            when /image\/(.*)/ then $1
             end
 
           ["sup-attachment-#{Time.now.to_i}-#{rand 10000}", extension].join(".")

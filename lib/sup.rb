@@ -5,6 +5,10 @@ require 'thread'
 require 'fileutils'
 require 'gettext'
 require 'curses'
+begin
+  require 'fastthread'
+rescue LoadError
+end
 
 class Object
   ## this is for debugging purposes because i keep calling #id on the
