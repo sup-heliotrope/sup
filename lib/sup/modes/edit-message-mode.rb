@@ -184,7 +184,7 @@ protected
   end
 
   def mime_encode_subject string
-    return string unless string.match(String::RE_UTF8)
+    return string unless string.match(RE_UTF8)
     mime_encode string
   end
 
@@ -193,7 +193,7 @@ protected
   # Encode "bælammet mitt <user@example.com>" into
   # "=?utf-8?q?b=C3=A6lammet_mitt?= <user@example.com>
   def mime_encode_address string
-    return string unless string.match(String::RE_UTF8)
+    return string unless string.match(RE_UTF8)
     string.sub(RE_ADDRESS) { |match| mime_encode($1) + $2 }
   end
 
