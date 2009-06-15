@@ -243,7 +243,7 @@ end
     Redwood::log "using character set encoding #{$encoding.inspect}"
   else
     Redwood::log "warning: can't find character set by using locale, defaulting to utf-8"
-    $encoding = "utf-8"
+    $encoding = "UTF-8"
   end
 
 ## now everything else (which can feel free to call Redwood::log at load time)
