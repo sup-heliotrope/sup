@@ -1,3 +1,8 @@
+Release 0.8.1:
+
+A bugfix release with fixes for quote parsing (bad behavior in certain long
+emails), multibyte display for non-utf8 locales, and reply-mode mode selection.
+
 Release 0.8:
 
 The big wins are undo support, mbox splitting fixes, and the various UI

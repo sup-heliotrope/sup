@@ -1,3 +1,8 @@
+== 0.8.1 / 2009-06-15
+* make multibyte display "work" for non-utf8 locales
+* fix reply-mode always selecting "Customized"
+* reduce email quote parsing worst-case behavior
+
 == 0.8 / 2009-06-05
 * Undo support on many operations. Yay!
 * Mbox splitting fixes. No more "From "-line problems.
