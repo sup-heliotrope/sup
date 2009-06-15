@@ -172,7 +172,15 @@ class Object
 end
 
 class String
-  def display_length; scan(/./u).size end
+  ## nasty multibyte hack for ruby 1.8. if it's utf-8, split into chars using
+  ## the utf8 regex and count those. otherwise, use the byte length.
+  def display_length
+    if $encoding == "UTF-8"
+      scan(/./u).size
+    else
+      size
+    end
+  end
 
   def camel_to_hyphy
     self.gsub(/([a-z])([A-Z0-9])/, '\1-\2').downcase
