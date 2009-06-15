@@ -14,11 +14,11 @@ class SentManager
   def self.source_id; 9998; end
   def new_source; @source = Recoverable.new SentLoader.new; end
 
-  def write_sent_message date, from_email
+  def write_sent_message time, from_email
     need_blank = File.exists?(@fn) && !File.zero?(@fn)
     File.open(@fn, "a") do |f|
       f.puts if need_blank
-      f.puts "From #{from_email} #{date}"
+      f.puts "From #{from_email} #{time.asctime}"
       yield f
     end
 
