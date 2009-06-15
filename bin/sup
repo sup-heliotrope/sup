@@ -5,7 +5,6 @@ require 'ncurses'
 require 'curses'
 require 'fileutils'
 require 'trollop'
-require 'fastthread'
 require "sup"
 
 BIN_VERSION = "git"
@@ -89,7 +88,7 @@ end
 ## BSD users: if libc.so.6 is not found, try installing compat6x.
 require 'dl/import'
 module LibC
-  extend DL::Importable
+  extend DL.const_defined?(:Importer) ? DL::Importer : DL::Importable
   setlocale_lib = case Config::CONFIG['arch']
     when /darwin/; "libc.dylib"
     when /cygwin/; "cygwin1.dll"
@@ -202,7 +201,7 @@ begin
     end
   end unless $opts[:no_initial_poll]
   
-  imode.load_threads :num => ibuf.content_height, :when_done => lambda { reporting_thread("poll after loading inbox") { sleep 1; PollManager.poll } unless $opts[:no_threads] || $opts[:no_initial_poll] }
+  imode.load_threads :num => ibuf.content_height, :when_done => lambda { |num| reporting_thread("poll after loading inbox") { sleep 1; PollManager.poll } unless $opts[:no_threads] || $opts[:no_initial_poll] }
 
   if $opts[:compose]
     ComposeMode.spawn_nicely :to_default => $opts[:compose]

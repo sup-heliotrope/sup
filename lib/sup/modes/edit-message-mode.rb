@@ -2,7 +2,10 @@ require 'tempfile'
 require 'socket' # just for gethostname!
 require 'pathname'
 require 'rmail'
-require 'jcode' # for RE_UTF8
+
+# from jcode.rb, not included in ruby 1.9
+PATTERN_UTF8 = '[\xc0-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf][\x80-\xbf]'
+RE_UTF8 = Regexp.new(PATTERN_UTF8, 0, 'n')
 
 module Redwood
 

@@ -2,7 +2,6 @@
 
 require 'fileutils'
 require 'ferret'
-require 'fastthread'
 
 begin
   require 'chronic'
