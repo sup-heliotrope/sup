@@ -24,8 +24,6 @@ end
 index = Redwood::Index.new
 index.load
 
-(1 ... index.index.reader.max_doc).each do |i|
-  next if index.index.deleted? i
-  d = index.index[i]
-  puts [d[:message_id], "(" + d[:label] + ")"] * " "
+index.each_message do |m|
+  puts "#{m.id} (#{m.labels * ' '})"
 end

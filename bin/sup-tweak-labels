@@ -118,7 +118,7 @@ begin
 
   unless num_changed == 0
     $stderr.puts "Optimizing index..."
-    index.ferret.optimize unless opts[:dry_run]
+    index.optimize unless opts[:dry_run]
   end
 
 rescue Exception => e

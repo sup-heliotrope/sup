@@ -24,11 +24,6 @@ class Index
 
   include Singleton
 
-  ## these two accessors should ONLY be used by single-threaded programs.
-  ## otherwise you will have a naughty ferret on your hands.
-  attr_reader :index
-  alias ferret index
-
   def initialize dir=BASE_DIR
     @index_mutex = Monitor.new
 
@@ -151,7 +146,7 @@ EOS
     if File.exists? dir
       Redwood::log "loading index..."
       @index_mutex.synchronize do
-        @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer)
+        @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer, :id_field => 'message_id')
         Redwood::log "loaded index of #{@index.size} messages"
       end
     else
@@ -171,7 +166,7 @@ EOS
         field_infos.add_field :refs
         field_infos.add_field :snippet, :index => :no, :term_vector => :no
         field_infos.create_index dir
-        @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer)
+        @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer, :id_field => 'message_id')
       end
     end
   end
@@ -496,6 +491,22 @@ EOS
     results.hits.map { |hit| hit.doc }
   end
 
+  def each_docid opts={}
+    query = build_query opts
+    results = @index_mutex.synchronize { @index.search query, :limit => (opts[:limit] || :all) }
+    results.hits.map { |hit| yield hit.doc }
+  end
+
+  def each_message opts={}
+    each_docid opts do |docid|
+      yield build_message(docid)
+    end
+  end
+
+  def optimize
+    @index_mutex.synchronize { @index.optimize }
+  end
+
 protected
 
   class ParseError < StandardError; end
@@ -621,6 +632,8 @@ protected
     query.add_query Ferret::Search::TermQuery.new("label", "spam"), :must_not unless opts[:load_spam] || labels.include?(:spam)
     query.add_query Ferret::Search::TermQuery.new("label", "deleted"), :must_not unless opts[:load_deleted] || labels.include?(:deleted)
     query.add_query Ferret::Search::TermQuery.new("label", "killed"), :must_not if opts[:skip_killed]
+
+    query.add_query Ferret::Search::TermQuery.new("source_id", opts[:source_id]), :must if opts[:source_id]
     query
   end
 

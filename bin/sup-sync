@@ -208,24 +208,17 @@ begin
 
   ## delete any messages in the index that claim they're from one of
   ## these sources, but that we didn't see.
-  ##
-  ## kinda crappy code here, because we delve directly into the Ferret
-  ## API.
-  ##
-  ## TODO: move this to Index, i suppose.
-  if (target == :all || target == :changed) && !opts[:start_at]
+  if (target == :all || target == :changed)
     $stderr.puts "Deleting missing messages from the index..."
     num_del, num_scanned = 0, 0
     sources.each do |source|
       raise "no source id for #{source}" unless source.id
-      q = "+source_id:#{source.id}"
-      q += " +source_info: >= #{opts[:start_at]}" if opts[:start_at]
-      index.index.search_each(q, :limit => :all) do |docid, score|
+      index.each_message :source_id => source.id do |m|
         num_scanned += 1
-        mid = index.index[docid][:message_id]
-        unless seen[mid]
-          puts "Deleting #{mid}" if opts[:verbose]
-          index.index.delete docid unless opts[:dry_run]
+        unless seen[m.id]
+          next unless m.source_info >= opts[:start_at] if opts[:start_at]
+          puts "Deleting #{m.id}" if opts[:verbose]
+          index.drop_entry m.id unless opts[:dry_run]
           num_del += 1
         end
       end
@@ -237,7 +230,7 @@ begin
 
   if opts[:optimize]
     $stderr.puts "Optimizing index..."
-    optt = time { index.index.optimize unless opts[:dry_run] }
+    optt = time { index.optimize unless opts[:dry_run] }
     $stderr.puts "Optimized index of size #{index.size} in #{optt}s."
   end
 rescue Redwood::FatalSourceError => e
