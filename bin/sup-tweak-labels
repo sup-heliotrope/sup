@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'trollop'
+require 'enumerator'
 require "sup"
 
 class Float
@@ -81,7 +82,8 @@ begin
   end
   query += ' ' + opts[:query] if opts[:query]
 
-  docs = Redwood::Index.run_query query
+  parsed_query = index.parse_query query
+  docs = Enumerable::Enumerator.new(index, :each_docid, parsed_query).map
   num_total = docs.size
 
   $stderr.puts "Found #{num_total} documents across #{source_ids.length} sources. Scanning..."

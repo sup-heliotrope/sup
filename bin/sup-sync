@@ -218,7 +218,7 @@ begin
         unless seen[m.id]
           next unless m.source_info >= opts[:start_at] if opts[:start_at]
           puts "Deleting #{m.id}" if opts[:verbose]
-          index.drop_entry m.id unless opts[:dry_run]
+          index.delete m.id unless opts[:dry_run]
           num_del += 1
         end
       end

@@ -1,11 +1,9 @@
 module Redwood
 
 class SearchResultsMode < ThreadIndexMode
-  def initialize qobj, qopts = nil
-    @qobj = qobj
-    @qopts = qopts
-
-    super [], { :qobj => @qobj }.merge(@qopts)
+  def initialize query
+    @query = query
+    super [], query
   end
 
   register_keymap do |k|
@@ -13,9 +11,9 @@ class SearchResultsMode < ThreadIndexMode
   end
 
   def refine_search
-    query = BufferManager.ask :search, "refine query: ", (@qobj.to_s + " ")
-    return unless query && query !~ /^\s*$/
-    SearchResultsMode.spawn_from_query query
+    text = BufferManager.ask :search, "refine query: ", (@query[:text] + " ")
+    return unless text && text !~ /^\s*$/
+    SearchResultsMode.spawn_from_query text
   end
 
   ## a proper is_relevant? method requires some way of asking ferret
@@ -26,10 +24,10 @@ class SearchResultsMode < ThreadIndexMode
 
   def self.spawn_from_query text
     begin
-      qobj, extraopts = Index.parse_user_query_string(text)
-      return unless qobj
+      query = Index.parse_query(text)
+      return unless query
       short_text = text.length < 20 ? text : text[0 ... 20] + "..."
-      mode = SearchResultsMode.new qobj, extraopts
+      mode = SearchResultsMode.new query
       BufferManager.spawn "search: \"#{short_text}\"", mode
       mode.load_threads :num => mode.buffer.content_height
     rescue Index::ParseError => e

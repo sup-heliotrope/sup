@@ -37,7 +37,7 @@ class DraftManager
       return
     end
     raise ArgumentError, "not a draft: source id #{entry[:source_id].inspect}, should be #{DraftManager.source_id.inspect} for #{m.id.inspect} / docno #{docid}" unless entry[:source_id].to_i == DraftManager.source_id
-    Index.drop_entry docid
+    Index.delete m.id
     File.delete @source.fn_for_offset(entry[:source_info])
     UpdateManager.relay self, :single_message_deleted, m
   end

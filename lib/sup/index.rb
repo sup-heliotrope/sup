@@ -279,28 +279,28 @@ EOS
   ## you should probably not call this on a block that doesn't break
   ## rather quickly because the results can be very large.
   EACH_BY_DATE_NUM = 100
-  def each_id_by_date opts={}
+  def each_id_by_date query={}
     return if empty? # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
-    query = build_query opts
+    ferret_query = build_ferret_query query
     offset = 0
     while true
-      limit = (opts[:limit])? [EACH_BY_DATE_NUM, opts[:limit] - offset].min : EACH_BY_DATE_NUM
-      results = @index_mutex.synchronize { @index.search query, :sort => "date DESC", :limit => limit, :offset => offset }
-      Redwood::log "got #{results.total_hits} results for query (offset #{offset}) #{query.inspect}"
+      limit = (query[:limit])? [EACH_BY_DATE_NUM, query[:limit] - offset].min : EACH_BY_DATE_NUM
+      results = @index_mutex.synchronize { @index.search ferret_query, :sort => "date DESC", :limit => limit, :offset => offset }
+      Redwood::log "got #{results.total_hits} results for query (offset #{offset}) #{ferret_query.inspect}"
       results.hits.each do |hit|
         yield @index_mutex.synchronize { @index[hit.doc][:message_id] }, lambda { build_message hit.doc }
       end
-      break if opts[:limit] and offset >= opts[:limit] - limit
+      break if query[:limit] and offset >= query[:limit] - limit
       break if offset >= results.total_hits - limit
       offset += limit
     end
   end
 
-  def num_results_for opts={}
+  def num_results_for query={}
     return 0 if empty? # otherwise ferret barfs ###TODO: remove this once my ferret patch is accepted
 
-    q = build_query opts
-    @index_mutex.synchronize { @index.search(q, :limit => 1).total_hits }
+    ferret_query = build_ferret_query query
+    @index_mutex.synchronize { @index.search(ferret_query, :limit => 1).total_hits }
   end
 
   ## yield all messages in the thread containing 'm' by repeatedly
@@ -313,7 +313,7 @@ EOS
   ## is found.
   SAME_SUBJECT_DATE_LIMIT = 7
   MAX_CLAUSES = 1000
-  def each_message_in_thread_for m, opts={}
+  def each_message_in_thread_for m, query={}
     #Redwood::log "Building thread for #{m.id}: #{m.subj}"
     messages = {}
     searched = {}
@@ -332,7 +332,7 @@ EOS
       q.add_query sq, :must
       q.add_query Ferret::Search::RangeQuery.new(:date, :>= => date_min.to_indexable_s, :<= => date_max.to_indexable_s), :must
 
-      q = build_query :qobj => q
+      q = build_ferret_query :qobj => q
 
       p1 = @index_mutex.synchronize { @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] } }
       Redwood::log "found #{p1.size} results for subject query #{q}"
@@ -343,7 +343,7 @@ EOS
       pending = (pending + p1 + p2).uniq
     end
 
-    until pending.empty? || (opts[:limit] && messages.size >= opts[:limit])
+    until pending.empty? || (query[:limit] && messages.size >= query[:limit])
       q = Ferret::Search::BooleanQuery.new true
       # this disappeared in newer ferrets... wtf.
       # q.max_clause_count = 2048
@@ -356,14 +356,14 @@ EOS
       end
       pending = pending[lim .. -1]
 
-      q = build_query :qobj => q
+      q = build_ferret_query :qobj => q
 
       num_queries += 1
       killed = false
       @index_mutex.synchronize do
         @index.search_each(q, :limit => :all) do |docid, score|
-          break if opts[:limit] && messages.size >= opts[:limit]
-          if @index[docid][:label].split(/\s+/).include?("killed") && opts[:skip_killed]
+          break if query[:limit] && messages.size >= query[:limit]
+          if @index[docid][:label].split(/\s+/).include?("killed") && query[:skip_killed]
             killed = true
             break
           end
@@ -419,7 +419,7 @@ EOS
   def wrap_subj subj; "__START_SUBJECT__ #{subj} __END_SUBJECT__"; end
   def unwrap_subj subj; subj =~ /__START_SUBJECT__ (.*?) __END_SUBJECT__/ && $1; end
 
-  def drop_entry docno; @index_mutex.synchronize { @index.delete docno } end
+  def delete id; @index_mutex.synchronize { @index.delete id } end
 
   def load_entry_for_id mid
     @index_mutex.synchronize do
@@ -478,27 +478,14 @@ EOS
     @index_mutex.synchronize { @index.search(q, :limit => 1).total_hits > 0 }
   end
 
-  ## takes a user query string and returns the list of docids for messages
-  ## that match the query.
-  ##
-  ## messages can then be loaded from the index with #build_message.
-  ##
-  ## raises a ParseError if the parsing failed.
-  def run_query query
-    qobj, opts = Redwood::Index.parse_user_query_string query
-    query = Redwood::Index.build_query opts.merge(:qobj => qobj)
-    results = @index.search query, :limit => (opts[:limit] || :all)
-    results.hits.map { |hit| hit.doc }
-  end
-
-  def each_docid opts={}
-    query = build_query opts
-    results = @index_mutex.synchronize { @index.search query, :limit => (opts[:limit] || :all) }
+  def each_docid query={}
+    ferret_query = build_ferret_query query
+    results = @index_mutex.synchronize { @index.search ferret_query, :limit => (query[:limit] || :all) }
     results.hits.map { |hit| yield hit.doc }
   end
 
-  def each_message opts={}
-    each_docid opts do |docid|
+  def each_message query={}
+    each_docid query do |docid|
       yield build_message(docid)
     end
   end
@@ -507,16 +494,15 @@ EOS
     @index_mutex.synchronize { @index.optimize }
   end
 
-protected
-
   class ParseError < StandardError; end
 
-  ## parse a query string from the user. returns a query object and a set of
-  ## extra flags; both of these are meant to be passed to #build_query.
+  ## parse a query string from the user. returns a query object
+  ## that can be passed to any index method with a 'query'
+  ## argument, as well as build_ferret_query.
   ##
   ## raises a ParseError if something went wrong.
-  def parse_user_query_string s
-    extraopts = {}
+  def parse_query s
+    query = {}
 
     subs = s.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
@@ -542,8 +528,8 @@ protected
     ## final stage of query processing. if the user wants to search spam
     ## messages, not adding that is the right thing; if he doesn't want to
     ## search spam messages, then not adding it won't have any effect.
-    extraopts[:load_spam] = true if subs =~ /\blabel:spam\b/
-    extraopts[:load_deleted] = true if subs =~ /\blabel:deleted\b/
+    query[:load_spam] = true if subs =~ /\blabel:spam\b/
+    query[:load_deleted] = true if subs =~ /\blabel:deleted\b/
 
     ## gmail style "is" operator
     subs = subs.gsub(/\b(is|has):(\S+)\b/) do
@@ -552,10 +538,10 @@ protected
       when "read"
         "-label:unread"
       when "spam"
-        extraopts[:load_spam] = true
+        query[:load_spam] = true
         "label:spam"
       when "deleted"
-        extraopts[:load_deleted] = true
+        query[:load_deleted] = true
         "label:deleted"
       else
         "label:#{$2}"
@@ -601,7 +587,7 @@ protected
     subs = subs.gsub(/\blimit:(\S+)\b/) do
       lim = $1
       if lim =~ /^\d+$/
-        extraopts[:limit] = lim.to_i
+        query[:limit] = lim.to_i
         ''
       else
         raise ParseError, "non-numeric limit #{lim.inspect}"
@@ -609,32 +595,36 @@ protected
     end
     
     begin
-      [@qparser.parse(subs), extraopts]
+      query[:qobj] = @qparser.parse(subs)
+      query[:text] = s
+      query
     rescue Ferret::QueryParser::QueryParseException => e
       raise ParseError, e.message
     end
   end
 
-  def build_query opts
-    query = Ferret::Search::BooleanQuery.new
-    query.add_query opts[:qobj], :must if opts[:qobj]
-    labels = ([opts[:label]] + (opts[:labels] || [])).compact
-    labels.each { |t| query.add_query Ferret::Search::TermQuery.new("label", t.to_s), :must }
-    if opts[:participants]
+private
+
+  def build_ferret_query query
+    q = Ferret::Search::BooleanQuery.new
+    q.add_query query[:qobj], :must if query[:qobj]
+    labels = ([query[:label]] + (query[:labels] || [])).compact
+    labels.each { |t| q.add_query Ferret::Search::TermQuery.new("label", t.to_s), :must }
+    if query[:participants]
       q2 = Ferret::Search::BooleanQuery.new
-      opts[:participants].each do |p|
+      query[:participants].each do |p|
         q2.add_query Ferret::Search::TermQuery.new("from", p.email), :should
         q2.add_query Ferret::Search::TermQuery.new("to", p.email), :should
       end
-      query.add_query q2, :must
+      q.add_query q2, :must
     end
         
-    query.add_query Ferret::Search::TermQuery.new("label", "spam"), :must_not unless opts[:load_spam] || labels.include?(:spam)
-    query.add_query Ferret::Search::TermQuery.new("label", "deleted"), :must_not unless opts[:load_deleted] || labels.include?(:deleted)
-    query.add_query Ferret::Search::TermQuery.new("label", "killed"), :must_not if opts[:skip_killed]
+    q.add_query Ferret::Search::TermQuery.new("label", "spam"), :must_not unless query[:load_spam] || labels.include?(:spam)
+    q.add_query Ferret::Search::TermQuery.new("label", "deleted"), :must_not unless query[:load_deleted] || labels.include?(:deleted)
+    q.add_query Ferret::Search::TermQuery.new("label", "killed"), :must_not if query[:skip_killed]
 
-    query.add_query Ferret::Search::TermQuery.new("source_id", opts[:source_id]), :must if opts[:source_id]
-    query
+    q.add_query Ferret::Search::TermQuery.new("source_id", query[:source_id]), :must if query[:source_id]
+    q
   end
 
   def save_sources fn=Redwood::SOURCE_FN
