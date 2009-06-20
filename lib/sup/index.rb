@@ -411,17 +411,6 @@ EOS
 
   def delete id; @index_mutex.synchronize { @index.delete id } end
 
-  def load_entry_for_id mid
-    @index_mutex.synchronize do
-      results = @index.search Ferret::Search::TermQuery.new(:message_id, mid)
-      return if results.total_hits == 0
-      docid = results.hits[0].doc
-      entry = @index[docid]
-      entry_dup = entry.fields.inject({}) { |h, f| h[f] = entry[f]; h }
-      [docid, entry_dup]
-    end
-  end
-
   def load_contacts emails, h={}
     q = Ferret::Search::BooleanQuery.new true
     emails.each do |e|
