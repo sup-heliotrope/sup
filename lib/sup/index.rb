@@ -382,9 +382,6 @@ EOS
     end
   end
 
-  def wrap_subj subj; "__START_SUBJECT__ #{subj} __END_SUBJECT__"; end
-  def unwrap_subj subj; subj =~ /__START_SUBJECT__ (.*?) __END_SUBJECT__/ && $1; end
-
   def delete id; @index_mutex.synchronize { @index.delete id } end
 
   def load_contacts emails, h={}
@@ -572,6 +569,9 @@ private
     q.add_query Ferret::Search::TermQuery.new("source_id", query[:source_id]), :must if query[:source_id]
     q
   end
+
+  def wrap_subj subj; "__START_SUBJECT__ #{subj} __END_SUBJECT__"; end
+  def unwrap_subj subj; subj =~ /__START_SUBJECT__ (.*?) __END_SUBJECT__/ && $1; end
 end
 
 end
