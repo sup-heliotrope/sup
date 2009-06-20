@@ -450,13 +450,6 @@ EOS
     end
   end
 
-  def has_any_from_source_with_label? source, label
-    q = Ferret::Search::BooleanQuery.new
-    q.add_query Ferret::Search::TermQuery.new("source_id", source.id.to_s), :must
-    q.add_query Ferret::Search::TermQuery.new("label", label.to_s), :must
-    @index_mutex.synchronize { @index.search(q, :limit => 1).total_hits > 0 }
-  end
-
   def each_docid query={}
     ferret_query = build_ferret_query query
     results = @index_mutex.synchronize { @index.search ferret_query, :limit => (query[:limit] || :all) }

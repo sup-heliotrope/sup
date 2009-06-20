@@ -4,6 +4,7 @@ require 'rubygems'
 require 'uri'
 require 'tempfile'
 require 'trollop'
+require 'enumerator'
 require "sup"
 
 ## save a message 'm' to an open file pointer 'fp'
@@ -13,6 +14,10 @@ end
 def die msg
   $stderr.puts "Error: #{msg}"
   exit(-1)
+end
+def has_any_from_source_with_label? index, source, label
+  query = { :source_id => source.id, :label => label, :limit => 1 }
+  not Enumerable::Enumerator.new(index, :each_docid, query).map.empty?
 end
 
 opts = Trollop::options do
@@ -96,7 +101,7 @@ EOS
   sources.each do |source|
     $stderr.puts "Scanning #{source}..."
 
-    unless ((opts[:drop_deleted] || opts[:move_deleted]) && index.has_any_from_source_with_label?(source, :deleted)) || ((opts[:drop_spam] || opts[:move_spam]) && index.has_any_from_source_with_label?(source, :spam))
+    unless ((opts[:drop_deleted] || opts[:move_deleted]) && has_any_from_source_with_label?(index, source, :deleted)) || ((opts[:drop_spam] || opts[:move_spam]) && has_any_from_source_with_label?(index, source, :spam))
       $stderr.puts "Nothing to do from this source; skipping"
       next
     end
