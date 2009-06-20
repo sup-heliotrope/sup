@@ -17,7 +17,7 @@ def die msg
 end
 def has_any_from_source_with_label? index, source, label
   query = { :source_id => source.id, :label => label, :limit => 1 }
-  not Enumerable::Enumerator.new(index, :each_docid, query).map.empty?
+  not Enumerable::Enumerator.new(index, :each_id, query).map.empty?
 end
 
 opts = Trollop::options do

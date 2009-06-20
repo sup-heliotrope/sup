@@ -301,16 +301,10 @@ class FerretIndex < BaseIndex
     contacts.keys.compact
   end
 
-  def each_docid query={}
+  def each_id query={}
     ferret_query = build_ferret_query query
     results = @index_mutex.synchronize { @index.search ferret_query, :limit => (query[:limit] || :all) }
-    results.hits.map { |hit| yield hit.doc }
-  end
-
-  def each_message query={}
-    each_docid query do |docid|
-      yield build_message(docid)
-    end
+    results.hits.map { |hit| yield @index[hit.doc][:message_id] }
   end
 
   def optimize

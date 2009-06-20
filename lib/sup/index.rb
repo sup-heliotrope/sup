@@ -177,14 +177,16 @@ EOS
     unimplemented
   end
 
-  ## Yield each docid matching query
-  def each_docid query={}
+  ## Yield each message-id matching query
+  def each_id query={}
     unimplemented
   end
 
-  ## Yield each messages matching query
-  def each_message query={}
-    unimplemented
+  ## Yield each message matching query
+  def each_message query={}, &b
+    each_id query do |id|
+      yield build_message(id)
+    end
   end
 
   ## Implementation-specific optimization step

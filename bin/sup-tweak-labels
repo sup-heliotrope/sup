@@ -83,14 +83,14 @@ begin
   query += ' ' + opts[:query] if opts[:query]
 
   parsed_query = index.parse_query query
-  docs = Enumerable::Enumerator.new(index, :each_docid, parsed_query).map
-  num_total = docs.size
+  ids = Enumerable::Enumerator.new(index, :each_id, parsed_query).map
+  num_total = ids.size
 
   $stderr.puts "Found #{num_total} documents across #{source_ids.length} sources. Scanning..."
 
   num_changed = num_scanned = 0
   last_info_time = start_time = Time.now
-  docs.each do |id|
+  ids.each do |id|
     num_scanned += 1
 
     m = index.build_message id
