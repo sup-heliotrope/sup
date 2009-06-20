@@ -280,7 +280,7 @@ EOS
   ## is found.
   SAME_SUBJECT_DATE_LIMIT = 7
   MAX_CLAUSES = 1000
-  def each_message_in_thread_for m, query={}
+  def each_message_in_thread_for m, opts={}
     #Redwood::log "Building thread for #{m.id}: #{m.subj}"
     messages = {}
     searched = {}
@@ -310,7 +310,7 @@ EOS
       pending = (pending + p1 + p2).uniq
     end
 
-    until pending.empty? || (query[:limit] && messages.size >= query[:limit])
+    until pending.empty? || (opts[:limit] && messages.size >= opts[:limit])
       q = Ferret::Search::BooleanQuery.new true
       # this disappeared in newer ferrets... wtf.
       # q.max_clause_count = 2048
@@ -329,8 +329,8 @@ EOS
       killed = false
       @index_mutex.synchronize do
         @index.search_each(q, :limit => :all) do |docid, score|
-          break if query[:limit] && messages.size >= query[:limit]
-          if @index[docid][:label].split(/\s+/).include?("killed") && query[:skip_killed]
+          break if opts[:limit] && messages.size >= opts[:limit]
+          if @index[docid][:label].split(/\s+/).include?("killed") && opts[:skip_killed]
             killed = true
             break
           end
