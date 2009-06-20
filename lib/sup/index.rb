@@ -382,7 +382,6 @@ EOS
     end
   end
 
-  def fresh_thread_id; @next_thread_id += 1; end
   def wrap_subj subj; "__START_SUBJECT__ #{subj} __END_SUBJECT__"; end
   def unwrap_subj subj; subj =~ /__START_SUBJECT__ (.*?) __END_SUBJECT__/ && $1; end
 
