@@ -494,6 +494,12 @@ EOS
     @index_mutex.synchronize { @index.optimize }
   end
 
+  def source_for_id id
+    entry = @index[id]
+    return unless entry
+    entry[:source_id].to_i
+  end
+
   class ParseError < StandardError; end
 
   ## parse a query string from the user. returns a query object
