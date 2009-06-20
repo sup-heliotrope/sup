@@ -147,7 +147,7 @@ EOS
         m_new = Message.build_from_source source, offset
         m_old = Index.build_message m_new.id
 
-        m_new.labels = default_labels + (source.archived? ? [] : [:inbox])
+        m_new.labels += default_labels + (source.archived? ? [] : [:inbox])
         m_new.labels << :sent if source.uri.eql?(SentManager.source_uri)
         m_new.labels.delete :unread if m_new.source_marked_read?
         m_new.labels.each { |l| LabelManager << l }
