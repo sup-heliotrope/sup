@@ -116,11 +116,11 @@ begin
   index.load
 
   sources = ARGV.map do |uri|
-    index.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+    Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
   end
   
-  sources = index.usual_sources if sources.empty?
-  sources = index.sources if opts[:all_sources]
+  sources = Redwood::SourceManager.usual_sources if sources.empty?
+  sources = Redwood::SourceManager.sources if opts[:all_sources]
 
   unless target == :new
     if opts[:start_at]

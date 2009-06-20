@@ -48,13 +48,14 @@ EOS
 end.parse(ARGV)
 
 require "sup"
+Redwood::start
 puts "loading index..."
 index = Redwood::Index.new
 index.load
 puts "loaded index of #{index.size} messages"
 
 ARGV.each do |fn|
-  next if index.source_for fn
+  next if Redwood::SourceManager.source_for fn
 
   ## TODO: merge this code with the same snippet in import
   source = 
@@ -74,7 +75,7 @@ ARGV.each do |fn|
   source.each do |offset, labels|
     m = Redwood::Message.new :source => source, :source_info => offset
     m.load_from_source!
-    source_id = index.source_for_id m.id
+    source_id = Redwood::SourceManager.source_for_id m.id
     next unless source_id
     source_ids[source_id] += 1
     count += 1
@@ -85,7 +86,7 @@ ARGV.each do |fn|
     id = source_ids.keys.first.to_i
     puts "assigned #{source} to #{source_ids.keys.first}"
     source.id = id
-    index.add_source source
+    Redwood::SourceManager.add_source source
   else
     puts ">> unable to determine #{source}: #{source_ids.inspect}"
   end

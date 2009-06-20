@@ -152,7 +152,7 @@ end
 $terminal.wrap_at = :auto
 Redwood::start
 index = Redwood::Index.new
-index.load_sources
+Redwood::SourceManager.load_sources
 
 say <<EOS
 Howdy neighbor! This here's sup-config, ready to help you jack in to
@@ -191,12 +191,12 @@ $config[:editor] = editor
 done = false
 until done
   say "\nNow, we'll tell Sup where to find all your email."
-  index.load_sources
+  Redwood::SourceManager.load_sources
   say "Current sources:"
-  if index.sources.empty?
+  if Redwood::SourceManager.sources.empty?
     say "  No sources!"
   else
-    index.sources.each { |s| puts "* #{s}" }
+    Redwood::SourceManager.sources.each { |s| puts "* #{s}" }
   end
 
   say "\n"
@@ -210,8 +210,8 @@ end
 say "\nSup needs to know where to store your sent messages."
 say "Only sources capable of storing mail will be listed.\n\n"
 
-index.load_sources
-if index.sources.empty?
+Redwood::SourceManager.load_sources
+if Redwood::SourceManager.sources.empty?
   say "\nUsing the default sup://sent, since you haven't configured other sources yet."
   $config[:sent_source] = 'sup://sent'
 else
@@ -222,7 +222,7 @@ else
   choose do |menu|
     menu.prompt = "Store my sent mail in? "
 
-    valid_sents = index.sources.each do |s|
+    valid_sents = Redwood::SourceManager.sources.each do |s|
       have_sup_sent = true if s.to_s.eql?('sup://sent')
 
       menu.choice(s.to_s) { $config[:sent_source] = s.to_s } if s.respond_to? :store_message

@@ -66,10 +66,10 @@ begin
 
   source_ids = 
     if opts[:all_sources]
-      index.sources
+      Redwood::SourceManager.sources
     else
       ARGV.map do |uri|
-        index.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+        Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
       end
   end.map { |s| s.id }
   Trollop::die "nothing to do: no sources" if source_ids.empty?

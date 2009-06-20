@@ -26,11 +26,7 @@ class Index
 
   def initialize dir=BASE_DIR
     @index_mutex = Monitor.new
-
     @dir = dir
-    @sources = {}
-    @sources_dirty = false
-    @source_mutex = Monitor.new
 
     wsa = Ferret::Analysis::WhiteSpaceAnalyzer.new false
     sa = Ferret::Analysis::StandardAnalyzer.new [], true
@@ -112,35 +108,16 @@ EOS
   end
 
   def load
-    load_sources
+    SourceManager.load_sources
     load_index
   end
 
   def save
     Redwood::log "saving index and sources..."
     FileUtils.mkdir_p @dir unless File.exists? @dir
-    save_sources
+    SourceManager.save_sources
     save_index
   end
-
-  def add_source source
-    @source_mutex.synchronize do
-      raise "duplicate source!" if @sources.include? source
-      @sources_dirty = true
-      max = @sources.max_of { |id, s| s.is_a?(DraftLoader) || s.is_a?(SentLoader) ? 0 : id }
-      source.id ||= (max || 0) + 1
-      ##source.id += 1 while @sources.member? source.id
-      @sources[source.id] = source
-    end
-  end
-
-  def sources
-    ## favour the inbox by listing non-archived sources first
-    @source_mutex.synchronize { @sources.values }.sort_by { |s| s.id }.partition { |s| !s.archived? }.flatten
-  end
-
-  def source_for uri; sources.find { |s| s.is_source_for? uri }; end
-  def usual_sources; sources.find_all { |s| s.usual? }; end
 
   def load_index dir=File.join(@dir, "ferret")
     if File.exists? dir
@@ -383,7 +360,7 @@ EOS
     @index_mutex.synchronize do
       doc = @index[docid] or return
 
-      source = @source_mutex.synchronize { @sources[doc[:source_id].to_i] }
+      source = SourceManager[doc[:source_id].to_i]
       raise "invalid source #{doc[:source_id]}" unless source
 
       #puts "building message #{doc[:message_id]} (#{source}##{doc[:source_info]})"
@@ -440,14 +417,6 @@ EOS
     end
 
     contacts.keys.compact
-  end
-
-  def load_sources fn=Redwood::SOURCE_FN
-    source_array = (Redwood::load_yaml_obj(fn) || []).map { |o| Recoverable.new o }
-    @source_mutex.synchronize do
-      @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
-      @sources_dirty = false
-    end
   end
 
   def each_docid query={}
@@ -603,21 +572,6 @@ private
 
     q.add_query Ferret::Search::TermQuery.new("source_id", query[:source_id]), :must if query[:source_id]
     q
-  end
-
-  def save_sources fn=Redwood::SOURCE_FN
-    @source_mutex.synchronize do
-      if @sources_dirty || @sources.any? { |id, s| s.dirty? }
-        bakfn = fn + ".bak"
-        if File.exists? fn
-          File.chmod 0600, fn
-          FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(fn) == 0
-        end
-        Redwood::save_yaml_obj sources.sort_by { |s| s.id.to_i }, fn, true
-        File.chmod 0600, fn
-      end
-      @sources_dirty = false
-    end
   end
 end
 
