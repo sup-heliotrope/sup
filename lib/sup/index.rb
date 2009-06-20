@@ -174,16 +174,10 @@ EOS
   ## Syncs the message to the index, replacing any previous version.  adding
   ## either way. Index state will be determined by the message's #labels
   ## accessor.
-  ##
-  ## if need_load is false, docid and entry are assumed to be set to the
-  ## result of load_entry_for_id (which can be nil).
-  def sync_message m, need_load=true, docid=nil, entry=nil, opts={}
-    docid, entry = load_entry_for_id m.id if need_load
+  def sync_message m, opts={}
+    entry = @index[m.id]
 
     raise "no source info for message #{m.id}" unless m.source && m.source_info
-    @index_mutex.synchronize do
-      raise "trying to delete non-corresponding entry #{docid} with index message-id #{@index[docid][:message_id].inspect} and parameter message id #{m.id.inspect}" if docid && @index[docid][:message_id] != m.id
-    end
 
     source_id = if m.source.is_a? Integer
       m.source
@@ -256,13 +250,9 @@ EOS
     }
 
     @index_mutex.synchronize do
-      @index.delete docid if docid
+      @index.delete m.id
       @index.add_document d
     end
-
-    ## this hasn't been triggered in a long time.
-    ## docid, entry = load_entry_for_id m.id
-    ## raise "just added message #{m.id.inspect} but couldn't find it in a search" unless docid
   end
 
   def save_index fn=File.join(@dir, "ferret")
@@ -391,7 +381,7 @@ EOS
   ## builds a message object from a ferret result
   def build_message docid
     @index_mutex.synchronize do
-      doc = @index[docid]
+      doc = @index[docid] or return
 
       source = @source_mutex.synchronize { @sources[doc[:source_id].to_i] }
       raise "invalid source #{doc[:source_id]}" unless source

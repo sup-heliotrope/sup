@@ -288,6 +288,12 @@ EOS
        "Subject: #{@subj}"]
   end
 
+  def self.build_from_source source, source_info
+    m = Message.new :source => source, :source_info => source_info
+    m.load_from_source!
+    m
+  end
+
 private
 
   ## here's where we handle decoding mime attachments. unfortunately

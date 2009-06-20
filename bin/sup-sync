@@ -137,7 +137,7 @@ begin
     num_added = num_updated = num_scanned = num_restored = 0
     last_info_time = start_time = Time.now
 
-    Redwood::PollManager.add_messages_from source, :force_overwrite => true do |m, offset, entry|
+    Redwood::PollManager.add_messages_from source, :force_overwrite => true do |m_old, m, offset|
       num_scanned += 1
       seen[m.id] = true
 
@@ -153,10 +153,10 @@ begin
       ## skip if we're operating only on changed messages, the message
       ## is in the index, and it's unchanged from what the source is
       ## reporting.
-      next if target == :changed && entry && entry[:source_id].to_i == source.id && entry[:source_info].to_i == offset
+      next if target == :changed && m_old && m_old.source.id == source.id && m_old.source_info == offset
 
       ## get the state currently in the index
-      index_state = entry[:label].symbolistize if entry
+      index_state = m_old.labels.dup if m_old
 
       ## skip if we're operating on restored messages, and this one
       ## ain't.
@@ -196,7 +196,7 @@ begin
         puts "Adding message #{source}##{offset} from #{m.from} with state {#{m.labels * ', '}}" if opts[:verbose]
         num_added += 1
       else
-        puts "Updating message #{source}##{offset}, source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, state {#{index_state * ', '}} => {#{m.labels * ', '}}" if opts[:verbose]
+        puts "Updating message #{source}##{offset}, source #{m_old.source.id} => #{source.id}, offset #{m_old.source_info} => #{offset}, state {#{index_state * ', '}} => {#{m.labels * ', '}}" if opts[:verbose]
         num_updated += 1
       end
 

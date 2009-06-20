@@ -95,11 +95,11 @@ EOS
 
         num = 0
         numi = 0
-        add_messages_from source do |m, offset, entry|
+        add_messages_from source do |m_old, m, offset|
           ## always preserve the labels on disk.
-          m.labels = ((m.labels - [:unread, :inbox]) + entry[:label].symbolistize).uniq if entry
+          m.labels = ((m.labels - [:unread, :inbox]) + m_old.labels).uniq if m_old
           yield "Found message at #{offset} with labels {#{m.labels * ', '}}"
-          unless entry
+          unless m_old
             num += 1
             from_and_subj << [m.from && m.from.longname, m.subj]
             if m.has_label?(:inbox) && ([:spam, :deleted, :killed] & m.labels).empty?
@@ -138,29 +138,24 @@ EOS
     begin
       return if source.done? || source.has_errors?
 
-      source.each do |offset, labels|
+      source.each do |offset, default_labels|
         if source.has_errors?
           Redwood::log "error loading messages from #{source}: #{source.error.message}"
           return
         end
 
-        labels << :sent if source.uri.eql?(SentManager.source_uri)
-        labels.each { |l| LabelManager << l }
-        labels = labels + (source.archived? ? [] : [:inbox])
+        m_new = Message.build_from_source source, offset
+        m_old = Index.build_message m_new.id
 
-        m = Message.new :source => source, :source_info => offset, :labels => labels
-        m.load_from_source!
+        m_new.labels = default_labels + (source.archived? ? [] : [:inbox])
+        m_new.labels << :sent if source.uri.eql?(SentManager.source_uri)
+        m_new.labels.delete :unread if m_new.source_marked_read?
+        m_new.labels.each { |l| LabelManager << l }
 
-        if m.source_marked_read?
-          m.remove_label :unread
-          labels.delete :unread
-        end
-
-        docid, entry = Index.load_entry_for_id m.id
-        HookManager.run "before-add-message", :message => m
-        m = yield(m, offset, entry) or next if block_given?
-        times = Index.sync_message m, false, docid, entry, opts
-        UpdateManager.relay self, :added, m unless entry
+        HookManager.run "before-add-message", :message => m_new
+        m_ret = yield(m_old, m_new, offset) or next if block_given?
+        Index.sync_message m_ret, opts
+        UpdateManager.relay self, :added, m_ret unless m_old
       end
     rescue SourceError => e
       Redwood::log "problem getting messages from #{source}: #{e.message}"
