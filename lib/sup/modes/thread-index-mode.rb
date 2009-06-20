@@ -1,3 +1,5 @@
+require 'set'
+
 module Redwood
 
 ## subclasses should implement:
@@ -757,10 +759,12 @@ protected
   
   def authors; map { |m, *o| m.from if m }.compact.uniq; end
 
-  def author_names_and_newness_for_thread t
+  def author_names_and_newness_for_thread t, limit=nil
     new = {}
-    authors = t.map do |m, *o|
+    authors = Set.new
+    t.each do |m, *o|
       next unless m
+      break if limit and authors.size >= limit
 
       name = 
         if AccountManager.is_account?(m.from)
@@ -772,12 +776,13 @@ protected
         end
 
       new[name] ||= m.has_label?(:unread)
-      name
+      authors << name
     end
 
-    authors.compact.uniq.map { |a| [a, new[a]] }
+    authors.to_a.map { |a| [a, new[a]] }
   end
 
+  AUTHOR_LIMIT = 5
   def text_for_thread_at line
     t, size_widget = @mutex.synchronize { [@threads[line], @size_widgets[line]] }
 
@@ -787,7 +792,7 @@ protected
 
     ## format the from column
     cur_width = 0
-    ann = author_names_and_newness_for_thread t
+    ann = author_names_and_newness_for_thread t, AUTHOR_LIMIT
     from = []
     ann.each_with_index do |(name, newness), i|
       break if cur_width >= from_width
