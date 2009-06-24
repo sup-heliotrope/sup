@@ -568,6 +568,7 @@ EOS
           LabelManager << l
         end
       end
+      UpdateManager.relay self, :labeled, t.first
     end
 
     regen_text
