@@ -24,6 +24,18 @@ Return value:
   None. The variable 'headers' should be modified in place.
 EOS
 
+  HookManager.register "bounce-command", <<EOS
+Determines the command used to bounce a message.
+Variables:
+      from: The From header of the message being bounced
+            (eg: likely _not_ your address).
+        to: The addresses you asked the message to be bounced to as an array.
+Return value:
+  A string representing the command to pipe the mail into.  This
+  should include the entire command except for the destination addresses,
+  which will be appended by sup.
+EOS
+
   register_keymap do |k|
     k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
@@ -42,6 +54,7 @@ EOS
 #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
     k.add :reply, "Reply to a message", 'r'
     k.add :forward, "Forward a message or attachment", 'f'
+    k.add :bounce, "Bounce message to other recipient(s)", '!'
     k.add :alias, "Edit alias/nickname for a person", 'i'
     k.add :edit_as_new, "Edit message as new", 'D'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
@@ -177,6 +190,38 @@ EOS
       ForwardMode.spawn_nicely :attachments => [chunk]
     elsif(m = @message_lines[curpos])
       ForwardMode.spawn_nicely :message => m
+    end
+  end
+
+  def bounce
+    m = @message_lines[curpos] or return
+    to = BufferManager.ask_for_contacts(:people, "Bounce To: ") or return
+
+    defcmd = AccountManager.default_account.sendmail.sub(/\s(\-(ti|it|t))\b/) do |match|
+      case "$1"
+        when '-t' then ''
+        else ' -i'
+      end
+    end
+
+    cmd = case HookManager.run "bounce-command", :from => m.from, :to => to
+          when nil, /^$/ then defcmd
+          else hookcmd
+          end + ' ' + to.map { |t| t.email }.join(' ')
+
+    bt = to.size > 1 ? "#{to.size} recipients" : to.to_s
+
+    if BufferManager.ask_yes_or_no "Really bounce to #{bt}?"
+      Redwood::log "Bounce Command: #{cmd}"
+      begin
+        IO.popen(cmd, 'w') do |sm|
+          sm.puts m.raw_message
+        end
+        raise SendmailCommandFailed, "Couldn't execute #{cmd}" unless $? == 0
+      rescue SystemCallError, SendmailCommandFailed => e
+        Redwood::log "Problem sending mail: #{e.message}"
+        BufferManager.flash "Problem sending mail: #{e.message}"
+      end
     end
   end
 
