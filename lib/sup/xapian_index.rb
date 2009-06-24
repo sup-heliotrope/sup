@@ -10,6 +10,12 @@ module Redwood
 class XapianIndex < BaseIndex
   STEM_LANGUAGE = "english"
 
+  ## dates are converted to integers for xapian, and are used for document ids,
+  ## so we must ensure they're reasonably valid. this typically only affect
+  ## spam.
+  MIN_DATE = Time.at 0
+  MAX_DATE = Time.at(2**31)
+
   def initialize dir=BASE_DIR
     super
 
@@ -307,8 +313,8 @@ class XapianIndex < BaseIndex
   DOCID_SCALE = 2.0**32
   TIME_SCALE = 2.0**27
   MIDDLE_DATE = Time.gm(2011)
-  def assign_docid m
-    t = (m.date.to_i - MIDDLE_DATE.to_i).to_f
+  def assign_docid m, truncated_date
+    t = (truncated_date.to_i - MIDDLE_DATE.to_i).to_f
     docid = (DOCID_SCALE - DOCID_SCALE/(Math::E**(-(t/TIME_SCALE)) + 1)).to_i
     begin
       while @assigned_docids.member? [docid].pack("N")
@@ -400,11 +406,25 @@ class XapianIndex < BaseIndex
     text << [body_text, PREFIX['body']]
     m.attachments.each { |a| text << [a, PREFIX['attachment']] }
 
+    truncated_date = if m.date < MIN_DATE
+      Redwood::log "warning: adjusting too-low date #{m.date} for indexing"
+      MIN_DATE
+    elsif m.date > MAX_DATE
+      Redwood::log "warning: adjusting too-high date #{m.date} for indexing"
+      MAX_DATE
+    else
+      m.date
+    end
+
     # Date value for range queries
-    date_value = Xapian.sortable_serialise(m.date.to_i)
+    date_value = begin
+      Xapian.sortable_serialise truncated_date.to_i
+    rescue TypeError
+      Xapian.sortable_serialise 0
+    end
 
     doc = Xapian::Document.new
-    docid = @docids[m.id] || assign_docid(m)
+    docid = @docids[m.id] || assign_docid(m, truncated_date)
 
     @term_generator.document = doc
     text.each { |text,prefix| @term_generator.index_text text, 1, prefix }
