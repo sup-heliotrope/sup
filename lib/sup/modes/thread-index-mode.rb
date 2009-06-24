@@ -842,10 +842,11 @@ protected
       [subj_color, size_widget_text],
       [:to_me_color, t.labels.member?(:attachment) ? "@" : " "],
       [:to_me_color, dp ? ">" : (p ? '+' : " ")],
-      [subj_color, t.subj + (t.subj.empty? ? "" : " ")],
     ] +
-      (t.labels - @hidden_labels).map { |label| [:label_color, "+#{label} "] } +
-      [[:snippet_color, snippet]
+      (t.labels - @hidden_labels).map { |label| [:label_color, "#{label} "] } +
+      [
+      [subj_color, t.subj + (t.subj.empty? ? "" : " ")],
+      [:snippet_color, snippet],
     ]
   end
 
