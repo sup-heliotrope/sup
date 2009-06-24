@@ -144,6 +144,7 @@ EOS
           return
         end
 
+        labels << :sent if source.uri.eql?(SentManager.source_uri)
         labels.each { |l| LabelManager << l }
         labels = labels + (source.archived? ? [] : [:inbox])
 

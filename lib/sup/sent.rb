@@ -3,24 +3,32 @@ module Redwood
 class SentManager
   include Singleton
 
-  attr_accessor :source
-  def initialize fn
-    @fn = fn
+  attr_reader :source, :source_uri
+
+  def initialize source_uri
     @source = nil
+    @source_uri = source_uri
     self.class.i_am_the_instance self
+    Redwood::log "SentManager intialized with source uri: #@source_uri"
   end
 
-  def self.source_name; "sup://sent"; end
-  def self.source_id; 9998; end
-  def new_source; @source = Recoverable.new SentLoader.new; end
+  def source_id; @source.id; end
 
-  def write_sent_message time, from_email
-    need_blank = File.exists?(@fn) && !File.zero?(@fn)
-    File.open(@fn, "a") do |f|
-      f.puts if need_blank
-      f.puts "From #{from_email} #{time.asctime}"
-      yield f
-    end
+  def source= s
+    raise FatalSourceError.new("Configured sent_source [#{s.uri}] can't store mail.  Correct your configuration.") unless s.respond_to? :store_message
+    @souce_uri = s.uri
+    @source = s
+  end
+
+  def default_source
+    @source = Recoverable.new SentLoader.new
+    Redwood::log "SentManager initializing default source: #@source."
+    @source_uri = @source.uri
+    @source
+  end
+
+  def write_sent_message date, from_email, &block
+    @source.store_message date, from_email, &block
 
     PollManager.add_messages_from(@source) do |m, o, e|
       m.remove_label :unread
@@ -40,10 +48,11 @@ class SentLoader < MBox::Loader
 
   def file_path; @filename end
 
-  def uri; SentManager.source_name; end
-  def to_s; SentManager.source_name; end
-  def id; SentManager.source_id; end
-  def labels; [:sent, :inbox]; end
+  def to_s; 'sup://sent'; end
+  def uri; 'sup://sent' end
+
+  def id; 9998; end
+  def labels; [:inbox]; end
 end
 
 end

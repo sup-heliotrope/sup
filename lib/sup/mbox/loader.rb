@@ -109,6 +109,15 @@ class Loader < Source
     ret
   end
 
+  def store_message date, from_email, &block
+    need_blank = File.exists?(@filename) && !File.zero?(@filename)
+    File.open(@filename, "a") do |f|
+      f.puts if need_blank
+      f.puts "From #{from_email} #{date}"
+      yield f
+    end
+  end
+
   ## apparently it's a million times faster to call this directly if
   ## we're just moving messages around on disk, than reading things
   ## into memory with raw_message.

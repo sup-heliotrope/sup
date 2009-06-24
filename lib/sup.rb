@@ -105,7 +105,7 @@ module Redwood
   end
 
   def start
-    Redwood::SentManager.new Redwood::SENT_FN
+    Redwood::SentManager.new $config[:sent_source] || 'sup://sent'
     Redwood::ContactManager.new Redwood::CONTACT_FN
     Redwood::LabelManager.new Redwood::LABEL_FN
     Redwood::AccountManager.new $config[:accounts]
@@ -211,6 +211,7 @@ else
     :confirm_top_posting => true,
     :discard_snippets_from_encrypted_messages => false,
     :default_attachment_save_dir => "",
+    :sent_source => "sup://sent"
   }
   begin
     FileUtils.mkdir_p Redwood::BASE_DIR
