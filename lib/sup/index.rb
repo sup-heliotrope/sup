@@ -213,10 +213,10 @@ EOS
 end
 
 index_name = ENV['SUP_INDEX'] || $config[:index] || DEFAULT_INDEX
-begin
-  require "sup/#{index_name}_index"
-rescue LoadError
-  fail "invalid index name #{index_name.inspect}"
+case index_name
+  when "xapian"; require "sup/xapian_index"
+  when "ferret"; require "sup/ferret_index"
+  else fail "unknown index type #{index_name.inspect}"
 end
 Index = Redwood.const_get "#{index_name.capitalize}Index"
 Redwood::log "using index #{Index.name}"
