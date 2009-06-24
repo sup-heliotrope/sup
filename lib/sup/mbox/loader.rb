@@ -85,7 +85,7 @@ class Loader < Source
     @mutex.synchronize do
       @f.seek cur_offset
       string = ""
-      until @f.eof? || (l = @f.gets) =~ BREAK_RE
+      until @f.eof? || MBox::is_break_line?(l = @f.gets)
         string << l
       end
       self.cur_offset += string.length
