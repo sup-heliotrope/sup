@@ -19,6 +19,11 @@ class HookManager
 
     attr_writer :__locals
 
+    ## an annoying gotcha here is that if you try something
+    ## like var = var.foo(), var will magically get allocated
+    ## to Nil and method_missing will never get called.  You
+    ## can work around this by calling self.var or simply
+    ## not assigning it to itself.
     def method_missing m, *a
       case @__locals[m]
       when Proc

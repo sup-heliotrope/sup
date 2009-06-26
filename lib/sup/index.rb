@@ -24,6 +24,16 @@ class Index
 
   include Singleton
 
+  HookManager.register "custom-search", <<EOS
+Executes before a string search is applied to the index,
+returning a new search string.
+Variables:
+  subs: The string being searched. Be careful about shadowing:
+    this variable is actually a method, so use a temporary variable
+    or explicitly call self.subs; the substitutions in index.rb
+    don't actually work.
+EOS
+
   ## these two accessors should ONLY be used by single-threaded programs.
   ## otherwise you will have a naughty ferret on your hands.
   attr_reader :index
@@ -507,7 +517,9 @@ protected
   def parse_user_query_string s
     extraopts = {}
 
-    subs = s.gsub(/\b(to|from):(\S+)\b/) do
+    subs = HookManager.run("custom-search", :subs => s) || s
+
+    subs = subs.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
         [field, p.email]
