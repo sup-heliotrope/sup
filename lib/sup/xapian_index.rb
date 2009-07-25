@@ -74,9 +74,9 @@ class XapianIndex < BaseIndex
       'date' => Time.at(entry[:date]),
       'subject' => entry[:subject],
       'from' => mk_addrs[[entry[:from]]],
-      'to' => mk_addrs[[entry[:to]]],
-      'cc' => mk_addrs[[entry[:cc]]],
-      'bcc' => mk_addrs[[entry[:bcc]]],
+      'to' => mk_addrs[entry[:to]],
+      'cc' => mk_addrs[entry[:cc]],
+      'bcc' => mk_addrs[entry[:bcc]],
       'reply-tos' => mk_refs[entry[:replytos]],
       'references' => mk_refs[entry[:refs]],
      }
