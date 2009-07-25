@@ -213,7 +213,7 @@ begin
     num_del, num_scanned = 0, 0
     sources.each do |source|
       raise "no source id for #{source}" unless source.id
-      index.each_message :source_id => source.id do |m|
+      index.each_message :source_id => source.id, :load_spam => true, :load_deleted => true, :load_killed => true do |m|
         num_scanned += 1
         unless seen[m.id]
           next unless m.source_info >= opts[:start_at] if opts[:start_at]

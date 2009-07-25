@@ -83,6 +83,7 @@ begin
   query += ' ' + opts[:query] if opts[:query]
 
   parsed_query = index.parse_query query
+  parsed_query.merge! :load_spam => true, :load_deleted => true, :load_killed => true
   ids = Enumerable::Enumerator.new(index, :each_id, parsed_query).map
   num_total = ids.size
 
