@@ -22,6 +22,7 @@ EOS
 end
 
 index = Redwood::Index.new
+Redwood::SourceManager.new
 index.load
 
 index.each_message do |m|
