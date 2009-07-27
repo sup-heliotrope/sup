@@ -73,7 +73,14 @@ EOS
       @attachment_names = []
     end
 
-    @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{Socket.gethostname}>"
+    begin
+      hostname = File.open("/etc/mailname", "r").gets.chomp
+    rescue
+        nil
+    end
+    hostname = Socket.gethostname if hostname.nil? or hostname.empty?
+
+    @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{hostname}>"
     @edited = false
     @selectors = []
     @selector_label_width = 0
