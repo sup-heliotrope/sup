@@ -651,7 +651,7 @@ class Iconv
 
     begin
       Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]
-    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
+    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::InvalidCharacter, Iconv::IllegalSequence => e
       Redwood::log "warning: error (#{e.class.name}) decoding text from #{charset} to #{target}: #{text[0 ... 20]}"
       text
     end

@@ -52,11 +52,7 @@ module Rfc2047
         # WORD.
       end
 
-      begin
-        Iconv.easy_decode(target, charset, text)
-      rescue Iconv::InvalidCharacter
-        text
-      end
+      Iconv.easy_decode(target, charset, text)
     end
   end
 end
