@@ -204,7 +204,7 @@ EOS
       end
     end
 
-    cmd = case HookManager.run "bounce-command", :from => m.from, :to => to
+    cmd = case (hookcmd = HookManager.run "bounce-command", :from => m.from, :to => to)
           when nil, /^$/ then defcmd
           else hookcmd
           end + ' ' + to.map { |t| t.email }.join(' ')
