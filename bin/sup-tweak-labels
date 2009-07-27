@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'trollop'
+require 'enumerator'
 require "sup"
 
 class Float
@@ -65,10 +66,10 @@ begin
 
   source_ids = 
     if opts[:all_sources]
-      index.sources
+      Redwood::SourceManager.sources
     else
       ARGV.map do |uri|
-        index.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+        Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
       end
   end.map { |s| s.id }
   Trollop::die "nothing to do: no sources" if source_ids.empty?
@@ -81,14 +82,15 @@ begin
   end
   query += ' ' + opts[:query] if opts[:query]
 
-  docs = Redwood::Index.run_query query
-  num_total = docs.size
+  parsed_query = index.parse_query query
+  ids = Enumerable::Enumerator.new(index, :each_id, parsed_query).map
+  num_total = ids.size
 
   $stderr.puts "Found #{num_total} documents across #{source_ids.length} sources. Scanning..."
 
   num_changed = num_scanned = 0
   last_info_time = start_time = Time.now
-  docs.each do |id|
+  ids.each do |id|
     num_scanned += 1
 
     m = index.build_message id
@@ -118,7 +120,7 @@ begin
 
   unless num_changed == 0
     $stderr.puts "Optimizing index..."
-    index.ferret.optimize unless opts[:dry_run]
+    index.optimize unless opts[:dry_run]
   end
 
 rescue Exception => e

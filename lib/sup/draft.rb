@@ -21,7 +21,8 @@ class DraftManager
 
     my_message = nil
     @source.each do |thisoffset, theselabels|
-      m = Message.new :source => @source, :source_info => thisoffset, :labels => theselabels
+      m = Message.build_from_source @source, thisoffset
+      m.labels = theselabels
       Index.sync_message m
       UpdateManager.relay self, :added, m
       my_message = m if thisoffset == offset
@@ -31,14 +32,9 @@ class DraftManager
   end
 
   def discard m
-    docid, entry = Index.load_entry_for_id m.id
-    unless entry
-      Redwood::log "can't find entry for draft: #{m.id.inspect}. You probably already discarded it."
-      return
-    end
-    raise ArgumentError, "not a draft: source id #{entry[:source_id].inspect}, should be #{DraftManager.source_id.inspect} for #{m.id.inspect} / docno #{docid}" unless entry[:source_id].to_i == DraftManager.source_id
-    Index.drop_entry docid
-    File.delete @source.fn_for_offset(entry[:source_info])
+    raise ArgumentError, "not a draft: source id #{m.source.id.inspect}, should be #{DraftManager.source_id.inspect} for #{m.id.inspect}" unless m.source.id.to_i == DraftManager.source_id
+    Index.delete m.id
+    File.delete @source.fn_for_offset(m.source_info)
     UpdateManager.relay self, :single_message_deleted, m
   end
 end

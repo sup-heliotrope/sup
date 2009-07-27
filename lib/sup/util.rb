@@ -282,7 +282,7 @@ class String
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
 
-  if not defined? ord
+  unless method_defined? :ord
     def ord
       self[0]
     end

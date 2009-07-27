@@ -82,12 +82,12 @@ index = Redwood::Index.new
 index.lock_or_die
 
 begin
-  index.load_sources
+  Redwood::SourceManager.load_sources
 
   ARGV.each do |uri|
     labels = $opts[:labels] ? $opts[:labels].split(/\s*,\s*/).uniq : []
 
-    if !$opts[:force_new] && index.source_for(uri) 
+    if !$opts[:force_new] && Redwood::SourceManager.source_for(uri)
       say "Already know about #{uri}; skipping."
       next
     end
@@ -99,10 +99,10 @@ begin
       when "mbox+ssh"
         say "For SSH connections, if you will use public key authentication, you may leave the username and password blank."
         say ""
-        username, password = get_login_info uri, index.sources
+        username, password = get_login_info uri, Redwood::SourceManager.sources
         Redwood::MBox::SSHLoader.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
       when "imap", "imaps"
-        username, password = get_login_info uri, index.sources
+        username, password = get_login_info uri, Redwood::SourceManager.sources
         Redwood::IMAP.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
       when "maildir"
         Redwood::Maildir.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
@@ -114,7 +114,7 @@ begin
         Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"      
       end
     say "Adding #{source}..."
-    index.add_source source
+    Redwood::SourceManager.add_source source
   end
 ensure
   index.save

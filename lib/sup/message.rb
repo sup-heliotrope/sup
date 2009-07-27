@@ -270,9 +270,21 @@ EOS
       to.map { |p| p.indexable_content },
       cc.map { |p| p.indexable_content },
       bcc.map { |p| p.indexable_content },
-      chunks.select { |c| c.is_a? Chunk::Text }.map { |c| c.lines },
-      Message.normalize_subj(subj),
+      indexable_chunks.map { |c| c.lines },
+      indexable_subject,
     ].flatten.compact.join " "
+  end
+
+  def indexable_body
+    indexable_chunks.map { |c| c.lines }.flatten.compact.join " "
+  end
+
+  def indexable_chunks
+    chunks.select { |c| c.is_a? Chunk::Text }
+  end
+
+  def indexable_subject
+    Message.normalize_subj(subj)
   end
 
   def quotable_body_lines
@@ -286,6 +298,12 @@ EOS
       (@bcc.empty? ? [] : ["Bcc: " + @bcc.map { |p| p.full_address }.join(", ")]) +
       ["Date: #{@date.rfc822}",
        "Subject: #{@subj}"]
+  end
+
+  def self.build_from_source source, source_info
+    m = Message.new :source => source, :source_info => source_info
+    m.load_from_source!
+    m
   end
 
 private

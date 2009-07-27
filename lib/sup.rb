@@ -54,6 +54,8 @@ module Redwood
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
 
+  DEFAULT_INDEX = 'ferret'
+
   ## record exceptions thrown in threads nicely
   @exceptions = []
   @exception_mutex = Mutex.new
@@ -115,6 +117,7 @@ module Redwood
     Redwood::SuicideManager.new Redwood::SUICIDE_FN
     Redwood::CryptoManager.new
     Redwood::UndoManager.new
+    Redwood::SourceManager.new
   end
 
   def finish
@@ -130,7 +133,7 @@ module Redwood
   def report_broken_sources opts={}
     return unless BufferManager.instantiated?
 
-    broken_sources = Index.sources.select { |s| s.error.is_a? FatalSourceError }
+    broken_sources = SourceManager.sources.select { |s| s.error.is_a? FatalSourceError }
     unless broken_sources.empty?
       BufferManager.spawn_unless_exists("Broken source notification for #{broken_sources.join(',')}", opts) do
         TextMode.new(<<EOM)
@@ -147,7 +150,7 @@ EOM
       end
     end
 
-    desynced_sources = Index.sources.select { |s| s.error.is_a? OutOfSyncSourceError }
+    desynced_sources = SourceManager.sources.select { |s| s.error.is_a? OutOfSyncSourceError }
     unless desynced_sources.empty?
       BufferManager.spawn_unless_exists("Out-of-sync source notification for #{broken_sources.join(',')}", opts) do
         TextMode.new(<<EOM)

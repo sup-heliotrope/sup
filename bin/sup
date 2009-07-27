@@ -160,17 +160,17 @@ begin
   Redwood::start
   Index.load
 
-  if(s = Index.source_for DraftManager.source_name)
+  if(s = Redwood::SourceManager.source_for DraftManager.source_name)
     DraftManager.source = s
   else
     Redwood::log "no draft source, auto-adding..."
-    Index.add_source DraftManager.new_source
+    Redwood::SourceManager.add_source DraftManager.new_source
   end
 
-  if(s = Index.source_for SentManager.source_uri)
+  if(s = Redwood::SourceManager.source_for SentManager.source_uri)
     SentManager.source = s
   else
-    Index.add_source SentManager.default_source
+    Redwood::SourceManager.add_source SentManager.default_source
   end
 
   HookManager.run "startup"
@@ -190,7 +190,7 @@ begin
 
   bm.draw_screen
 
-  Index.usual_sources.each do |s|
+  Redwood::SourceManager.usual_sources.each do |s|
     next unless s.respond_to? :connect
     reporting_thread("call #connect on #{s}") do
       begin
