@@ -22,8 +22,9 @@ EOS
 end
 
 index = Redwood::Index.new
+Redwood::SourceManager.new
 index.load
 
-index.each_message do |m|
+index.each_message :load_spam => true, :load_deleted => true, :load_killed => true do |m|
   puts "#{m.id} (#{m.labels * ' '})"
 end
