@@ -409,11 +409,15 @@ private
 
       chunks
     elsif m.header.content_type == "message/rfc822"
-      payload = RMail::Parser.read(m.body)
-      from = payload.header.from.first
-      from_person = from ? Person.from_address(from.format) : nil
-      [Chunk::EnclosedMessage.new(from_person, payload.to_s)] +
-        message_to_chunks(payload, encrypted)
+      if m.body
+        payload = RMail::Parser.read(m.body)
+        from = payload.header.from.first
+        from_person = from ? Person.from_address(from.format) : nil
+        [Chunk::EnclosedMessage.new(from_person, payload.to_s)] +
+          message_to_chunks(payload, encrypted)
+      else
+        [Chunk::EnclosedMessage.new(nil, "")]
+      end
     else
       filename =
         ## first, paw through the headers looking for a filename
