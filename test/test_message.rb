@@ -73,6 +73,7 @@ EOS
     source_info = 0
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message.load_from_source!
 
     # see how well parsing the header went
 
@@ -222,6 +223,7 @@ EOS
     source_info = 0
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message.load_from_source!
     
     # read the message body chunks
 
@@ -271,6 +273,7 @@ EOS
     source_info = 0
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message.load_from_source!
     
     to = sup_message.to
 
@@ -316,6 +319,7 @@ EOS
     source_info = 0
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message.load_from_source!
     
     # read the message body chunks: no errors should reach this level
 
@@ -414,6 +418,7 @@ EOS
     source_info = 0
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message.load_from_source!
     
     # read the message body chunks
 
@@ -504,6 +509,7 @@ EOS
     source_info = 0
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message.load_from_source!
 
     # See how well parsing the message ID went.
     id = sup_message.id
