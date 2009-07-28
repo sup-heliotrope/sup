@@ -723,6 +723,7 @@ EOS
     Ncurses.sync do
       Ncurses.endwin
       system command
+      Ncurses.stdscr.keypad 1
       Ncurses.refresh
       Ncurses.curs_set 0
     end
