@@ -442,6 +442,7 @@ private
 
   def build_ferret_query query
     q = Ferret::Search::BooleanQuery.new
+    q.add_query Ferret::Search::MatchAllQuery.new, :must
     q.add_query query[:qobj], :must if query[:qobj]
     labels = ([query[:label]] + (query[:labels] || [])).compact
     labels.each { |t| q.add_query Ferret::Search::TermQuery.new("label", t.to_s), :must }

@@ -14,7 +14,7 @@ class XapianIndex < BaseIndex
   ## so we must ensure they're reasonably valid. this typically only affect
   ## spam.
   MIN_DATE = Time.at 0
-  MAX_DATE = Time.at(2**31)
+  MAX_DATE = Time.at(2**31-1)
 
   def initialize dir=BASE_DIR
     super
