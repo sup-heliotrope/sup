@@ -30,7 +30,7 @@ class SentManager
   def write_sent_message date, from_email, &block
     @source.store_message date, from_email, &block
 
-    PollManager.add_messages_from(@source) do |m, o, e|
+    PollManager.add_messages_from(@source) do |m_old, m, offset|
       m.remove_label :unread
       m
     end

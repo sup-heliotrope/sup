@@ -310,13 +310,15 @@ class ThreadSet
   private :prune_thread_of
 
   def remove_id mid
-    return unless(c = @messages[mid])
+    return unless @messages.member?(mid)
+    c = @messages[mid]
     remove_container c
     prune_thread_of c
   end
 
   def remove_thread_containing_id mid
-    c = @messages[mid] or return
+    return unless @messages.member?(mid)
+    c = @messages[mid]
     t = c.root.thread
     @threads.delete_if { |key, thread| t == thread }
   end
@@ -355,7 +357,7 @@ class ThreadSet
     return if threads.size < 2
 
     containers = threads.map do |t|
-      c = @messages[t.first.id]
+      c = @messages.member?(c) ? @messages[t.first.id] : nil
       raise "not in threadset: #{t.first.id}" unless c && c.message
       c
     end

@@ -116,11 +116,11 @@ begin
   index.load
 
   sources = ARGV.map do |uri|
-    index.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+    Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
   end
   
-  sources = index.usual_sources if sources.empty?
-  sources = index.sources if opts[:all_sources]
+  sources = Redwood::SourceManager.usual_sources if sources.empty?
+  sources = Redwood::SourceManager.sources if opts[:all_sources]
 
   unless target == :new
     if opts[:start_at]
@@ -137,7 +137,7 @@ begin
     num_added = num_updated = num_scanned = num_restored = 0
     last_info_time = start_time = Time.now
 
-    Redwood::PollManager.add_messages_from source, :force_overwrite => true do |m, offset, entry|
+    Redwood::PollManager.add_messages_from source, :force_overwrite => true do |m_old, m, offset|
       num_scanned += 1
       seen[m.id] = true
 
@@ -153,10 +153,10 @@ begin
       ## skip if we're operating only on changed messages, the message
       ## is in the index, and it's unchanged from what the source is
       ## reporting.
-      next if target == :changed && entry && entry[:source_id].to_i == source.id && entry[:source_info].to_i == offset
+      next if target == :changed && m_old && m_old.source.id == source.id && m_old.source_info == offset
 
       ## get the state currently in the index
-      index_state = entry[:label].symbolistize if entry
+      index_state = m_old.labels.dup if m_old
 
       ## skip if we're operating on restored messages, and this one
       ## ain't.
@@ -196,7 +196,7 @@ begin
         puts "Adding message #{source}##{offset} from #{m.from} with state {#{m.labels * ', '}}" if opts[:verbose]
         num_added += 1
       else
-        puts "Updating message #{source}##{offset}, source #{entry[:source_id]} => #{source.id}, offset #{entry[:source_info]} => #{offset}, state {#{index_state * ', '}} => {#{m.labels * ', '}}" if opts[:verbose]
+        puts "Updating message #{source}##{offset}, source #{m_old.source.id} => #{source.id}, offset #{m_old.source_info} => #{offset}, state {#{index_state * ', '}} => {#{m.labels * ', '}}" if opts[:verbose]
         num_updated += 1
       end
 
@@ -208,24 +208,17 @@ begin
 
   ## delete any messages in the index that claim they're from one of
   ## these sources, but that we didn't see.
-  ##
-  ## kinda crappy code here, because we delve directly into the Ferret
-  ## API.
-  ##
-  ## TODO: move this to Index, i suppose.
-  if (target == :all || target == :changed) && !opts[:start_at]
+  if (target == :all || target == :changed)
     $stderr.puts "Deleting missing messages from the index..."
     num_del, num_scanned = 0, 0
     sources.each do |source|
       raise "no source id for #{source}" unless source.id
-      q = "+source_id:#{source.id}"
-      q += " +source_info: >= #{opts[:start_at]}" if opts[:start_at]
-      index.index.search_each(q, :limit => :all) do |docid, score|
+      index.each_message :source_id => source.id, :load_spam => true, :load_deleted => true, :load_killed => true do |m|
         num_scanned += 1
-        mid = index.index[docid][:message_id]
-        unless seen[mid]
-          puts "Deleting #{mid}" if opts[:verbose]
-          index.index.delete docid unless opts[:dry_run]
+        unless seen[m.id]
+          next unless m.source_info >= opts[:start_at] if opts[:start_at]
+          puts "Deleting #{m.id}" if opts[:verbose]
+          index.delete m.id unless opts[:dry_run]
           num_del += 1
         end
       end
@@ -237,7 +230,7 @@ begin
 
   if opts[:optimize]
     $stderr.puts "Optimizing index..."
-    optt = time { index.index.optimize unless opts[:dry_run] }
+    optt = time { index.optimize unless opts[:dry_run] }
     $stderr.puts "Optimized index of size #{index.size} in #{optt}s."
   end
 rescue Redwood::FatalSourceError => e
