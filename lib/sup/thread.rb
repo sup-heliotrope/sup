@@ -103,15 +103,14 @@ class Thread
   def toggle_label label
     if has_label? label
       remove_label label
-      return false
+      false
     else
       apply_label label
-      return true
+      true
     end
   end
 
   def set_labels l; each { |m, *o| m && m.labels = l }; end
-  
   def has_label? t; any? { |m, *o| m && m.has_label?(t) }; end
   def save_state index; each { |m, *o| m && m.save_state(index) }; end
 
@@ -132,7 +131,7 @@ class Thread
   end
 
   def latest_message
-    inject(nil) do |a, b| 
+    inject(nil) do |a, b|
       b = b.first
       if a.nil?
         b
@@ -163,7 +162,7 @@ class Container
     @id = id
     @message, @parent, @thread = nil, nil, nil
     @children = []
-  end      
+  end
 
   def each_with_stuff parent=nil
     yield self, 0, parent

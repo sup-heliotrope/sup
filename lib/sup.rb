@@ -24,7 +24,7 @@ class Module
     vars = props.map { |p| "@#{p}" }
     klass = self
     path = klass.name.gsub(/::/, "/")
-    
+
     klass.instance_eval do
       define_method(:to_yaml_properties) { vars }
       define_method(:to_yaml_type) { "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}" }

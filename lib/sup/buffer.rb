@@ -468,7 +468,7 @@ EOS
     end
 
     if answer
-      answer = 
+      answer =
         if answer.empty?
           spawn_modal "file browser", FileBrowserMode.new
         elsif File.directory?(answer)
@@ -508,7 +508,7 @@ EOS
   def ask_for_contacts domain, question, default_contacts=[]
     default = default_contacts.map { |s| s.to_s }.join(" ")
     default += " " unless default.empty?
-    
+
     recent = Index.load_contacts(AccountManager.user_emails, :num => 10).map { |c| [c.full_address, c.email] }
     contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.full_address, c.email] }
 

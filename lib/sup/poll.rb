@@ -35,7 +35,7 @@ EOS
     @thread = nil
     @last_poll = nil
     @polling = false
-    
+
     self.class.i_am_the_instance self
   end
 

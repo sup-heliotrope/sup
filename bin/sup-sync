@@ -9,9 +9,7 @@ PROGRESS_UPDATE_INTERVAL = 15 # seconds
 
 class Float
   def to_s; sprintf '%.2f', self; end
-   def to_time_s
-     infinite? ? "unknown" : super
-   end
+  def to_time_s; infinite? ? "unknown" : super end
 end
 
 class Numeric

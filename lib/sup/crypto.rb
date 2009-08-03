@@ -116,21 +116,19 @@ class CryptoManager
     output = run_gpg "--decrypt #{payload_fn.path}"
 
     if $?.success?
-      decrypted_payload, sig_lines =
-        if output =~ /\A(.*?)((^gpg: .*$)+)\Z/m
-          [$1, $2]
+      decrypted_payload, sig_lines = if output =~ /\A(.*?)((^gpg: .*$)+)\Z/m
+        [$1, $2]
+      else
+        [output, nil]
+      end
+
+      sig = if sig_lines # encrypted & signed
+        if sig_lines =~ /^gpg: (Good signature from .*$)/
+          Chunk::CryptoNotice.new :valid, $1, sig_lines.split("\n")
         else
-          [output, nil]
+          Chunk::CryptoNotice.new :invalid, $1, sig_lines.split("\n")
         end
-      
-      sig = 
-        if sig_lines # encrypted & signed
-          if sig_lines =~ /^gpg: (Good signature from .*$)/
-            Chunk::CryptoNotice.new :valid, $1, sig_lines.split("\n")
-          else
-            Chunk::CryptoNotice.new :invalid, $1, sig_lines.split("\n")
-          end
-        end
+      end
 
       notice = Chunk::CryptoNotice.new :valid, "This message has been decrypted for display"
       [RMail::Parser.read(decrypted_payload), sig, notice]
@@ -145,7 +143,7 @@ private
   def unknown_status lines=[]
     Chunk::CryptoNotice.new :unknown, "Unable to determine validity of cryptographic signature", lines
   end
-  
+
   def cant_find_binary
     ["Can't find gpg binary in path."]
   end

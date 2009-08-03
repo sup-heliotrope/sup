@@ -38,8 +38,8 @@ be seen by running "sup-add --help".
 
 Options:
 EOS
-  opt :add, "One or more labels (comma-separated) to add to every message from the specified sources", :type => String
-  opt :remove, "One or more labels (comma-separated) to remove from every message from the specified sources, if those labels are present", :type => String
+  opt :add, "One or more labels (comma-separated) to add to every message from the specified sources", :default => ""
+  opt :remove, "One or more labels (comma-separated) to remove from every message from the specified sources, if those labels are present", :default => ""
   opt :query, "A Sup search query", :type => String
 
   text <<EOS
@@ -64,13 +64,12 @@ begin
   index = Redwood::Index.new
   index.load
 
-  source_ids = 
-    if opts[:all_sources]
-      Redwood::SourceManager.sources
-    else
-      ARGV.map do |uri|
-        Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
-      end
+  source_ids = if opts[:all_sources]
+    Redwood::SourceManager.sources
+  else
+    ARGV.map do |uri|
+      Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+    end
   end.map { |s| s.id }
   Trollop::die "nothing to do: no sources" if source_ids.empty?
 

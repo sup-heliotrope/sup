@@ -216,8 +216,8 @@ class String
       newpos = case state
         when :escaped_instring, :escaped_outstring then pos
         else index(/[,"\\]/, pos)
-      end 
-      
+      end
+
       if newpos
         char = self[newpos]
       else
@@ -542,7 +542,7 @@ class Recoverable
   def has_errors?; !@error.nil?; end
 
   def method_missing m, *a, &b; __pass m, *a, &b end
-  
+
   def id; __pass :id; end
   def to_s; __pass :to_s; end
   def to_yaml x; __pass :to_yaml, x; end

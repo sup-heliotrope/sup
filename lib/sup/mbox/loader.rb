@@ -47,7 +47,7 @@ class Loader < Source
       raise OutOfSyncSourceError, "mbox file is smaller than last recorded message offset. Messages have probably been deleted by another client."
     end
   end
-    
+
   def start_offset; 0; end
   def end_offset; File.size @f; end
 

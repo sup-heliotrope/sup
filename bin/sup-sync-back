@@ -108,7 +108,7 @@ EOS
 
     source.reset!
     num_dropped = num_moved = num_scanned = 0
-    
+
     out_fp = Tempfile.new "sup-sync-back-#{source.id}"
     Redwood::PollManager.each_message_from source do |m|
       num_scanned += 1
