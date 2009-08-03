@@ -57,7 +57,7 @@ EOS
   opt :changed, "Scan over the entire source for messages that have been deleted, altered, or moved from another source. (In the case of mbox sources, this includes all messages AFTER an altered message.)"
   opt :restored, "Operate only on those messages included in a dump file as specified by --restore which have changed state."
   opt :all, "Operate on all messages in the source, regardless of newness or changedness."
-  opt :start_at, "For --changed and --all, start at a particular offset.", :type => :int
+  opt :start_at, "For --changed, --restored and --all, start at a particular offset.", :type => :int
 
 text <<EOS
 
@@ -86,7 +86,7 @@ end
 Trollop::die :restored, "requires --restore" if opts[:restored] unless opts[:restore]
 if opts[:start_at]
   Trollop::die :start_at, "must be non-negative" if opts[:start_at] < 0
-  Trollop::die :start_at, "requires either --changed or --all" unless opts[:changed] || opts[:all]
+  Trollop::die :start_at, "requires either --changed, --restored or --all" unless opts[:changed] || opts[:restored] || opts[:all]
 end
 
 target = [:new, :changed, :all, :restored].find { |x| opts[x] } || :new
