@@ -304,6 +304,8 @@ class XapianIndex < BaseIndex
 
   DATE_VALUENO = 0
 
+  MAX_TERM_LENGTH = 245
+
   # Xapian can very efficiently sort in ascending docid order. Sup always wants
   # to sort by descending date, so this method maps between them. In order to
   # handle multiple messages per second, we use a logistic curve centered
@@ -428,7 +430,7 @@ class XapianIndex < BaseIndex
 
     @term_generator.document = doc
     text.each { |text,prefix| @term_generator.index_text text, 1, prefix }
-    terms.each { |term| doc.add_term term }
+    terms.each { |term| doc.add_term term if term.length <= MAX_TERM_LENGTH }
     doc.add_value DATE_VALUENO, date_value
     doc.data = m.id
 
