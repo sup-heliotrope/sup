@@ -25,14 +25,13 @@ module Ncurses
   def mutex; @mutex ||= Mutex.new; end
   def sync &b; mutex.synchronize(&b); end
 
-  ## magically, this stuff seems to work now. i could swear it didn't
-  ## before. hm.
   def nonblocking_getch
-    if IO.select([$stdin], nil, nil, 1)
-      Ncurses.getch
-    else
-      nil
-    end
+    ## INSANITY
+    ## it is NECESSARY to call nodelay EVERY TIME otherwise a single ctrl-c
+    ## will turn a blocking call into a nonblocking one. hours of my life
+    ## wasted on this trivial bullshit: 3.
+    Ncurses.nodelay Ncurses.stdscr, false
+    Ncurses.getch
   end
 
   module_function :rows, :cols, :curx, :nonblocking_getch, :mutex, :sync
@@ -70,7 +69,7 @@ class Buffer
   def content_height; @height - 1; end
   def content_width; @width; end
 
-  def resize rows, cols 
+  def resize rows, cols
     return if cols == @width && rows == @height
     @width = cols
     @height = rows
