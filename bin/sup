@@ -160,6 +160,8 @@ begin
   Redwood::start
   Index.load
 
+  trap("TERM") { |x| raise "so speaking as i think, i die, i die!" }
+
   if(s = Redwood::SourceManager.source_for DraftManager.source_name)
     DraftManager.source = s
   else
