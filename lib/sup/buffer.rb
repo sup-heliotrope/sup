@@ -26,12 +26,13 @@ module Ncurses
   def sync &b; mutex.synchronize(&b); end
 
   def nonblocking_getch
-    ## INSANITY
-    ## it is NECESSARY to call nodelay EVERY TIME otherwise a single ctrl-c
-    ## will turn a blocking call into a nonblocking one. hours of my life
-    ## wasted on this trivial bullshit: 3.
-    Ncurses.nodelay Ncurses.stdscr, false
-    Ncurses.getch
+    ## INSANTIY
+    ## it is NECESSARY to wrap Ncurses.getch in a select() otherwise all
+    ## background threads will be BLOCKED. (except in very modern versions
+    ## of libncurses-ruby. the current one on ubuntu seems to work well.)
+    if IO.select([$stdin], nil, nil, 0.5)
+      c = Ncurses.getch
+    end
   end
 
   module_function :rows, :cols, :curx, :nonblocking_getch, :mutex, :sync
@@ -195,9 +196,14 @@ EOS
     @flash = nil
     @shelled = @asking = false
     @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
+    @sigwinch_happened = false
+    @sigwinch_mutex = Mutex.new
 
     self.class.i_am_the_instance self
   end
+
+  def sigwinch_happened!; @sigwinch_mutex.synchronize { @sigwinch_happened = true } end
+  def sigwinch_happened?; @sigwinch_mutex.synchronize { @sigwinch_happened } end
 
   def buffers; @name_map.to_a; end
 
@@ -259,6 +265,12 @@ EOS
 
   def completely_redraw_screen
     return if @shelled
+
+    ## this magic makes Ncurses get the new size of the screen
+    Ncurses.endwin
+    Ncurses.refresh
+    @sigwinch_mutex.synchronize { @sigwinch_happened = false }
+    Redwood::log "new screen size is #{Ncurses.rows} x #{Ncurses.cols}"
 
     status, title = get_status_and_title(@focus_buf) # must be called outside of the ncurses lock
 
