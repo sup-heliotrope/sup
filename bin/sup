@@ -160,6 +160,9 @@ begin
   Redwood::start
   Index.load
 
+  trap("TERM") { |x| raise "so speaking as i think, i die, i die!" }
+  trap("WINCH") { |x| BufferManager.sigwinch_happened! }
+
   if(s = Redwood::SourceManager.source_for DraftManager.source_name)
     DraftManager.source = s
   else
@@ -218,17 +221,28 @@ begin
   end
 
   until Redwood::exceptions.nonempty? || SuicideManager.die?
-    c = 
-       begin
-         Ncurses.nonblocking_getch
-       rescue Exception => e
-         if e.is_a?(Interrupt)
-           raise if BufferManager.ask_yes_or_no("Die ungracefully now?")
-           bm.draw_screen
-           nil
-         end
-       end
-    next unless c
+    c = begin
+      Ncurses.nonblocking_getch
+    rescue Interrupt => e
+      raise if BufferManager.ask_yes_or_no "Die ungracefully now?"
+      BufferManager.draw_screen
+      nil
+    end
+
+    if c.nil?
+      if BufferManager.sigwinch_happened?
+        Redwood::log "redrawing screen on sigwinch"
+        BufferManager.completely_redraw_screen
+      end
+      next
+    end
+
+    if c == 410
+      ## this is ncurses's way of telling us it's detected a refresh.
+      ## since we have our own sigwinch handler, we don't do anything.
+      next
+    end
+
     bm.erase_flash
 
     action =
