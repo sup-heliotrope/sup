@@ -14,6 +14,7 @@ class SuicideManager
   end
 
   bool_reader :die
+  def please_die!; @die = true end
 
   def start
     @thread = Redwood::reporting_thread("suicide watch") do
