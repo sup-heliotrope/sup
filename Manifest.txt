@@ -32,6 +32,7 @@ lib/sup/index.rb
 lib/sup/keymap.rb
 lib/sup/label.rb
 lib/sup/logger.rb
+lib/sup/interactive-lock.rb
 lib/sup/maildir.rb
 lib/sup/mbox.rb
 lib/sup/mbox/loader.rb
@@ -67,7 +68,6 @@ lib/sup/poll.rb
 lib/sup/rfc2047.rb
 lib/sup/sent.rb
 lib/sup/source.rb
-lib/sup/suicide.rb
 lib/sup/tagger.rb
 lib/sup/textfield.rb
 lib/sup/thread.rb
