@@ -114,7 +114,6 @@ module Redwood
     Redwood::DraftManager.new Redwood::DRAFT_DIR
     Redwood::UpdateManager.new
     Redwood::PollManager.new
-    Redwood::SuicideManager.new Redwood::SUICIDE_FN
     Redwood::CryptoManager.new
     Redwood::UndoManager.new
     Redwood::SourceManager.new
@@ -256,7 +255,6 @@ end
 
 ## now everything else (which can feel free to call Redwood::log at load time)
 require "sup/update"
-require "sup/suicide"
 require "sup/message-chunks"
 require "sup/message"
 require "sup/source"
@@ -266,6 +264,7 @@ require "sup/imap"
 require "sup/person"
 require "sup/account"
 require "sup/thread"
+require "sup/interactive-lock"
 require "sup/index"
 require "sup/textfield"
 require "sup/colormap"

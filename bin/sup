@@ -130,37 +130,14 @@ end
 module_function :start_cursing, :stop_cursing
 
 Index.new
-begin
-  Index.lock
-rescue Index::LockError => e
-  require 'highline'
-
-  h = HighLine.new
-  h.wrap_at = :auto
-  h.say Index.fancy_lock_error_message_for(e)
-
-  case h.ask("Should I ask that process to kill itself? ")
-  when /^\s*y(es)?\s*$/i
-    h.say "Ok, suggesting seppuku..."
-    FileUtils.touch Redwood::SUICIDE_FN
-    sleep SuicideManager::DELAY * 2
-    FileUtils.rm_f Redwood::SUICIDE_FN
-    h.say "Let's try that again."
-    retry
-  else
-    h.say <<EOS
-Ok, giving up. If the process crashed and left a stale lockfile, you
-can fix this by manually deleting #{Index.lockfile}.
-EOS
-    exit
-  end
-end
+Index.lock_interactively or exit
 
 begin
   Redwood::start
   Index.load
 
-  trap("TERM") { |x| SuicideManager.please_die! }
+  $die = false
+  trap("TERM") { |x| $die = true }
   trap("WINCH") { |x| BufferManager.sigwinch_happened! }
 
   if(s = Redwood::SourceManager.source_for DraftManager.source_name)
@@ -212,7 +189,6 @@ begin
 
   unless $opts[:no_threads]
     PollManager.start
-    SuicideManager.start
     Index.start_lock_update_thread
   end
 
@@ -220,7 +196,7 @@ begin
     SearchResultsMode.spawn_from_query $opts[:search]
   end
 
-  until Redwood::exceptions.nonempty? || SuicideManager.die?
+  until Redwood::exceptions.nonempty? || $die
     c = begin
       Ncurses.nonblocking_getch
     rescue Interrupt => e
@@ -320,13 +296,12 @@ begin
     bm.draw_screen
   end
 
-  bm.kill_all_buffers if SuicideManager.die?
+  bm.kill_all_buffers if $die
 rescue Exception => e
   Redwood::record_exception e, "main"
 ensure
   unless $opts[:no_threads]
     PollManager.stop if PollManager.instantiated?
-    SuicideManager.stop if PollManager.instantiated?
     Index.stop_lock_update_thread
   end
 
@@ -336,7 +311,7 @@ ensure
   stop_cursing
   Redwood::log "stopped cursing"
 
-  if SuicideManager.instantiated? && SuicideManager.die?
+  if $die
     Redwood::log "I've been ordered to commit seppuku. I obey!"
   end
 
