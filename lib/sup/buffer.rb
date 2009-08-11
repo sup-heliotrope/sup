@@ -495,7 +495,7 @@ EOS
 
     return unless answer
 
-    user_labels = answer.symbolistize
+    user_labels = answer.to_set_of_symbols
     user_labels.each do |l|
       if forbidden_labels.include?(l) || LabelManager::RESERVED_LABELS.include?(l)
         BufferManager.flash "'#{l}' is a reserved label!"

@@ -2,6 +2,7 @@ require 'thread'
 require 'lockfile'
 require 'mime/types'
 require 'pathname'
+require 'set'
 
 ## time for some monkeypatching!
 class Lockfile
@@ -288,10 +289,12 @@ class String
     end
   end
 
-  ## takes a space-separated list of words, and returns an array of symbols.
-  ## typically used in Sup for translating Ferret's representation of a list
-  ## of labels (a string) to an array of label symbols.
-  def symbolistize; split.map { |x| x.intern } end
+  ## takes a list of words, and returns an array of symbols.  typically used in
+  ## Sup for translating Ferret's representation of a list of labels (a string)
+  ## to an array of label symbols.
+  ##
+  ## split_on will be passed to String#split, so you can leave this nil for space.
+  def to_set_of_symbols split_on=nil; Set.new split(split_on).map { |x| x.strip.intern } end
 end
 
 class Numeric
@@ -419,10 +422,6 @@ class Array
 
   def last= e; self[-1] = e end
   def nonempty?; !empty? end
-
-  def to_set_of_symbols
-    map { |x| x.is_a?(Symbol) ? x : x.intern }.uniq
-  end
 end
 
 class Time

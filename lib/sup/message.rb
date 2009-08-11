@@ -46,7 +46,7 @@ class Message
     @snippet = opts[:snippet]
     @snippet_contains_encrypted_content = false
     @have_snippet = !(opts[:snippet].nil? || opts[:snippet].empty?)
-    @labels = (opts[:labels] || []).to_set_of_symbols
+    @labels = Set.new(opts[:labels] || [])
     @dirty = false
     @encrypted = false
     @chunks = nil
@@ -165,14 +165,14 @@ class Message
   end
 
   def has_label? t; @labels.member? t; end
-  def add_label t
-    return if @labels.member? t
-    @labels = (@labels + [t]).to_set_of_symbols
+  def add_label l
+    return if @labels.member? l
+    @labels << l
     @dirty = true
   end
-  def remove_label t
-    return unless @labels.member? t
-    @labels.delete t
+  def remove_label l
+    return unless @labels.member? l
+    @labels.delete l
     @dirty = true
   end
 
@@ -181,7 +181,9 @@ class Message
   end
 
   def labels= l
-    @labels = l.to_set_of_symbols
+    raise ArgumentError, "not a set" unless l.is_a?(Set)
+    return if @labels == l
+    @labels = l
     @dirty = true
   end
 

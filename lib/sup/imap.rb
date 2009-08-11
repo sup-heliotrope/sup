@@ -4,6 +4,7 @@ require 'stringio'
 require 'time'
 require 'rmail'
 require 'cgi'
+require 'set'
 
 ## TODO: remove synchronized method protector calls; use a Monitor instead
 ## (ruby's reentrant mutex)
@@ -69,7 +70,7 @@ class IMAP < Source
     @imap_state = {}
     @ids = []
     @last_scan = nil
-    @labels = ((labels || []) - LabelManager::RESERVED_LABELS).uniq.freeze
+    @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
     @say_id = nil
     @mutex = Mutex.new
   end

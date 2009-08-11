@@ -79,13 +79,13 @@ class FerretIndex < BaseIndex
     ## written in this manner to support previous versions of the index which
     ## did not keep around the entry body. upgrading is thus seamless.
     entry ||= {}
-    labels = m.labels.uniq # override because this is the new state, unless...
+    labels = m.labels # override because this is the new state, unless...
 
     ## if we are a later version of a message, ignore what's in the index,
     ## but merge in the labels.
     if entry[:source_id] && entry[:source_info] && entry[:label] &&
       ((entry[:source_id].to_i > source_id) || (entry[:source_info].to_i < m.source_info))
-      labels = (entry[:label].symbolistize + m.labels).uniq
+      labels += entry[:label].to_set_of_symbols
       #Redwood::log "found updated version of message #{m.id}: #{m.subj}"
       #Redwood::log "previous version was at #{entry[:source_id].inspect}:#{entry[:source_info].inspect}, this version at #{source_id.inspect}:#{m.source_info.inspect}"
       #Redwood::log "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
@@ -103,7 +103,7 @@ class FerretIndex < BaseIndex
       :date => (entry[:date] || m.date.to_indexable_s),
       :body => (entry[:body] || m.indexable_content),
       :snippet => snippet, # always override
-      :label => labels.uniq.join(" "),
+      :label => labels.to_a.join(" "),
       :attachments => (entry[:attachments] || m.attachments.uniq.join(" ")),
 
       ## always override :from and :to.
@@ -259,7 +259,7 @@ class FerretIndex < BaseIndex
       }
 
       m = Message.new :source => source, :source_info => doc[:source_info].to_i,
-                  :labels => doc[:label].symbolistize,
+                  :labels => doc[:label].to_set_of_symbols,
                   :snippet => doc[:snippet]
       m.parse_header fake_header
       m

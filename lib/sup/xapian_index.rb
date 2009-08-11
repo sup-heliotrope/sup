@@ -100,7 +100,7 @@ class XapianIndex < BaseIndex
       :source_info => m.source_info,
       :date => (entry[:date] || m.date),
       :snippet => snippet,
-      :labels => labels.uniq,
+      :labels => labels,
       :from => (entry[:from] || [m.from.email, m.from.name]),
       :to => (entry[:to] || m.to.map { |p| [p.email, p.name] }),
       :cc => (entry[:cc] || m.cc.map { |p| [p.email, p.name] }),
@@ -110,7 +110,7 @@ class XapianIndex < BaseIndex
       :replytos => (entry[:replytos] || m.replytos),
     }
 
-    m.labels.each { |l| LabelManager << l }
+    labels.each { |l| LabelManager << l }
 
     synchronize do
       index_message m, opts

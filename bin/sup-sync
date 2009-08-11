@@ -102,7 +102,7 @@ restored_state =
     IO.foreach opts[:restore] do |l|
       l =~ /^(\S+) \((.*?)\)$/ or raise "Can't read dump line: #{l.inspect}"
       mid, labels = $1, $2
-      dump[mid] = labels.symbolistize
+      dump[mid] = labels.to_set_of_symbols
     end
     $stderr.puts "Read #{dump.size} entries from dump file."
     dump
@@ -159,19 +159,22 @@ begin
       index_state = m_old.labels.dup if m_old
 
       ## skip if we're operating on restored messages, and this one
-      ## ain't.
-      next if target == :restored && (!restored_state[m.id] || (index_state && restored_state[m.id].sort_by { |s| s.to_s } == index_state.sort_by { |s| s.to_s }))
+      ## ain't (or we wouldn't be making a change)
+      next if target == :restored && (!restored_state[m.id] || !index_state || restored_state[m.id] == index_state)
 
       ## m.labels is the default source labels. tweak these according
       ## to default source state modification flags.
-      m.labels -= [:inbox] if opts[:archive]
-      m.labels -= [:unread] if opts[:read]
-      m.labels += opts[:extra_labels].strip.split(/\s*,\s*/).map { |x| x.intern } if opts[:extra_labels]
+      m.labels.delete :inbox if opts[:archive]
+      m.labels.delete :unread if opts[:read]
+      m.labels += opts[:extra_labels].to_set_of_symbols(",") if opts[:extra_labels]
 
       ## assign message labels based on the operation we're performing
       case op
       when :asis
-        m.labels = ((m.labels - [:unread, :inbox]) + index_state).uniq if index_state
+        ## duplicate behavior of poll mode: if index_state is non-nil, this is a newer
+        ## version of an older message, so merge in any new labels except :unread and
+        ## :inbox.
+        m.labels = ((m.labels - [:unread, :inbox]) + index_state) if index_state
       when :restore
         ## if the entry exists on disk
         if restored_state[m.id]
@@ -193,10 +196,10 @@ begin
       end
 
       if index_state.nil?
-        puts "Adding message #{source}##{offset} from #{m.from} with state {#{m.labels * ', '}}" if opts[:verbose]
+        puts "Adding message #{source}##{offset} from #{m.from} with state {#{m.labels.to_a * ', '}}" if opts[:verbose]
         num_added += 1
       else
-        puts "Updating message #{source}##{offset}, source #{m_old.source.id} => #{source.id}, offset #{m_old.source_info} => #{offset}, state {#{index_state * ', '}} => {#{m.labels * ', '}}" if opts[:verbose]
+        puts "Updating message #{source}##{offset}, source #{m_old.source.id} => #{source.id}, offset #{m_old.source_info} => #{offset}, state {#{index_state.to_a * ', '}} => {#{m.labels.to_a * ', '}}" if opts[:verbose]
         num_updated += 1
       end
 

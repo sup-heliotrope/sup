@@ -23,7 +23,7 @@ class Maildir < Source
     raise ArgumentError, "maildir URI must have a path component" unless uri.path
 
     @dir = uri.path
-    @labels = (labels || []).freeze
+    @labels = Set.new(labels || [])
     @ids = []
     @ids_to_fns = {}
     @last_scan = nil

@@ -24,6 +24,8 @@
 ## a faked root object tying them all together into one tree
 ## structure.
 
+require 'set'
+
 module Redwood
 
 class Thread
@@ -123,11 +125,10 @@ class Thread
 
   def size; map { |m, *o| m ? 1 : 0 }.sum; end
   def subj; argfind { |m, *o| m && m.subj }; end
-  def labels
-      map { |m, *o| m && m.labels }.flatten.compact.uniq.sort_by { |t| t.to_s }
-  end
+  def labels; inject(Set.new) { |s, (m, *o)| m ? s | m.labels : s } end
   def labels= l
-    each { |m, *o| m && m.labels = l.clone }
+    raise ArgumentError, "not a set" unless l.is_a?(Set)
+    each { |m, *o| m && m.labels = l.dup }
   end
 
   def latest_message

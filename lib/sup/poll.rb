@@ -97,14 +97,14 @@ EOS
         numi = 0
         add_messages_from source do |m_old, m, offset|
           ## always preserve the labels on disk.
-          m.labels = ((m.labels - [:unread, :inbox]) + m_old.labels).uniq if m_old
-          yield "Found message at #{offset} with labels {#{m.labels * ', '}}"
+          m.labels = (m.labels - [:unread, :inbox]) + m_old.labels if m_old
+          yield "Found message at #{offset} with labels {#{m.labels.to_a * ', '}}"
           unless m_old
             num += 1
             from_and_subj << [m.from && m.from.longname, m.subj]
-            if m.has_label?(:inbox) && ([:spam, :deleted, :killed] & m.labels).empty?
+            if (m.labels & [:inbox, :spam, :deleted, :killed]) == Set.new([:inbox])
               from_and_subj_inbox << [m.from && m.from.longname, m.subj]
-              numi += 1 
+              numi += 1
             end
           end
           m

@@ -61,9 +61,9 @@ class LabelManager
       l
     end
   end
-  
+
   def << t
-    t = t.intern unless t.is_a? Symbol
+    raise ArgumentError, "expecting a symbol" unless t.is_a? Symbol
     unless @labels.member?(t) || RESERVED_LABELS.member?(t)
       @labels[t] = true
       @new_labels[t] = true
