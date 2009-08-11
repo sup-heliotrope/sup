@@ -133,7 +133,7 @@ EOS
     def view_default! path
       cmd = "/usr/bin/run-mailcap --action=view '#{@content_type}:#{path}'"
       Redwood::log "running: #{cmd.inspect}"
-      system cmd
+      BufferManager.shell_out(cmd)
       $? == 0
     end
 
