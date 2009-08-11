@@ -105,7 +105,7 @@ begin
       puts "From #{m.from}, subject: #{m.subj}" if opts[:very_verbose]
       puts "#{m.id}: {#{old_labels.to_a.join ','}} => {#{m.labels.to_a.join ','}}" if opts[:verbose]
       puts if opts[:very_verbose]
-      index.sync_message m unless opts[:dry_run]
+      index.update_message_state m unless opts[:dry_run]
     end
 
     if Time.now - last_info_time > 60

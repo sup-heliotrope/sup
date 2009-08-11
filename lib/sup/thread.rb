@@ -113,7 +113,7 @@ class Thread
   def set_labels l; each { |m, *o| m && m.labels = l }; end
   
   def has_label? t; any? { |m, *o| m && m.has_label?(t) }; end
-  def save index; each { |m, *o| m && m.save(index) }; end
+  def save_state index; each { |m, *o| m && m.save_state(index) }; end
 
   def direct_participants
     map { |m, *o| [m.from] + m.to if m }.flatten.compact.uniq

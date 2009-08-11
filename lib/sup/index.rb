@@ -113,12 +113,9 @@ EOS
     unimplemented
   end
 
-  ## Syncs the message to the index, replacing any previous version.  adding
-  ## either way. Index state will be determined by the message's #labels
-  ## accessor.
-  def sync_message m, opts={}
-    unimplemented
-  end
+  def add_message m; unimplemented end
+  def update_message m; unimplemented end
+  def update_message_state m; unimplemented end
 
   def save_index fn
     unimplemented

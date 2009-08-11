@@ -110,28 +110,28 @@ EOS
     num_dropped = num_moved = num_scanned = 0
     
     out_fp = Tempfile.new "sup-sync-back-#{source.id}"
-    Redwood::PollManager.add_messages_from source do |m_old, m, offset|
+    Redwood::PollManager.each_message_from source do |m|
       num_scanned += 1
 
-      if m_old
+      if(m_old = index.build_message(m.id))
         labels = m_old.labels
 
         if labels.member? :deleted
           if opts[:drop_deleted]
-            puts "Dropping deleted message #{source}##{offset}" if opts[:verbose]
+            puts "Dropping deleted message #{source}##{m.source_info}" if opts[:verbose]
             num_dropped += 1
           elsif opts[:move_deleted] && labels.member?(:deleted)
-            puts "Moving deleted message #{source}##{offset}" if opts[:verbose]
+            puts "Moving deleted message #{source}##{m.source_info}" if opts[:verbose]
             save m, deleted_fp unless opts[:dry_run]
             num_moved += 1
           end
 
         elsif labels.member? :spam
           if opts[:drop_spam]
-            puts "Dropping spam message #{source}##{offset}" if opts[:verbose]
+            puts "Dropping spam message #{source}##{m.source_info}" if opts[:verbose]
             num_dropped += 1
           elsif opts[:move_spam] && labels.member?(:spam)
-            puts "Moving spam message #{source}##{offset}" if opts[:verbose]
+            puts "Moving spam message #{source}##{m.source_info}" if opts[:verbose]
             save m, spam_fp unless opts[:dry_run]
             num_moved += 1
           end
@@ -141,8 +141,6 @@ EOS
       else
         save m, out_fp unless opts[:dry_run]
       end
-
-      nil # don't actually add anything!
     end
     $stderr.puts "Scanned #{num_scanned}, dropped #{num_dropped}, moved #{num_moved} messages from #{source}."
     modified_sources << source if num_dropped > 0 || num_moved > 0

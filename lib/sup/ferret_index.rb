@@ -45,6 +45,10 @@ class FerretIndex < BaseIndex
     end
   end
 
+  def add_message m; sync_message m end
+  def update_message m; sync_message m end
+  def update_message_state m; sync_message m end
+
   def sync_message m, opts={}
     entry = @index[m.id]
 
@@ -125,6 +129,7 @@ class FerretIndex < BaseIndex
       @index.add_document d
     end
   end
+  private :sync_message
 
   def save_index fn=File.join(@dir, "ferret")
     # don't have to do anything, apparently

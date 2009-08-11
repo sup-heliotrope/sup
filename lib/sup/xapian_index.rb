@@ -87,6 +87,10 @@ class XapianIndex < BaseIndex
       m
   end
 
+  def add_message m; sync_message m end
+  def update_message m; sync_message m end
+  def update_message_state m; sync_message m end
+
   def sync_message m, opts={}
     entry = synchronize { @entries[m.id] }
     snippet = m.snippet
@@ -119,6 +123,7 @@ class XapianIndex < BaseIndex
     end
     true
   end
+  private :sync_message
 
   def num_results_for query={}
     xapian_query = build_xapian_query query

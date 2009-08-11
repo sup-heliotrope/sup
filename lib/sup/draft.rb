@@ -20,12 +20,9 @@ class DraftManager
     File.open(fn, "w") { |f| yield f }
 
     my_message = nil
-    @source.each do |thisoffset, theselabels|
-      m = Message.build_from_source @source, thisoffset
-      m.labels = theselabels
-      Index.sync_message m
-      UpdateManager.relay self, :added, m
-      my_message = m if thisoffset == offset
+    PollManager.each_message_from(@source) do |m|
+      PollManager.add_new_message m
+      my_message = m
     end
 
     my_message
