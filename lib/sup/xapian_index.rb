@@ -20,22 +20,21 @@ class XapianIndex < BaseIndex
     super
 
     @index_mutex = Monitor.new
+  end
 
-    @entries = MarshalledGDBM.new File.join(dir, "entries.db")
-    @docids = MarshalledGDBM.new File.join(dir, "docids.db")
-    @thread_members = MarshalledGDBM.new File.join(dir, "thread_members.db")
-    @thread_ids = MarshalledGDBM.new File.join(dir, "thread_ids.db")
-    @assigned_docids = GDBM.new File.join(dir, "assigned_docids.db")
+  def load_index
+    @entries = MarshalledGDBM.new File.join(@dir, "entries.db")
+    @docids = MarshalledGDBM.new File.join(@dir, "docids.db")
+    @thread_members = MarshalledGDBM.new File.join(@dir, "thread_members.db")
+    @thread_ids = MarshalledGDBM.new File.join(@dir, "thread_ids.db")
+    @assigned_docids = GDBM.new File.join(@dir, "assigned_docids.db")
 
-    @xapian = Xapian::WritableDatabase.new(File.join(dir, "xapian"), Xapian::DB_CREATE_OR_OPEN)
+    @xapian = Xapian::WritableDatabase.new(File.join(@dir, "xapian"), Xapian::DB_CREATE_OR_OPEN)
     @term_generator = Xapian::TermGenerator.new()
     @term_generator.stemmer = Xapian::Stem.new(STEM_LANGUAGE)
     @enquire = Xapian::Enquire.new @xapian
     @enquire.weighting_scheme = Xapian::BoolWeight.new
     @enquire.docid_order = Xapian::Enquire::ASCENDING
-  end
-
-  def load_index
   end
 
   def save_index
