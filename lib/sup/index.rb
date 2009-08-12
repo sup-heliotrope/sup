@@ -26,7 +26,6 @@ class BaseIndex
   def initialize dir=BASE_DIR
     @dir = dir
     @lock = Lockfile.new lockfile, :retries => 0, :max_age => nil
-    self.class.i_am_the_instance self
   end
 
   def lockfile; File.join @dir, "lock" end

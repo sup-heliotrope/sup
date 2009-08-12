@@ -95,7 +95,7 @@ target = [:new, :changed, :all, :restored].find { |x| opts[x] } || :new
 op = [:asis, :restore, :discard].find { |x| opts[x] } || :asis
 
 Redwood::start
-index = Redwood::Index.new
+index = Redwood::Index.init
 
 restored_state = if opts[:restore]
   dump = {}

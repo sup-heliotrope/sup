@@ -79,8 +79,6 @@ class HookManager
     @tags = {}
 
     Dir.mkdir dir unless File.exists? dir
-
-    self.class.i_am_the_instance self
   end
 
   attr_reader :tags

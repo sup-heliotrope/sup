@@ -495,19 +495,20 @@ class Time
   end
 end
 
-## simple singleton module. far less complete and insane than the ruby
-## standard library one, but automatically forwards methods calls and
-## allows for constructors that take arguments.
+## simple singleton module. far less complete and insane than the ruby standard
+## library one, but it automatically forwards methods calls and allows for
+## constructors that take arguments.
 ##
-## You must have #initialize call "self.class.i_am_the_instance self"
-## at some point or everything will fail horribly.
+## classes that inherit this can define initialize. however, you cannot call
+## .new on the class. To get the instance of the class, call .instance;
+## to create the instance, call init.
 module Singleton
   module ClassMethods
     def instance; @instance; end
     def instantiated?; defined?(@instance) && !@instance.nil?; end
     def deinstantiate!; @instance = nil; end
     def method_missing meth, *a, &b
-      raise "no instance defined!" unless defined? @instance
+      raise "no #{name} instance defined in method call to #{meth}!" unless defined? @instance
 
       ## if we've been deinstantiated, just drop all calls. this is
       ## useful because threads that might be active during the
@@ -517,13 +518,14 @@ module Singleton
 
       @instance.send meth, *a, &b
     end
-    def i_am_the_instance o
+    def init *args
       raise "there can be only one! (instance)" if defined? @instance
-      @instance = o
+      @instance = new(*args)
     end
   end
 
   def self.included klass
+    klass.private_class_method :allocate, :new
     klass.extend ClassMethods
   end
 end

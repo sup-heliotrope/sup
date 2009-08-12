@@ -168,7 +168,6 @@ class SourceManager
     @sources = {}
     @sources_dirty = false
     @source_mutex = Monitor.new
-    self.class.i_am_the_instance self
   end
 
   def [](id)

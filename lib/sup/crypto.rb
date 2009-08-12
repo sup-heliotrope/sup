@@ -13,10 +13,8 @@ class CryptoManager
 
   def initialize
     @mutex = Mutex.new
-    self.class.i_am_the_instance self
 
     bin = `which gpg`.chomp
-
     @cmd =
       case bin
       when /\S/

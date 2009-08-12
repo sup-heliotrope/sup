@@ -196,8 +196,6 @@ EOS
     @flash = nil
     @shelled = @asking = false
     @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
-
-    self.class.i_am_the_instance self
   end
 
   def buffers; @name_map.to_a; end

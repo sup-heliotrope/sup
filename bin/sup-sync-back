@@ -65,7 +65,7 @@ EOS
 end
 
 Redwood::start
-index = Redwood::Index.new
+index = Redwood::Index.init
 index.lock_or_die
 
 deleted_fp, spam_fp = nil

@@ -8,7 +8,6 @@ class SentManager
   def initialize source_uri
     @source = nil
     @source_uri = source_uri
-    self.class.i_am_the_instance self
     Redwood::log "SentManager intialized with source uri: #@source_uri"
   end
 

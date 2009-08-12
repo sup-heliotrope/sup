@@ -22,8 +22,6 @@ class LabelManager
     @new_labels = {}
     @modified = false
     labels.each { |t| @labels[t] = true }
-
-    self.class.i_am_the_instance self
   end
 
   def new_label? l; @new_labels.include?(l) end

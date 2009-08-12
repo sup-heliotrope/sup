@@ -7,7 +7,6 @@ class DraftManager
   def initialize dir
     @dir = dir
     @source = nil
-    self.class.i_am_the_instance self
   end
 
   def self.source_name; "sup://drafts"; end

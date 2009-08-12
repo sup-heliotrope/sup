@@ -61,7 +61,7 @@ Trollop::die "nothing to do: no labels to add or remove" if add_labels.empty? &&
 
 Redwood::start
 begin
-  index = Redwood::Index.new
+  index = Redwood::Index.init
   index.load
 
   source_ids = if opts[:all_sources]
