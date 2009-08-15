@@ -212,7 +212,7 @@ private
 
   def maildir_data msg
     fn = File.basename @ids_to_fns[msg]
-    fn =~ %r{^([^:,]+):([12]),([DFPRST]*)$}
+    fn =~ %r{^([^:]+):([12]),([DFPRST]*)$}
     [($1 || fn), ($2 || "2"), ($3 || "")]
   end
 
