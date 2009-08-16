@@ -8,6 +8,7 @@ module Redwood
 # for searching due to precomputing thread membership.
 class XapianIndex < BaseIndex
   STEM_LANGUAGE = "english"
+  INDEX_VERSION = '1'
 
   ## dates are converted to integers for xapian, and are used for document ids,
   ## so we must ensure they're reasonably valid. this typically only affect
@@ -22,7 +23,18 @@ class XapianIndex < BaseIndex
   end
 
   def load_index
-    @xapian = Xapian::WritableDatabase.new(File.join(@dir, "xapian"), Xapian::DB_CREATE_OR_OPEN)
+    path = File.join(@dir, 'xapian')
+    if File.exists? path
+      @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
+      db_version = @xapian.get_metadata 'version'
+      db_version = '0' if db_version.empty?
+      if db_version != INDEX_VERSION
+        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please downgrade to your previous version and dump your labels before upgrading to this version (then run sup-sync --restore)."
+      end
+    else
+      @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_CREATE)
+      @xapian.set_metadata 'version', INDEX_VERSION
+    end
     @term_generator = Xapian::TermGenerator.new()
     @term_generator.stemmer = Xapian::Stem.new(STEM_LANGUAGE)
     @enquire = Xapian::Enquire.new @xapian
