@@ -230,14 +230,20 @@ EOS
   ## have to change this. but it's not clear that we will ever actually
   ## do that.
   def roll_buffers
-    @buffers.last.force_to_top = false
-    raise_to_front @buffers.first
+    bufs = rollable_buffers
+    bufs.last.force_to_top = false
+    raise_to_front bufs.first
   end
 
   def roll_buffers_backwards
-    return unless @buffers.length > 1
-    @buffers.last.force_to_top = false
-    raise_to_front @buffers[@buffers.length - 2]
+    bufs = rollable_buffers
+    return unless bufs.length > 1
+    bufs.last.force_to_top = false
+    raise_to_front bufs[bufs.length - 2]
+  end
+
+  def rollable_buffers
+    @buffers.select { |b| !b.system? || @buffers.last == b }
   end
 
   def handle_input c
