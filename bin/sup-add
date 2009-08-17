@@ -77,7 +77,7 @@ end
 
 $terminal.wrap_at = :auto
 Redwood::start
-index = Redwood::Index.new
+index = Redwood::Index.init
 
 index.lock_interactively or exit
 

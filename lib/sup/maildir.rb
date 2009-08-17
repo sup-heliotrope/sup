@@ -23,7 +23,7 @@ class Maildir < Source
     raise ArgumentError, "maildir URI must have a path component" unless uri.path
 
     @dir = uri.path
-    @labels = (labels || []).freeze
+    @labels = Set.new(labels || [])
     @ids = []
     @ids_to_fns = {}
     @last_scan = nil
@@ -115,7 +115,7 @@ class Maildir < Source
 
     initial_poll = @ids.empty?
 
-    Redwood::log "scanning maildir #@dir..."
+    debug "scanning maildir #@dir..."
     begin
       @mtimes.each_key do |d|
 	subdir = File.join(@dir, d)
@@ -134,7 +134,7 @@ class Maildir < Source
 	    @ids_to_fns[id] = fn
 	  end
 	else
-	  Redwood::log "no poll on #{d}.  mtime on indicates no new messages."
+	  debug "no poll on #{d}.  mtime on indicates no new messages."
 	end
       end
       @ids = @dir_ids.values.flatten.uniq.sort!
@@ -142,7 +142,7 @@ class Maildir < Source
       raise FatalSourceError, "Problem scanning Maildir directories: #{e.message}."
     end
     
-    Redwood::log "done scanning maildir"
+    debug "done scanning maildir"
     @last_scan = Time.now
   end
   synchronized :scan_mailbox

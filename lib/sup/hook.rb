@@ -45,7 +45,7 @@ class HookManager
     end
 
     def log s
-      Redwood::log "hook[#@__name]: #{s}"
+      info "hook[#@__name]: #{s}"
     end
 
     def ask_yes_or_no q
@@ -84,8 +84,6 @@ class HookManager
     @tags = {}
 
     Dir.mkdir dir unless File.exists? dir
-
-    self.class.i_am_the_instance self
   end
 
   attr_reader :tags
@@ -153,7 +151,7 @@ private
   end
 
   def log m
-    Redwood::log("hook: " + m)
+    info("hook: " + m)
   end
 end
 

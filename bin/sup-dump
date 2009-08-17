@@ -21,10 +21,10 @@ No options.
 EOS
 end
 
-index = Redwood::Index.new
-Redwood::SourceManager.new
+index = Redwood::Index.init
+Redwood::SourceManager.init
 index.load
 
 index.each_message :load_spam => true, :load_deleted => true, :load_killed => true do |m|
-  puts "#{m.id} (#{m.labels * ' '})"
+  puts "#{m.id} (#{m.labels.to_a * ' '})"
 end

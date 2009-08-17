@@ -56,7 +56,7 @@ EOS
     ## don't check that it's an Account, though; assume they know what they're
     ## doing.
     if hook_reply_from && !(hook_reply_from.is_a? Person)
-      Redwood::log "reply-from returned non-Person, using default from."
+      info "reply-from returned non-Person, using default from."
       hook_reply_from = nil
     end
 

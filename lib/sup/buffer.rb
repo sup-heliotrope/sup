@@ -200,8 +200,6 @@ EOS
     @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
     @sigwinch_happened = false
     @sigwinch_mutex = Mutex.new
-
-    self.class.i_am_the_instance self
   end
 
   def sigwinch_happened!; @sigwinch_mutex.synchronize { @sigwinch_happened = true } end
@@ -482,7 +480,7 @@ EOS
     end
 
     if answer
-      answer = 
+      answer =
         if answer.empty?
           spawn_modal "file browser", FileBrowserMode.new
         elsif File.directory?(answer)
@@ -509,7 +507,7 @@ EOS
 
     return unless answer
 
-    user_labels = answer.symbolistize
+    user_labels = answer.to_set_of_symbols
     user_labels.each do |l|
       if forbidden_labels.include?(l) || LabelManager::RESERVED_LABELS.include?(l)
         BufferManager.flash "'#{l}' is a reserved label!"
@@ -522,7 +520,7 @@ EOS
   def ask_for_contacts domain, question, default_contacts=[]
     default = default_contacts.map { |s| s.to_s }.join(" ")
     default += " " unless default.empty?
-    
+
     recent = Index.load_contacts(AccountManager.user_emails, :num => 10).map { |c| [c.full_address, c.email] }
     contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.full_address, c.email] }
 

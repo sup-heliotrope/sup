@@ -151,7 +151,7 @@ end
 
 $terminal.wrap_at = :auto
 Redwood::start
-index = Redwood::Index.new
+index = Redwood::Index.init
 Redwood::SourceManager.load_sources
 
 say <<EOS

@@ -1,54 +1,73 @@
+require "sup"
+require 'stringio'
+require 'thread'
+
 module Redwood
 
+## simple centralized logger. outputs to multiple sinks by calling << on them.
+## also keeps a record of all messages, so that adding a new sink will send all
+## previous messages to it by default.
 class Logger
-  @@instance = nil
+  include Singleton
 
-  attr_reader :buf
+  LEVELS = %w(debug info warn error) # in order!
 
-  def initialize
-    raise "only one Log can be defined" if @@instance
-    @@instance = self
-    @mode = LogMode.new
-    @respawn = true
-    @spawning = false # to prevent infinite loops!
+  def initialize level=nil
+    level ||= ENV["SUP_LOG_LEVEL"] || "info"
+    @level = LEVELS.index(level) or raise ArgumentError, "invalid log level #{level.inspect}: should be one of #{LEVELS * ', '}"
+    @mutex = Mutex.new
+    @buf = StringIO.new
+    @sinks = []
   end
 
-  ## must be called if you want to see anything!
-  ## once called, will respawn if killed...
-  def make_buf
-    return if @mode.buffer || !BufferManager.instantiated? || !@respawn || @spawning
-    @spawning = true
-    @mode.buffer = BufferManager.instance.spawn "log", @mode, :hidden => true, :system => true
-    @spawning = false
+  def level; LEVELS[@level] end
+
+  def add_sink s, copy_current=true
+    @mutex.synchronize do
+      @sinks << s
+      s << @buf.string if copy_current
+    end
   end
 
-  def log s
-#    $stderr.puts s
-    make_buf
-    prefix = "#{Time.now}: "
-    padding = " " * prefix.length
-    first = true
-    s.split(/[\r\n]/).each do |l|
-      l = l.chomp
-      if first
-        first = false
-        @mode << "#{prefix}#{l}\n"
-      else
-        @mode << "#{padding}#{l}\n"
+  def remove_sink s; @mutex.synchronize { @sinks.delete s } end
+  def remove_all_sinks!; @mutex.synchronize { @sinks.clear } end
+  def clear!; @mutex.synchronize { @buf = StringIO.new } end
+
+  LEVELS.each_with_index do |l, method_level|
+    define_method(l) do |s|
+      if method_level >= @level
+        send_message format_message(l, Time.now, s)
       end
     end
-    $stderr.puts "[#{Time.now}] #{s.chomp}" unless BufferManager.instantiated? && @mode.buffer
-  end
-  
-  def self.method_missing m, *a
-    @@instance = Logger.new unless @@instance
-    @@instance.send m, *a
   end
 
-  def self.buffer
-    @@instance.buf
+  ## send a message regardless of the current logging level
+  def force_message m; send_message format_message(nil, Time.now, m) end
+
+private
+
+  ## level can be nil!
+  def format_message level, time, msg
+    prefix = case level
+      when "warn"; "WARNING: "
+      when "error"; "ERROR: "
+      else ""
+    end
+    "[#{time.to_s}] #{prefix}#{msg}\n"
+  end
+
+  ## actually distribute the message
+  def send_message m
+    @mutex.synchronize do
+      @sinks.each { |sink| sink << m }
+      @buf << m
+    end
   end
 end
 
+## include me to have top-level #debug, #info, etc. methods.
+module LogsStuff
+  Logger::LEVELS.each { |l| define_method(l) { |s| Logger.instance.send(l, s) } }
 end
 
+end

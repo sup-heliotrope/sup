@@ -1,17 +1,17 @@
 require 'rmail'
 require 'uri'
+require 'set'
 
 module Redwood
 module MBox
 
 class Loader < Source
   yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
-  attr_accessor :labels
 
   ## uri_or_fp is horrific. need to refactor.
-  def initialize uri_or_fp, start_offset=0, usual=true, archived=false, id=nil, labels=[]
+  def initialize uri_or_fp, start_offset=0, usual=true, archived=false, id=nil, labels=nil
     @mutex = Mutex.new
-    @labels = ((labels || []) - LabelManager::RESERVED_LABELS).uniq.freeze
+    @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
 
     case uri_or_fp
     when String
@@ -47,7 +47,7 @@ class Loader < Source
       raise OutOfSyncSourceError, "mbox file is smaller than last recorded message offset. Messages have probably been deleted by another client."
     end
   end
-    
+
   def start_offset; 0; end
   def end_offset; File.size @f; end
 
@@ -168,7 +168,7 @@ class Loader < Source
     end
 
     self.cur_offset = next_offset
-    [returned_offset, (self.labels + [:unread]).uniq]
+    [returned_offset, (@labels + [:unread])]
   end
 end
 

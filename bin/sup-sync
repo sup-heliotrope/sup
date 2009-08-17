@@ -9,9 +9,7 @@ PROGRESS_UPDATE_INTERVAL = 15 # seconds
 
 class Float
   def to_s; sprintf '%.2f', self; end
-   def to_time_s
-     infinite? ? "unknown" : super
-   end
+  def to_time_s; infinite? ? "unknown" : super end
 end
 
 class Numeric
@@ -19,6 +17,10 @@ class Numeric
     i = to_i
     sprintf "%d:%02d:%02d", i / 3600, (i / 60) % 60, i % 60
   end
+end
+
+class Set
+  def to_s; to_a * ',' end
 end
 
 def time
@@ -54,7 +56,7 @@ by running "sup-add --help".
 Options controlling WHICH messages sup-sync operates on:
 EOS
   opt :new, "Operate on new messages only. Don't scan over the entire source. (Default.)", :short => :none
-  opt :changed, "Scan over the entire source for messages that have been deleted, altered, or moved from another source. (In the case of mbox sources, this includes all messages AFTER an altered message.)"
+  opt :changed, "Scan over the entire source for messages that have been deleted, altered, or moved from another source."
   opt :restored, "Operate only on those messages included in a dump file as specified by --restore which have changed state."
   opt :all, "Operate on all messages in the source, regardless of newness or changedness."
   opt :start_at, "For --changed, --restored and --all, start at a particular offset.", :type => :int
@@ -68,7 +70,7 @@ EOS
   opt :discard, "Discard any message state in the index and use the default source state. Dangerous!", :short => :none
   opt :archive, "When using the default source state, mark messages as archived.", :short => "-x"
   opt :read, "When using the default source state, mark messages as read."
-  opt :extra_labels, "When using the default source state, also apply these user-defined labels. Should be a comma-separated list.", :type => String, :short => :none
+  opt :extra_labels, "When using the default source state, also apply these user-defined labels (a comma-separated list)", :default => "", :short => :none
 
 text <<EOS
 
@@ -93,35 +95,39 @@ target = [:new, :changed, :all, :restored].find { |x| opts[x] } || :new
 op = [:asis, :restore, :discard].find { |x| opts[x] } || :asis
 
 Redwood::start
-index = Redwood::Index.new
+index = Redwood::Index.init
 
-restored_state =
-  if opts[:restore]
-    dump = {}
-    $stderr.puts "Loading state dump from #{opts[:restore]}..."
-    IO.foreach opts[:restore] do |l|
-      l =~ /^(\S+) \((.*?)\)$/ or raise "Can't read dump line: #{l.inspect}"
-      mid, labels = $1, $2
-      dump[mid] = labels.symbolistize
-    end
-    $stderr.puts "Read #{dump.size} entries from dump file."
-    dump
-  else
-    {}
+restored_state = if opts[:restore]
+  dump = {}
+  $stderr.puts "Loading state dump from #{opts[:restore]}..."
+  IO.foreach opts[:restore] do |l|
+    l =~ /^(\S+) \((.*?)\)$/ or raise "Can't read dump line: #{l.inspect}"
+    mid, labels = $1, $2
+    dump[mid] = labels.to_set_of_symbols
   end
+  $stderr.puts "Read #{dump.size} entries from dump file."
+  dump
+else
+  {}
+end
 
 seen = {}
 index.lock_interactively or exit
 begin
   index.load
 
-  sources = ARGV.map do |uri|
-    Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+  sources = if opts[:all_sources]
+    Redwood::SourceManager.sources
+  elsif ARGV.empty?
+    Redwood::SourceManager.usual_sources
+  else
+    ARGV.map do |uri|
+      Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+    end
   end
-  
-  sources = Redwood::SourceManager.usual_sources if sources.empty?
-  sources = Redwood::SourceManager.sources if opts[:all_sources]
 
+  ## for all target specifications except for only-new messages, reset the
+  ## source to the beginning (or to the user-specified starting point.)
   unless target == :new
     if opts[:start_at]
       Trollop::die :start_at, "can only be used on one source" unless sources.size == 1
@@ -131,57 +137,79 @@ begin
       sources.each { |s| s.reset! }
     end
   end
-  
+
   sources.each do |source|
     $stderr.puts "Scanning #{source}..."
     num_added = num_updated = num_scanned = num_restored = 0
     last_info_time = start_time = Time.now
 
-    Redwood::PollManager.add_messages_from source, :force_overwrite => true do |m_old, m, offset|
+    Redwood::PollManager.each_message_from source do |m|
       num_scanned += 1
       seen[m.id] = true
+      old_m = index.build_message m.id
 
-      if Time.now - last_info_time > PROGRESS_UPDATE_INTERVAL
-        last_info_time = Time.now
-        elapsed = last_info_time - start_time
-        start = opts[:start_at] || source.start_offset
-        pctdone = 100.0 * (source.cur_offset - start).to_f / (source.end_offset - start).to_f
-        remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
-        $stderr.printf "## read %dm (about %.0f%%) @ %.1fm/s. %s elapsed, about %s remaining\n", num_scanned, pctdone, num_scanned / elapsed, elapsed.to_time_s, remaining.to_time_s
+      case target
+      when :changed
+        ## skip this message if we're operating only on changed messages, the
+        ## message is in the index, and it's unchanged from what the source is
+        ## reporting.
+        next if old_m && old_m.source.id == m.source.id && old_m.source_info == m.source_info
+      when :restored
+        ## skip if we're operating on restored messages, and this one
+        ## ain't (or we wouldn't be making a change)
+        next unless old_m && restored_state[m.id] && restored_state[m.id] != old_m.labels
+      when :new
+        ## nothing to do; we'll consider all messages starting at the start offset, which
+        ## hasn't been changed.
+      when :all
+        ## nothing to do; we'll consider all messages starting at the start offset, which
+        ## was reset to the beginning above.
       end
 
-      ## skip if we're operating only on changed messages, the message
-      ## is in the index, and it's unchanged from what the source is
-      ## reporting.
-      next if target == :changed && m_old && m_old.source.id == source.id && m_old.source_info == offset
+      ## tweak source labels according to commandline arguments if necessary
+      m.labels.delete :inbox if opts[:archive]
+      m.labels.delete :unread if opts[:read]
+      m.labels += opts[:extra_labels].to_set_of_symbols(",")
 
-      ## get the state currently in the index
-      index_state = m_old.labels.dup if m_old
-
-      ## skip if we're operating on restored messages, and this one
-      ## ain't.
-      next if target == :restored && (!restored_state[m.id] || (index_state && restored_state[m.id].sort_by { |s| s.to_s } == index_state.sort_by { |s| s.to_s }))
-
-      ## m.labels is the default source labels. tweak these according
-      ## to default source state modification flags.
-      m.labels -= [:inbox] if opts[:archive]
-      m.labels -= [:unread] if opts[:read]
-      m.labels += opts[:extra_labels].strip.split(/\s*,\s*/).map { |x| x.intern } if opts[:extra_labels]
-
-      ## assign message labels based on the operation we're performing
-      case op
-      when :asis
-        m.labels = ((m.labels - [:unread, :inbox]) + index_state).uniq if index_state
-      when :restore
-        ## if the entry exists on disk
-        if restored_state[m.id]
-          m.labels = restored_state[m.id]
-          num_restored += 1
-        elsif index_state
-          m.labels = index_state
+      ## decide what to do based on message labels and the operation we're performing
+      dothis, new_labels = case
+      when (op == :restore) && restored_state[m.id] && old_m && (old_m.labels != restored_state[m.id])
+        [:update_message_state, restored_state[m.id]]
+      when op == :discard
+        if old_m && (old_m.labels != m.labels)
+          [:update_message_state, m.labels]
+        else
+          # don't do anything
         end
-      when :discard
-        ## nothin! use default source labels
+      else
+        ## duplicate behavior of poll mode: if index_state is non-nil, this is a newer
+        ## version of an older message, so merge in any new labels except :unread and
+        ## :inbox.
+        ##
+        ## TODO: refactor such that this isn't duplicated
+        if old_m
+          m.labels = old_m.labels + (m.labels - [:unread, :inbox])
+          :update_message
+        else
+          :add_message
+        end
+      end
+
+      ## now, actually do the operation
+      case dothis
+      when :add_message
+        $stderr.puts "Adding new message #{source}###{m.source_info} with labels #{m.labels}" if opts[:verbose]
+        index.add_message m unless opts[:dry_run]
+        num_added += 1
+      when :update_message
+        $stderr.puts "Updating message #{source}###{m.source_info}; labels #{old_m.labels} => #{m.labels}; offset #{old_m.source_info} => #{m.source_info}" if opts[:verbose]
+        index.update_message m unless opts[:dry_run]
+        num_updated += 1
+      when :update_message_state
+        $stderr.puts "Changing flags for #{source}##{m.source_info} from #{m.labels} to #{new_labels}"
+        m.labels = new_labels
+        index.update_message_state m unless opts[:dry_run]
+        num_updated += 1
       end
 
       if Time.now - last_info_time > PROGRESS_UPDATE_INTERVAL
@@ -191,17 +219,8 @@ begin
         remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
         $stderr.printf "## read %dm (about %.0f%%) @ %.1fm/s. %s elapsed, about %s remaining\n", num_scanned, pctdone, num_scanned / elapsed, elapsed.to_time_s, remaining.to_time_s
       end
-
-      if index_state.nil?
-        puts "Adding message #{source}##{offset} from #{m.from} with state {#{m.labels * ', '}}" if opts[:verbose]
-        num_added += 1
-      else
-        puts "Updating message #{source}##{offset}, source #{m_old.source.id} => #{source.id}, offset #{m_old.source_info} => #{offset}, state {#{index_state * ', '}} => {#{m.labels * ', '}}" if opts[:verbose]
-        num_updated += 1
-      end
-
-      opts[:dry_run] ? nil : m
     end
+
     $stderr.puts "Scanned #{num_scanned}, added #{num_added}, updated #{num_updated} messages from #{source}."
     $stderr.puts "Restored state on #{num_restored} (#{100.0 * num_restored / num_scanned}%) messages." if num_restored > 0
   end

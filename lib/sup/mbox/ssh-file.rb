@@ -16,12 +16,6 @@ class SSHFileError < StandardError; end
 ## all of the methods here can throw SSHFileErrors, SocketErrors,
 ## Net::SSH::Exceptions and Errno::ENOENTs.
 
-## debugging TODO: remove me
-def debug s
-  Redwood::log s
-end
-module_function :debug
-
 ## a simple buffer of contiguous data
 class Buffer
   def initialize
@@ -154,7 +148,7 @@ private
   ## TODO: share this code with imap
   def say s
     @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
-    Redwood::log s
+    info s
   end
 
   def shutup

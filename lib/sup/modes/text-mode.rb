@@ -14,7 +14,7 @@ class TextMode < ScrollMode
     buffer.mark_dirty if buffer
     super()
   end
-  
+
   def save_to_disk
     fn = BufferManager.ask_for_filename :filename, "Save to file: ", @filename
     save_to_file(fn) { |f| f.puts text } if fn
@@ -50,7 +50,7 @@ class TextMode < ScrollMode
     @lines << @text.length
     if buffer
       ensure_mode_validity
-      buffer.mark_dirty 
+      buffer.mark_dirty
     end
   end
 

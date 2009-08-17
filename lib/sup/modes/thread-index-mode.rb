@@ -477,7 +477,7 @@ EOS
       BufferManager.say("Saving threads...") do |say_id|
         dirty_threads.each_with_index do |t, i|
           BufferManager.say "Saving modified thread #{i + 1} of #{dirty_threads.length}...", say_id
-          t.save Index
+          t.save_state Index
         end
       end
     end
@@ -533,9 +533,9 @@ EOS
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
     user_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", modifyl, @hidden_labels
-
     return unless user_labels
-    thread.labels = keepl + user_labels
+
+    thread.labels = Set.new(keepl) + user_labels
     user_labels.each { |l| LabelManager << l }
     update_text_for_line curpos
 

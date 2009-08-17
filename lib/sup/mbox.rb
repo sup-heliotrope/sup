@@ -15,7 +15,7 @@ module MBox
       Time.parse time, 0
       true
     rescue NoMethodError
-      Redwood::log "found invalid date in potential mbox split line, not splitting: #{l.inspect}"
+      warn "found invalid date in potential mbox split line, not splitting: #{l.inspect}"
       false
     end
   end

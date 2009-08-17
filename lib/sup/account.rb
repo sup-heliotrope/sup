@@ -25,8 +25,6 @@ class AccountManager
 
     add_account accounts[:default], true
     accounts.each { |k, v| add_account v, false unless k == :default }
-
-    self.class.i_am_the_instance self
   end
 
   def user_accounts; @accounts.keys; end

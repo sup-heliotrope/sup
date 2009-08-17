@@ -92,10 +92,10 @@ EOS
       unless err.empty?
         message = err.first.read
         if message =~ /^\s*$/
-          Redwood::log "error running #{command} (but no error message)"
+          warn "error running #{command} (but no error message)"
           BufferManager.flash "Error running #{command}!"
         else
-          Redwood::log "error running #{command}: #{message}"
+          warn "error running #{command}: #{message}"
           BufferManager.flash "Error: #{message}"
         end
         return

@@ -50,7 +50,7 @@ end.parse(ARGV)
 require "sup"
 Redwood::start
 puts "loading index..."
-index = Redwood::Index.new
+index = Redwood::Index.init
 index.load
 puts "loaded index of #{index.size} messages"
 
