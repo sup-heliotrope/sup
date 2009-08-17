@@ -271,7 +271,7 @@ EOS
     Ncurses.stdscr.keypad 1
     Ncurses.refresh
     @sigwinch_mutex.synchronize { @sigwinch_happened = false }
-    Redwood::log "new screen size is #{Ncurses.rows} x #{Ncurses.cols}"
+    debug "new screen size is #{Ncurses.rows} x #{Ncurses.cols}"
 
     status, title = get_status_and_title(@focus_buf) # must be called outside of the ncurses lock
 
