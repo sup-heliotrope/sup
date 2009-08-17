@@ -6,6 +6,18 @@ class Console
   def initialize mode
     @mode = mode
   end
+
+  def query(query)
+    Enumerable::Enumerator.new(Index, :each_message, Index.parse_query(query))
+  end
+
+  def add_labels(query, *labels)
+    query(query).each { |m| m.labels += labels; m.save Index }
+  end
+
+  def remove_labels(query, *labels)
+    query(query).each { |m| m.labels -= labels; m.save Index }
+  end
 end
 
 class ConsoleMode < LogMode
