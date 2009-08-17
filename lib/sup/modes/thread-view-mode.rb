@@ -212,14 +212,14 @@ EOS
     bt = to.size > 1 ? "#{to.size} recipients" : to.to_s
 
     if BufferManager.ask_yes_or_no "Really bounce to #{bt}?"
-      Redwood::log "Bounce Command: #{cmd}"
+      debug "bounce command: #{cmd}"
       begin
         IO.popen(cmd, 'w') do |sm|
           sm.puts m.raw_message
         end
         raise SendmailCommandFailed, "Couldn't execute #{cmd}" unless $? == 0
       rescue SystemCallError, SendmailCommandFailed => e
-        Redwood::log "Problem sending mail: #{e.message}"
+        warn "problem sending mail: #{e.message}"
         BufferManager.flash "Problem sending mail: #{e.message}"
       end
     end

@@ -139,7 +139,7 @@ class Source
       header[k] = begin
         Rfc2047.decode_to $encoding, v
       rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
-        #Redwood::log "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
+        #debug "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
         v
       end
     end

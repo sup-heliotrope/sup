@@ -95,17 +95,17 @@ module LibC
     else; "libc.so.6"
   end
 
-  Redwood::log "dynamically loading setlocale() from #{setlocale_lib}"
+  debug "dynamically loading setlocale() from #{setlocale_lib}"
   begin
     dlload setlocale_lib
     extern "void setlocale(int, const char *)"
-    Redwood::log "setting locale..."
+    debug "setting locale..."
     LibC.setlocale(6, "")  # LC_ALL == 6
   rescue RuntimeError => e
-    Redwood::log "cannot dlload setlocale(); ncurses wide character support probably broken."
-    Redwood::log "dlload error was #{e.class}: #{e.message}"
+    warn "cannot dlload setlocale(); ncurses wide character support probably broken."
+    warn "dlload error was #{e.class}: #{e.message}"
     if Config::CONFIG['arch'] =~ /bsd/
-      Redwood::log "BSD variant detected. You may have to install a compat6x package to acquire libc."
+      warn "BSD variant detected. You may have to install a compat6x package to acquire libc."
     end
   end
 end
@@ -163,7 +163,7 @@ begin
   if(s = Redwood::SourceManager.source_for DraftManager.source_name)
     DraftManager.source = s
   else
-    Redwood::log "no draft source, auto-adding..."
+    debug "no draft source, auto-adding..."
     Redwood::SourceManager.add_source DraftManager.new_source
   end
 
@@ -175,18 +175,24 @@ begin
 
   HookManager.run "startup"
 
-  log "starting curses"
+  debug "starting curses"
+  Redwood::Logger.remove_sink $stderr
   start_cursing
 
   bm = BufferManager.init
   Colormap.new.populate_colormap
 
-  log "initializing mail index buffer"
+  debug "initializing log buffer"
+  lmode = Redwood::LogMode.new "system log"
+  lmode.on_kill { Logger.clear! }
+  Logger.add_sink lmode
+  Logger.force_message "Welcome to Sup! Log level is set to #{Logger.level}."
+
+  debug "initializing inbox buffer"
   imode = InboxMode.new
   ibuf = bm.spawn "Inbox", imode
 
-  log "ready for interaction!"
-  Logger.make_buf
+  debug "ready for interaction!"
 
   bm.draw_screen
 
@@ -196,7 +202,7 @@ begin
       begin
         s.connect
       rescue SourceError => e
-        Redwood::log "fatal error loading from #{s}: #{e.message}"
+        error "fatal error loading from #{s}: #{e.message}"
       end
     end
   end unless $opts[:no_initial_poll]
@@ -320,17 +326,19 @@ ensure
 
   Redwood::finish
   stop_cursing
-  Redwood::log "stopped cursing"
+  Redwood::Logger.remove_all_sinks!
+  Redwood::Logger.add_sink $stderr, false
+  debug "stopped cursing"
 
   if SuicideManager.instantiated? && SuicideManager.die?
-    Redwood::log "I've been ordered to commit seppuku. I obey!"
+    info "I've been ordered to commit seppuku. I obey!"
   end
 
   if Redwood::exceptions.empty?
-    Redwood::log "no fatal errors. good job, william."
+    debug "no fatal errors. good job, william."
     Index.save
   else
-    Redwood::log "oh crap, an exception"
+    error "oh crap, an exception"
   end
 
   Index.unlock

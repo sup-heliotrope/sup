@@ -325,7 +325,7 @@ protected
       BufferManager.flash "Message sent!"
       true
     rescue SystemCallError, SendmailCommandFailed, CryptoManager::Error => e
-      Redwood::log "Problem sending mail: #{e.message}"
+      warn "Problem sending mail: #{e.message}"
       BufferManager.flash "Problem sending mail: #{e.message}"
       false
     end

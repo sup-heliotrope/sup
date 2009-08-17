@@ -6,7 +6,7 @@ begin
   require 'chronic'
   $have_chronic = true
 rescue LoadError => e
-  Redwood::log "optional 'chronic' library not found (run 'gem install chronic' to install)"
+  debug "optional 'chronic' library not found; date-time query restrictions disabled"
   $have_chronic = false
 end
 
@@ -31,7 +31,7 @@ class BaseIndex
   def lockfile; File.join @dir, "lock" end
 
   def lock
-    Redwood::log "locking #{lockfile}..."
+    debug "locking #{lockfile}..."
     begin
       @lock.lock
     rescue Lockfile::MaxTriesLockError
@@ -91,7 +91,7 @@ EOS
 
   def unlock
     if @lock && @lock.locked?
-      Redwood::log "unlocking #{lockfile}..."
+      debug "unlocking #{lockfile}..."
       @lock.unlock
     end
   end
@@ -102,7 +102,7 @@ EOS
   end
 
   def save
-    Redwood::log "saving index and sources..."
+    debug "saving index and sources..."
     FileUtils.mkdir_p @dir unless File.exists? @dir
     SourceManager.save_sources
     save_index
@@ -215,6 +215,6 @@ case index_name
   else fail "unknown index type #{index_name.inspect}"
 end
 Index = Redwood.const_get "#{index_name.capitalize}Index"
-Redwood::log "using index #{Index.name}"
+debug "using index #{Index.name}"
 
 end

@@ -132,7 +132,7 @@ EOS
     def viewable?; @lines.nil? end
     def view_default! path
       cmd = "/usr/bin/run-mailcap --action=view '#{@content_type}:#{path}' 2>/dev/null"
-      Redwood::log "running: #{cmd.inspect}"
+      debug "running: #{cmd.inspect}"
       system cmd
       $? == 0
     end

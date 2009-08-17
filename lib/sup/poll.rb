@@ -35,20 +35,17 @@ EOS
     @thread = nil
     @last_poll = nil
     @polling = false
-  end
-
-  def buffer
-    b, new = BufferManager.spawn_unless_exists("poll for new messages", :hidden => true, :system => true) { PollMode.new }
-    b
+    @mode = nil
   end
 
   def poll
     return if @polling
     @polling = true
+    @mode ||= PollMode.new
     HookManager.run "before-poll"
 
     BufferManager.flash "Polling for new messages..."
-    num, numi, from_and_subj, from_and_subj_inbox = buffer.mode.poll
+    num, numi, from_and_subj, from_and_subj_inbox = @mode.poll
     if num > 0
       BufferManager.flash "Loaded #{num.pluralize 'new message'}, #{numi} to inbox." 
     else
@@ -86,7 +83,7 @@ EOS
         begin
           yield "Loading from #{source}... " unless source.done? || (source.respond_to?(:has_errors?) && source.has_errors?)
         rescue SourceError => e
-          Redwood::log "problem getting messages from #{source}: #{e.message}"
+          warn "problem getting messages from #{source}: #{e.message}"
           Redwood::report_broken_sources :force_to_top => true
           next
         end
@@ -142,7 +139,7 @@ EOS
 
       source.each do |offset, source_labels|
         if source.has_errors?
-          Redwood::log "error loading messages from #{source}: #{source.error.message}"
+          warn "error loading messages from #{source}: #{source.error.message}"
           return
         end
 
@@ -155,7 +152,7 @@ EOS
         yield m
       end
     rescue SourceError => e
-      Redwood::log "problem getting messages from #{source}: #{e.message}"
+      warn "problem getting messages from #{source}: #{e.message}"
       Redwood::report_broken_sources :force_to_top => true
     end
   end

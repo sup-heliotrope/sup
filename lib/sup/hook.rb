@@ -40,7 +40,7 @@ class HookManager
     end
 
     def log s
-      Redwood::log "hook[#@__name]: #{s}"
+      info "hook[#@__name]: #{s}"
     end
 
     def ask_yes_or_no q
@@ -146,7 +146,7 @@ private
   end
 
   def log m
-    Redwood::log("hook: " + m)
+    info("hook: " + m)
   end
 end
 

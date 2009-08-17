@@ -221,10 +221,10 @@ class XapianIndex < BaseIndex
       field, name = $1, ($3 || $4)
       case field
       when "filename"
-        Redwood::log "filename - translated #{field}:#{name} to attachment:\"#{name.downcase}\""
+        debug "filename: translated #{field}:#{name} to attachment:\"#{name.downcase}\""
         "attachment:\"#{name.downcase}\""
       when "filetype"
-        Redwood::log "filetype - translated #{field}:#{name} to attachment_extension:#{name.downcase}"
+        debug "filetype: translated #{field}:#{name} to attachment_extension:#{name.downcase}"
         "attachment_extension:#{name.downcase}"
       end
     end
@@ -238,13 +238,13 @@ class XapianIndex < BaseIndex
         if realdate
           case field
           when "after"
-            Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate.end}"
+            debug "chronic: translated #{field}:#{datestr} to #{realdate.end}"
             "date:#{realdate.end.to_i}..#{lastdate}"
           when "before"
-            Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
+            debug "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
             "date:#{firstdate}..#{realdate.end.to_i}"
           else
-            Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate}"
+            debug "chronic: translated #{field}:#{datestr} to #{realdate}"
             "date:#{realdate.begin.to_i}..#{realdate.end.to_i}"
           end
         else
@@ -413,10 +413,10 @@ class XapianIndex < BaseIndex
     m.attachments.each { |a| text << [a, PREFIX['attachment']] }
 
     truncated_date = if m.date < MIN_DATE
-      Redwood::log "warning: adjusting too-low date #{m.date} for indexing"
+      debug "warning: adjusting too-low date #{m.date} for indexing"
       MIN_DATE
     elsif m.date > MAX_DATE
-      Redwood::log "warning: adjusting too-high date #{m.date} for indexing"
+      debug "warning: adjusting too-high date #{m.date} for indexing"
       MAX_DATE
     else
       m.date

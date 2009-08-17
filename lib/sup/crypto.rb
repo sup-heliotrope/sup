@@ -18,10 +18,10 @@ class CryptoManager
     @cmd =
       case bin
       when /\S/
-        Redwood::log "crypto: detected gpg binary in #{bin}"
+        debug "crypto: detected gpg binary in #{bin}"
         "#{bin} --quiet --batch --no-verbose --logger-fd 1 --use-agent"
       else
-        Redwood::log "crypto: no gpg binary detected"
+        debug "crypto: no gpg binary detected"
         nil
       end
   end
@@ -154,9 +154,7 @@ private
 
   def run_gpg args
     cmd = "#{@cmd} #{args} 2> /dev/null"
-    #Redwood::log "crypto: running: #{cmd}"
     output = `#{cmd}`
-    #Redwood::log "crypto: output: #{output.inspect}" unless $?.success?
     output
   end
 end

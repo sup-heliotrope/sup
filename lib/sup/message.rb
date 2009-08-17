@@ -73,7 +73,7 @@ class Message
     else
       id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
       from = header["from"]
-      #Redwood::log "faking non-existent message-id for message from #{from}: #{id}"
+      #debug "faking non-existent message-id for message from #{from}: #{id}"
       id
     end
 
@@ -81,7 +81,7 @@ class Message
       header["from"]
     else
       name = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
-      #Redwood::log "faking non-existent sender for message #@id: #{name}"
+      #debug "faking non-existent sender for message #@id: #{name}"
       name
     end)
 
@@ -92,11 +92,11 @@ class Message
       begin
         Time.parse date
       rescue ArgumentError => e
-        #Redwood::log "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
+        #debug "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
         Time.now
       end
     else
-      #Redwood::log "faking non-existent date header for #{@id}"
+      #debug "faking non-existent date header for #{@id}"
       Time.now
     end
 
@@ -210,7 +210,7 @@ class Message
           parse_header @source.load_header(@source_info)
           message_to_chunks @source.load_message(@source_info)
         rescue SourceError, SocketError => e
-          Redwood::log "problem getting messages from #{@source}: #{e.message}"
+          warn "problem getting messages from #{@source}: #{e.message}"
           ## we need force_to_top here otherwise this window will cover
           ## up the error message one
           @source.error ||= e
@@ -244,7 +244,7 @@ EOS
     begin
       yield
     rescue SourceError => e
-      Redwood::log "problem getting messages from #{@source}: #{e.message}"
+      warn "problem getting messages from #{@source}: #{e.message}"
       @source.error ||= e
       Redwood::report_broken_sources :force_to_top => true
       error_message e.message
@@ -335,25 +335,25 @@ private
 
   def multipart_signed_to_chunks m
     if m.body.size != 2
-      Redwood::log "warning: multipart/signed with #{m.body.size} parts (expecting 2)"
+      warn "multipart/signed with #{m.body.size} parts (expecting 2)"
       return
     end
 
     payload, signature = m.body
     if signature.multipart?
-      Redwood::log "warning: multipart/signed with payload multipart #{payload.multipart?} and signature multipart #{signature.multipart?}"
+      warn "multipart/signed with payload multipart #{payload.multipart?} and signature multipart #{signature.multipart?}"
       return
     end
 
     ## this probably will never happen
     if payload.header.content_type == "application/pgp-signature"
-      Redwood::log "warning: multipart/signed with payload content type #{payload.header.content_type}"
+      warn "multipart/signed with payload content type #{payload.header.content_type}"
       return
     end
 
     if signature.header.content_type != "application/pgp-signature"
       ## unknown signature type; just ignore.
-      #Redwood::log "warning: multipart/signed with signature content type #{signature.header.content_type}"
+      #warn "multipart/signed with signature content type #{signature.header.content_type}"
       return
     end
 
@@ -362,23 +362,23 @@ private
 
   def multipart_encrypted_to_chunks m
     if m.body.size != 2
-      Redwood::log "warning: multipart/encrypted with #{m.body.size} parts (expecting 2)"
+      warn "multipart/encrypted with #{m.body.size} parts (expecting 2)"
       return
     end
 
     control, payload = m.body
     if control.multipart?
-      Redwood::log "warning: multipart/encrypted with control multipart #{control.multipart?} and payload multipart #{payload.multipart?}"
+      warn "multipart/encrypted with control multipart #{control.multipart?} and payload multipart #{payload.multipart?}"
       return
     end
 
     if payload.header.content_type != "application/octet-stream"
-      Redwood::log "warning: multipart/encrypted with payload content type #{payload.header.content_type}"
+      warn "multipart/encrypted with payload content type #{payload.header.content_type}"
       return
     end
 
     if control.header.content_type != "application/pgp-encrypted"
-      Redwood::log "warning: multipart/encrypted with control content type #{signature.header.content_type}"
+      warn "multipart/encrypted with control content type #{signature.header.content_type}"
       return
     end
 

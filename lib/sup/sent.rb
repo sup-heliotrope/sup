@@ -8,7 +8,6 @@ class SentManager
   def initialize source_uri
     @source = nil
     @source_uri = source_uri
-    Redwood::log "SentManager intialized with source uri: #@source_uri"
   end
 
   def source_id; @source.id; end
@@ -21,7 +20,6 @@ class SentManager
 
   def default_source
     @source = Recoverable.new SentLoader.new
-    Redwood::log "SentManager initializing default source: #@source."
     @source_uri = @source.uri
     @source
   end
