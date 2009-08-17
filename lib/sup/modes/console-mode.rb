@@ -51,6 +51,11 @@ class Console
     end
     true
   end
+
+  def clear_hooks
+    HookManager.clear
+    nil
+  end
 end
 
 class ConsoleMode < LogMode
