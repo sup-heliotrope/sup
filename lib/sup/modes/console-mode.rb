@@ -18,6 +18,9 @@ class Console
   def remove_labels(query, *labels)
     query(query).each { |m| m.labels -= labels; m.save Index }
   end
+
+  def xapian; Index.instance.instance_variable_get :@xapian; end
+  def ferret; Index.instance.instance_variable_get :@index; end
 end
 
 class ConsoleMode < LogMode
