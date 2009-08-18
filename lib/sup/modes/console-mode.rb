@@ -59,9 +59,20 @@ class Console
 end
 
 class ConsoleMode < LogMode
+  register_keymap do |k|
+    k.add :run, "Restart evaluation", 'e'
+  end
+
   def initialize
     super "console"
-    @binding = Console.new(self).instance_eval { binding }
+    @console = Console.new self
+    @binding = @console.instance_eval { binding }
+    self << <<EOS
+Sup #{VERSION} console.
+Available commands: #{(@console.methods - Object.methods) * ", "}
+Ctrl-g stops evaluation; 'e' restarts it.
+
+EOS
   end
 
   def execute cmd
