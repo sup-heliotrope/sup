@@ -269,6 +269,7 @@ EOS
     ## this magic makes Ncurses get the new size of the screen
     Ncurses.endwin
     Ncurses.stdscr.keypad 1
+    Ncurses.curs_set 0
     Ncurses.refresh
     @sigwinch_mutex.synchronize { @sigwinch_happened = false }
     Redwood::log "new screen size is #{Ncurses.rows} x #{Ncurses.cols}"
