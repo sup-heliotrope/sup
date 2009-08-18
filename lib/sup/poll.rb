@@ -107,7 +107,7 @@ EOS
             end
           else
             yield "Found new message at #{m.source_info} with labels #{m.labels.to_a * ','}"
-            Index.add_message m
+            add_new_message m
             num += 1
             from_and_subj << [m.from && m.from.longname, m.subj]
             if (m.labels & [:inbox, :spam, :deleted, :killed]) == Set.new([:inbox])
