@@ -357,7 +357,7 @@ class ThreadSet
     return if threads.size < 2
 
     containers = threads.map do |t|
-      c = @messages.member?(c) ? @messages[t.first.id] : nil
+      c = @messages.member?(t.first.id) ? @messages[t.first.id] : nil
       raise "not in threadset: #{t.first.id}" unless c && c.message
       c
     end
