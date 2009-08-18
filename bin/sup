@@ -78,6 +78,7 @@ global_keymap = Keymap.new do |k|
   k.add :compose, "Compose new message", 'm', 'c'
   k.add :nothing, "Do nothing", :ctrl_g
   k.add :recall_draft, "Edit most recent draft message", 'R'
+  k.add :show_inbox, "Show the Inbox buffer", 'I'
 end
 
 ## the following magic enables wide characters when used with a ruby
@@ -292,6 +293,8 @@ begin
         b, new = BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
         b.mode.load_threads :num => b.content_height if new
       end
+    when :show_inbox
+      BufferManager.raise_to_front ibuf
     when :nothing, InputSequenceAborted
     when :redraw
       bm.completely_redraw_screen
