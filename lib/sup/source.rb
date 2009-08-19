@@ -161,6 +161,21 @@ protected
   end
 end
 
+## if you have a @labels instance variable, include this
+## to serialize them nicely as an array, rather than as a
+## nasty set.
+module SerializeLabelsNicely
+  def before_marshal # can return an object
+    c = clone
+    c.instance_eval { @labels = @labels.to_a.map { |l| l.to_s } }
+    c
+  end
+
+  def after_unmarshal!
+    @labels = Set.new(@labels.map { |s| s.to_sym })
+  end
+end
+
 class SourceManager
   include Singleton
 
@@ -209,7 +224,7 @@ class SourceManager
           File.chmod 0600, fn
           FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(fn) == 0
         end
-        Redwood::save_yaml_obj sources.sort_by { |s| s.id.to_i }, fn, true
+        Redwood::save_yaml_obj sources, fn, true
         File.chmod 0600, fn
       end
       @sources_dirty = false
