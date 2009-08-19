@@ -48,6 +48,7 @@ require 'set'
 module Redwood
 
 class IMAP < Source
+  include SerializeLabelsNicely
   SCAN_INTERVAL = 60 # seconds
 
   ## upon these errors we'll try to rereconnect a few times
