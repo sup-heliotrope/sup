@@ -225,7 +225,7 @@ class SourceManager
           File.chmod 0600, fn
           FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(fn) == 0
         end
-        Redwood::save_yaml_obj sources.sort_by { |s| s.id.to_i }, fn, true
+        Redwood::save_yaml_obj sources, fn, true
         File.chmod 0600, fn
       end
       @sources_dirty = false
