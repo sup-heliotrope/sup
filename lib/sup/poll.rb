@@ -11,6 +11,12 @@ Variables:
   message: the new message
 EOS
 
+  HookManager.register "after-add-message", <<EOS
+Executes after all messages are added to the index.
+Variables:
+  messages: an array of the new messages added
+EOS
+
   HookManager.register "before-poll", <<EOS
 Executes immediately before a poll for new messages commences.
 No variables.
@@ -138,6 +144,7 @@ EOS
     begin
       return if source.done? || source.has_errors?
 
+      messages = []
       source.each do |offset, default_labels|
         if source.has_errors?
           Redwood::log "error loading messages from #{source}: #{source.error.message}"
@@ -145,6 +152,7 @@ EOS
         end
 
         m_new = Message.build_from_source source, offset
+        messages.push(m_new)
         m_old = Index.build_message m_new.id
 
         m_new.labels += default_labels + (source.archived? ? [] : [:inbox])
@@ -157,6 +165,8 @@ EOS
         Index.sync_message m_ret, opts
         UpdateManager.relay self, :added, m_ret unless m_old
       end
+      HookManager.run "after-add-message", :messages => messages
+
     rescue SourceError => e
       Redwood::log "problem getting messages from #{source}: #{e.message}"
       Redwood::report_broken_sources :force_to_top => true
