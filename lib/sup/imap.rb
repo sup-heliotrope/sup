@@ -275,7 +275,7 @@ private
 
   def say s
     @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
-    debug s
+    info s
   end
 
   def shutup
