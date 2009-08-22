@@ -127,6 +127,31 @@ class Message
     @list_unsubscribe = header["list-unsubscribe"]
   end
 
+  ## Expected index entry format:
+  ## :message_id, :subject => String
+  ## :date => Time
+  ## :refs, :replytos => Array of String
+  ## :from => Person
+  ## :to, :cc, :bcc => Array of Person
+  def load_from_index! entry
+    @id = entry[:message_id]
+    @from = entry[:from]
+    @date = entry[:date]
+    @subj = entry[:subject]
+    @to = entry[:to]
+    @cc = entry[:cc]
+    @bcc = entry[:bcc]
+    @refs = (@refs + entry[:refs]).uniq
+    @replytos = entry[:replytos]
+
+    @replyto = nil
+    @list_address = nil
+    @recipient_email = nil
+    @source_marked_read = false
+    @list_subscribe = nil
+    @list_unsubscribe = nil
+  end
+
   def add_ref ref
     @refs << ref
     @dirty = true
