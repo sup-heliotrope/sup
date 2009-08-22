@@ -35,9 +35,9 @@ class TextField
     @completion_block = block
     @field = Ncurses::Form.new_field 1, @width - question.length, @y, @x + question.length, 256, 0
     @form = Ncurses::Form.new_form [@field]
-    @value = default
+    @value = default || ''
     Ncurses::Form.post_form @form
-    set_cursed_value default if default
+    set_cursed_value @value
   end
 
   def position_cursor
