@@ -1,33 +1,10 @@
 module Redwood
 
 class HookManager
-  ## there's probably a better way to do this, but to evaluate a hook
-  ## with a bunch of pre-set "local variables" i define a function
-  ## per variable and then instance_evaluate the code.
-  ##
-  ## how does rails do it, when you pass :locals into a partial?
-  ##
-  ## i don't bother providing setters, since i'm pretty sure the
-  ## charade will fall apart pretty quickly with respect to scoping.
-  ## "fail-fast", we'll call it.
   class HookContext
     def initialize name
       @__say_id = nil
       @__name = name
-      @__locals = {}
-    end
-
-    attr_writer :__locals
-
-    def method_missing m, *a
-      case @__locals[m]
-      when Proc
-        @__locals[m] = @__locals[m].call(*a) # only call the proc once
-      when nil
-        super
-      else
-        @__locals[m]
-      end
     end
 
     def say s
@@ -60,12 +37,12 @@ class HookManager
       HookManager.tags[tag] = value
     end
 
-    def __binding 
-      binding
-    end
-
-    def __cleanup
+    def __run __hook, __filename, __locals
+      __binding = binding
+      eval __locals.map { |k, v| "#{k} = __locals[#{k.inspect}];" }.join, __binding
+      ret = eval __hook, __binding, __filename
       BufferManager.clear @__say_id if @__say_id
+      ret
     end
   end
 
@@ -88,18 +65,16 @@ class HookManager
   def run name, locals={}
     hook = hook_for(name) or return
     context = @contexts[hook] ||= HookContext.new(name)
-    context.__locals = locals
 
     result = nil
     begin
-      result = context.instance_eval @hooks[name], fn_for(name)
+      result = context.__run hook, fn_for(name), locals
     rescue Exception => e
       log "error running hook: #{e.message}"
       log e.backtrace.join("\n")
       @hooks[name] = nil # disable it
       BufferManager.flash "Error running hook: #{e.message}" if BufferManager.instantiated?
     end
-    context.__cleanup
     result
   end
 
@@ -129,15 +104,14 @@ private
 
   def hook_for name
     unless @hooks.member? name
-      @hooks[name] =
-        begin
-          returning IO.read(fn_for(name)) do
-            log "read '#{name}' from #{fn_for(name)}"
-          end
-        rescue SystemCallError => e
-          #log "disabled hook for '#{name}': #{e.message}"
-          nil
+      @hooks[name] = begin
+        returning IO.read(fn_for(name)) do
+          log "read '#{name}' from #{fn_for(name)}"
         end
+      rescue SystemCallError => e
+        #log "disabled hook for '#{name}': #{e.message}"
+        nil
+      end
     end
 
     @hooks[name]
