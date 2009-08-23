@@ -77,7 +77,7 @@ protected
   end
 
   def cursor_down
-    call_load_more_callbacks buffer.content_height if @curpos == lines - 1
+    call_load_more_callbacks buffer.content_height if @curpos >= lines - [buffer.content_height/2,1].max
     return false unless @curpos < lines - 1
 
     if @curpos >= botline - 1
