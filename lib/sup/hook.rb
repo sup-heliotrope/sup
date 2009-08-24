@@ -5,6 +5,7 @@ class HookManager
     def initialize name
       @__say_id = nil
       @__name = name
+      @__cache = {}
     end
 
     def say s
@@ -39,7 +40,18 @@ class HookManager
 
     def __run __hook, __filename, __locals
       __binding = binding
-      eval __locals.map { |k, v| "#{k} = __locals[#{k.inspect}];" }.join, __binding
+      __lprocs, __lvars = __locals.partition { |k, v| v.is_a?(Proc) }
+      eval __lvars.map { |k, v| "#{k} = __locals[#{k.inspect}];" }.join, __binding
+      ## we also support closures for delays evaluation. unfortunately
+      ## we have to do this via method calls, so you don't get all the
+      ## semantics of a regular variable. not ideal.
+      __lprocs.each do |k, v|
+        self.class.instance_eval do
+          define_method k do
+            @__cache[k] ||= v.call
+          end
+        end
+      end
       ret = eval __hook, __binding, __filename
       BufferManager.clear @__say_id if @__say_id
       ret
