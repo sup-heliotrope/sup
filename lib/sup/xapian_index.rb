@@ -71,25 +71,17 @@ class XapianIndex < BaseIndex
     source = SourceManager[entry[:source_id]]
     raise "invalid source #{entry[:source_id]}" unless source
 
-    mk_addrs = lambda { |l| l.map { |e,n| "#{n} <#{e}>" } * ', ' }
-    mk_refs = lambda { |l| l.map { |r| "<#{r}>" } * ' ' }
-    fake_header = {
-      'message-id' => entry[:message_id],
-      'date' => Time.at(entry[:date]),
-      'subject' => entry[:subject],
-      'from' => mk_addrs[[entry[:from]]],
-      'to' => mk_addrs[entry[:to]],
-      'cc' => mk_addrs[entry[:cc]],
-      'bcc' => mk_addrs[entry[:bcc]],
-      'reply-tos' => mk_refs[entry[:replytos]],
-      'references' => mk_refs[entry[:refs]],
-     }
+    m = Message.new :source => source, :source_info => entry[:source_info],
+                    :labels => entry[:labels], :snippet => entry[:snippet]
 
-      m = Message.new :source => source, :source_info => entry[:source_info],
-                  :labels => entry[:labels],
-                  :snippet => entry[:snippet]
-      m.parse_header fake_header
-      m
+    mk_person = lambda { |x| Person.new(*x.reverse!) }
+    entry[:from] = mk_person[entry[:from]]
+    entry[:to].map!(&mk_person)
+    entry[:cc].map!(&mk_person)
+    entry[:bcc].map!(&mk_person)
+
+    m.load_from_index! entry
+    m
   end
 
   def add_message m; sync_message m end
