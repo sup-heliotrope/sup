@@ -58,10 +58,12 @@ add_labels = opts[:add].to_set_of_symbols ","
 remove_labels = opts[:remove].to_set_of_symbols ","
 
 Trollop::die "nothing to do: no labels to add or remove" if add_labels.empty? && remove_labels.empty?
+Trollop::die "no sources specified" if ARGV.empty?
 
 Redwood::start
+index = Redwood::Index.init
+index.lock_interactively or exit
 begin
-  index = Redwood::Index.init
   index.load
 
   source_ids = if opts[:all_sources]

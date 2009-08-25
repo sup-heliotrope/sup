@@ -79,7 +79,7 @@ $terminal.wrap_at = :auto
 Redwood::start
 index = Redwood::Index.init
 
-index.lock_or_die
+index.lock_interactively or exit
 
 begin
   Redwood::SourceManager.load_sources

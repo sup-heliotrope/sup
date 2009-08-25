@@ -112,7 +112,7 @@ else
 end
 
 seen = {}
-index.lock_or_die
+index.lock_interactively or exit
 begin
   index.load
 

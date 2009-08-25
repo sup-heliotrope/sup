@@ -126,7 +126,6 @@ module Redwood
     Redwood::DraftManager.init Redwood::DRAFT_DIR
     Redwood::UpdateManager.init
     Redwood::PollManager.init
-    Redwood::SuicideManager.init Redwood::SUICIDE_FN
     Redwood::CryptoManager.init
     Redwood::UndoManager.init
     Redwood::SourceManager.init
@@ -265,7 +264,6 @@ require "sup/modes/scroll-mode"
 require "sup/modes/text-mode"
 require "sup/modes/log-mode"
 require "sup/update"
-require "sup/suicide"
 require "sup/message-chunks"
 require "sup/message"
 require "sup/source"
@@ -275,6 +273,7 @@ require "sup/imap"
 require "sup/person"
 require "sup/account"
 require "sup/thread"
+require "sup/interactive-lock"
 require "sup/index"
 require "sup/textfield"
 require "sup/colormap"

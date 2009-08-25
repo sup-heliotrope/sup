@@ -13,6 +13,8 @@ end
 module Redwood
 
 class BaseIndex
+  include InteractiveLock
+
   class LockError < StandardError
     def initialize h
       @h = h
@@ -51,42 +53,6 @@ class BaseIndex
   def stop_lock_update_thread
     @lock_update_thread.kill if @lock_update_thread
     @lock_update_thread = nil
-  end
-
-  def possibly_pluralize number_of, kind
-    "#{number_of} #{kind}" +
-        if number_of == 1 then "" else "s" end
-  end
-
-  def fancy_lock_error_message_for e
-    secs = (Time.now - e.mtime).to_i
-    mins = secs / 60
-    time =
-      if mins == 0
-        possibly_pluralize secs , "second"
-      else
-        possibly_pluralize mins, "minute"
-      end
-
-    <<EOS
-Error: the sup index is locked by another process! User '#{e.user}' on
-host '#{e.host}' is running #{e.pname} with pid #{e.pid}. The process was alive
-as of #{time} ago.
-EOS
-  end
-
-  def lock_or_die
-    begin
-      lock
-    rescue LockError => e
-      $stderr.puts fancy_lock_error_message_for(e)
-      $stderr.puts <<EOS
-
-You can wait for the process to finish, or, if it crashed and left a
-stale lock file behind, you can manually delete #{@lock.path}.
-EOS
-      exit
-    end
   end
 
   def unlock

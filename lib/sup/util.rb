@@ -25,6 +25,7 @@ class Lockfile
   def lockinfo_on_disk
     h = load_lock_id IO.read(path)
     h['mtime'] = File.mtime path
+    h['path'] = path
     h
   end
 
