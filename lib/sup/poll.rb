@@ -35,22 +35,17 @@ EOS
     @thread = nil
     @last_poll = nil
     @polling = false
-    
-    self.class.i_am_the_instance self
-  end
-
-  def buffer
-    b, new = BufferManager.spawn_unless_exists("poll for new messages", :hidden => true, :system => true) { PollMode.new }
-    b
+    @mode = nil
   end
 
   def poll
     return if @polling
     @polling = true
+    @mode ||= PollMode.new
     HookManager.run "before-poll"
 
     BufferManager.flash "Polling for new messages..."
-    num, numi, from_and_subj, from_and_subj_inbox = buffer.mode.poll
+    num, numi, from_and_subj, from_and_subj_inbox = @mode.poll
     if num > 0
       BufferManager.flash "Loaded #{num.pluralize 'new message'}, #{numi} to inbox." 
     else
@@ -88,23 +83,36 @@ EOS
         begin
           yield "Loading from #{source}... " unless source.done? || (source.respond_to?(:has_errors?) && source.has_errors?)
         rescue SourceError => e
-          Redwood::log "problem getting messages from #{source}: #{e.message}"
+          warn "problem getting messages from #{source}: #{e.message}"
           Redwood::report_broken_sources :force_to_top => true
           next
         end
 
         num = 0
         numi = 0
-        add_messages_from source do |m_old, m, offset|
-          ## always preserve the labels on disk.
-          m.labels = ((m.labels - [:unread, :inbox]) + m_old.labels).uniq if m_old
-          yield "Found message at #{offset} with labels {#{m.labels * ', '}}"
-          unless m_old
+        each_message_from source do |m|
+          yield "Found message at #{m.source_info} with labels {#{m.labels.to_a * ', '}}"
+          old_m = Index.build_message m.id
+          if old_m
+              if old_m.source.id != source.id || old_m.source_info != m.source_info
+              ## here we merge labels between new and old versions, but we don't let the new
+              ## message add :unread or :inbox labels. (they can exist in the old version,
+              ## just not be added.)
+              new_labels = old_m.labels + (m.labels - [:unread, :inbox])
+              yield "Message at #{m.source_info} is an updated of an old message. Updating labels from #{m.labels.to_a * ','} => #{new_labels.to_a * ','}"
+              m.labels = new_labels
+              Index.update_message m
+            else
+              yield "Skipping already-imported message at #{m.source_info}"
+            end
+          else
+            yield "Found new message at #{m.source_info} with labels #{m.labels.to_a * ','}"
+            add_new_message m
             num += 1
             from_and_subj << [m.from && m.from.longname, m.subj]
-            if m.has_label?(:inbox) && ([:spam, :deleted, :killed] & m.labels).empty?
+            if (m.labels & [:inbox, :spam, :deleted, :killed]) == Set.new([:inbox])
               from_and_subj_inbox << [m.from && m.from.longname, m.subj]
-              numi += 1 
+              numi += 1
             end
           end
           m
@@ -121,46 +129,42 @@ EOS
     [total_num, total_numi, from_and_subj, from_and_subj_inbox]
   end
 
-  ## this is the main mechanism for adding new messages to the
-  ## index. it's called both by sup-sync and by PollMode.
+  ## like Source#each, but yields successive Message objects, which have their
+  ## labels and offsets set correctly.
   ##
-  ## for each message in the source, starting from the source's
-  ## starting offset, this methods yields the message, the source
-  ## offset, and the index entry on disk (if any). it expects the
-  ## yield to return the message (possibly altered in some way), and
-  ## then adds it (if new) or updates it (if previously seen).
-  ##
-  ## the labels of the yielded message are the default source
-  ## labels. it is likely that callers will want to replace these with
-  ## the index labels, if they exist, so that state is not lost when
-  ## e.g. a new version of a message from a mailing list comes in.
-  def add_messages_from source, opts={}
+  ## this is the primary mechanism for iterating over messages from a source.
+  def each_message_from source, opts={}
     begin
       return if source.done? || source.has_errors?
 
-      source.each do |offset, default_labels|
+      source.each do |offset, source_labels|
         if source.has_errors?
-          Redwood::log "error loading messages from #{source}: #{source.error.message}"
+          warn "error loading messages from #{source}: #{source.error.message}"
           return
         end
 
-        m_new = Message.build_from_source source, offset
-        m_old = Index.build_message m_new.id
+        m = Message.build_from_source source, offset
+        m.labels += source_labels + (source.archived? ? [] : [:inbox])
+        m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
+        m.labels.each { |l| LabelManager << l }
 
-        m_new.labels += default_labels + (source.archived? ? [] : [:inbox])
-        m_new.labels << :sent if source.uri.eql?(SentManager.source_uri)
-        m_new.labels.delete :unread if m_new.source_marked_read?
-        m_new.labels.each { |l| LabelManager << l }
-
-        HookManager.run "before-add-message", :message => m_new
-        m_ret = yield(m_old, m_new, offset) or next if block_given?
-        Index.sync_message m_ret, opts
-        UpdateManager.relay self, :added, m_ret unless m_old
+        HookManager.run "before-add-message", :message => m
+        yield m
       end
     rescue SourceError => e
-      Redwood::log "problem getting messages from #{source}: #{e.message}"
+      warn "problem getting messages from #{source}: #{e.message}"
       Redwood::report_broken_sources :force_to_top => true
     end
+  end
+
+  ## TODO: see if we can do this within PollMode rather than by calling this
+  ## method.
+  ##
+  ## a wrapper around Index.add_message that calls the proper hooks,
+  ## does the gui callback stuff, etc.
+  def add_new_message m
+    Index.add_message m
+    UpdateManager.relay self, :added, m
   end
 end
 

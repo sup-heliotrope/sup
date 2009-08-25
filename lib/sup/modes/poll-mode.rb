@@ -3,18 +3,16 @@ module Redwood
 class PollMode < LogMode
   def initialize
     @new = true
-    super
-  end
-
-  def puts s=""
-    self << s + "\n"
+    super "poll for new messages"
   end
 
   def poll
-    puts unless @new
-    @new = false
-    puts "Poll started at #{Time.now}"
-    PollManager.do_poll { |s| puts s }
+    unless @new
+      @new = false
+      self << "\n"
+    end
+    self << "Poll started at #{Time.now}\n"
+    PollManager.do_poll { |s| self << (s + "\n") }
   end
 end
 

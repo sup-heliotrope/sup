@@ -22,8 +22,6 @@ class ContactManager
         @a2p[aalias] = p unless aalias.nil? || aalias.empty?
       end
     end
-
-    self.class.i_am_the_instance self
   end
 
   def contacts; @p2a.keys end

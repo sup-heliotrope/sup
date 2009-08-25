@@ -16,7 +16,6 @@ class UpdateManager
 
   def initialize
     @targets = {}
-    self.class.i_am_the_instance self
   end
 
   def register o; @targets[o] = true; end

@@ -24,7 +24,7 @@ class Module
     vars = props.map { |p| "@#{p}" }
     klass = self
     path = klass.name.gsub(/::/, "/")
-    
+
     klass.instance_eval do
       define_method(:to_yaml_properties) { vars }
       define_method(:to_yaml_type) { "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}" }
@@ -107,17 +107,17 @@ module Redwood
   end
 
   def start
-    Redwood::SentManager.new $config[:sent_source] || 'sup://sent'
-    Redwood::ContactManager.new Redwood::CONTACT_FN
-    Redwood::LabelManager.new Redwood::LABEL_FN
-    Redwood::AccountManager.new $config[:accounts]
-    Redwood::DraftManager.new Redwood::DRAFT_DIR
-    Redwood::UpdateManager.new
-    Redwood::PollManager.new
-    Redwood::SuicideManager.new Redwood::SUICIDE_FN
-    Redwood::CryptoManager.new
-    Redwood::UndoManager.new
-    Redwood::SourceManager.new
+    Redwood::SentManager.init $config[:sent_source] || 'sup://sent'
+    Redwood::ContactManager.init Redwood::CONTACT_FN
+    Redwood::LabelManager.init Redwood::LABEL_FN
+    Redwood::AccountManager.init $config[:accounts]
+    Redwood::DraftManager.init Redwood::DRAFT_DIR
+    Redwood::UpdateManager.init
+    Redwood::PollManager.init
+    Redwood::SuicideManager.init Redwood::SUICIDE_FN
+    Redwood::CryptoManager.init
+    Redwood::UndoManager.init
+    Redwood::SourceManager.init
   end
 
   def finish
@@ -230,31 +230,28 @@ require "sup/hook"
 ## we have to initialize this guy first, because other classes must
 ## reference it in order to register hooks, and they do that at parse
 ## time.
-Redwood::HookManager.new Redwood::HOOK_DIR
+Redwood::HookManager.init Redwood::HOOK_DIR
 
 ## everything we need to get logging working
+require "sup/logger"
+Redwood::Logger.init.add_sink $stderr
+include Redwood::LogsStuff
+
+## determine encoding and character set
+  $encoding = Locale.current.charset
+  if $encoding
+    debug "using character set encoding #{$encoding.inspect}"
+  else
+    warn "can't find character set by using locale, defaulting to utf-8"
+    $encoding = "UTF-8"
+  end
+
 require "sup/buffer"
 require "sup/keymap"
 require "sup/mode"
 require "sup/modes/scroll-mode"
 require "sup/modes/text-mode"
 require "sup/modes/log-mode"
-require "sup/logger"
-module Redwood
-  def log s; Logger.log s; end
-  module_function :log
-end
-
-## determine encoding and character set
-  $encoding = Locale.current.charset
-  if $encoding
-    Redwood::log "using character set encoding #{$encoding.inspect}"
-  else
-    Redwood::log "warning: can't find character set by using locale, defaulting to utf-8"
-    $encoding = "UTF-8"
-  end
-
-## now everything else (which can feel free to call Redwood::log at load time)
 require "sup/update"
 require "sup/suicide"
 require "sup/message-chunks"

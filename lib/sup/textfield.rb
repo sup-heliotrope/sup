@@ -112,11 +112,11 @@ class TextField
         unless @history.empty?
           value = get_cursed_value
           @i ||= @history.size
-          #Redwood::log "history before #{@history.inspect}"
+          #debug "history before #{@history.inspect}"
           @history[@i] = value #unless value =~ /^\s*$/
           @i = (@i + (c == Ncurses::KEY_UP ? -1 : 1)) % @history.size
           @value = @history[@i]
-          #Redwood::log "history after #{@history.inspect}"
+          #debug "history after #{@history.inspect}"
           set_cursed_value @value
           Ncurses::Form::REQ_END_FIELD
         end

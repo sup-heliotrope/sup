@@ -18,13 +18,13 @@ class FerretIndex < BaseIndex
 
   def load_index dir=File.join(@dir, "ferret")
     if File.exists? dir
-      Redwood::log "loading index..."
+      debug "loading index..."
       @index_mutex.synchronize do
         @index = Ferret::Index::Index.new(:path => dir, :analyzer => @analyzer, :id_field => 'message_id')
-        Redwood::log "loaded index of #{@index.size} messages"
+        debug "loaded index of #{@index.size} messages"
       end
     else
-      Redwood::log "creating index..."
+      debug "creating index..."
       @index_mutex.synchronize do
         field_infos = Ferret::Index::FieldInfos.new :store => :yes
         field_infos.add_field :message_id, :index => :untokenized
@@ -44,6 +44,10 @@ class FerretIndex < BaseIndex
       end
     end
   end
+
+  def add_message m; sync_message m end
+  def update_message m; sync_message m end
+  def update_message_state m; sync_message m end
 
   def sync_message m, opts={}
     entry = @index[m.id]
@@ -79,16 +83,16 @@ class FerretIndex < BaseIndex
     ## written in this manner to support previous versions of the index which
     ## did not keep around the entry body. upgrading is thus seamless.
     entry ||= {}
-    labels = m.labels.uniq # override because this is the new state, unless...
+    labels = m.labels # override because this is the new state, unless...
 
     ## if we are a later version of a message, ignore what's in the index,
     ## but merge in the labels.
     if entry[:source_id] && entry[:source_info] && entry[:label] &&
       ((entry[:source_id].to_i > source_id) || (entry[:source_info].to_i < m.source_info))
-      labels = (entry[:label].symbolistize + m.labels).uniq
-      #Redwood::log "found updated version of message #{m.id}: #{m.subj}"
-      #Redwood::log "previous version was at #{entry[:source_id].inspect}:#{entry[:source_info].inspect}, this version at #{source_id.inspect}:#{m.source_info.inspect}"
-      #Redwood::log "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
+      labels += entry[:label].to_set_of_symbols
+      #debug "found updated version of message #{m.id}: #{m.subj}"
+      #debug "previous version was at #{entry[:source_id].inspect}:#{entry[:source_info].inspect}, this version at #{source_id.inspect}:#{m.source_info.inspect}"
+      #debug "merged labels are #{labels.inspect} (index #{entry[:label].inspect}, message #{m.labels.inspect})"
       entry = {}
     end
 
@@ -103,7 +107,7 @@ class FerretIndex < BaseIndex
       :date => (entry[:date] || m.date.to_indexable_s),
       :body => (entry[:body] || m.indexable_content),
       :snippet => snippet, # always override
-      :label => labels.uniq.join(" "),
+      :label => labels.to_a.join(" "),
       :attachments => (entry[:attachments] || m.attachments.uniq.join(" ")),
 
       ## always override :from and :to.
@@ -125,6 +129,7 @@ class FerretIndex < BaseIndex
       @index.add_document d
     end
   end
+  private :sync_message
 
   def save_index fn=File.join(@dir, "ferret")
     # don't have to do anything, apparently
@@ -146,7 +151,7 @@ class FerretIndex < BaseIndex
     while true
       limit = (query[:limit])? [EACH_BY_DATE_NUM, query[:limit] - offset].min : EACH_BY_DATE_NUM
       results = @index_mutex.synchronize { @index.search ferret_query, :sort => "date DESC", :limit => limit, :offset => offset }
-      Redwood::log "got #{results.total_hits} results for query (offset #{offset}) #{ferret_query.inspect}"
+      debug "got #{results.total_hits} results for query (offset #{offset}) #{ferret_query.inspect}"
       results.hits.each do |hit|
         yield @index_mutex.synchronize { @index[hit.doc][:message_id] }, lambda { build_message hit.doc }
       end
@@ -165,7 +170,7 @@ class FerretIndex < BaseIndex
   SAME_SUBJECT_DATE_LIMIT = 7
   MAX_CLAUSES = 1000
   def each_message_in_thread_for m, opts={}
-    #Redwood::log "Building thread for #{m.id}: #{m.subj}"
+    #debug "Building thread for #{m.id}: #{m.subj}"
     messages = {}
     searched = {}
     num_queries = 0
@@ -186,10 +191,10 @@ class FerretIndex < BaseIndex
       q = build_ferret_query :qobj => q
 
       p1 = @index_mutex.synchronize { @index.search(q).hits.map { |hit| @index[hit.doc][:message_id] } }
-      Redwood::log "found #{p1.size} results for subject query #{q}"
+      debug "found #{p1.size} results for subject query #{q}"
 
       p2 = @index_mutex.synchronize { @index.search(q.to_s, :limit => :all).hits.map { |hit| @index[hit.doc][:message_id] } }
-      Redwood::log "found #{p2.size} results in string form"
+      debug "found #{p2.size} results in string form"
 
       pending = (pending + p1 + p2).uniq
     end
@@ -220,7 +225,7 @@ class FerretIndex < BaseIndex
           end
           mid = @index[docid][:message_id]
           unless messages.member?(mid)
-            #Redwood::log "got #{mid} as a child of #{id}"
+            #debug "got #{mid} as a child of #{id}"
             messages[mid] ||= lambda { build_message docid }
             refs = @index[docid][:refs].split
             pending += refs.select { |id| !searched[id] }
@@ -230,10 +235,10 @@ class FerretIndex < BaseIndex
     end
 
     if killed
-      #Redwood::log "thread for #{m.id} is killed, ignoring"
+      #debug "thread for #{m.id} is killed, ignoring"
       false
     else
-      #Redwood::log "ran #{num_queries} queries to build thread of #{messages.size} messages for #{m.id}: #{m.subj}" if num_queries > 0
+      #debug "ran #{num_queries} queries to build thread of #{messages.size} messages for #{m.id}: #{m.subj}" if num_queries > 0
       messages.each { |mid, builder| yield mid, builder }
       true
     end
@@ -259,7 +264,7 @@ class FerretIndex < BaseIndex
       }
 
       m = Message.new :source => source, :source_info => doc[:source_info].to_i,
-                  :labels => doc[:label].symbolistize,
+                  :labels => doc[:label].to_set_of_symbols,
                   :snippet => doc[:snippet]
       m.parse_header fake_header
       m
@@ -280,13 +285,13 @@ class FerretIndex < BaseIndex
     end
     q.add_query Ferret::Search::TermQuery.new(:label, "spam"), :must_not
 
-    Redwood::log "contact search: #{q}"
+    debug "contact search: #{q}"
     contacts = {}
     num = h[:num] || 20
     @index_mutex.synchronize do
       @index.search_each q, :sort => "date DESC", :limit => :all do |docid, score|
         break if contacts.size >= num
-        #Redwood::log "got message #{docid} to: #{@index[docid][:to].inspect} and from: #{@index[docid][:from].inspect}"
+        #debug "got message #{docid} to: #{@index[docid][:to].inspect} and from: #{@index[docid][:from].inspect}"
         f = @index[docid][:from]
         t = @index[docid][:to]
 
@@ -376,10 +381,10 @@ class FerretIndex < BaseIndex
       field, name = $1, ($3 || $4)
       case field
       when "filename"
-        Redwood::log "filename - translated #{field}:#{name} to attachments:(#{name.downcase})"
+        debug "filename: translated #{field}:#{name} to attachments:(#{name.downcase})"
         "attachments:(#{name.downcase})"
       when "filetype"
-        Redwood::log "filetype - translated #{field}:#{name} to attachments:(*.#{name.downcase})"
+        debug "filetype: translated #{field}:#{name} to attachments:(*.#{name.downcase})"
         "attachments:(*.#{name.downcase})"
       end
     end
@@ -391,13 +396,13 @@ class FerretIndex < BaseIndex
         if realdate
           case field
           when "after"
-            Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate.end}"
+            debug "chronic: translated #{field}:#{datestr} to #{realdate.end}"
             "date:(>= #{sprintf "%012d", realdate.end.to_i})"
           when "before"
-            Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
+            debug "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
             "date:(<= #{sprintf "%012d", realdate.begin.to_i})"
           else
-            Redwood::log "chronic: translated #{field}:#{datestr} to #{realdate}"
+            debug "chronic: translated #{field}:#{datestr} to #{realdate}"
             "date:(<= #{sprintf "%012d", realdate.end.to_i}) date:(>= #{sprintf "%012d", realdate.begin.to_i})"
           end
         else

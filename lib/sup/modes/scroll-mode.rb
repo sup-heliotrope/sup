@@ -3,7 +3,7 @@ module Redwood
 class ScrollMode < Mode
   ## we define topline and botline as the top and bottom lines of any
   ## content in the currentview.
-  
+
   ## we left leftcol and rightcol as the left and right columns of any
   ## content in the current view. but since we're operating in a
   ## line-centric fashion, rightcol is always leftcol + the buffer
@@ -223,7 +223,7 @@ protected
       raise "nil text for color '#{color}'" if text.nil? # good for debugging
       l = text.display_length
       no_fill = i != a.size - 1
-      
+
       if xpos + l < @leftcol
         buffer.write ln - @topline, 0, "", :color => color,
                      :highlight => opts[:highlight]

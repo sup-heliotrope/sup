@@ -9,7 +9,6 @@ class SuicideManager
     @fn = fn
     @die = false
     @thread = nil
-    self.class.i_am_the_instance self
     FileUtils.rm_f @fn
   end
 

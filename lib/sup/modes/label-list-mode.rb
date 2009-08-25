@@ -73,7 +73,7 @@ protected
       ##   TODO make the labelmanager responsible for label counts
       ## and then it can listen to labeled and unlabeled events, etc.
       if total == 0 && !LabelManager::RESERVED_LABELS.include?(label) && !LabelManager.new_label?(label)
-        Redwood::log "no hits for label #{label}, deleting"
+        debug "no hits for label #{label}, deleting"
         LabelManager.delete label
         next
       end

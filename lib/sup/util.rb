@@ -2,6 +2,7 @@ require 'thread'
 require 'lockfile'
 require 'mime/types'
 require 'pathname'
+require 'set'
 
 ## time for some monkeypatching!
 class Lockfile
@@ -215,8 +216,8 @@ class String
       newpos = case state
         when :escaped_instring, :escaped_outstring then pos
         else index(/[,"\\]/, pos)
-      end 
-      
+      end
+
       if newpos
         char = self[newpos]
       else
@@ -288,10 +289,12 @@ class String
     end
   end
 
-  ## takes a space-separated list of words, and returns an array of symbols.
-  ## typically used in Sup for translating Ferret's representation of a list
-  ## of labels (a string) to an array of label symbols.
-  def symbolistize; split.map { |x| x.intern } end
+  ## takes a list of words, and returns an array of symbols.  typically used in
+  ## Sup for translating Ferret's representation of a list of labels (a string)
+  ## to an array of label symbols.
+  ##
+  ## split_on will be passed to String#split, so you can leave this nil for space.
+  def to_set_of_symbols split_on=nil; Set.new split(split_on).map { |x| x.strip.intern } end
 end
 
 class Numeric
@@ -419,10 +422,6 @@ class Array
 
   def last= e; self[-1] = e end
   def nonempty?; !empty? end
-
-  def to_set_of_symbols
-    map { |x| x.is_a?(Symbol) ? x : x.intern }.uniq
-  end
 end
 
 class Time
@@ -496,19 +495,20 @@ class Time
   end
 end
 
-## simple singleton module. far less complete and insane than the ruby
-## standard library one, but automatically forwards methods calls and
-## allows for constructors that take arguments.
+## simple singleton module. far less complete and insane than the ruby standard
+## library one, but it automatically forwards methods calls and allows for
+## constructors that take arguments.
 ##
-## You must have #initialize call "self.class.i_am_the_instance self"
-## at some point or everything will fail horribly.
+## classes that inherit this can define initialize. however, you cannot call
+## .new on the class. To get the instance of the class, call .instance;
+## to create the instance, call init.
 module Singleton
   module ClassMethods
     def instance; @instance; end
     def instantiated?; defined?(@instance) && !@instance.nil?; end
     def deinstantiate!; @instance = nil; end
     def method_missing meth, *a, &b
-      raise "no instance defined!" unless defined? @instance
+      raise "no #{name} instance defined in method call to #{meth}!" unless defined? @instance
 
       ## if we've been deinstantiated, just drop all calls. this is
       ## useful because threads that might be active during the
@@ -518,13 +518,14 @@ module Singleton
 
       @instance.send meth, *a, &b
     end
-    def i_am_the_instance o
+    def init *args
       raise "there can be only one! (instance)" if defined? @instance
-      @instance = o
+      @instance = new(*args)
     end
   end
 
   def self.included klass
+    klass.private_class_method :allocate, :new
     klass.extend ClassMethods
   end
 end
@@ -543,7 +544,7 @@ class Recoverable
   def has_errors?; !@error.nil?; end
 
   def method_missing m, *a, &b; __pass m, *a, &b end
-  
+
   def id; __pass :id; end
   def to_s; __pass :to_s; end
   def to_yaml x; __pass :to_yaml, x; end
@@ -652,7 +653,7 @@ class Iconv
     begin
       Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]
     rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::InvalidCharacter, Iconv::IllegalSequence => e
-      Redwood::log "warning: error (#{e.class.name}) decoding text from #{charset} to #{target}: #{text[0 ... 20]}"
+      warn "couldn't transcode text from #{charset} to #{target} (\"#{text[0 ... 20]}\"...) (got #{e.message}); using original as is"
       text
     end
   end

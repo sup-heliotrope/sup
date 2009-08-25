@@ -8,8 +8,6 @@ class SentManager
   def initialize source_uri
     @source = nil
     @source_uri = source_uri
-    self.class.i_am_the_instance self
-    Redwood::log "SentManager intialized with source uri: #@source_uri"
   end
 
   def source_id; @source.id; end
@@ -22,7 +20,6 @@ class SentManager
 
   def default_source
     @source = Recoverable.new SentLoader.new
-    Redwood::log "SentManager initializing default source: #@source."
     @source_uri = @source.uri
     @source
   end
@@ -30,9 +27,9 @@ class SentManager
   def write_sent_message date, from_email, &block
     @source.store_message date, from_email, &block
 
-    PollManager.add_messages_from(@source) do |m_old, m, offset|
+    PollManager.each_message_from(@source) do |m|
       m.remove_label :unread
-      m
+      PollManager.add_new_message m
     end
   end
 end
@@ -52,7 +49,7 @@ class SentLoader < MBox::Loader
   def uri; 'sup://sent' end
 
   def id; 9998; end
-  def labels; [:inbox]; end
+  def labels; [:inbox, :sent]; end
 end
 
 end

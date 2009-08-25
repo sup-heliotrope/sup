@@ -129,7 +129,7 @@ class Colormap
       @next_id = (@next_id + 1) % NUM_COLORS
       @next_id += 1 if @next_id == 0 # 0 is always white on black
       id = @next_id
-      Redwood::log "colormap: for color #{sym}, using id #{id} -> #{fg}, #{bg}"
+      debug "colormap: for color #{sym}, using id #{id} -> #{fg}, #{bg}"
       Curses.init_pair id, fg, bg or raise ArgumentError,
         "couldn't initialize curses color pair #{fg}, #{bg} (key #{id})"
 
@@ -137,7 +137,7 @@ class Colormap
       ## delete the old mapping, if it exists
       if @users[cp]
         @users[cp].each do |usym|
-          Redwood::log "dropping color #{usym} (#{id})"
+          warn "dropping color #{usym} (#{id})"
           @entries[usym][3] = nil
         end
         @users[cp] = []
@@ -155,7 +155,7 @@ class Colormap
   ## to the default ones.
   def populate_colormap
     user_colors = if File.exists? Redwood::COLOR_FN
-      Redwood::log "loading user colors from #{Redwood::COLOR_FN}"
+      debug "loading user colors from #{Redwood::COLOR_FN}"
       Redwood::load_yaml_obj Redwood::COLOR_FN
     end
 
@@ -171,7 +171,7 @@ class Colormap
             fg = Curses.const_get "COLOR_#{ufg.upcase}"
           rescue NameError
             error ||= "Warning: there is no color named \"#{ufg}\", using fallback."
-            Redwood::log "Warning: there is no color named \"#{ufg}\""
+            warn "there is no color named \"#{ufg}\""
           end
         end
 
@@ -180,7 +180,7 @@ class Colormap
             bg = Curses.const_get "COLOR_#{ubg.upcase}"
           rescue NameError
             error ||= "Warning: there is no color named \"#{ubg}\", using fallback."
-            Redwood::log "Warning: there is no color named \"#{ubg}\""
+            warn "there is no color named \"#{ubg}\""
           end
         end
 
@@ -190,7 +190,7 @@ class Colormap
               Curses.const_get "A_#{a.upcase}"
             rescue NameError
               error ||= "Warning: there is no attribute named \"#{a}\", using fallback."
-              Redwood::log "Warning: there is no attribute named \"#{a}\", using fallback."
+              warn "there is no attribute named \"#{a}\", using fallback."
             end
           end
         end

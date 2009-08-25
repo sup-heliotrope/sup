@@ -12,7 +12,6 @@ class UndoManager
 
   def initialize
     @@actionlist = []
-    self.class.i_am_the_instance self
   end
 
   def register desc, *actions, &b

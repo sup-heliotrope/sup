@@ -38,8 +38,8 @@ be seen by running "sup-add --help".
 
 Options:
 EOS
-  opt :add, "One or more labels (comma-separated) to add to every message from the specified sources", :type => String
-  opt :remove, "One or more labels (comma-separated) to remove from every message from the specified sources, if those labels are present", :type => String
+  opt :add, "One or more labels (comma-separated) to add to every message from the specified sources", :default => ""
+  opt :remove, "One or more labels (comma-separated) to remove from every message from the specified sources, if those labels are present", :default => ""
   opt :query, "A Sup search query", :type => String
 
   text <<EOS
@@ -54,23 +54,22 @@ EOS
 end
 opts[:verbose] = true if opts[:very_verbose]
 
-add_labels = (opts[:add] || "").split(",").map { |l| l.intern }.uniq
-remove_labels = (opts[:remove] || "").split(",").map { |l| l.intern }.uniq
+add_labels = opts[:add].to_set_of_symbols ","
+remove_labels = opts[:remove].to_set_of_symbols ","
 
 Trollop::die "nothing to do: no labels to add or remove" if add_labels.empty? && remove_labels.empty?
 
 Redwood::start
 begin
-  index = Redwood::Index.new
+  index = Redwood::Index.init
   index.load
 
-  source_ids = 
-    if opts[:all_sources]
-      Redwood::SourceManager.sources
-    else
-      ARGV.map do |uri|
-        Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
-      end
+  source_ids = if opts[:all_sources]
+    Redwood::SourceManager.sources
+  else
+    ARGV.map do |uri|
+      Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+    end
   end.map { |s| s.id }
   Trollop::die "nothing to do: no sources" if source_ids.empty?
 
@@ -95,18 +94,17 @@ begin
     num_scanned += 1
 
     m = index.build_message id
-    old_labels = m.labels.clone
+    old_labels = m.labels.dup
 
     m.labels += add_labels
     m.labels -= remove_labels
-    m.labels = m.labels.uniq
 
-    unless m.labels.sort_by { |s| s.to_s } == old_labels.sort_by { |s| s.to_s }
+    unless m.labels == old_labels
       num_changed += 1
       puts "From #{m.from}, subject: #{m.subj}" if opts[:very_verbose]
-      puts "#{m.id}: {#{old_labels.join ','}} => {#{m.labels.join ','}}" if opts[:verbose]
+      puts "#{m.id}: {#{old_labels.to_a.join ','}} => {#{m.labels.to_a.join ','}}" if opts[:verbose]
       puts if opts[:very_verbose]
-      index.sync_message m unless opts[:dry_run]
+      index.update_message_state m unless opts[:dry_run]
     end
 
     if Time.now - last_info_time > 60

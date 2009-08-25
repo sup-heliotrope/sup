@@ -4,6 +4,7 @@ require 'stringio'
 require 'time'
 require 'rmail'
 require 'cgi'
+require 'set'
 
 ## TODO: remove synchronized method protector calls; use a Monitor instead
 ## (ruby's reentrant mutex)
@@ -69,7 +70,7 @@ class IMAP < Source
     @imap_state = {}
     @ids = []
     @last_scan = nil
-    @labels = ((labels || []) - LabelManager::RESERVED_LABELS).uniq.freeze
+    @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
     @say_id = nil
     @mutex = Mutex.new
   end
@@ -159,13 +160,13 @@ class IMAP < Source
     return if last_id == @ids.length
 
     range = (@ids.length + 1) .. last_id
-    Redwood::log "fetching IMAP headers #{range}"
+    debug "fetching IMAP headers #{range}"
     fetch(range, ['RFC822.SIZE', 'INTERNALDATE', 'FLAGS']).each do |v|
       id = make_id v
       @ids << id
       @imap_state[id] = { :id => v.seqno, :flags => v.attr["FLAGS"] }
     end
-    Redwood::log "done fetching IMAP headers"
+    debug "done fetching IMAP headers"
   end
   synchronized :scan_mailbox
 
@@ -224,7 +225,7 @@ private
     if good_results.empty?
       raise FatalSourceError, "no IMAP response for #{ids} containing all fields #{fields.join(', ')} (got #{results.size} results)"
     elsif good_results.size < results.size
-      Redwood::log "Your IMAP server sucks. It sent #{results.size} results for a request for #{good_results.size} messages. What are you using, Binc?"
+      warn "Your IMAP server sucks. It sent #{results.size} results for a request for #{good_results.size} messages. What are you using, Binc?"
     end
 
     good_results
@@ -252,12 +253,12 @@ private
           raise Net::IMAP::NoResponseError unless @imap.capability().member? "AUTH=CRAM-MD5"
           @imap.authenticate 'CRAM-MD5', @username, @password
         rescue Net::IMAP::BadResponseError, Net::IMAP::NoResponseError => e
-          Redwood::log "CRAM-MD5 authentication failed: #{e.class}. Trying LOGIN auth..."
+          debug "CRAM-MD5 authentication failed: #{e.class}. Trying LOGIN auth..."
           begin
             raise Net::IMAP::NoResponseError unless @imap.capability().member? "AUTH=LOGIN"
             @imap.authenticate 'LOGIN', @username, @password
           rescue Net::IMAP::BadResponseError, Net::IMAP::NoResponseError => e
-            Redwood::log "LOGIN authentication failed: #{e.class}. Trying plain-text LOGIN..."
+            debug "LOGIN authentication failed: #{e.class}. Trying plain-text LOGIN..."
             @imap.login @username, @password
           end
         end
@@ -274,7 +275,7 @@ private
 
   def say s
     @say_id = BufferManager.say s, @say_id if BufferManager.instantiated?
-    Redwood::log s
+    info s
   end
 
   def shutup
@@ -331,7 +332,7 @@ private
       rescue *RECOVERABLE_ERRORS => e
         if (retries += 1) <= 3
           @imap = nil
-          Redwood::log "got #{e.class.name}: #{e.message.inspect}"
+          warn "got #{e.class.name}: #{e.message.inspect}"
           sleep 2
           retry
         end

@@ -34,12 +34,12 @@ class Source
   ## To write a new source, subclass this class, and implement:
   ##
   ## - start_offset
-  ## - end_offset (exclusive!)
+  ## - end_offset (exclusive!) (or, #done?)
   ## - load_header offset
   ## - load_message offset
   ## - raw_header offset
   ## - raw_message offset
-  ## - check
+  ## - check (optional)
   ## - next (or each, if you prefer): should return a message and an
   ##   array of labels.
   ##
@@ -78,6 +78,7 @@ class Source
     @dirty = false
   end
 
+  ## overwrite me if you have a disk incarnation (currently used only for sup-sync-back)
   def file_path; nil end
 
   def to_s; @uri.to_s; end
@@ -92,20 +93,23 @@ class Source
   ## to proactively notify the user of any source problems.
   def check; end
 
+  ## yields successive offsets and labels, starting at #cur_offset.
+  ##
+  ## when implementing a source, you can overwrite either #each or #next. the
+  ## default #each just calls next over and over.
   def each
     self.cur_offset ||= start_offset
     until done?
-      n, labels = self.next
-      raise "no message" unless n
-      yield n, labels
+      offset, labels = self.next
+      yield offset, labels
     end
   end
 
-  ## read a raw email header from a filehandle (or anything that responds to
-  ## #gets), and turn it into a hash of key-value pairs.
+  ## utility method to read a raw email header from an IO stream and turn it
+  ## into a hash of key-value pairs. minor special semantics for certain headers.
   ##
-  ## WARNING! THIS IS A SPEED-CRITICAL SECTION. Everything you do here will have
-  ## a significant effect on Sup's processing speed of email from ALL sources.
+  ## THIS IS A SPEED-CRITICAL SECTION. Everything you do here will have a
+  ## significant effect on Sup's processing speed of email from ALL sources.
   ## Little things like string interpolation, regexp interpolation, += vs <<,
   ## all have DRAMATIC effects. BE CAREFUL WHAT YOU DO!
   def self.parse_raw_email_header f
@@ -116,9 +120,11 @@ class Source
       case line
       ## these three can occur multiple times, and we want the first one
       when /^(Delivered-To|X-Original-To|Envelope-To):\s*(.*?)\s*$/i; header[last = $1.downcase] ||= $2
-      ## mark this guy specially. not sure why i care.
+      ## regular header: overwrite (not that we should see more than one)
+      ## TODO: figure out whether just using the first occurrence changes
+      ## anything (which would simplify the logic slightly)
       when /^([^:\s]+):\s*(.*?)\s*$/i; header[last = $1.downcase] = $2
-      when /^\r*$/; break
+      when /^\r*$/; break # blank line signifies end of header
       else
         if last
           header[last] << " " unless header[last].empty?
@@ -133,7 +139,7 @@ class Source
       header[k] = begin
         Rfc2047.decode_to $encoding, v
       rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
-        #Redwood::log "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
+        #debug "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
         v
       end
     end
@@ -144,7 +150,7 @@ protected
 
   ## convenience function
   def parse_raw_email_header f; self.class.parse_raw_email_header f end
-  
+
   def Source.expand_filesystem_uri uri
     uri.gsub "~", File.expand_path("~")
   end
@@ -162,7 +168,6 @@ class SourceManager
     @sources = {}
     @sources_dirty = false
     @source_mutex = Monitor.new
-    self.class.i_am_the_instance self
   end
 
   def [](id)

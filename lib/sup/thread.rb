@@ -24,6 +24,8 @@
 ## a faked root object tying them all together into one tree
 ## structure.
 
+require 'set'
+
 module Redwood
 
 class Thread
@@ -101,17 +103,16 @@ class Thread
   def toggle_label label
     if has_label? label
       remove_label label
-      return false
+      false
     else
       apply_label label
-      return true
+      true
     end
   end
 
   def set_labels l; each { |m, *o| m && m.labels = l }; end
-  
   def has_label? t; any? { |m, *o| m && m.has_label?(t) }; end
-  def save index; each { |m, *o| m && m.save(index) }; end
+  def save_state index; each { |m, *o| m && m.save_state(index) }; end
 
   def direct_participants
     map { |m, *o| [m.from] + m.to if m }.flatten.compact.uniq
@@ -123,15 +124,14 @@ class Thread
 
   def size; map { |m, *o| m ? 1 : 0 }.sum; end
   def subj; argfind { |m, *o| m && m.subj }; end
-  def labels
-      map { |m, *o| m && m.labels }.flatten.compact.uniq.sort_by { |t| t.to_s }
-  end
+  def labels; inject(Set.new) { |s, (m, *o)| m ? s | m.labels : s } end
   def labels= l
-    each { |m, *o| m && m.labels = l.clone }
+    raise ArgumentError, "not a set" unless l.is_a?(Set)
+    each { |m, *o| m && m.labels = l.dup }
   end
 
   def latest_message
-    inject(nil) do |a, b| 
+    inject(nil) do |a, b|
       b = b.first
       if a.nil?
         b
@@ -162,7 +162,7 @@ class Container
     @id = id
     @message, @parent, @thread = nil, nil, nil
     @children = []
-  end      
+  end
 
   def each_with_stuff parent=nil
     yield self, 0, parent

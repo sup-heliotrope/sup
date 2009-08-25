@@ -1,36 +1,40 @@
+require 'stringio'
 module Redwood
+
+## a variant of text mode that allows the user to automatically follow text,
+## and respawns when << is called if necessary.
 
 class LogMode < TextMode
   register_keymap do |k|
     k.add :toggle_follow, "Toggle follow mode", 'f'
   end
 
-  def initialize
+  def initialize buffer_name
     @follow = true
-    super
+    @buffer_name = buffer_name
+    @on_kill = []
+    super()
   end
+
+  ## register callbacks for when the buffer is killed
+  def on_kill &b; @on_kill << b end
 
   def toggle_follow
     @follow = !@follow
-    if buffer
-      if @follow
-        jump_to_line lines - buffer.content_height + 1 # leave an empty line at bottom
-      end
-      buffer.mark_dirty
+    if @follow
+      jump_to_line(lines - buffer.content_height + 1) # leave an empty line at bottom
     end
+    buffer.mark_dirty
   end
 
-  def text= t
-    super
-    if buffer && @follow
-      follow_top = lines - buffer.content_height + 1
-      jump_to_line follow_top if topline < follow_top
+  def << s
+    unless buffer
+      BufferManager.spawn @buffer_name, self, :hidden => true, :system => true
     end
-  end
 
-  def << line
-    super
-    if buffer && @follow
+    s.split("\n").each { |l| super(l + "\n") } # insane. different << semantics.
+
+    if @follow
       follow_top = lines - buffer.content_height + 1
       jump_to_line follow_top if topline < follow_top
     end
@@ -38,6 +42,12 @@ class LogMode < TextMode
 
   def status
     super + " (follow: #@follow)"
+  end
+
+  def cleanup
+    @on_kill.each { |cb| cb.call self }
+    self.text = ""
+    super
   end
 end
 
