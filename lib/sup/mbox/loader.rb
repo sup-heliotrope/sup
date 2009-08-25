@@ -6,6 +6,7 @@ module Redwood
 module MBox
 
 class Loader < Source
+  include SerializeLabelsNicely
   yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
 
   ## uri_or_fp is horrific. need to refactor.

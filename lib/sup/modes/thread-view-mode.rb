@@ -253,7 +253,7 @@ EOS
     new_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", @thread.labels
 
     return unless new_labels
-    @thread.labels = (reserved_labels + new_labels).uniq
+    @thread.labels = Set.new(reserved_labels) + new_labels
     new_labels.each { |l| LabelManager << l }
     update
     UpdateManager.relay self, :labeled, @thread.first

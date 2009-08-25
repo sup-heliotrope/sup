@@ -85,25 +85,37 @@ module Redwood
   module_function :reporting_thread, :record_exception, :exceptions
 
 ## one-stop shop for yamliciousness
-  def save_yaml_obj object, fn, safe=false
+  def save_yaml_obj o, fn, safe=false
+    o = if o.is_a?(Array)
+      o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
+    else
+      o.respond_to?(:before_marshal) && o.before_marshal
+    end
+
     if safe
       safe_fn = "#{File.dirname fn}/safe_#{File.basename fn}"
       mode = File.stat(fn).mode if File.exists? fn
-      File.open(safe_fn, "w", mode) { |f| f.puts object.to_yaml }
+      File.open(safe_fn, "w", mode) { |f| f.puts o.to_yaml }
       FileUtils.mv safe_fn, fn
     else
-      File.open(fn, "w") { |f| f.puts object.to_yaml }
+      File.open(fn, "w") { |f| f.puts o.to_yaml }
     end
   end
 
   def load_yaml_obj fn, compress=false
-    if File.exists? fn
+    o = if File.exists? fn
       if compress
         Zlib::GzipReader.open(fn) { |f| YAML::load f }
       else
         YAML::load_file fn
       end
     end
+    if o.is_a?(Array)
+      o.each { |x| x.after_unmarshal! if x.respond_to?(:after_unmarshal!) }
+    else
+      o.after_unmarshal! if o.respond_to?(:after_unmarshal!)
+    end
+    o
   end
 
   def start

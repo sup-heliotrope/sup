@@ -482,7 +482,7 @@ EOS
   ## returns an array of labels
   def ask_for_labels domain, question, default_labels, forbidden_labels=[]
     default_labels = default_labels - forbidden_labels - LabelManager::RESERVED_LABELS
-    default = default_labels.join(" ")
+    default = default_labels.to_a.join(" ")
     default += " " unless default.empty?
 
     # here I would prefer to give more control and allow all_labels instead of

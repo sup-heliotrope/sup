@@ -91,7 +91,7 @@ end
 
 class Range
   ## only valid for integer ranges (unless I guess it's exclusive)
-  def size 
+  def size
     last - first + (exclude_end? ? 0 : 1)
   end
 end

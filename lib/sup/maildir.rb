@@ -9,6 +9,7 @@ module Redwood
 ## pathnames on disk.
 
 class Maildir < Source
+  include SerializeLabelsNicely
   SCAN_INTERVAL = 30 # seconds
   MYHOSTNAME = Socket.gethostname
 
