@@ -357,7 +357,9 @@ class XapianIndex < BaseIndex
   end
 
   def find_docid id
-    term_docids(mkterm(:msgid,id)).tap { |x| fail unless x.size <= 1 }.first
+    docids = term_docids(mkterm(:msgid,id))
+    fail unless docids.size <= 1
+    docids.first
   end
 
   def find_doc id
