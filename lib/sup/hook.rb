@@ -54,6 +54,7 @@ class HookManager
       end
       ret = eval __hook, __binding, __filename
       BufferManager.clear @__say_id if @__say_id
+      @__cache = {}
       ret
     end
   end
