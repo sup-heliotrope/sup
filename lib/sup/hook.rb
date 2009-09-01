@@ -119,7 +119,7 @@ private
     unless @hooks.member? name
       @hooks[name] = begin
         returning IO.read(fn_for(name)) do
-          log "read '#{name}' from #{fn_for(name)}"
+          debug "read '#{name}' from #{fn_for(name)}"
         end
       rescue SystemCallError => e
         #log "disabled hook for '#{name}': #{e.message}"
