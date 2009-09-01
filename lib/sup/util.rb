@@ -177,7 +177,7 @@ class String
   ## nasty multibyte hack for ruby 1.8. if it's utf-8, split into chars using
   ## the utf8 regex and count those. otherwise, use the byte length.
   def display_length
-    if $encoding == "UTF-8"
+    if $encoding == "UTF-8" || $encoding == "utf8"
       scan(/./u).size
     else
       size
