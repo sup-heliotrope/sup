@@ -1,4 +1,3 @@
-require 'open3'
 module Redwood
 
 class ThreadViewMode < LineCursorMode
