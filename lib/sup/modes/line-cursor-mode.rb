@@ -15,9 +15,22 @@ class LineCursorMode < ScrollMode
   def initialize opts={}
     @cursor_top = @curpos = opts.delete(:skip_top_rows) || 0
     @load_more_callbacks = []
-    @load_more_callbacks_m = Mutex.new
-    @load_more_callbacks_active = false
+    @load_more_q = Queue.new
+    @load_more_thread = ::Thread.new do
+      while true
+        e = @load_more_q.pop
+        debug "calling callbacks on #{e.inspect}"
+        @load_more_callbacks.each { |c| c.call e }
+      end
+    end
+
     super opts
+  end
+
+  def cleanup
+    @load_more_thread.kill
+    debug "killing thread"
+    super
   end
 
   def draw
@@ -163,21 +176,8 @@ private
   end
 
   def call_load_more_callbacks size
-    go = 
-      @load_more_callbacks_m.synchronize do
-        if @load_more_callbacks_active
-          false
-        else
-          @load_more_callbacks_active = true
-        end
-    end
-
-    return unless go
-
-    @load_more_callbacks.each { |c| c.call size }
-    @load_more_callbacks_active = false
-  end    
-
+    @load_more_q.push size
+  end
 end
 
 end
