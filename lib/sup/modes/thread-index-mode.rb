@@ -77,8 +77,7 @@ EOS
     @last_load_more_size = nil
     to_load_more do |size|
       next if @last_load_more_size == 0
-      load_threads :num => 1, :background => false
-      load_threads :num => (size - 1),
+      load_threads :num => size,
                    :when_done => lambda { |num| @last_load_more_size = num }
     end
   end
@@ -630,6 +629,7 @@ EOS
         BufferManager.draw_screen
         last_update = Time.now
       end
+      ::Thread.pass
       break if @interrupt_search
     end
     @ts.threads.each { |th| th.labels.each { |l| LabelManager << l } }
