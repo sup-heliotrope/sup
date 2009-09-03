@@ -112,7 +112,7 @@ EOS
       mode = ThreadViewMode.new t, @hidden_labels, self
       BufferManager.spawn t.subj, mode
       BufferManager.draw_screen
-      mode.jump_to_first_open true
+      mode.jump_to_first_open
       BufferManager.draw_screen # lame TODO: make this unnecessary
       ## the first draw_screen is needed before topline and botline
       ## are set, and the second to show the cursor having moved
