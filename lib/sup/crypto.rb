@@ -129,10 +129,9 @@ class CryptoManager
       end
 
       notice = Chunk::CryptoNotice.new :valid, "This message has been decrypted for display"
-      [RMail::Parser.read(decrypted_payload), sig, notice]
+      [notice, sig, RMail::Parser.read(decrypted_payload)]
     else
-      notice = Chunk::CryptoNotice.new :invalid, "This message could not be decrypted", output.split("\n")
-      [nil, nil, notice]
+      Chunk::CryptoNotice.new :invalid, "This message could not be decrypted", output.split("\n")
     end
   end
 
