@@ -193,6 +193,7 @@ end
 ## set up default configuration file
 if File.exists? Redwood::CONFIG_FN
   $config = Redwood::load_yaml_obj Redwood::CONFIG_FN
+  abort "#{Redwood::CONFIG_FN} is not a valid configuration file (it's a #{$config.class}, not a hash)" unless $config.is_a?(Hash)
 else
   require 'etc'
   require 'socket'
