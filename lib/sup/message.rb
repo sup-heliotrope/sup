@@ -382,9 +382,13 @@ private
       return
     end
 
-    decryptedm, sig, notice = CryptoManager.decrypt payload
-    children = message_to_chunks(decryptedm, true) if decryptedm
-    [notice, sig, children].flatten.compact
+    notice, sig, decryptedm = CryptoManager.decrypt payload
+    if decryptedm # managed to decrypt
+      children = message_to_chunks(decryptedm, true)
+      [notice, sig, children]
+    else
+      [notice]
+    end
   end
 
   ## takes a RMail::Message, breaks it into Chunk:: classes.
