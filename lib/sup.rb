@@ -88,8 +88,10 @@ module Redwood
   def save_yaml_obj o, fn, safe=false
     o = if o.is_a?(Array)
       o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
+    elsif o.respond_to? :before_marshal
+      o.before_marshal
     else
-      o.respond_to?(:before_marshal) && o.before_marshal
+      o
     end
 
     if safe
