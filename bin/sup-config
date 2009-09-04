@@ -166,7 +166,7 @@ account = $config[:accounts][:default]
 name = axe "What's your name?", account[:name]
 email = axe "What's your (primary) email address?", account[:email]
 
-say "Ok, your header will look like this:"
+say "Ok, your from header will look like this:"
 say "  From: #{name} <#{email}>"
 
 say "\nDo you have any alternate email addresses that also receive email?"
@@ -216,14 +216,12 @@ else
   choose do |menu|
     menu.prompt = "Store my sent mail in? "
 
+    menu.choice('Default (an mbox in ~/.sup, aka sup://sent)') { $config[:sent_source] = 'sup://sent'} unless have_sup_sent
+
     valid_sents = Redwood::SourceManager.sources.each do |s|
       have_sup_sent = true if s.to_s.eql?('sup://sent')
-
       menu.choice(s.to_s) { $config[:sent_source] = s.to_s } if s.respond_to? :store_message
     end
-
-    menu.choice('Default (sup://sent)') { $config[:sent_source] = 'sup://sent'} unless have_sup_sent
-
   end
 end
 
@@ -233,7 +231,7 @@ say "Ok, I've saved you up a nice lil' #{Redwood::CONFIG_FN}."
 
 say <<EOS
 
-Ok. The final step is to import all your messages into the Sup index.
+The final step is to import all your messages into the Sup index.
 Depending on how many messages are in the sources, this could take
 quite a while.
 
