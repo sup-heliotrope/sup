@@ -88,8 +88,10 @@ module Redwood
   def save_yaml_obj o, fn, safe=false
     o = if o.is_a?(Array)
       o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
+    elsif o.respond_to? :before_marshal
+      o.before_marshal
     else
-      o.respond_to?(:before_marshal) && o.before_marshal
+      o
     end
 
     if safe
@@ -193,6 +195,7 @@ end
 ## set up default configuration file
 if File.exists? Redwood::CONFIG_FN
   $config = Redwood::load_yaml_obj Redwood::CONFIG_FN
+  abort "#{Redwood::CONFIG_FN} is not a valid configuration file (it's a #{$config.class}, not a hash)" unless $config.is_a?(Hash)
 else
   require 'etc'
   require 'socket'
