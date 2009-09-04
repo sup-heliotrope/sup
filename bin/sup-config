@@ -17,15 +17,14 @@ Usage:
 
 Options:
 EOS
-end #' stupid ruby-mode
+end
 
 def axe q, default=nil
-  ans = 
-    if default && !default.empty?
-      ask "#{q} (enter for \"#{default}\"): "
-    else
-      ask "#{q}: "
-    end
+  ans = if default && !default.empty?
+    ask "#{q} (enter for \"#{default}\"): "
+  else
+    ask "#{q}: "
+  end
   ans.empty? ? default : ans
 end
 
@@ -54,64 +53,62 @@ def add_source
   while true do
     say "Ok, now for the details."
 
-    default_labels, components = 
-      case type
-      when :mbox
-        $last_fn ||= ENV["MAIL"]
-        fn = axe "What's the full path to the mbox file?", $last_fn #"srm
-        return if fn.nil? || fn.empty?
+    default_labels, components = case type
+    when :mbox
+      $last_fn ||= ENV["MAIL"]
+      fn = axe "What's the full path to the mbox file?", $last_fn
+      return if fn.nil? || fn.empty?
 
-        $last_fn = fn
-        [Redwood::MBox::Loader.suggest_labels_for(fn),
-         { :scheme => "mbox", :path => fn }]
-      when :maildir
-        $last_fn ||= ENV["MAIL"]
-        fn = axe "What's the full path to the maildir directory?", $last_fn #"srm
-        return if fn.nil? || fn.empty?
+      $last_fn = fn
+      [Redwood::MBox::Loader.suggest_labels_for(fn),
+       { :scheme => "mbox", :path => fn }]
+    when :maildir
+      $last_fn ||= ENV["MAIL"]
+      fn = axe "What's the full path to the maildir directory?", $last_fn
+      return if fn.nil? || fn.empty?
 
-        $last_fn = fn
-        [Redwood::Maildir.suggest_labels_for(fn),
-         { :scheme => "maildir", :path => fn }]
-      when :mboxssh
-        $last_server ||= "localhost"
-        srv = axe "What machine is the mbox file located on?", $last_server 
-        return if srv.nil? || srv.empty?
-        $last_server = srv
+      $last_fn = fn
+      [Redwood::Maildir.suggest_labels_for(fn),
+       { :scheme => "maildir", :path => fn }]
+    when :mboxssh
+      $last_server ||= "localhost"
+      srv = axe "What machine is the mbox file located on?", $last_server
+      return if srv.nil? || srv.empty?
+      $last_server = srv
 
-        fn = axe "What's the path to the mbox file?", $last_fn #" stupid ruby-mode
-        return if fn.nil? || fn.empty?
-        $last_fn = fn
-        fn = "/#{fn}" # lame
-        [Redwood::MBox::SSHLoader.suggest_labels_for(fn),
-         { :scheme => "mbox+ssh", :host => srv, :path => fn }]
-      when :imap, :imaps
-        $last_server ||= "localhost"
-        srv = axe "What is the IMAP server (host, or host:port notation)?", $last_server
-        return if srv.nil? || srv.empty?
-        $last_server = srv
+      fn = axe "What's the path to the mbox file?", $last_fn
+      return if fn.nil? || fn.empty?
+      $last_fn = fn
+      fn = "/#{fn}" # lame
+      [Redwood::MBox::SSHLoader.suggest_labels_for(fn),
+       { :scheme => "mbox+ssh", :host => srv, :path => fn }]
+    when :imap, :imaps
+      $last_server ||= "localhost"
+      srv = axe "What is the IMAP server (host, or host:port notation)?", $last_server
+      return if srv.nil? || srv.empty?
+      $last_server = srv
 
-        $last_folder ||= "INBOX"
-        fn = axe "What's the folder path?", $last_folder #"srm 
-        return if fn.nil? || fn.empty?
-        $last_folder = fn
+      $last_folder ||= "INBOX"
+      fn = axe "What's the folder path?", $last_folder
+      return if fn.nil? || fn.empty?
+      $last_folder = fn
 
-        fn = "/#{fn}" # lame
-        if srv =~ /^(\S+):(\d+)$/
-          host, port = $1, $2.to_i
-        else
-          host, port = srv, nil
-        end
-        [Redwood::IMAP.suggest_labels_for(fn),
-         { :scheme => type.to_s, :host => host, :port => port, :path => fn }]
+      fn = "/#{fn}"
+      if srv =~ /^(\S+):(\d+)$/
+        host, port = $1, $2.to_i
+      else
+        host, port = srv, nil
       end
-    
-    uri = 
-      begin
-        URI::Generic.build components
-      rescue URI::Error => e
-        say "Whoopsie! I couldn't build a URI from that: #{e.message}"
-        if axe_yes("Try again?") then next else return end
-      end
+      [Redwood::IMAP.suggest_labels_for(fn),
+       { :scheme => type.to_s, :host => host, :port => port, :path => fn }]
+    end
+
+    uri = begin
+      URI::Generic.build components
+    rescue URI::Error => e
+      say "Whoopsie! I couldn't build a URI from that: #{e.message}"
+      if axe_yes("Try again?") then next else return end
+    end
 
     say "I'm going to add this source: #{uri}"
     unless axe("Does that look right?", "y") =~ /^y|yes$/i
@@ -123,13 +120,12 @@ def add_source
 
     labels_str = axe("Enter any labels to be automatically added to all messages from this source, separated by spaces (or 'none')", default_labels.join(","))
 
-    labels =
-      if labels_str =~ /^\s*none\s*$/i
-        nil
-      else
-        labels_str.split(/\s+/)
-      end
-    
+    labels = if labels_str =~ /^\s*none\s*$/i
+      nil
+    else
+      labels_str.split(/\s+/)
+    end
+
     cmd = build_cmd "sup-add"
     cmd += " --unusual" unless usual
     cmd += " --archive" if archive
@@ -164,12 +160,11 @@ nary a click of the mouse!
 Just answer these simple questions and you'll be on your way.
 
 EOS
-#' stupid ruby-mode
 
 account = $config[:accounts][:default]
 
 name = axe "What's your name?", account[:name]
-email = axe "What's your (primary) email address?", account[:email] #'srm
+email = axe "What's your (primary) email address?", account[:email]
 
 say "Ok, your header will look like this:"
 say "  From: #{name} <#{email}>"
@@ -186,7 +181,6 @@ $config[:accounts][:default][:email] = email
 $config[:accounts][:default][:alternates] = alts
 $config[:accounts][:default][:signature] = sigfn
 $config[:editor] = editor
-
 
 done = false
 until done
@@ -244,7 +238,7 @@ Depending on how many messages are in the sources, this could take
 quite a while.
 
 EOS
-#'
+
 if axe_yes "Run sup-sync to import all messages now?"
   while true
     cmd = build_cmd("sup-sync") + " --all-sources"
