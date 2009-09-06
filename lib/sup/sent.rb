@@ -29,6 +29,7 @@ class SentManager
 
     PollManager.each_message_from(@source) do |m|
       m.remove_label :unread
+      m.add_label :sent
       PollManager.add_new_message m
     end
   end
