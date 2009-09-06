@@ -9,6 +9,8 @@ class Loader < Source
   include SerializeLabelsNicely
   yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
 
+  attr_reader :labels
+
   ## uri_or_fp is horrific. need to refactor.
   def initialize uri_or_fp, start_offset=0, usual=true, archived=false, id=nil, labels=nil
     @mutex = Mutex.new
@@ -169,7 +171,7 @@ class Loader < Source
     end
 
     self.cur_offset = next_offset
-    [returned_offset, (@labels + [:unread])]
+    [returned_offset, (labels + [:unread])]
   end
 end
 
