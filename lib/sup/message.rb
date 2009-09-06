@@ -191,11 +191,13 @@ class Message
 
   def has_label? t; @labels.member? t; end
   def add_label l
+    l = l.to_sym
     return if @labels.member? l
     @labels << l
     @dirty = true
   end
   def remove_label l
+    l = l.to_sym
     return unless @labels.member? l
     @labels.delete l
     @dirty = true
@@ -207,6 +209,7 @@ class Message
 
   def labels= l
     raise ArgumentError, "not a set" unless l.is_a?(Set)
+    raise ArgumentError, "not a set of labels" unless l.all? { |ll| ll.is_a?(Symbol) }
     return if @labels == l
     @labels = l
     @dirty = true
