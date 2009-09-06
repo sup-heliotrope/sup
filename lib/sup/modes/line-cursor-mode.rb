@@ -19,7 +19,6 @@ class LineCursorMode < ScrollMode
     @load_more_thread = ::Thread.new do
       while true
         e = @load_more_q.pop
-        debug "calling callbacks on #{e.inspect}"
         @load_more_callbacks.each { |c| c.call e }
       end
     end
@@ -29,7 +28,6 @@ class LineCursorMode < ScrollMode
 
   def cleanup
     @load_more_thread.kill
-    debug "killing thread"
     super
   end
 
