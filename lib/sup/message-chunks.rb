@@ -208,13 +208,25 @@ EOS
 
   class EnclosedMessage
     attr_reader :lines
-    def initialize from, body
-      @from = from
-      @lines = body.split "\n"
-    end
+    def initialize from, to, cc, date, subj
+      @from = from ? "unknown sender" : from.full_adress
+      @to = to ? "" : to.map { |p| p.full_address }.join(", ")
+      @cc = cc ? "" : cc.map { |p| p.full_address }.join(", ")
+      if date
+        @date = date.rfc822
+      else
+        @date = ""
+      end
 
-    def from
-      @from ? @from.longname : "unknown sender"
+      @subj = subj
+
+      @lines = "\nFrom: #{from}\n"
+      @lines += "To: #{to}\n"
+      if !cc.empty?
+        @lines += "Cc: #{cc}\n"
+      end
+      @lines += "Date: #{date}\n"
+      @lines += "Subject: #{subj}\n\n"
     end
 
     def inlineable?; false end
@@ -224,7 +236,7 @@ EOS
     def viewable?; false end
 
     def patina_color; :generic_notice_patina_color end
-    def patina_text; "Begin enclosed message from #{from} (#{@lines.length} lines)" end
+    def patina_text; "Begin enclosed message sent on #{@date}" end
 
     def color; :quote_color end
   end
