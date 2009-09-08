@@ -307,6 +307,7 @@ require "sup/modes/buffer-list-mode"
 require "sup/modes/poll-mode"
 require "sup/modes/file-browser-mode"
 require "sup/modes/completion-mode"
+require "sup/modes/console-mode"
 require "sup/sent"
 
 $:.each do |base|
