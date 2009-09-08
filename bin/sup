@@ -296,14 +296,11 @@ begin
         b, new = BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
         b.mode.load_threads :num => b.content_height if new
       end
-<<<<<<< HEAD:bin/sup
     when :show_inbox
       BufferManager.raise_to_front ibuf
-=======
     when :show_console
       b, new = bm.spawn_unless_exists("Console", :system => true) { ConsoleMode.new }
       b.mode.run
->>>>>>> console-mode:bin/sup
     when :nothing, InputSequenceAborted
     when :redraw
       bm.completely_redraw_screen
