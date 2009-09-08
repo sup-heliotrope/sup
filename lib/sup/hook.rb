@@ -1,15 +1,6 @@
 module Redwood
 
 class HookManager
-  ## there's probably a better way to do this, but to evaluate a hook
-  ## with a bunch of pre-set "local variables" i define a function
-  ## per variable and then instance_evaluate the code.
-  ##
-  ## how does rails do it, when you pass :locals into a partial?
-  ##
-  ## i don't bother providing setters, since i'm pretty sure the
-  ## charade will fall apart pretty quickly with respect to scoping.
-  ## "fail-fast", we'll call it.
   class HookContext
     def initialize name
       @__say_id = nil
@@ -18,12 +9,6 @@ class HookManager
     end
 
     attr_writer :__locals
-
-    ## an annoying gotcha here is that if you try something
-    ## like var = var.foo(), var will magically get allocated
-    ## to Nil and method_missing will never get called.  You
-    ## can work around this by calling self.var or simply
-    ## not assigning it to itself.
     def method_missing m, *a
       case @__locals[m]
       when Proc

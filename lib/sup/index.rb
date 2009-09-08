@@ -28,10 +28,7 @@ class Index
 Executes before a string search is applied to the index,
 returning a new search string.
 Variables:
-  subs: The string being searched. Be careful about shadowing:
-    this variable is actually a method, so use a temporary variable
-    or explicitly call self.subs; the substitutions in index.rb
-    don't actually work.
+  subs: The string being searched.
 EOS
 
   ## these two accessors should ONLY be used by single-threaded programs.
