@@ -4,6 +4,13 @@ module Redwood
 
 class FerretIndex < BaseIndex
 
+  HookManager.register "custom-search", <<EOS
+Executes before a string search is applied to the index,
+returning a new search string.
+Variables:
+  subs: The string being searched.
+EOS
+
   def initialize dir=BASE_DIR
     super
 
@@ -332,6 +339,7 @@ class FerretIndex < BaseIndex
   def parse_query s
     query = {}
 
+    subs = HookManager.run("custom-search", :subs => s) || s
     subs = s.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
