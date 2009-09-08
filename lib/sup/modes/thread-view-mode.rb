@@ -53,6 +53,7 @@ EOS
     k.add :toggle_new, "Toggle unread/read status of message", 'N'
 #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
     k.add :reply, "Reply to a message", 'r'
+    k.add :reply_all, "Reply to all participants of this message", 'G'
     k.add :forward, "Forward a message or attachment", 'f'
     k.add :bounce, "Bounce message to other recipient(s)", '!'
     k.add :alias, "Edit alias/nickname for a person", 'i'
@@ -161,11 +162,13 @@ EOS
     update
   end
 
-  def reply
+  def reply type_arg=nil
     m = @message_lines[curpos] or return
-    mode = ReplyMode.new m
+    mode = ReplyMode.new m, type_arg
     BufferManager.spawn "Reply to #{m.subj}", mode
   end
+
+  def reply_all; reply :all; end
 
   def subscribe_to_list
     m = @message_lines[curpos] or return

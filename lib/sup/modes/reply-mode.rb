@@ -40,7 +40,7 @@ Return value:
   The reply mode you desire, or nil to use the default behavior.
 EOS
 
-  def initialize message
+  def initialize message, type_arg=nil
     @m = message
 
     ## it's important to put this early because it forces a read of
@@ -138,7 +138,9 @@ EOS
     hook_reply = HookManager.run "reply-to", :modes => types
 
     @type_selector.set_to(
-      if types.include? hook_reply
+      if types.include? type_arg
+        type_arg
+      elsif types.include? hook_reply
         hook_reply
       elsif @m.is_list_message?
         :list

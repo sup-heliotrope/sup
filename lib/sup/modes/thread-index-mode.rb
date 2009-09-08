@@ -40,6 +40,7 @@ EOS
     k.add :save, "Save changes now", '$'
     k.add :jump_to_next_new, "Jump to next new thread", :tab
     k.add :reply, "Reply to latest message in a thread", 'r'
+    k.add :reply_all, "Reply to all participants of the latest message in a thread", 'G'
     k.add :forward, "Forward latest message in a thread", 'f'
     k.add :toggle_tagged, "Tag/untag selected thread", 't'
     k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
@@ -584,14 +585,16 @@ EOS
     end
   end
 
-  def reply
+  def reply type_arg=nil
     t = cursor_thread or return
     m = t.latest_message
     return if m.nil? # probably won't happen
     m.load_from_source!
-    mode = ReplyMode.new m
+    mode = ReplyMode.new m, type_arg
     BufferManager.spawn "Reply to #{m.subj}", mode
   end
+
+  def reply_all; reply :all; end
 
   def forward
     t = cursor_thread or return
