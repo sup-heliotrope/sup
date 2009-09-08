@@ -168,6 +168,9 @@ begin
   lmode.on_kill { Logger.clear! }
   Logger.add_sink lmode
   Logger.force_message "Welcome to Sup! Log level is set to #{Logger.level}."
+  if Logger::LEVELS.index(Logger.level) > 0
+    Logger.force_message "For more verbose logging, restart with SUP_LOG_LEVEL=#{Logger::LEVELS[Logger::LEVELS.index(Logger.level)-1]}."
+  end
 
   debug "initializing inbox buffer"
   imode = InboxMode.new
