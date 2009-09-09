@@ -21,6 +21,7 @@ class Console
 
   def xapian; Index.instance.instance_variable_get :@xapian; end
   def ferret; Index.instance.instance_variable_get :@index; end
+  def special_methods; methods - Object.methods end
 
   ## files that won't cause problems when reloaded
   ## TODO expand this list / convert to blacklist
@@ -67,12 +68,6 @@ class ConsoleMode < LogMode
     super
     @console = Console.new self
     @binding = @console.instance_eval { binding }
-    self << <<EOS
-Sup #{VERSION} console.
-Available commands: #{(@console.methods - Object.methods) * ", "}
-Ctrl-g stops evaluation; 'e' restarts it.
-
-EOS
   end
 
   def execute cmd
@@ -89,13 +84,23 @@ EOS
   end
 
   def prompt
-    BufferManager.ask :console, "eval: "
+    BufferManager.ask :console, ">> "
   end
 
   def run
+    self << <<EOS
+Sup v#{VERSION} console session started.
+Available extra commands: #{(@console.special_methods) * ", "}
+Ctrl-G stops evaluation; 'e' restarts it.
+
+EOS
     while true
-      cmd = prompt or return
-      execute cmd
+      if(cmd = prompt)
+        execute cmd
+      else
+        self << "Console session ended."
+        break
+      end
     end
   end
 end
