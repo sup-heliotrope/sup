@@ -64,6 +64,9 @@ EOS
     k.add :unsubscribe_from_list, "Subscribe to/unsubscribe from mailing list", ")"
     k.add :pipe_message, "Pipe message or attachment to a shell command", '|'
 
+    k.add :archive_and_next, "Archive this thread, kill buffer, and view next", 'a'
+    k.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
+
     k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read:", '.' do |kk|
       kk.add :archive_and_kill, "Archive this thread and kill buffer", 'a'
       kk.add :delete_and_kill, "Delete this thread and kill buffer", 'd'
