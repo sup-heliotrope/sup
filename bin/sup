@@ -210,7 +210,7 @@ begin
   until Redwood::exceptions.nonempty? || $die
     c = begin
       Ncurses.nonblocking_getch
-    rescue Interrupt => e
+    rescue Interrupt
       raise if BufferManager.ask_yes_or_no "Die ungracefully now?"
       BufferManager.draw_screen
       nil

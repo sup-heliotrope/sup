@@ -35,7 +35,14 @@ module Ncurses
     end
   end
 
-  module_function :rows, :cols, :curx, :nonblocking_getch, :mutex, :sync
+  ## pretends ctrl-c's are ctrl-g's
+  def safe_nonblocking_getch
+    nonblocking_getch
+  rescue Interrupt
+    KEY_CANCEL
+  end
+
+  module_function :rows, :cols, :curx, :nonblocking_getch, :safe_nonblocking_getch, :mutex, :sync
 
   remove_const :KEY_ENTER
   remove_const :KEY_CANCEL
@@ -383,7 +390,7 @@ EOS
     draw_screen
 
     until mode.done?
-      c = Ncurses.nonblocking_getch
+      c = Ncurses.safe_nonblocking_getch
       next unless c # getch timeout
       break if c == Ncurses::KEY_CANCEL
       begin
@@ -559,7 +566,7 @@ EOS
     end
 
     while true
-      c = Ncurses.nonblocking_getch
+      c = Ncurses.safe_nonblocking_getch
       next unless c # getch timeout
       break unless tf.handle_input c # process keystroke
 
@@ -612,7 +619,7 @@ EOS
     ret = nil
     done = false
     until done
-      key = Ncurses.nonblocking_getch or next
+      key = Ncurses.safe_nonblocking_getch or next
       if key == Ncurses::KEY_CANCEL
         done = true
       elsif accept.nil? || accept.empty? || accept.member?(key)
