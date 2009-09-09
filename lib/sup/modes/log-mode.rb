@@ -9,9 +9,12 @@ class LogMode < TextMode
     k.add :toggle_follow, "Toggle follow mode", 'f'
   end
 
-  def initialize buffer_name
+  ## if buffer_name is supplied, this mode will spawn a buffer
+  ## upon receiving the << message. otherwise, it will act like
+  ## a regular buffer.
+  def initialize autospawn_buffer_name=nil
     @follow = true
-    @buffer_name = buffer_name
+    @autospawn_buffer_name = autospawn_buffer_name
     @on_kill = []
     super()
   end
@@ -28,8 +31,8 @@ class LogMode < TextMode
   end
 
   def << s
-    unless buffer
-      BufferManager.spawn @buffer_name, self, :hidden => true, :system => true
+    if buffer.nil? && @autospawn_buffer_name
+      BufferManager.spawn @autospawn_buffer_name, self, :hidden => true, :system => true
     end
 
     s.split("\n").each { |l| super(l + "\n") } # insane. different << semantics.
