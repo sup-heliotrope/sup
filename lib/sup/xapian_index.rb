@@ -16,6 +16,13 @@ class XapianIndex < BaseIndex
   MIN_DATE = Time.at 0
   MAX_DATE = Time.at(2**31-1)
 
+  HookManager.register "custom-search", <<EOS
+Executes before a string search is applied to the index,
+returning a new search string.
+Variables:
+  subs: The string being searched.
+EOS
+
   def initialize dir=BASE_DIR
     super
 
@@ -185,7 +192,8 @@ class XapianIndex < BaseIndex
   def parse_query s
     query = {}
 
-    subs = s.gsub(/\b(to|from):(\S+)\b/) do
+    subs = HookManager.run("custom-search", :subs => s) || s
+    subs = subs.gsub(/\b(to|from):(\S+)\b/) do
       field, name = $1, $2
       if(p = ContactManager.contact_for(name))
         [field, p.email]

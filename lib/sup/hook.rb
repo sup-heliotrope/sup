@@ -122,7 +122,7 @@ private
           debug "read '#{name}' from #{fn_for(name)}"
         end
       rescue SystemCallError => e
-        #log "disabled hook for '#{name}': #{e.message}"
+        #debug "disabled hook for '#{name}': #{e.message}"
         nil
       end
     end

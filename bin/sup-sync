@@ -173,18 +173,22 @@ begin
 
       ## decide what to do based on message labels and the operation we're performing
       dothis, new_labels = case
-      when (op == :restore) && restored_state[m.id] && old_m && (old_m.labels != restored_state[m.id])
-        num_restored += 1
-        [:update_message_state, restored_state[m.id]]
-      when (op == :restore) && restored_state[m.id] && !old_m
-        num_restored += 1
-        m.labels = restored_state[m.id]
-        :add_message
+      when (op == :restore) && restored_state[m.id]
+        if old_m && (old_m.labels != restored_state[m.id])
+          num_restored += 1
+          [:update_message_state, restored_state[m.id]]
+        elsif old_m.nil?
+          num_restored += 1
+          m.labels = restored_state[m.id]
+          :add_message
+        else
+          # labels are the same; don't do anything
+        end
       when op == :discard
         if old_m && (old_m.labels != m.labels)
           [:update_message_state, m.labels]
         else
-          # don't do anything
+          # labels are the same; don't do anything
         end
       else
         ## duplicate behavior of poll mode: if index_state is non-nil, this is a newer
