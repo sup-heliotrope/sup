@@ -91,7 +91,6 @@ EOS
         num = 0
         numi = 0
         each_message_from source do |m|
-          yield "Found message at #{m.source_info} with labels {#{m.labels.to_a * ', '}}"
           old_m = Index.build_message m.id
           if old_m
               if old_m.source.id != source.id || old_m.source_info != m.source_info
