@@ -13,7 +13,13 @@ class LabelListMode < LineCursorMode
     @text = []
     @unread_only = false
     super
+    UpdateManager.register self
     regen_text
+  end
+
+  def cleanup
+    UpdateManager.unregister self
+    super
   end
 
   def lines; @text.length end
@@ -32,6 +38,10 @@ class LabelListMode < LineCursorMode
 
   def focus
     reload # make sure unread message counts are up-to-date
+  end
+
+  def handle_added_update sender, m
+    reload
   end
 
 protected
