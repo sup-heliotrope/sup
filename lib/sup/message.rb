@@ -374,12 +374,12 @@ private
     end
 
     ## this probably will never happen
-    if payload.header.downcase.content_type == "application/pgp-signature"
+    if payload.header.content_type.downcase == "application/pgp-signature"
       warn "multipart/signed with payload content type #{payload.header.content_type}"
       return
     end
 
-    if signature.header.downcase.content_type != "application/pgp-signature"
+    if signature.header.content_type.downcase != "application/pgp-signature"
       ## unknown signature type; just ignore.
       #warn "multipart/signed with signature content type #{signature.header.content_type}"
       return
