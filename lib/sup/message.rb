@@ -456,6 +456,20 @@ private
         debug "no body for message/rfc822 enclosure; skipping"
         []
       end
+    elsif m.header.content_type.downcase == "application/pgp" && m.body
+      ## apparently some versions of Thunderbird generate encryped email that
+      ## does not follow RFC3156, e.g. messages with X-Enigmail-Version: 0.95.0
+      ## they have no MIME multipart and just set the body content type to
+      ## application/pgp. this handles that.
+      ##
+      ## TODO: unduplicate code between here and multipart_encrypted_to_chunks
+      notice, sig, decryptedm = CryptoManager.decrypt m.body
+      if decryptedm # managed to decrypt
+        children = message_to_chunks decryptedm, true
+        [notice, sig] + children
+      else
+        [notice]
+      end
     else
       filename =
         ## first, paw through the headers looking for a filename
