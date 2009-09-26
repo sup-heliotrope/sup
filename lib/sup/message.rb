@@ -413,7 +413,7 @@ private
     notice, sig, decryptedm = CryptoManager.decrypt payload
     if decryptedm # managed to decrypt
       children = message_to_chunks(decryptedm, true)
-      [notice, sig, children]
+      [notice, sig] + children
     else
       [notice]
     end
