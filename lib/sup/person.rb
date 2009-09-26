@@ -1,19 +1,17 @@
 module Redwood
 
-class Person 
+class Person
   attr_accessor :name, :email
 
   def initialize name, email
     raise ArgumentError, "email can't be nil" unless email
-    
-    if name
-      @name = name.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ")
-      if @name =~ /^(['"]\s*)(.*?)(\s*["'])$/
-        @name = $2
-      end
+
+    @name = if name
+      name = name.strip.gsub(/\s+/, " ")
+      name =~ /^(['"]\s*)(.*?)(\s*["'])$/ ? $2 : name
     end
 
-    @email = email.gsub(/^\s+|\s+$/, "").gsub(/\s+/, " ").downcase
+    @email = email.strip.gsub(/\s+/, " ").downcase
   end
 
   def to_s; "#@name <#@email>" end

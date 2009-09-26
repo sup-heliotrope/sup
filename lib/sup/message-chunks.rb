@@ -50,7 +50,8 @@ directly in Sup. For attachments that you wish to use a separate program
 to view (e.g. images), you should use the mime-view hook instead.
 
 Variables:
-   content_type: the content-type of the message
+   content_type: the content-type of the attachment
+        charset: the charset of the attachment, if applicable
        filename: the filename of the attachment as saved to disk
   sibling_types: if this attachment is part of a multipart MIME attachment,
                  an array of content-types for all attachments. Otherwise,
@@ -85,7 +86,7 @@ EOS
     bool_reader :quotable
 
     def initialize content_type, filename, encoded_content, sibling_types
-      @content_type = content_type
+      @content_type = content_type.downcase
       @filename = filename
       @quotable = false # changed to true if we can parse it through the
                         # mime-decode hook, or if it's plain text
@@ -96,15 +97,15 @@ EOS
           "For some bizarre reason, RubyMail was unable to parse this attachment.\n"
         end
 
-      text =
-        case @content_type
-        when /^text\/plain\b/
-          Iconv.easy_decode $encoding, encoded_content.charset || $encoding, @raw_content
-        else
-          HookManager.run "mime-decode", :content_type => content_type,
-                          :filename => lambda { write_to_disk },
-                          :sibling_types => sibling_types
-        end
+      text = case @content_type
+      when /^text\/plain\b/
+        Iconv.easy_decode $encoding, encoded_content.charset || $encoding, @raw_content
+      else
+        HookManager.run "mime-decode", :content_type => content_type,
+                        :filename => lambda { write_to_disk },
+                        :charset => encoded_content.charset,
+                        :sibling_types => sibling_types
+      end
 
       @lines = nil
       if text

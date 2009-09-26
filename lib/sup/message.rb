@@ -374,12 +374,12 @@ private
     end
 
     ## this probably will never happen
-    if payload.header.content_type == "application/pgp-signature"
+    if payload.header.downcase.content_type == "application/pgp-signature"
       warn "multipart/signed with payload content type #{payload.header.content_type}"
       return
     end
 
-    if signature.header.content_type != "application/pgp-signature"
+    if signature.header.downcase.content_type != "application/pgp-signature"
       ## unknown signature type; just ignore.
       #warn "multipart/signed with signature content type #{signature.header.content_type}"
       return
@@ -400,12 +400,12 @@ private
       return
     end
 
-    if payload.header.content_type != "application/octet-stream"
+    if payload.header.downcase.content_type != "application/octet-stream"
       warn "multipart/encrypted with payload content type #{payload.header.content_type}"
       return
     end
 
-    if control.header.content_type != "application/pgp-encrypted"
+    if control.header.downcase.content_type != "application/pgp-encrypted"
       warn "multipart/encrypted with control content type #{signature.header.content_type}"
       return
     end
@@ -413,7 +413,7 @@ private
     notice, sig, decryptedm = CryptoManager.decrypt payload
     if decryptedm # managed to decrypt
       children = message_to_chunks(decryptedm, true)
-      [notice, sig, children]
+      [notice, sig] + children
     else
       [notice]
     end
@@ -423,7 +423,7 @@ private
   def message_to_chunks m, encrypted=false, sibling_types=[]
     if m.multipart?
       chunks =
-        case m.header.content_type
+        case m.header.content_type.downcase
         when "multipart/signed"
           multipart_signed_to_chunks m
         when "multipart/encrypted"
@@ -436,7 +436,7 @@ private
       end
 
       chunks
-    elsif m.header.content_type == "message/rfc822"
+    elsif m.header.content_type.downcase == "message/rfc822"
       if m.body
         payload = RMail::Parser.read(m.body)
         from = payload.header.from.first ? payload.header.from.first.format : ""
@@ -453,21 +453,22 @@ private
         cc_people = cc ? Person.from_address_list(cc) : nil
         [Chunk::EnclosedMessage.new(from_person, to_people, cc_people, msgdate, subj)] + message_to_chunks(payload, encrypted)
       else
-        [Chunk::EnclosedMessage.new(nil, "")]
+        debug "no body for message/rfc822 enclosure; skipping"
+        []
       end
     else
       filename =
         ## first, paw through the headers looking for a filename
         if m.header["Content-Disposition"] && m.header["Content-Disposition"] =~ /filename="?(.*?[^\\])("|;|$)/
           $1
-        elsif m.header["Content-Type"] && m.header["Content-Type"] =~ /name="?(.*?[^\\])("|;|$)/
+        elsif m.header["Content-Type"] && m.header["Content-Type"] =~ /name="?(.*?[^\\])("|;|$)/i
           $1
 
         ## haven't found one, but it's a non-text message. fake
         ## it.
         ##
         ## TODO: make this less lame.
-        elsif m.header["Content-Type"] && m.header["Content-Type"] !~ /^text\/plain/
+        elsif m.header["Content-Type"] && m.header["Content-Type"] !~ /^text\/plain/i
           extension =
             case m.header["Content-Type"]
             when /text\/html/ then "html"
@@ -484,7 +485,7 @@ private
         # Lowercase the filename because searches are easier that way 
         @attachments.push filename.downcase unless filename =~ /^sup-attachment-/
         add_label :attachment unless filename =~ /^sup-attachment-/
-        content_type = m.header.content_type || "application/unknown" # sometimes RubyMail gives us nil
+        content_type = m.header.content_type.downcase || "application/unknown" # sometimes RubyMail gives us nil
         [Chunk::Attachment.new(content_type, filename, m, sibling_types)]
 
       ## otherwise, it's body text
