@@ -453,7 +453,8 @@ private
         cc_people = cc ? Person.from_address_list(cc) : nil
         [Chunk::EnclosedMessage.new(from_person, to_people, cc_people, msgdate, subj)] + message_to_chunks(payload, encrypted)
       else
-        [Chunk::EnclosedMessage.new(nil, "")]
+        debug "no body for message/rfc822 enclosure; skipping"
+        []
       end
     else
       filename =
