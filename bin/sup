@@ -58,6 +58,7 @@ if $opts[:list_hooks]
 end
 
 Thread.abort_on_exception = true # make debugging possible
+Thread.current.priority = 1 # keep ui responsive
 
 module Redwood
 
