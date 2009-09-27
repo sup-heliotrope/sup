@@ -374,12 +374,12 @@ private
     end
 
     ## this probably will never happen
-    if payload.header.content_type.downcase == "application/pgp-signature"
+    if payload.header.content_type && payload.header.content_type.downcase == "application/pgp-signature"
       warn "multipart/signed with payload content type #{payload.header.content_type}"
       return
     end
 
-    if signature.header.content_type.downcase != "application/pgp-signature"
+    if signature.header.content_type && signature.header.content_type.downcase != "application/pgp-signature"
       ## unknown signature type; just ignore.
       #warn "multipart/signed with signature content type #{signature.header.content_type}"
       return
@@ -400,12 +400,12 @@ private
       return
     end
 
-    if payload.header.downcase.content_type != "application/octet-stream"
+    if payload.header.content_type && payload.header.content_type.downcase != "application/octet-stream"
       warn "multipart/encrypted with payload content type #{payload.header.content_type}"
       return
     end
 
-    if control.header.downcase.content_type != "application/pgp-encrypted"
+    if control.header.content_type && control.header.content_type.downcase != "application/pgp-encrypted"
       warn "multipart/encrypted with control content type #{signature.header.content_type}"
       return
     end
@@ -436,7 +436,7 @@ private
       end
 
       chunks
-    elsif m.header.content_type.downcase == "message/rfc822"
+    elsif m.header.content_type && m.header.content_type.downcase == "message/rfc822"
       if m.body
         payload = RMail::Parser.read(m.body)
         from = payload.header.from.first ? payload.header.from.first.format : ""
@@ -456,7 +456,7 @@ private
         debug "no body for message/rfc822 enclosure; skipping"
         []
       end
-    elsif m.header.content_type.downcase == "application/pgp" && m.body
+    elsif m.header.content_type && m.header.content_type.downcase == "application/pgp" && m.body
       ## apparently some versions of Thunderbird generate encryped email that
       ## does not follow RFC3156, e.g. messages with X-Enigmail-Version: 0.95.0
       ## they have no MIME multipart and just set the body content type to
