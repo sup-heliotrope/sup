@@ -162,8 +162,10 @@ EOS
     fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
     return unless fn
     begin
-      @attachments << RMail::Message.make_file_attachment(fn)
-      @attachment_names << fn
+      Dir[fn].each do |f|
+        @attachments << RMail::Message.make_file_attachment(f)
+        @attachment_names << f
+      end
       update
     rescue SystemCallError => e
       BufferManager.flash "Can't read #{fn}: #{e.message}"
