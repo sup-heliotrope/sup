@@ -1,3 +1,22 @@
+== 0.9 / 2009-09-30
+* Experimental Xapian backend to replace Ferret. Not everything works with it,
+  but it's fast and less likely to barf. See release notes.
+* New keybinding: "G" for reply-all.
+* New hook: custom-search, for adding your own query expansions.
+* Better preemptive thread loading.
+* Random UI tweaks: display labels before subjects, change thread-view-mode's
+  'n' and 'p' commands slightly
+* Better killing of other Sup processes.
+* Die gracefully upon SIGKILL.
+* Finally figure out the curses+ruby magic to make SIGWINCH (i.e. xterm
+  resizing) work correctly.
+* Add a console mode (press ~) for interactively playing with the index.
+* Finally figure out the curses magic to stop the weird keyboard behavior after
+  leaving the editor.
+* Improved logging. Logging now supports SUP_LOG_LEVEL environment variable.
+  Set this to "debug" for verbiage.
+* As always, many bugfixes and tweaks.
+
 == 0.8.1 / 2009-06-15
 * make multibyte display "work" for non-utf8 locales
 * fix reply-mode always selecting "Customized"
