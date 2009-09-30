@@ -1,3 +1,38 @@
+Release 0.9:
+
+There's a new Xapian backend as an alternative to the Ferret one. It's still in
+a beta stage. It's much faster and much less prone to the random crashes than
+Ferret, but certain things don't work yet, most noticeably the unread message
+counts in label-list-mode.
+
+You can switch back and forth between both indexes without harm, *except* any
+new messages added to the one index won't be picked up by the other. Follow
+these instructions:
+
+To TRY the Xapian index, without screwing Ferret up:
+
+1. sup-dump > dump                              # takes a while
+2. export SUP_INDEX=xapian                      # or however you do it in your shell
+3. sup-sync --all --all-sources --restore dump  # takes a long time
+4. sup -n                # -n ensures that no polling is done. don't hit 'P' either
+
+Step 1 will take a long time, and step 3 will take a very long time.
+
+At this point, whenever you run Sup, the SUP_INDEX environment variable will
+determine which index you use. If it's unset, or "ferret", you will use the
+ferret index. If it's "xapian", the Xapian index. Make sure when you run sup
+with the Xapian index, you use -n and don't hit 'P', to avoid loading new
+messages into it.
+
+If you want to switch to Xapian permanently, you can then:
+
+1. rm -rf ~/.sup/ferret
+2. permanently set SUP_INDEX=xapian according to your shell
+3. Run sup as normal, i.e. without -n.
+
+If you want to go back to Ferret, you can just rm -rf ~/.sup/xapian and make
+sure your SUP_INDEX environment variable is unset.
+
 Release 0.8.1:
 
 A bugfix release with fixes for quote parsing (bad behavior in certain long
