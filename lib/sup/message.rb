@@ -161,7 +161,7 @@ class Message
     @dirty = true if @refs.delete ref
   end
 
-  def snippet; @snippet || (chunks && @snippet); end
+  attr_reader :snippet
   def is_list_message?; !@list_address.nil?; end
   def is_draft?; @source.is_a? DraftLoader; end
   def draft_filename
