@@ -20,6 +20,8 @@ class LineCursorMode < ScrollMode
       while true
         e = @load_more_q.pop
         @load_more_callbacks.each { |c| c.call e }
+        sleep 0.5
+        @load_more_q.pop until @load_more_q.empty?
       end
     end
 
