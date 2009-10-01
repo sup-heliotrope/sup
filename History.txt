@@ -1,4 +1,4 @@
-== 0.9 / 2009-09-30
+== 0.9 / 2009-10-01
 * Experimental Xapian backend to replace Ferret. Not everything works with it,
   but it's fast and less likely to barf. See release notes.
 * New keybinding: "G" for reply-all.
