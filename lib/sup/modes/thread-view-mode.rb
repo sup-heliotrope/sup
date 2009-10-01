@@ -343,13 +343,26 @@ EOS
   def save_all_to_disk
     m = @message_lines[curpos] or return
     default_dir = ($config[:default_attachment_save_dir] || ".")
-    folder = BufferManager.ask_for_filename :filename, "Save all attachment to folder: ", default_dir, true
+    folder = BufferManager.ask_for_filename :filename, "Save all attachments to folder: ", default_dir, true
     return unless folder
 
+    num = 0
+    num_errors = 0
     m.chunks.each do |chunk|
       next unless chunk.is_a?(Chunk::Attachment)
       fn = File.join(folder, chunk.filename)
-      save_to_file(fn) { |f| f.print chunk.raw_content }
+      num_errors += 1 unless save_to_file(fn, false) { |f| f.print chunk.raw_content }
+      num += 1
+    end
+
+    if num == 0
+      BufferManager.flash "Didn't find any attachments!"
+    else
+      if num_errors == 0
+        BufferManager.flash "Wrote #{num.pluralize 'attachment'} to #{folder}."
+      else
+        BufferManager.flash "Wrote #{(num - num_errors).pluralize 'attachment'} to #{folder}; couldn't write #{num_errors} of them (see log)."
+      end
     end
   end
 

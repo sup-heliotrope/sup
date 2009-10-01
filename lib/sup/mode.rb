@@ -74,15 +74,22 @@ EOS
 
 ### helper functions
 
-  def save_to_file fn
+  def save_to_file fn, talk=true
     if File.exists? fn
-      return unless BufferManager.ask_yes_or_no "File exists. Overwrite?"
+      unless BufferManager.ask_yes_or_no "File \"#{fn}\" exists. Overwrite?"
+        info "Not overwriting #{fn}"
+        return
+      end
     end
     begin
       File.open(fn, "w") { |f| yield f }
-      BufferManager.flash "Successfully wrote #{fn}."
+      BufferManager.flash "Successfully wrote #{fn}." if talk
+      true
     rescue SystemCallError, IOError => e
-      BufferManager.flash "Error writing to file: #{e.message}"
+      m = "Error writing file: #{e.message}"
+      info m
+      BufferManager.flash m
+      false
     end
   end
 
