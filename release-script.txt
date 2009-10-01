@@ -3,7 +3,7 @@ Just a few simple steps to make a new release.
 vi History.txt
 vi ReleaseNotes
 vi www/index.html # and bump version number
-git rank-contributors -o > CONTRIBUTORS
+git rank-contributors -n -o > CONTRIBUTORS
 vi CONTRIBUTORS   # and merge
 vi www/index.html # and include CONTRIBUTORS
 # ... git add, commit, etc
@@ -15,4 +15,3 @@ rake tarball
 # manually upload
 git publish-branch
 rake upload_webpage
-rake upload_report
