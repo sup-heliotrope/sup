@@ -116,7 +116,7 @@ class Loader < Source
     need_blank = File.exists?(@filename) && !File.zero?(@filename)
     File.open(@filename, "a") do |f|
       f.puts if need_blank
-      f.puts "From #{from_email} #{date.utc}"
+      f.puts "From #{from_email} #{date.rfc2822}"
       yield f
     end
   end
