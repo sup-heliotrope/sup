@@ -58,6 +58,7 @@ EOS
     k.add :alias, "Edit alias/nickname for a person", 'i'
     k.add :edit_as_new, "Edit message as new", 'D'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
+    k.add :save_all_to_disk, "Save all attachments to disk", 'A'
     k.add :search, "Search for messages from particular people", 'S'
     k.add :compose, "Compose message to person", 'm'
     k.add :subscribe_to_list, "Subscribe to/unsubscribe from mailing list", "("
@@ -335,6 +336,32 @@ EOS
       return unless fn
       save_to_file(fn) do |f|
         m.each_raw_message_line { |l| f.print l }
+      end
+    end
+  end
+
+  def save_all_to_disk
+    m = @message_lines[curpos] or return
+    default_dir = ($config[:default_attachment_save_dir] || ".")
+    folder = BufferManager.ask_for_filename :filename, "Save all attachments to folder: ", default_dir, true
+    return unless folder
+
+    num = 0
+    num_errors = 0
+    m.chunks.each do |chunk|
+      next unless chunk.is_a?(Chunk::Attachment)
+      fn = File.join(folder, chunk.filename)
+      num_errors += 1 unless save_to_file(fn, false) { |f| f.print chunk.raw_content }
+      num += 1
+    end
+
+    if num == 0
+      BufferManager.flash "Didn't find any attachments!"
+    else
+      if num_errors == 0
+        BufferManager.flash "Wrote #{num.pluralize 'attachment'} to #{folder}."
+      else
+        BufferManager.flash "Wrote #{(num - num_errors).pluralize 'attachment'} to #{folder}; couldn't write #{num_errors} of them (see log)."
       end
     end
   end

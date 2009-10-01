@@ -472,7 +472,7 @@ EOS
     end
   end
 
-  def ask_for_filename domain, question, default=nil
+  def ask_for_filename domain, question, default=nil, allow_directory=false
     answer = ask domain, question, default do |s|
       if s =~ /(~([^\s\/]*))/ # twiddle directory expansion
         full = $1
@@ -497,7 +497,7 @@ EOS
       answer =
         if answer.empty?
           spawn_modal "file browser", FileBrowserMode.new
-        elsif File.directory?(answer)
+        elsif File.directory?(answer) && !allow_directory
           spawn_modal "file browser", FileBrowserMode.new(answer)
         else
           File.expand_path answer
