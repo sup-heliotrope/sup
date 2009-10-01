@@ -1,5 +1,5 @@
 require 'sup'
 include Redwood
 start
-Index.new
+Index.init
 Index.load
