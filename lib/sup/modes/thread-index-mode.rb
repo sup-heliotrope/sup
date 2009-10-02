@@ -671,7 +671,7 @@ EOS
 
       if num > 0
         msg = num > 1 ? 'found_n_threads' : 'found_one_thread'
-        BufferManager.flash I18n['thread_index.#{msg}', {:N => num}]
+        BufferManager.flash I18n["flash.info.#{msg}", {:N => num}]
       else
         BufferManager.flash I18n['flash.info.no_matches']
       end

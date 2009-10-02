@@ -36,59 +36,60 @@ Return value:
 EOS
 
   register_keymap do |k|
-    k.add :toggle_detailed_header, "Toggle detailed header", 'h'
-    k.add :show_header, "Show full message header", 'H'
-    k.add :show_message, "Show full message (raw form)", 'V'
-    k.add :activate_chunk, "Expand/collapse or activate item", :enter
-    k.add :expand_all_messages, "Expand/collapse all messages", 'E'
-    k.add :edit_draft, "Edit draft", 'e'
-    k.add :send_draft, "Send draft", 'y'
-    k.add :edit_labels, "Edit or add labels for a thread", 'l'
-    k.add :expand_all_quotes, "Expand/collapse all quotes in a message", 'o'
-    k.add :jump_to_next_open, "Jump to next open message", 'n'
-    k.add :jump_to_prev_open, "Jump to previous open message", 'p'
-    k.add :align_current_message, "Align current message in buffer", 'z'
-    k.add :toggle_starred, "Star or unstar message", '*'
-    k.add :toggle_new, "Toggle unread/read status of message", 'N'
+    km = I18n['thread_view.keymap']
+    k.add :toggle_detailed_header, km['toggle_detailed_header'], 'h'
+    k.add :show_header, km['show_header'], 'H'
+    k.add :show_message, km['show_message'], 'V'
+    k.add :activate_chunk, km['activate_chunk'], :enter
+    k.add :expand_all_messages, km['expand_all_messages'], 'E'
+    k.add :edit_draft, km['edit_draft'], 'e'
+    k.add :send_draft, km['send_draft'], 'y'
+    k.add :edit_labels, km['edit_labels'], 'l'
+    k.add :expand_all_quotes, km['expand_all_quotes'], 'o'
+    k.add :jump_to_next_open, km['jump_to_next_open'], 'n'
+    k.add :jump_to_prev_open, km['jump_to_prev_open'], 'p'
+    k.add :align_current_message, km['align_current_message'], 'z'
+    k.add :toggle_starred, km['toggle_starred'], '*'
+    k.add :toggle_new, km['toggle_new'], 'N'
 #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
-    k.add :reply, "Reply to a message", 'r'
-    k.add :reply_all, "Reply to all participants of this message", 'G'
-    k.add :forward, "Forward a message or attachment", 'f'
-    k.add :bounce, "Bounce message to other recipient(s)", '!'
-    k.add :alias, "Edit alias/nickname for a person", 'i'
-    k.add :edit_as_new, "Edit message as new", 'D'
-    k.add :save_to_disk, "Save message/attachment to disk", 's'
-    k.add :save_all_to_disk, "Save all attachments to disk", 'A'
-    k.add :search, "Search for messages from particular people", 'S'
-    k.add :compose, "Compose message to person", 'm'
-    k.add :subscribe_to_list, "Subscribe to/unsubscribe from mailing list", "("
-    k.add :unsubscribe_from_list, "Subscribe to/unsubscribe from mailing list", ")"
-    k.add :pipe_message, "Pipe message or attachment to a shell command", '|'
+    k.add :reply, km['reply'], 'r'
+    k.add :reply_all, km['reply_all'], 'G'
+    k.add :forward, km['forward'], 'f'
+    k.add :bounce, km['bounce'], '!'
+    k.add :alias, km['alias'], 'i'
+    k.add :edit_as_new, km['edit_as_new'], 'D'
+    k.add :save_to_disk, km['save_to_disk'], 's'
+    k.add :save_all_to_disk, km['save_all_to_disk'], 'A'
+    k.add :search, km['search'], 'S'
+    k.add :compose, km['compose'], 'm'
+    k.add :subscribe_to_list, km['subscribe_to_list'], "("
+    k.add :unsubscribe_from_list, km['unsubscribe_from_list'], ")"
+    k.add :pipe_message, km['pipe_message'], '|'
 
-    k.add :archive_and_next, "Archive this thread, kill buffer, and view next", 'a'
-    k.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
+    k.add :archive_and_next, km['archive_and_next'], 'a'
+    k.add :delete_and_next, km['delete_and_next'], 'd'
 
-    k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read:", '.' do |kk|
-      kk.add :archive_and_kill, "Archive this thread and kill buffer", 'a'
-      kk.add :delete_and_kill, "Delete this thread and kill buffer", 'd'
-      kk.add :spam_and_kill, "Mark this thread as spam and kill buffer", 's'
-      kk.add :unread_and_kill, "Mark this thread as unread and kill buffer", 'N'
+    k.add_multi km['add_multi_01'], '.' do |kk|
+      kk.add :archive_and_kill, km['archive_and_kill'], 'a'
+      kk.add :delete_and_kill, km['delete_and_kill'], 'd'
+      kk.add :spam_and_kill, km['spam_and_kill'], 's'
+      kk.add :unread_and_kill, km['unread_and_kill'], 'N'
     end
 
-    k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ',' do |kk|
-      kk.add :archive_and_next, "Archive this thread, kill buffer, and view next", 'a'
-      kk.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
-      kk.add :spam_and_next, "Mark this thread as spam, kill buffer, and view next", 's'
-      kk.add :unread_and_next, "Mark this thread as unread, kill buffer, and view next", 'N'
-      kk.add :do_nothing_and_next, "Kill buffer, and view next", 'n'
+    k.add_multi km['add_multi_02'], ',' do |kk|
+      kk.add :archive_and_next, km['archive_and_next'], 'a'
+      kk.add :delete_and_next, km['delete_and_next'], 'd'
+      kk.add :spam_and_next, km['spam_and_next'], 's'
+      kk.add :unread_and_next, km['unread_and_next'], 'N'
+      kk.add :do_nothing_and_next, km['do_nothing_and_next'], 'n'
     end
 
-    k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ']' do |kk|
-      kk.add :archive_and_prev, "Archive this thread, kill buffer, and view previous", 'a'
-      kk.add :delete_and_prev, "Delete this thread, kill buffer, and view previous", 'd'
-      kk.add :spam_and_prev, "Mark this thread as spam, kill buffer, and view previous", 's'
-      kk.add :unread_and_prev, "Mark this thread as unread, kill buffer, and view previous", 'N'
-      kk.add :do_nothing_and_prev, "Kill buffer, and view previous", 'n'
+    k.add_multi km['add_multi_02'], ']' do |kk|
+      kk.add :archive_and_prev, km['archive_and_prev'], 'a'
+      kk.add :delete_and_prev, km['delete_and_prev'], 'd'
+      kk.add :spam_and_prev, km['spam_and_prev'], 's'
+      kk.add :unread_and_prev, km['unread_and_prev'], 'N'
+      kk.add :do_nothing_and_prev, km['do_nothing_and_prev'], 'n'
     end
   end
 
@@ -147,14 +148,14 @@ EOS
 
   def show_header
     m = @message_lines[curpos] or return
-    BufferManager.spawn_unless_exists("Full header for #{m.id}") do
+    BufferManager.spawn_unless_exists(I18n['thread_view.full_header_for', {:ID => m.id}]) do
       TextMode.new m.raw_header
     end
   end
 
   def show_message
     m = @message_lines[curpos] or return
-    BufferManager.spawn_unless_exists("Raw message for #{m.id}") do
+    BufferManager.spawn_unless_exists(I18n['thread_view.raw_message_for', {:ID => m.id}]) do
       TextMode.new m.raw_message
     end
   end
@@ -168,7 +169,7 @@ EOS
   def reply type_arg=nil
     m = @message_lines[curpos] or return
     mode = ReplyMode.new m, type_arg
-    BufferManager.spawn "Reply to #{m.subj}", mode
+    BufferManager.spawn I18n['thread_view.reply_to', {:SUBJECT => m.subj}], mode
   end
 
   def reply_all; reply :all; end
@@ -178,7 +179,7 @@ EOS
     if m.list_subscribe && m.list_subscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
       ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [Person.from_address($1)], :subj => ($3 || "subscribe")
     else
-      BufferManager.flash "Can't find List-Subscribe header for this message."
+      BufferManager.flash I18n['flash.info.cant_find_list_subscribe_header']
     end
   end
 
@@ -187,7 +188,7 @@ EOS
     if m.list_unsubscribe && m.list_unsubscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
       ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [Person.from_address($1)], :subj => ($3 || "unsubscribe")
     else
-      BufferManager.flash "Can't find List-Unsubscribe header for this message."
+      BufferManager.flash I18n['thread_view.cant_find_list_unsubscribe_header']
     end
   end
 
@@ -226,7 +227,7 @@ EOS
         raise SendmailCommandFailed, "Couldn't execute #{cmd}" unless $? == 0
       rescue SystemCallError, SendmailCommandFailed => e
         warn "problem sending mail: #{e.message}"
-        BufferManager.flash "Problem sending mail: #{e.message}"
+        BufferManager.flash I18n['flash.warn.problem_sending_mail', {:MESSAGE => e.message}]
       end
     end
   end
@@ -241,9 +242,9 @@ EOS
   def search
     p = @person_lines[curpos] or return
     mode = PersonSearchResultsMode.new [p]
-    BufferManager.spawn "Search for #{p.name}", mode
+    BufferManager.spawn I18n['thread_view.search_for', {:NAME => p.name}], mode
     mode.load_threads :num => mode.buffer.content_height
-  end    
+  end
 
   def compose
     p = @person_lines[curpos]
@@ -252,11 +253,11 @@ EOS
     else
       ComposeMode.spawn_nicely
     end
-  end    
+  end
 
   def edit_labels
     reserved_labels = @thread.labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
-    new_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", @thread.labels
+    new_labels = BufferManager.ask_for_labels :label, "#{I18n['thread_view.ask.labels_for_thread']}: ", @thread.labels
 
     return unless new_labels
     @thread.labels = Set.new(reserved_labels) + new_labels
@@ -328,11 +329,11 @@ EOS
     case chunk
     when Chunk::Attachment
       default_dir = File.join(($config[:default_attachment_save_dir] || "."), chunk.filename)
-      fn = BufferManager.ask_for_filename :filename, "Save attachment to file: ", default_dir
+      fn = BufferManager.ask_for_filename :filename, "#{I18n['thread_view.ask.save_attachment_to_file']}: ", default_dir
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn
     else
       m = @message_lines[curpos]
-      fn = BufferManager.ask_for_filename :filename, "Save message to file: "
+      fn = BufferManager.ask_for_filename :filename, "#{I18n['thread_view.ask.save_message_to_file']}: "
       return unless fn
       save_to_file(fn) do |f|
         m.each_raw_message_line { |l| f.print l }
@@ -343,7 +344,7 @@ EOS
   def save_all_to_disk
     m = @message_lines[curpos] or return
     default_dir = ($config[:default_attachment_save_dir] || ".")
-    folder = BufferManager.ask_for_filename :filename, "Save all attachments to folder: ", default_dir, true
+    folder = BufferManager.ask_for_filename :filename, "#{I18n['thread_view.ask.save_all_attachments_to_folder']}: ", default_dir, true
     return unless folder
 
     num = 0
@@ -356,12 +357,17 @@ EOS
     end
 
     if num == 0
-      BufferManager.flash "Didn't find any attachments!"
+      BufferManager.flash I18n['flash.warn.didnt_find_any_attachments']
     else
       if num_errors == 0
-        BufferManager.flash "Wrote #{num.pluralize 'attachment'} to #{folder}."
+        msg = num > 1 ? 'wrote_n_attachments_to_folder' : 'wrote_one_attachment_to_folder'
+        BufferManager.flash I18n["flash.info.#{msg}", {:N => num, :FOLDER => folder}]
       else
-        BufferManager.flash "Wrote #{(num - num_errors).pluralize 'attachment'} to #{folder}; couldn't write #{num_errors} of them (see log)."
+        msg = (num - num_errors) > 1 ? 'wrote_n_attachments_to_folder' : 'wrote_one_attachment_to_folder'
+        notice = I18n["flash.info.#{msg}", {:N => (num - num_errors), :FOLDER => folder}]
+        notice += "; "
+        notice += I18n['flash.info.couldnt_write_n_attachments', {:N => num_errors}]
+        BufferManager.flash notice
       end
     end
   end
@@ -370,11 +376,11 @@ EOS
     m = @message_lines[curpos] or return
     if m.is_draft?
       mode = ResumeMode.new m
-      BufferManager.spawn "Edit message", mode
+      BufferManager.spawn I18n['thread_index.edit_message'], mode
       BufferManager.kill_buffer self.buffer
       mode.edit_message
     else
-      BufferManager.flash "Not a draft message!"
+      BufferManager.flash I18n['flash.info.not_a_draft_message']
     end
   end
 
@@ -382,11 +388,11 @@ EOS
     m = @message_lines[curpos] or return
     if m.is_draft?
       mode = ResumeMode.new m
-      BufferManager.spawn "Send message", mode
+      BufferManager.spawn I18n['message.editing.keymap.send_message'], mode
       BufferManager.kill_buffer self.buffer
       mode.send_message
     else
-      BufferManager.flash "Not a draft message!"
+      BufferManager.flash I18n['flash.info.not_a_draft_message']
     end
   end
 
@@ -420,7 +426,7 @@ EOS
     return unless m
     ## jump to the top of the current message if we're in the body;
     ## otherwise, to the previous message
-    
+
     top = @layout[m].top
     if curpos == top
       while(prevm = @layout[m].prev)
@@ -560,7 +566,7 @@ EOS
 
     return unless chunk || message
 
-    command = BufferManager.ask(:shell, "pipe command: ")
+    command = BufferManager.ask(:shell, "#{I18n['text.ask.pipe_command']}: ")
     return if command.nil? || command.empty?
 
     output = pipe_to_process(command) do |stream|
@@ -572,9 +578,9 @@ EOS
     end
 
     if output
-      BufferManager.spawn "Output of '#{command}'", TextMode.new(output)
+      BufferManager.spawn "#{I18n['text.output_of']} '#{command}'", TextMode.new(output)
     else
-      BufferManager.flash "'#{command}' done!"
+      BufferManager.flash "'#{command}' #{I18n['words.done']}!"
     end
   end
 
@@ -615,7 +621,7 @@ private
 
       ## build the patina
       text = chunk_to_lines m, l.state, @text.length, depth, parent, l.color, l.star_color
-      
+
       l.top = @text.length
       l.bot = @text.length + text.length # updated below
       l.prev = prevm
@@ -632,7 +638,7 @@ private
       end
 
       @text += text
-      prevm = m 
+      prevm = m
       if l.state != :closed
         m.chunks.each do |c|
           cl = @chunk_layout[c]
@@ -675,13 +681,13 @@ private
     when :open
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
-        [color, 
+        [color,
             "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
 
     when :closed
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
-        [color, 
+        [color,
         "#{m.from ? m.from.mediumname : '?'}, #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})  #{m.snippet}"]]]
 
     when :detailed
@@ -716,7 +722,7 @@ private
       end
 
       HookManager.run "detailed-headers", :message => m, :headers => headers
-      
+
       from_line + (addressee_lines + headers.map { |k, v| "   #{k}: #{v}" }).map { |l| [[color, prefix + "  " + l]] }
     end
   end
@@ -724,7 +730,7 @@ private
   def format_person_list prefix, people
     ptext = people.map { |p| format_person p }
     pad = " " * prefix.display_length
-    [prefix + ptext.first + (ptext.length > 1 ? "," : "")] + 
+    [prefix + ptext.first + (ptext.length > 1 ? "," : "")] +
       ptext[1 .. -1].map_with_index do |e, i|
         pad + e + (i == ptext.length - 1 ? "" : ",")
       end
@@ -744,7 +750,7 @@ private
       [[[:missing_message_color, "#{prefix}<an unreceived message>"]]]
     when Message
       message_patina_lines(chunk, state, start, parent, prefix, color, star_color) +
-        (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. Hit 'e' to edit, 'y' to send. <<<"]]] : [])
+        (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> #{I18n['thread_view.draft_notice']} <<<"]]] : [])
 
     else
       raise "Bad chunk: #{chunk.inspect}" unless chunk.respond_to?(:inlineable?) ## debugging
@@ -764,13 +770,13 @@ private
   end
 
   def view chunk
-    BufferManager.flash "viewing #{chunk.content_type} attachment..."
+    BufferManager.flash I18n['flash.info.viewing_attachment', {:CONTENT_TYPE => chunk.content_type}]
     success = chunk.view!
     BufferManager.erase_flash
     BufferManager.completely_redraw_screen
     unless success
-      BufferManager.spawn "Attachment: #{chunk.filename}", TextMode.new(chunk.to_s, chunk.filename)
-      BufferManager.flash "Couldn't execute view command, viewing as text."
+      BufferManager.spawn "#{I18n['words.attachment']}: #{chunk.filename}", TextMode.new(chunk.to_s, chunk.filename)
+      BufferManager.flash I18n['flash.info.couldnt_exec_view_cmd']
     end
   end
 end
