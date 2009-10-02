@@ -43,12 +43,12 @@ EOS
     @mode ||= PollMode.new
     HookManager.run "before-poll"
 
-    BufferManager.flash "Polling for new messages..."
+    BufferManager.flash I18n['flash.info.polling_for_new_messages']
     num, numi, from_and_subj, from_and_subj_inbox = @mode.poll
     if num > 0
-      BufferManager.flash "Loaded #{num.pluralize 'new message'}, #{numi} to inbox." 
+      BufferManager.flash "Loaded #{num.pluralize 'new message'}, #{numi} to inbox."
     else
-      BufferManager.flash "No new messages." 
+      BufferManager.flash I18n['flash.info.no_new_messages']
     end
 
     HookManager.run "after-poll", :num => num, :num_inbox => numi, :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox, :num_inbox_total_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] }

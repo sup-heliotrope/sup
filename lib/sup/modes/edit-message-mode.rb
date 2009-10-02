@@ -34,10 +34,10 @@ EOS
 Modifies message body and headers before editing a new message. Variables
 should be modified in place.
 Variables:
-	header: a hash of headers. See 'signature' hook for documentation.
-	body: an array of lines of body text.
+  header: a hash of headers. See 'signature' hook for documentation.
+  body: an array of lines of body text.
 Return value:
-	none
+  none
 EOS
 
   attr_reader :status
@@ -59,7 +59,7 @@ EOS
   end
 
   def initialize opts={}
-    @header = opts.delete(:header) || {} 
+    @header = opts.delete(:header) || {}
     @header_lines = []
 
     @body = opts.delete(:body) || []
@@ -90,7 +90,7 @@ EOS
         HorizontalSelector.new "Crypto:", [:none] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.keys, ["None"] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.values
       end
     add_selector @crypto_selector if @crypto_selector
-    
+
     HookManager.run "before-edit", :header => @header, :body => @body
 
     super opts
@@ -98,7 +98,7 @@ EOS
   end
 
   def lines; @text.length + (@selectors.empty? ? 0 : (@selectors.length + DECORATION_LINES)) end
-  
+
   def [] i
     if @selectors.empty?
       @text[i]
@@ -238,7 +238,7 @@ protected
     header, @header_lines = format_headers(@header - NON_EDITABLE_HEADERS) + [""]
     @text = header + [""] + @body
     @text += sig_lines unless $config[:edit_signature]
-    
+
     @attachment_lines_offset = 0
 
     unless @attachments.empty?
@@ -307,7 +307,7 @@ protected
     return false if $config[:confirm_no_attachments] && mentions_attachments? && @attachments.size == 0 && !BufferManager.ask_yes_or_no("You haven't added any attachments. Really send?")#" stupid ruby-mode
     return false if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no("You're top-posting. That makes you a bad person. Really send?") #" stupid ruby-mode
 
-    from_email = 
+    from_email =
       if @header["From"] =~ /<?(\S+@(\S+?))>?$/
         $1
       else
@@ -352,7 +352,7 @@ protected
       body_m = m
       body_m.header["Content-Disposition"] = "inline"
       m = RMail::Message.new
-      
+
       m.add_part body_m
       @attachments.each { |a| m.add_part a }
     end
@@ -368,7 +368,7 @@ protected
     ## finally, set the top-level headers
     @header.each do |k, v|
       next if v.nil? || v.empty?
-      m.header[k] = 
+      m.header[k] =
         case v
         when String
           k.match(/subject/i) ? mime_encode_subject(v) : mime_encode_address(v)
@@ -407,7 +407,7 @@ EOS
     f.puts
     f.puts sanitize_body(@body.join("\n"))
     f.puts sig_lines if full unless $config[:edit_signature]
-  end  
+  end
 
 protected
 
@@ -444,7 +444,7 @@ private
   end
 
   def mentions_attachments?
-    @body.any? { |l| l =~ /^[^>]/ && l =~ /\battach(ment|ed|ing|)\b/i }
+    @body.any? { |l| l =~ /^[^>]/ && l =~ I18n['message.editing.regexp.mentions_attachment'] }
   end
 
   def top_posting?
@@ -463,7 +463,7 @@ private
 
     ## no hook, do default signature generation based on config.yaml
     return [] unless from_email
-    sigfn = (AccountManager.account_for(from_email) || 
+    sigfn = (AccountManager.account_for(from_email) ||
              AccountManager.default_account).signature
 
     if sigfn && File.exists?(sigfn)
