@@ -7,10 +7,11 @@ class FileBrowserMode < LineCursorMode
   RESERVED_ROWS = 1
 
   register_keymap do |k|
-    k.add :back, "Go back to previous directory", "B"
-    k.add :view, "View file", "v"
-    k.add :select_file_or_follow_directory, "Select the highlighted file, or follow the directory", :enter
-    k.add :reload, "Reload file list", "R"
+    km = I18n['file_browser.keymap']
+    k.add :back, km['back'], "B"
+    k.add :view, km['view'], "v"
+    k.add :select_file_or_follow_directory, km['select_file_or_follow_directory'], :enter
+    k.add :reload, km['reload'], "R"
   end
 
   bool_reader :done
@@ -62,7 +63,7 @@ protected
         @dirs.push f
         reload
       else
-        BufferManager.flash "Permission denied - #{f.realpath}"
+        BufferManager.flash I18n['flash.error.permission_denied', {:REASON => f.realpath}]
       end
     else
       begin
@@ -81,7 +82,7 @@ protected
           [f.directory? ? 0 : 1, f.basename.to_s]
         end
       rescue SystemCallError => e
-        BufferManager.flash "Error: #{e.message}"
+        BufferManager.flash I18n['flash.error.error', {:MESSAGE => e.message}]
         [Pathname.new("."), Pathname.new("..")]
       end.map do |f|
       real_f = cwd + f

@@ -61,7 +61,7 @@ end
 
 class ConsoleMode < LogMode
   register_keymap do |k|
-    k.add :run, "Restart evaluation", 'e'
+    k.add :run, I18n['console.keymap.restart_eval'], 'e'
   end
 
   def initialize

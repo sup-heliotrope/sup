@@ -2,16 +2,16 @@ module Redwood
 
 module CanAliasContacts
   def alias_contact p
-    aalias = BufferManager.ask(:alias, "Alias for #{p.longname}: ", ContactManager.alias_for(p))
+    aalias = BufferManager.ask(:alias, I18n['contact_list.ask.alias_for', {:NAME => p.longname}], ContactManager.alias_for(p))
     return if aalias.nil?
     aalias = nil if aalias.empty? # allow empty aliases
 
-    name = BufferManager.ask(:name, "Name for #{p.longname}: ", p.name)
+    name = BufferManager.ask(:name, I18n['contact_list.ask.name_for', {:NAME => p.longname}], p.name)
     return if name.nil? || name.empty? # don't allow empty names
     p.name = name
 
     ContactManager.update_alias p, aalias
-    BufferManager.flash "Contact updated!"
+    BufferManager.flash I18n['flash.info.contact_updated']
   end
 end
 
@@ -19,12 +19,13 @@ class ContactListMode < LineCursorMode
   LOAD_MORE_CONTACTS_NUM = 10
 
   register_keymap do |k|
-    k.add :load_more, "Load #{LOAD_MORE_CONTACTS_NUM} more contacts", 'M'
-    k.add :reload, "Drop contact list and reload", 'D'
-    k.add :alias, "Edit alias/or name for contact", 'a', 'i'
-    k.add :toggle_tagged, "Tag/untag current line", 't'
-    k.add :apply_to_tagged, "Apply next command to all tagged items", '+'
-    k.add :search, "Search for messages from particular people", 'S'
+    km = I18n['contact_list.keymap']
+    k.add :load_more, I18n['contact_list.keymap.load_more', {:NUM => LOAD_MORE_CONTACTS_NUM}], 'M'
+    k.add :reload, km['reload'], 'D'
+    k.add :alias, km['alias'], 'a', 'i'
+    k.add :toggle_tagged, km['toggle_tagged'], 't'
+    k.add :apply_to_tagged, km['apply_to_tagged'], '+'
+    k.add :search, km['search'], 'S'
   end
 
   def initialize mode=:regular

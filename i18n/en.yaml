@@ -5,9 +5,12 @@ flash:
     sending: "Sending..."
     message_sent: "Message sent!"
     saved_for_later_editing: "Saved for later editing."
+    contact_updated: "Contact updated!"
   error:
     cant_read_filename: "Can't read #{FN}: #{ERROR_MESSAGE}"
     could_not_exec: "Couldn't execute #{MESSAGE}"
+    permission_denied: "Permission denied - #{REASON}"
+    error: "Error: #{MESSAGE}"
   warn:
     sending_mail: "Problem sending mail: #{MESSAGE}"
 
@@ -35,3 +38,31 @@ message:
       delete_attachment: "Delete an attachment"
       move_cursor_right: "Move selector to the right"
       move_cursor_left: "Move selector to the left"
+
+buffer_list:
+  keymap:
+    jump_to_buffer: "Jump to selected buffer"
+    reload_list: "Reload buffer list"
+
+console:
+  keymap:
+    restart_eval: "Restart evaluation"
+
+contact_list:
+  ask:
+    alias_for: "Alias for #{NAME}: "
+    name_for: "Name for #{NAME}: "
+  keymap:
+    load_more: "Load #{NUM} more contacts"
+    reload: "Drop contact list and reload"
+    alias: "Edit alias/or name for contact"
+    toggle_tagged: "Tag/untag current line"
+    apply_to_tagged: "Apply next command to all tagged items"
+    search: "Search for messages from particular people"
+
+file_browser:
+  keymap:
+    back: "Go back to previous directory"
+    view: "View file"
+    select_file_or_follow_directory: "Select the highlighted file: or follow the directory"
+    reload: "Reload file list"

@@ -5,9 +5,12 @@ flash:
     sending: "Sending..."
     message_sent: "Nachricht versendet!"
     saved_for_later_editing: "Entwurf gespeichert."
+    contact_updated: "Kontakt aktualisiert!"
   error:
     cant_read_filename: "Kann Datei nicht lesen: #{FN}: #{ERROR_MESSAGE}"
     could_not_exec: "Konnte nicht ausführen: #{MESSAGE}"
+    permission_denied: "Keine Berechtigung - #{REASON}"
+    error: "Fehler: #{MESSAGE}"
   warn:
     sending_mail: "Problem beim Versenden: #{MESSAGE}"
 
@@ -35,3 +38,31 @@ message:
       delete_attachment: "Anhang entfernen"
       move_cursor_right: "Cursor nach rechts bewegen"
       move_cursor_left: "Cursor nach links bewegen"
+
+buffer_list:
+  keymap:
+    jump_to_buffer: "Zum ausgewählten Buffer springen"
+    reload_list: "Bufferliste aktualisieren"
+
+console:
+  keymap:
+    restart_eval: "Evaluierung neustarten"
+
+contact_list:
+  ask:
+    alias_for: "Alias für #{NAME}: "
+    name_for: "Name für #{NAME}: "
+  keymap:
+    load_more: "Lade #{NUM} weitere Kontakte"
+    reload: "Kontaktliste löschen neu erstellen"
+    alias: "Alias/Name für Kontakt bearbeiten"
+    toggle_tagged: "Aktuelle Zeile taggen/untaggen"
+    apply_to_tagged: "Nächsten Befehl für alle getaggten Einträge durchführen"
+    search: "Suche nach Nachrichten von bestimmten Personen"
+
+file_browser:
+  keymap:
+    back: "Gehe zurück zum letzten Verzeichnis"
+    view: "Datei ansehen"
+    select_file_or_follow_directory: "Selektiere die hervorgehobene Datei: oder folge dem Verzeichnis"
+    reload: "Dateiliste aktualisieren"
