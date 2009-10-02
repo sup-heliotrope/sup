@@ -1,0 +1,9 @@
+flash:
+  info:
+    no_new_messages: Keine neuen Nachrichten.
+    polling_for_new_messages: Suche nach neuen Nachrichten...
+
+message:
+  editing:
+    regexp:
+      mentions_attachment: !ruby/regexp '/\b(A|a)n(geh\S+ngt|hang|)\b/i'

@@ -121,6 +121,7 @@ module Redwood
   end
 
   def start
+    Redwood::I18n.init
     Redwood::SentManager.init $config[:sent_source] || 'sup://sent'
     Redwood::ContactManager.init Redwood::CONTACT_FN
     Redwood::LabelManager.init Redwood::LABEL_FN
@@ -178,8 +179,8 @@ Until this is corrected, messages from these sources cannot be viewed,
 and new messages will not be detected. Luckily, this is easy to correct!
 
 #{desynced_sources.map do |s|
-  "Source: " + s.to_s + 
-   "\n Error: " + s.error.message.wrap(70).join("\n        ") + 
+  "Source: " + s.to_s +
+   "\n Error: " + s.error.message.wrap(70).join("\n        ") +
    "\n   Fix: sup-sync --changed #{s.to_s}"
   end}
 EOM
@@ -201,7 +202,7 @@ else
   require 'socket'
   name = Etc.getpwnam(ENV["USER"]).gecos.split(/,/).first rescue nil
   name ||= ENV["USER"]
-  email = ENV["USER"] + "@" + 
+  email = ENV["USER"] + "@" +
     begin
       Socket.gethostbyname(Socket.gethostname).first
     rescue SocketError
@@ -260,6 +261,7 @@ include Redwood::LogsStuff
     $encoding = "UTF-8"
   end
 
+require "sup/i18n"
 require "sup/buffer"
 require "sup/keymap"
 require "sup/mode"

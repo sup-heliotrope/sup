@@ -1,0 +1,9 @@
+flash:
+  info:
+    no_new_messages: No new messages.
+    polling_for_new_messages: Polling for new messages...
+
+message:
+  editing:
+    regexp:
+      mentions_attachment: !ruby/regexp '/\battach(ment|ed|ing|)\b/i'
