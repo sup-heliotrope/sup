@@ -7,7 +7,7 @@ module Redwood
     attr_reader :lang, :base_path, :translations
 
     ## default language is english
-    def initialize lang=:de, base_path="i18n/"
+    def initialize lang=:en, base_path="i18n/"
       @lang = lang
       @base_path = base_path
       read_language_file
