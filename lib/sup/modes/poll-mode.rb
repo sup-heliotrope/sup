@@ -3,7 +3,7 @@ module Redwood
 class PollMode < LogMode
   def initialize
     @new = true
-    super "poll for new messages"
+    super I18n['poll.poll_for_new_messages']
   end
 
   def poll
@@ -11,7 +11,7 @@ class PollMode < LogMode
       @new = false
       self << "\n"
     end
-    self << "Poll started at #{Time.now}\n"
+    self << "#{I18n['poll.started_at', {:TIME => Time.now}]}\n"
     PollManager.do_poll { |s| self << (s + "\n") }
   end
 end

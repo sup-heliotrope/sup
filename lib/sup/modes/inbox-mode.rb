@@ -5,8 +5,8 @@ module Redwood
 class InboxMode < ThreadIndexMode
   register_keymap do |k|
     ## overwrite toggle_archived with archive
-    k.add :archive, "Archive thread (remove from inbox)", 'a'
-    k.add :read_and_archive, "Archive thread (remove from inbox) and mark read", 'A'
+    k.add :archive, I18n['inbox.keymap.archive'], 'a'
+    k.add :read_and_archive, I18n['inbox.keymap.read_and_archive'], 'A'
   end
 
   def initialize
@@ -99,7 +99,7 @@ class InboxMode < ThreadIndexMode
   end
 
   def status
-    super + "    #{Index.size} messages in index"
+    super + "    #{I18n['inbox.amount_messages_in_index', {:AMOUNT => Index.size}]}"
   end
 end
 

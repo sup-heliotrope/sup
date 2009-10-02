@@ -2,13 +2,13 @@ module Redwood
 
 class HelpMode < TextMode
   def initialize mode, global_keymap
-    title = "Help for #{mode.name}"
+    title = "#{I18n['help.help_for']} #{mode.name}"
     super <<EOS
 #{title}
 #{'=' * title.length}
 
 #{mode.help_text}
-Global keybindings
+#{I18n['help.global_keymap.headline']}
 ------------------
 #{global_keymap.help_text}
 EOS

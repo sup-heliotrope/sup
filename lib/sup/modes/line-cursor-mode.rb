@@ -5,9 +5,10 @@ class LineCursorMode < ScrollMode
   register_keymap do |k|
     ## overwrite scrollmode binding on arrow keys for cursor movement
     ## but j and k still scroll!
-    k.add :cursor_down, "Move cursor down one line", :down, 'j'
-    k.add :cursor_up, "Move cursor up one line", :up, 'k'
-    k.add :select, "Select this item", :enter
+    km = I18n['line_cursor.keymap']
+    k.add :cursor_down, km['cursor_down'], :down, 'j'
+    k.add :cursor_up, km['cursor_up'], :up, 'k'
+    k.add :select, km['select'], :enter
   end
 
   attr_reader :curpos
@@ -77,7 +78,7 @@ protected
   end
 
   def search_start_line; @curpos end
- 
+
   def line_down # overwrite scrollmode
     super
     call_load_more_callbacks([topline + buffer.content_height - lines, 10].max) if topline + buffer.content_height > lines
@@ -172,7 +173,7 @@ private
 
   def set_status
     l = lines
-    @status = l > 0 ? "line #{@curpos + 1} of #{l}" : ""
+    @status = l > 0 ? "#{I18n['words.line']} #{@curpos + 1} of #{l}" : ""
   end
 
   def call_load_more_callbacks size

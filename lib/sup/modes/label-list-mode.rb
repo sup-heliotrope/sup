@@ -2,10 +2,11 @@ module Redwood
 
 class LabelListMode < LineCursorMode
   register_keymap do |k|
-    k.add :select_label, "Search by label", :enter
-    k.add :reload, "Discard label list and reload", '@'
-    k.add :jump_to_next_new, "Jump to next new thread", :tab
-    k.add :toggle_show_unread_only, "Toggle between showing all labels and those with unread mail", 'u'
+    km = I18n['label_list.keymap']
+    k.add :select_label, km['select_label'], :enter
+    k.add :reload, km['reload'], '@'
+    k.add :jump_to_next_new, km['jump_to_next_new'], :tab
+    k.add :toggle_show_unread_only, km['toggle_show_unread_only'], 'u'
   end
 
   def initialize
@@ -32,7 +33,7 @@ class LabelListMode < LineCursorMode
       jump_to_line n unless n >= topline && n < botline
       set_cursor_pos n
     else
-      BufferManager.flash "No labels messages with unread messages."
+      BufferManager.flash I18n['flash.info.no_labels_msg_with_unread']
     end
   end
 
@@ -89,12 +90,12 @@ protected
       end
 
       @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),
-          sprintf("%#{width + 1}s %5d %s, %5d unread", string, total, total == 1 ? " message" : "messages", unread)]]
+          sprintf("%#{width + 1}s %5d %s, %5d #{I18n['words.unread']}", string, total, total == 1 ? " #{I18n['words.message']}" : I18n['words.messages'], unread)]]
       @labels << [label, unread]
       yield i if block_given?
     end.compact
 
-    BufferManager.flash "No labels with unread messages!" if counts.empty? && @unread_only
+    BufferManager.flash I18n['flash.info.no_labels_with_unread_messages'] if counts.empty? && @unread_only
   end
 
   def select_label

@@ -3,8 +3,9 @@ module Redwood
 class TextMode < ScrollMode
   attr_reader :text
   register_keymap do |k|
-    k.add :save_to_disk, "Save to disk", 's'
-    k.add :pipe, "Pipe to process", '|'
+    km = I18n['text.keymap']
+    k.add :save_to_disk, km['save_to_disk'], 's'
+    k.add :pipe, km['pipe'], '|'
   end
 
   def initialize text="", filename=nil
@@ -16,12 +17,12 @@ class TextMode < ScrollMode
   end
 
   def save_to_disk
-    fn = BufferManager.ask_for_filename :filename, "Save to file: ", @filename
+    fn = BufferManager.ask_for_filename :filename, "#{I18n['text.ask.for_filename']}: ", @filename
     save_to_file(fn) { |f| f.puts text } if fn
   end
 
   def pipe
-    command = BufferManager.ask(:shell, "pipe command: ")
+    command = BufferManager.ask(:shell, "#{I18n['text.ask.pipe_command']}: ")
     return if command.nil? || command.empty?
 
     output = pipe_to_process(command) do |stream|
@@ -29,9 +30,9 @@ class TextMode < ScrollMode
     end
 
     if output
-      BufferManager.spawn "Output of '#{command}'", TextMode.new(output)
+      BufferManager.spawn "#{I18n['text.output_of']} '#{command}'", TextMode.new(output)
     else
-      BufferManager.flash "'#{command}' done!"
+      BufferManager.flash "'#{command}' #{I18n['words.done']}!"
     end
   end
 
@@ -40,7 +41,7 @@ class TextMode < ScrollMode
     update_lines
     if buffer
       ensure_mode_validity
-      buffer.mark_dirty 
+      buffer.mark_dirty
     end
   end
 

@@ -6,7 +6,7 @@ module Redwood
 
 class LogMode < TextMode
   register_keymap do |k|
-    k.add :toggle_follow, "Toggle follow mode", 'f'
+    k.add :toggle_follow, I18n['log.keymap.toggle_follow'], 'f'
   end
 
   ## if buffer_name is supplied, this mode will spawn a buffer
@@ -44,7 +44,7 @@ class LogMode < TextMode
   end
 
   def status
-    super + " (follow: #@follow)"
+    super + " (#{I18n['words.follow']}: #@follow)"
   end
 
   def cleanup

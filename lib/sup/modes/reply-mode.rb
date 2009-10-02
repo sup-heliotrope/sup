@@ -2,12 +2,13 @@ module Redwood
 
 class ReplyMode < EditMessageMode
   REPLY_TYPES = [:sender, :recipient, :list, :all, :user]
+  rt = I18n['reply.type']
   TYPE_DESCRIPTIONS = {
-    :sender => "Sender",
-    :recipient => "Recipient",
-    :all => "All",
-    :list => "Mailing list",
-    :user => "Customized"
+    :sender => rt['sender'],
+    :recipient => rt['recipient'],
+    :all => rt['all'],
+    :list => rt['list'],
+    :user => rt['user']
   }
 
   HookManager.register "attribution", <<EOS
@@ -95,7 +96,7 @@ EOS
     ## to. if it's a list message, then the list address is. otherwise,
     ## the cc contains a recipient.
     useful_recipient = !(cc.empty? || @m.is_list_message?)
-    
+
     @headers = {}
     @headers[:recipient] = {
       "To" => cc.map { |p| p.full_address },

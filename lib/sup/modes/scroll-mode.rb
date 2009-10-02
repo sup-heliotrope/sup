@@ -15,19 +15,20 @@ class ScrollMode < Mode
   COL_JUMP = 2
 
   register_keymap do |k|
-    k.add :line_down, "Down one line", :down, 'j', 'J', "\C-e"
-    k.add :line_up, "Up one line", :up, 'k', 'K', "\C-y"
-    k.add :col_left, "Left one column", :left, 'h'
-    k.add :col_right, "Right one column", :right, 'l'
-    k.add :page_down, "Down one page", :page_down, ' ', "\C-f"
-    k.add :page_up, "Up one page", :page_up, 'p', :backspace, "\C-b"
-    k.add :half_page_down, "Down one half page", "\C-d"
-    k.add :half_page_up, "Up one half page", "\C-u"
-    k.add :jump_to_start, "Jump to top", :home, '^', '1'
-    k.add :jump_to_end, "Jump to bottom", :end, '$', '0'
-    k.add :jump_to_left, "Jump to the left", '['
-    k.add :search_in_buffer, "Search in current buffer", '/'
-    k.add :continue_search_in_buffer, "Jump to next search occurrence in buffer", BufferManager::CONTINUE_IN_BUFFER_SEARCH_KEY
+    km = I18n['scroll.keymap']
+    k.add :line_down, km['line_down'], :down, 'j', 'J', "\C-e"
+    k.add :line_up, km['line_up'], :up, 'k', 'K', "\C-y"
+    k.add :col_left, km['col_left'], :left, 'h'
+    k.add :col_right, km['col_right'], :right, 'l'
+    k.add :page_down, km['page_down'], :page_down, ' ', "\C-f"
+    k.add :page_up, km['page_up'], :page_up, 'p', :backspace, "\C-b"
+    k.add :half_page_down, km['half_page_down'], "\C-d"
+    k.add :half_page_up, km['half_page_up'], "\C-u"
+    k.add :jump_to_start, km['jump_to_start'], :home, '^', '1'
+    k.add :jump_to_end, km['jump_to_end'], :end, '$', '0'
+    k.add :jump_to_left, km['jump_to_left'], '['
+    k.add :search_in_buffer, km['search_in_buffer'], '/'
+    k.add :continue_search_in_buffer, km['continue_search_in_buffer'], BufferManager::CONTINUE_IN_BUFFER_SEARCH_KEY
   end
 
   def initialize opts={}
@@ -61,7 +62,7 @@ class ScrollMode < Mode
 
   def continue_search_in_buffer
     unless @search_query
-      BufferManager.flash "No current search!"
+      BufferManager.flash I18n['flash.info.no_current_search']
       return
     end
 
@@ -69,19 +70,19 @@ class ScrollMode < Mode
     line, col = find_text @search_query, start
     if line.nil? && (start > 0)
       line, col = find_text @search_query, 0
-      BufferManager.flash "Search wrapped to top!" if line
+      BufferManager.flash I18n['flash.info.search_wrapped_to_top'] if line
     end
     if line
       @search_line = line + 1
       search_goto_pos line, col, col + @search_query.display_length
       buffer.mark_dirty
     else
-      BufferManager.flash "Not found!"
+      BufferManager.flash I18n['flash.info.not_found']
     end
   end
 
   def search_in_buffer
-    query = BufferManager.ask :search, "search in buffer: "
+    query = BufferManager.ask :search, "#{I18n['scroll.ask.search_in_buffer']}: "
     return if query.nil? || query.empty?
     @search_query = Regexp.escape query
     continue_search_in_buffer
@@ -185,7 +186,7 @@ protected
       if in_search?
         ## seems like there ought to be a better way of doing this
         array = []
-        s.each do |color, text| 
+        s.each do |color, text|
           if text =~ regex
             array += matching_text_array text, regex, color
           else

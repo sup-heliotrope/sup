@@ -23,31 +23,32 @@ Variables:
 EOS
 
   register_keymap do |k|
-    k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
-    k.add_multi "Load all threads (! to confirm) :", '!' do |kk|
-      kk.add :load_all_threads, "Load all threads (may list a _lot_ of threads)", '!'
+    km = I18n['thread_index.keymap']
+    k.add :load_threads, I18n['load_threads', {:NUM => LOAD_MORE_THREAD_NUM}], 'M'
+    k.add_multi km['add_multi'], '!' do |kk|
+      kk.add :load_all_threads, km['load_all_threads'], '!'
     end
-    k.add :cancel_search, "Cancel current search", :ctrl_g
-    k.add :reload, "Refresh view", '@'
-    k.add :toggle_archived, "Toggle archived status", 'a'
-    k.add :toggle_starred, "Star or unstar all messages in thread", '*'
-    k.add :toggle_new, "Toggle new/read status of all messages in thread", 'N'
-    k.add :edit_labels, "Edit or add labels for a thread", 'l'
-    k.add :edit_message, "Edit message (drafts only)", 'e'
-    k.add :toggle_spam, "Mark/unmark thread as spam", 'S'
-    k.add :toggle_deleted, "Delete/undelete thread", 'd'
-    k.add :kill, "Kill thread (never to be seen in inbox again)", '&'
-    k.add :save, "Save changes now", '$'
-    k.add :jump_to_next_new, "Jump to next new thread", :tab
-    k.add :reply, "Reply to latest message in a thread", 'r'
-    k.add :reply_all, "Reply to all participants of the latest message in a thread", 'G'
-    k.add :forward, "Forward latest message in a thread", 'f'
-    k.add :toggle_tagged, "Tag/untag selected thread", 't'
-    k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
-    k.add :tag_matching, "Tag matching threads", 'g'
-    k.add :apply_to_tagged, "Apply next command to all tagged threads", '+', '='
-    k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
-    k.add :undo, "Undo the previous action", 'u'
+    k.add :cancel_search, km['cancel_search'], :ctrl_g
+    k.add :reload, km['reload'], '@'
+    k.add :toggle_archived, km['toggle_archived'], 'a'
+    k.add :toggle_starred, km['toggle_starred'], '*'
+    k.add :toggle_new, km['toggle_new'], 'N'
+    k.add :edit_labels, km['edit_labels'], 'l'
+    k.add :edit_message, km['edit_message'], 'e'
+    k.add :toggle_spam, km['toggle_spam'], 'S'
+    k.add :toggle_deleted, km['toggle_deleted'], 'd'
+    k.add :kill, km['kill'], '&'
+    k.add :save, km['save'], '$'
+    k.add :jump_to_next_new, km['jump_to_next_new'], :tab
+    k.add :reply, km['reply'], 'r'
+    k.add :reply_all, km['reply_all'], 'G'
+    k.add :forward, km['forward'], 'f'
+    k.add :toggle_tagged, km['toggle_tagged'], 't'
+    k.add :toggle_tagged_all, km['toggle_tagged_all'], 'T'
+    k.add :tag_matching, km['tag_matching'], 'g'
+    k.add :apply_to_tagged, km['apply_to_tagged'], '+', '='
+    k.add :join_threads, km['join_threads'], '#'
+    k.add :undo, km['undo'], 'u'
   end
 
   def initialize hidden_labels=[], load_thread_opts={}
@@ -105,7 +106,7 @@ EOS
         t.each_with_index do |(m, *o), i|
           next unless m
           BufferManager.say "#{message} (#{i}/#{num})", sid if t.size > 1
-          m.load_from_source! 
+          m.load_from_source!
         end
       end
       mode = ThreadViewMode.new t, @hidden_labels, self
@@ -153,15 +154,15 @@ EOS
       b.call
     end
   end
-  
+
   def handle_single_message_labeled_update sender, m
-    ## no need to do anything different here; we don't differentiate 
+    ## no need to do anything different here; we don't differentiate
     ## messages from their containing threads
     handle_labeled_update sender, m
   end
 
   def handle_labeled_update sender, m
-    if(t = thread_containing(m)) 
+    if(t = thread_containing(m))
       l = @lines[t] or return
       update_text_for_line l
     elsif is_relevant?(m)
@@ -235,9 +236,9 @@ EOS
     message, *crap = t.find { |m, *o| m.has_label? :draft }
     if message
       mode = ResumeMode.new message
-      BufferManager.spawn "Edit message", mode
+      BufferManager.spawn I18n['thread_index.edit_message'], mode
     else
-      BufferManager.flash "Not a draft message!"
+      BufferManager.flash I18n['flash.info.not_a_draft_message']
     end
   end
 
@@ -261,9 +262,9 @@ EOS
         regen_text
       end
     end
-  end  
+  end
 
-  def toggle_starred 
+  def toggle_starred
     t = cursor_thread or return
     undo = actually_toggle_starred t
     UndoManager.register "toggling thread starred status", undo
@@ -347,7 +348,7 @@ EOS
     end
   end
 
-  def toggle_archived 
+  def toggle_archived
     t = cursor_thread or return
     undo = actually_toggle_archived t
     UndoManager.register "deleting/undeleting thread #{t.first.id}", undo, lambda { update_text_for_line curpos }
@@ -399,7 +400,7 @@ EOS
       jump_to_line n unless n >= topline && n < botline
       set_cursor_pos n
     else
-      BufferManager.flash "No new messages"
+      BufferManager.flash I18n['flash.info.no_new_messages']
     end
   end
 
@@ -470,13 +471,13 @@ EOS
 
   def actually_save
     @save_thread_mutex.synchronize do
-      BufferManager.say("Saving contacts...") { ContactManager.instance.save }
+      BufferManager.say("#{I18n['thread_index.saving_contacts']}...") { ContactManager.instance.save }
       dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
       next if dirty_threads.empty?
 
-      BufferManager.say("Saving threads...") do |say_id|
+      BufferManager.say("#{I18n['thread_index.saving_threads']}...") do |say_id|
         dirty_threads.each_with_index do |t, i|
-          BufferManager.say "Saving modified thread #{i + 1} of #{dirty_threads.length}...", say_id
+          BufferManager.say "#{I18n['thread_index.saving_modified_threads', {:N => (i + 1), :NUM_ALL => dirty_threads.length}]}...", say_id
           t.save_state Index
         end
       end
@@ -487,7 +488,7 @@ EOS
     UpdateManager.unregister self
 
     if @load_thread
-      @load_thread.kill 
+      @load_thread.kill
       BufferManager.clear @mbid if @mbid
       sleep 0.1 # TODO: necessary?
       BufferManager.erase_flash
@@ -502,19 +503,19 @@ EOS
     update_text_for_line curpos
     cursor_down
   end
-  
+
   def toggle_tagged_all
     @mutex.synchronize { @threads.each { |t| @tags.toggle_tag_for t } }
     regen_text
   end
 
   def tag_matching
-    query = BufferManager.ask :search, "tag threads matching (regex): "
+    query = BufferManager.ask :search, "#{I18n['thread_index.ask.tag_threads_matching']} (regex): "
     return if query.nil? || query.empty?
     query = begin
       /#{query}/i
     rescue RegexpError => e
-      BufferManager.flash "error interpreting '#{query}': #{e.message}"
+      BufferManager.flash I18n['flash.error.interpreting_query', {:QUERY => query, :MESSAGE => e.message}]
       return
     end
     @mutex.synchronize { @threads.each { |t| @tags.tag t if thread_matches?(t, query) } }
@@ -532,7 +533,7 @@ EOS
 
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
-    user_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", modifyl, @hidden_labels
+    user_labels = BufferManager.ask_for_labels :label, "#{I18n['thread_index.ask.labels_for_thread']}: ", modifyl, @hidden_labels
     return unless user_labels
 
     thread.labels = Set.new(keepl) + user_labels
@@ -549,13 +550,13 @@ EOS
   end
 
   def multi_edit_labels threads
-    user_labels = BufferManager.ask_for_labels :labels, "Add/remove labels (use -label to remove): ", [], @hidden_labels
+    user_labels = BufferManager.ask_for_labels :labels, "#{I18n['thread_index.ask.add_remove_labels']}: ", [], @hidden_labels
     return unless user_labels
 
     user_labels.map! { |l| (l.to_s =~ /^-/)? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
     hl = user_labels.select { |(l,_)| @hidden_labels.member? l }
     unless hl.empty?
-      BufferManager.flash "'#{hl}' is a reserved label!"
+      BufferManager.flash I18n['flash.warn.label_is_reserved', {:LABEL => hl}]
       return
     end
 
@@ -590,7 +591,7 @@ EOS
     return if m.nil? # probably won't happen
     m.load_from_source!
     mode = ReplyMode.new m, type_arg
-    BufferManager.spawn "Reply to #{m.subj}", mode
+    BufferManager.spawn I18n['thread_index.reply_to_subject', {:SUBJECT => m.subj}], mode
   end
 
   def reply_all; reply :all; end
@@ -615,7 +616,7 @@ EOS
   ## TODO: figure out @ts_mutex in this method
   def load_n_threads n=LOAD_MORE_THREAD_NUM, opts={}
     @interrupt_search = false
-    @mbid = BufferManager.say "Searching for threads..."
+    @mbid = BufferManager.say "#{I18n['thread_index.searching_for_threads']}..."
 
     ts_to_load = n
     ts_to_load = ts_to_load + @ts.size unless n == -1 # -1 means all threads
@@ -644,9 +645,9 @@ EOS
 
   def status
     if (l = lines) == 0
-      "line 0 of 0"
+      I18n['thread_index.line_n_of_m', {:N => 0, :M => 0}]
     else
-      "line #{curpos + 1} of #{l} #{dirty? ? '*modified*' : ''}"
+      I18n['thread_index.line_n_of_m', {:N => (curpos + 1), :M => l}] + " #{dirty? ? '*modified*' : ''}"
     end
   end
 
@@ -669,9 +670,10 @@ EOS
       opts[:when_done].call(num) if opts[:when_done]
 
       if num > 0
-        BufferManager.flash "Found #{num.pluralize 'thread'}."
+        msg = num > 1 ? 'found_n_threads' : 'found_one_thread'
+        BufferManager.flash I18n['thread_index.#{msg}', {:N => num}]
       else
-        BufferManager.flash "No matches."
+        BufferManager.flash I18n['flash.info.no_matches']
       end
     end)})
 
@@ -735,7 +737,7 @@ protected
 
   def update_text_for_line l
     return unless l # not sure why this happens, but it does, occasionally
-    
+
     need_update = false
 
     @mutex.synchronize do
@@ -816,7 +818,7 @@ protected
           if last
             name[0 ... (from_width - cur_width)]
           else
-            name[0 ... (from_width - cur_width - 1)] + "," 
+            name[0 ... (from_width - cur_width - 1)] + ","
           end
         end
 
@@ -839,7 +841,7 @@ protected
         :index_new_color
       elsif starred
         :index_starred_color
-      else 
+      else
         :index_old_color
       end
 
@@ -847,7 +849,7 @@ protected
 
     size_widget_text = sprintf "%#{ @size_widget_width}s", size_widget
 
-    [ 
+    [
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
       [:none, sprintf("%#{@date_width}s", date)],
       (starred ? [:starred_color, "*"] : [:none, " "]),

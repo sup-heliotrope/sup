@@ -6,13 +6,26 @@ flash:
     message_sent: "Message sent!"
     saved_for_later_editing: "Saved for later editing."
     contact_updated: "Contact updated!"
+    no_labels_msg_with_unread: "No labels messages with unread messages."
+    no_labels_with_unread_messages: "No labels with unread messages!"
+    draft_discarded: "Draft discarded."
+    draft_saved: "Draft saved."
+    no_current_search: "No current search!"
+    search_wrapped_to_top: "Search wrapped to top!"
+    not_found: "Not found!"
+    not_a_draft_message: "Not a draft message!"
+    found_one_thread: "Found 1 thread."
+    found_n_threads: "Found #{N} threads."
+    no_matches: "No matches."
   error:
     cant_read_filename: "Can't read #{FN}: #{ERROR_MESSAGE}"
     could_not_exec: "Couldn't execute #{MESSAGE}"
     permission_denied: "Permission denied - #{REASON}"
     error: "Error: #{MESSAGE}"
+    interpreting_query: "error interpreting '#{QUERY}': #{MESSAGE}"
   warn:
     sending_mail: "Problem sending mail: #{MESSAGE}"
+    label_is_reserved: "'#{LABEL}' is a reserved label!"
 
 message:
   editing:
@@ -66,3 +79,134 @@ file_browser:
     view: "View file"
     select_file_or_follow_directory: "Select the highlighted file: or follow the directory"
     reload: "Reload file list"
+
+help:
+  help_for: "Help for"
+  global_keymap:
+    headline: "Global keybindings"
+
+inbox:
+  keymap:
+    archive: "Archive thread (remove from inbox)"
+    read_and_archive: "Archive thread (remove from inbox) and mark read"
+  amount_messages_in_index: "#{AMOUNT} messages in index"
+
+label_list:
+  keymap:
+    select_label: "Search by label"
+    reload: "Discard label list and reload"
+    jump_to_next_new: "Jump to next new thread"
+    toggle_show_unread_only: "Toggle between showing all labels and those with unread mail"
+
+label_search_results:
+  keymap:
+    refine_search: "Refine search"
+  ask:
+    refine_query: "refine query"
+  all_threads_with_label: "All threads with label '#{LABEL}'"
+
+line_cursor:
+  keymap:
+    cursor_down: "Move cursor down one line"
+    cursor_up: "Move cursor up one line"
+    select: "Select this item"
+
+log:
+  keymap:
+    toggle_follow: "Toggle follow mode"
+
+poll:
+  poll_for_new_messages: "poll for new messages"
+  started_at: "Poll started at #{TIME}"
+
+reply:
+  type:
+    sender: "Sender"
+    recipient: "Recipient"
+    all: "All"
+    list: "Mailing List"
+    user: "Customized"
+
+resume:
+  ask:
+    discard_draft: "Discard draft?"
+
+scroll:
+  keymap:
+    line_down: "Down one line"
+    line_up: "Up one line"
+    col_left: "Left one column"
+    col_right: "Right one column"
+    page_down: "Down one page"
+    page_up: "Up one page"
+    half_page_down: "Down one half page"
+    half_page_up: "Up one half page"
+    jump_to_start: "Jump to top"
+    jump_to_end: "Jump to bottom"
+    jump_to_left: "Jump to the left"
+    search_in_buffer: "Search in current buffer"
+    continue_search_in_buffer: "Jump to next search occurrence in buffer"
+  ask:
+    search_in_buffer: "search in buffer"
+
+search_results:
+  keymap:
+    refine_search: "Refine search"
+  refine_query: "refine query"
+
+text:
+  keymap:
+    save_to_disk: "Save to disk"
+    pipe: "Pipe to process"
+  ask:
+    for_filename: "Save to file"
+    pipe_command: "pipe command"
+  output_of: "Output of"
+
+thread_index:
+  keymap:
+    load_threads: "Load #{NUM} more threads"
+    add_multi: "Load all threads (! to confirm) :"
+    load_all_threads: "Load all threads (may list a _lot_ of threads)"
+    cancel_search: "Cancel current search"
+    reload: "Refresh view"
+    toggle_archived: "Toggle archived status"
+    toggle_starred: "Star or unstar all messages in thread"
+    toggle_new: "Toggle new/read status of all messages in thread"
+    edit_labels: "Edit or add labels for a thread"
+    edit_message: "Edit message (drafts only)"
+    toggle_spam: "Mark/unmark thread as spam"
+    toggle_deleted: "Delete/undelete thread"
+    kill: "Kill thread (never to be seen in inbox again)"
+    save: "Save changes now"
+    jump_to_next_new: "Jump to next new thread"
+    reply: "Reply to latest message in a thread"
+    reply_all: "Reply to all participants of the latest message in a thread"
+    forward: "Forward latest message in a thread"
+    toggle_tagged: "Tag/untag selected thread"
+    toggle_tagged_all: "Tag/untag all threads"
+    tag_matching: "Tag matching threads"
+    apply_to_tagged: "Apply next command to all tagged threads"
+    join_threads: "Force tagged threads to be joined into the same thread"
+    undo: "Undo the previous action"
+  edit_message: "Edit message"
+  saving_contacts: "Saving contacts"
+  saving_threads: "Saving threads"
+  saving_modified_threads: "Saving modified thread #{N} of #{NUM_ALL}"
+  reply_to_subject: "Reply to #{SUBJECT}"
+  searching_for_threads: "Searching for threads"
+  line_n_of_m: "line #{N} of #{M}"
+  ask:
+    tag_threads_matching: "tag threads matching"
+    labels_for_thread: "Labels for thread"
+    add_remove_labels: "Add/remove labels (use -label to remove)"
+
+words:
+  unread: "unread"
+  message: "message"
+  messages: "messages"
+  line: "line"
+  follow: "follow"
+  search: "search"
+  problem: "Problem"
+  done: "done"

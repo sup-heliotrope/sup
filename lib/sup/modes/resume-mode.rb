@@ -16,16 +16,16 @@ class ResumeMode < EditMessageMode
   def killable?
     return true if @safe
 
-    case BufferManager.ask_yes_or_no "Discard draft?"
+    case BufferManager.ask_yes_or_no I18n['resume.ask.discard_draft']
     when true
       DraftManager.discard @m
-      BufferManager.flash "Draft discarded."
+      BufferManager.flash I18n['flash.info.draft_discarded']
       true
     when false
       if edited?
         DraftManager.write_draft { |f| write_message f, false }
         DraftManager.discard @m
-        BufferManager.flash "Draft saved."
+        BufferManager.flash I18n['flash.info.draft_saved']
       end
       true
     else
@@ -35,7 +35,7 @@ class ResumeMode < EditMessageMode
 
   def send_message
     if super
-      DraftManager.discard @m 
+      DraftManager.discard @m
       @safe = true
     end
   end
