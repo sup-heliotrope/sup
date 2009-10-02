@@ -121,7 +121,6 @@ module Redwood
   end
 
   def start
-    Redwood::I18n.init
     Redwood::SentManager.init $config[:sent_source] || 'sup://sent'
     Redwood::ContactManager.init Redwood::CONTACT_FN
     Redwood::LabelManager.init Redwood::LABEL_FN
@@ -241,6 +240,10 @@ end
 
 require "sup/util"
 require "sup/hook"
+require "sup/i18n"
+
+## we have to initialize this guy, since most of sup relies on it
+Redwood::I18n.init
 
 ## we have to initialize this guy first, because other classes must
 ## reference it in order to register hooks, and they do that at parse
@@ -261,7 +264,6 @@ include Redwood::LogsStuff
     $encoding = "UTF-8"
   end
 
-require "sup/i18n"
 require "sup/buffer"
 require "sup/keymap"
 require "sup/mode"

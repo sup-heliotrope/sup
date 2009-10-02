@@ -1,9 +1,37 @@
 flash:
   info:
-    no_new_messages: No new messages.
-    polling_for_new_messages: Polling for new messages...
+    no_new_messages: "No new messages."
+    polling_for_new_messages: "Polling for new messages..."
+    sending: "Sending..."
+    message_sent: "Message sent!"
+    saved_for_later_editing: "Saved for later editing."
+  error:
+    cant_read_filename: "Can't read #{FN}: #{ERROR_MESSAGE}"
+    could_not_exec: "Couldn't execute #{MESSAGE}"
+  warn:
+    sending_mail: "Problem sending mail: #{MESSAGE}"
 
 message:
   editing:
     regexp:
       mentions_attachment: !ruby/regexp '/\battach(ment|ed|ing|)\b/i'
+    question:
+      discard_message: "Discard message?"
+      delete_attachment: "Delete attachment #{AT_NAME}?"
+      unedited_send: "Message unedited. Really send?"
+      no_attachments_send: "You haven't added any attachments. Really send?"
+      top_posting_send: "You're top-posting. That makes you a bad person. Really send?"
+    attachment:
+      ask_for_filename: "File name (enter for browser): "      
+    keymap:
+      send_message: "Send message"
+      edit_message_or_field: "Edit selected field"
+      edit_to: "Edit To:"
+      edit_cc: "Edit Cc:"
+      edit_subject: "Edit Subject"
+      edit_message: "Edit message"
+      save_as_draft: "Save as draft"
+      attach_file: "Attach a file"
+      delete_attachment: "Delete an attachment"
+      move_cursor_right: "Move selector to the right"
+      move_cursor_left: "Move selector to the left"

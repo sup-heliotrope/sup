@@ -1,9 +1,37 @@
 flash:
   info:
-    no_new_messages: Keine neuen Nachrichten.
-    polling_for_new_messages: Suche nach neuen Nachrichten...
+    no_new_messages: "Keine neuen Nachrichten."
+    polling_for_new_messages: "Suche nach neuen Nachrichten..."
+    sending: "Sending..."
+    message_sent: "Nachricht versendet!"
+    saved_for_later_editing: "Entwurf gespeichert."
+  error:
+    cant_read_filename: "Kann Datei nicht lesen: #{FN}: #{ERROR_MESSAGE}"
+    could_not_exec: "Konnte nicht ausführen: #{MESSAGE}"
+  warn:
+    sending_mail: "Problem beim Versenden: #{MESSAGE}"
 
 message:
   editing:
     regexp:
-      mentions_attachment: !ruby/regexp '/\b(A|a)n(geh\S+ngt|hang|)\b/i'
+      mentions_attachment: !ruby/regexp '/\b(A|a)n(geh\S+ngt|hang)\b/i'
+    question:
+      discard_message: "Nachricht verwerfen?"
+      delete_attachment: "Anhang '#{AT_NAME}' entfernen?"
+      unedited_send: "Nachricht unbearbeitet. Wirklich versenden?"
+      no_attachments_send: "Keine Anhänge angefügt. Wirklich versenden?"
+      top_posting_send: "Du wirst top-posten. Das macht dich zu bösen Person. Wirklich versenden?"
+    attachment:
+      ask_for_filename: "Dateiname (Enter zum Durchsuchen): "
+    keymap:
+      send_message: "Nachricht versenden"
+      edit_message_or_field: "Ausgewähltes Feld bearbeiten"
+      edit_to: "To: bearbeiten"
+      edit_cc: "Cc: bearbeiten"
+      edit_subject: "Betreff bearbeiten"
+      edit_message: "Nachricht bearbeiten"
+      save_as_draft: "Als Entwurf speichern"
+      attach_file: "Anhang hinzufügen"
+      delete_attachment: "Anhang entfernen"
+      move_cursor_right: "Cursor nach rechts bewegen"
+      move_cursor_left: "Cursor nach links bewegen"
