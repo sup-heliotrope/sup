@@ -268,6 +268,19 @@ thread_view:
     save_message_to_file: "Nachricht speichern unter"
     save_all_attachments_to_folder: "Alle Anhänge in Ordner speichern"
 
+buffer:
+  completion:
+    possible_completions_for: "Vervollständigungen für"
+
+crypto:
+  notice:
+    message_has_been_decrypted: "Diese Nachricht wurde für die Darstellung entschlüsselt"
+    message_coult_not_be_decrypted: "Diese Nachricht konnte nicht entschlüsselt werden"
+    unable_to_determine_validity: "Konnte Korrektheit der kryptographischen Signatur nicht überprüfen"
+  error:
+    cant_find_gpg_binary_in_path: "Konnte gpg Programm nicht finden (im PATH)."
+
+
 words:
   unread: "ungelesen"
   message: "Nachricht"
@@ -278,3 +291,7 @@ words:
   problem: "Problem"
   done: "fertig"
   attachment: "Anhang"
+  completions: "Vervollständigungen"
+  sign: "Signieren"
+  sign_and_encrypt: "Signieren und verschlüsseln"
+  encrypt_only: "Nur verschlüsseln"

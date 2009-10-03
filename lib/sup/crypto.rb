@@ -6,9 +6,9 @@ class CryptoManager
   class Error < StandardError; end
 
   OUTGOING_MESSAGE_OPERATIONS = OrderedHash.new(
-    [:sign, "Sign"],
-    [:sign_and_encrypt, "Sign and encrypt"],
-    [:encrypt, "Encrypt only"]
+    [:sign, I18n['words.sign']],
+    [:sign_and_encrypt, I18n['words.sign_and_encrypt']],
+    [:encrypt, I18n['words.encrypt_only']]
   )
 
   def initialize
@@ -146,21 +146,21 @@ class CryptoManager
         decrypted_payload = "MIME-Version: 1.0\n" + decrypted_payload
         msg = RMail::Parser.read(decrypted_payload)
       end
-      notice = Chunk::CryptoNotice.new :valid, "This message has been decrypted for display"
+      notice = Chunk::CryptoNotice.new :valid, I18n['crypto.notice.message_has_been_decrypted']
       [notice, sig, msg]
     else
-      Chunk::CryptoNotice.new :invalid, "This message could not be decrypted", output.split("\n")
+      Chunk::CryptoNotice.new :invalid, I18n['crypto.notice.message_coult_not_be_decrypted'], output.split("\n")
     end
   end
 
 private
 
   def unknown_status lines=[]
-    Chunk::CryptoNotice.new :unknown, "Unable to determine validity of cryptographic signature", lines
+    Chunk::CryptoNotice.new :unknown, I18n['crypto.notice.unable_to_determine_validity'], lines
   end
 
   def cant_find_binary
-    ["Can't find gpg binary in path."]
+    [I18n['crypto.error.cant_find_gpg_binary_in_path']]
   end
 
   ## here's where we munge rmail output into the format that signed/encrypted

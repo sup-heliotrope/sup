@@ -79,7 +79,7 @@ class Buffer
   def content_height; @height - 1; end
   def content_width; @width; end
 
-  def resize rows, cols 
+  def resize rows, cols
     return if cols == @width && rows == @height
     @width = cols
     @height = rows
@@ -89,7 +89,7 @@ class Buffer
 
   def redraw status
     if @dirty
-      draw status 
+      draw status
     else
       draw_status status
     end
@@ -216,7 +216,7 @@ EOS
 
   def focus_on buf
     return unless @buffers.member? buf
-    return if buf == @focus_buf 
+    return if buf == @focus_buf
     @focus_buf.blur if @focus_buf
     @focus_buf = buf
     @focus_buf.focus
@@ -342,7 +342,7 @@ EOS
   ## creates a new buffer. returns two things: the buffer, and a boolean
   ## indicating whether it's a new buffer or not.
   def spawn_unless_exists title, opts={}
-    new = 
+    new =
       if @name_map.member? title
         raise_to_front @name_map[title] unless opts[:hidden]
         false
@@ -449,7 +449,7 @@ EOS
 
   def ask_many_with_completions domain, question, completions, default=nil
     ask domain, question, default do |partial|
-      prefix, target = 
+      prefix, target =
         case partial
         when /^\s*$/
           ["", ""]
@@ -524,7 +524,7 @@ EOS
     user_labels = answer.to_set_of_symbols
     user_labels.each do |l|
       if forbidden_labels.include?(l) || LabelManager::RESERVED_LABELS.include?(l)
-        BufferManager.flash "'#{l}' is a reserved label!"
+        BufferManager.flash I18n['flash.warn.label_is_reserved', {:LABEL => l}]
         return
       end
     end
@@ -574,12 +574,12 @@ EOS
 
       if tf.new_completions?
         kill_buffer completion_buf if completion_buf
-        
+
         shorts = tf.completions.map { |full, short| short }
         prefix_len = shorts.shared_prefix.length
 
-        mode = CompletionMode.new shorts, :header => "Possible completions for \"#{tf.value}\": ", :prefix_len => prefix_len
-        completion_buf = spawn "<completions>", mode, :height => 10
+        mode = CompletionMode.new shorts, :header => "#{I18n['buffer.completion.possible_completions_for']} \"#{tf.value}\": ", :prefix_len => prefix_len
+        completion_buf = spawn "<#{I18n['words.completions']}>", mode, :height => 10
 
         draw_screen :skip_minibuf => true
         tf.position_cursor
@@ -591,7 +591,7 @@ EOS
 
       Ncurses.sync { Ncurses.refresh }
     end
-    
+
     kill_buffer completion_buf if completion_buf
 
     @dirty = true
@@ -672,12 +672,12 @@ EOS
 
   def minibuf_lines
     @minibuf_mutex.synchronize do
-      [(@flash ? 1 : 0) + 
+      [(@flash ? 1 : 0) +
        (@asking ? 1 : 0) +
        @minibuf_stack.compact.size, 1].max
     end
   end
-  
+
   def draw_minibuf opts={}
     m = nil
     @minibuf_mutex.synchronize do
@@ -778,7 +778,7 @@ private
 
     statusbar_text = HookManager.run("status-bar-text", opts) || default_status_bar(buf)
     term_title_text = HookManager.run("terminal-title-text", opts) || default_terminal_title(buf)
-    
+
     [statusbar_text, term_title_text]
   end
 

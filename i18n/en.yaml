@@ -267,6 +267,18 @@ thread_view:
     save_attachment_to_file: "Save attachment to file"
     save_message_to_file: "Save message to file"
     save_all_attachments_to_folder: "Save all attachments to folder"
+
+buffer:
+  completion:
+    possible_completions_for: "Possible completions for"
+
+crypto:
+  notice:
+    message_has_been_decrypted: "This message has been decrypted for display"
+    message_coult_not_be_decrypted: "This message could not be decrypted"
+    unable_to_determine_validity: "Unable to determine validity of cryptographic signature"
+  error:
+    cant_find_gpg_binary_in_path: "Can't find gpg binary in path."
   
 words:
   unread: "unread"
@@ -278,3 +290,7 @@ words:
   problem: "Problem"
   done: "done"
   attachment: "Attachment"
+  completions: "completions"
+  sign: "Sign"
+  sign_and_encrypt: "Sign and encrypt"
+  encrypt_only: "Encrypt only"
