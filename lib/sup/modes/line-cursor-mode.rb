@@ -173,7 +173,7 @@ private
 
   def set_status
     l = lines
-    @status = l > 0 ? "#{I18n['words.line']} #{@curpos + 1} of #{l}" : ""
+    @status = l > 0 ? I18n['thread_index.line_n_of_m', {:N => (@curpos + 1), :M => l}] : ""
   end
 
   def call_load_more_callbacks size
