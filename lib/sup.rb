@@ -243,7 +243,8 @@ require "sup/hook"
 require "sup/i18n"
 
 ## we have to initialize this guy, since most of sup relies on it
-Redwood::I18n.init :de, File.expand_path(File.dirname(__FILE__)) + "/../i18n"
+SUP_LANGUAGE = ENV['SUP_LANGUAGE'] || $config[:language] || :en
+Redwood::I18n.init SUP_LANGUAGE.to_sym, File.expand_path(File.dirname(__FILE__)) + "/../i18n"
 
 ## we have to initialize this guy first, because other classes must
 ## reference it in order to register hooks, and they do that at parse

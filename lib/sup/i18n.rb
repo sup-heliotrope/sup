@@ -17,7 +17,11 @@ module Redwood
 
     def read_language_file lang
       lang_fn = @base_path + "/#{lang}.yaml"
-      @translations[lang.to_sym] = YAML::load_file lang_fn
+      if File.exists?(lang_fn)
+        @translations[lang.to_sym] = YAML::load_file lang_fn
+      else
+        raise "Language file not found: #{lang_fn}"
+      end
     end
 
     ## default language is english (:en)
