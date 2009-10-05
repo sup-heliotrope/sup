@@ -6,27 +6,27 @@ flash:
     message_sent: "Nachricht versendet!"
     saved_for_later_editing: "Entwurf gespeichert."
     contact_updated: "Kontakt aktualisiert!"
-    no_labels_msg_with_unread: "Keine ungelesenen Nachrichten für Label"
+    no_labels_msg_with_unread: "Keine ungelesenen Nachrichten fÃ¼r Label"
     no_labels_with_unread_messages: "Keine Labels mit ungelesenen Nachrichten!"
-    draft_discarded: "Entwurf gelöscht."
+    draft_discarded: "Entwurf gelÃ¶scht."
     draft_saved: "Entwurf gespeichert."
     no_current_search: "Derzeit keine Suche gestartet!"
-    search_wrapped_to_top: "Suche oben weitergeführt!"
+    search_wrapped_to_top: "Suche oben weitergefÃ¼hrt!"
     not_found: "Nicht gefunden!"
     not_a_draft_message: "Nachricht ist kein Entwurf!"
     found_one_thread: "1 Thread gefunden."
     found_n_threads: "#{N} Threads gefunden."
     no_matches: "Keine Treffer."
-    cant_find_list_subscribe_header: "Konnte List-Subscribe Header für Nachricht nicht finden"
-    cant_find_list_unsubscribe_header: "Konnte List-Unsubscribe Header für Nachricht nicht finden"
+    cant_find_list_subscribe_header: "Konnte List-Subscribe Header fÃ¼r Nachricht nicht finden"
+    cant_find_list_unsubscribe_header: "Konnte List-Unsubscribe Header fÃ¼r Nachricht nicht finden"
     wrote_one_attachment_to_folder: "1 Anhang in #{FOLDER} gespeichert"
-    wrote_n_attachments_to_folder: "#{N} Anhänge in #{FOLDER} gespeichert"
+    wrote_n_attachments_to_folder: "#{N} AnhÃ¤nge in #{FOLDER} gespeichert"
     couldnt_write_n_attachments: "Konnte #{N} von ihnen nicht senden (siehe Log)."
     viewing_attachment: "Betrachte #{CONTENT_TYPE} Anhang..."
-    couldnt_exec_view_cmd: "Konnte Betrachtungsprogramm nicht ausführen, betrachte als Text"
+    couldnt_exec_view_cmd: "Konnte Betrachtungsprogramm nicht ausfÃ¼hren, betrachte als Text"
   error:
     cant_read_filename: "Kann Datei nicht lesen: #{FN}: #{ERROR_MESSAGE}"
-    could_not_exec: "Konnte nicht ausführen: #{MESSAGE}"
+    could_not_exec: "Konnte nicht ausfÃ¼hren: #{MESSAGE}"
     permission_denied: "Keine Berechtigung - #{REASON}"
     error: "Fehler: #{MESSAGE}"
     interpreting_query: "Fehler beim Interpretieren von '#{QUERY}': #{MESSAGE}"
@@ -34,7 +34,7 @@ flash:
     sending_mail: "Problem beim Versenden: #{MESSAGE}"
     label_is_reserved: "'#{LABEL}' ist ein reserviertes Label!"
     problem_sending_mail: "Problem beim Versenden der Nachricht: #{MESSAGE}"
-    didnt_find_any_attachments: "Keine Anhänge gefunden!"
+    didnt_find_any_attachments: "Keine AnhÃ¤nge gefunden!"
 
 message:
   editing:
@@ -44,26 +44,26 @@ message:
       discard_message: "Nachricht verwerfen?"
       delete_attachment: "Anhang '#{AT_NAME}' entfernen?"
       unedited_send: "Nachricht unbearbeitet. Wirklich versenden?"
-      no_attachments_send: "Keine Anhänge angefügt. Wirklich versenden?"
-      top_posting_send: "Du wirst top-posten. Das macht dich zu bösen Person. Wirklich versenden?"
+      no_attachments_send: "Keine AnhÃ¤nge angefÃ¼gt. Wirklich versenden?"
+      top_posting_send: "Du wirst top-posten. Das macht dich zu bÃ¶sen Person. Wirklich versenden?"
     attachment:
       ask_for_filename: "Dateiname (Enter zum Durchsuchen): "
     keymap:
       send_message: "Nachricht versenden"
-      edit_message_or_field: "Ausgewähltes Feld bearbeiten"
+      edit_message_or_field: "AusgewÃ¤hltes Feld bearbeiten"
       edit_to: "To: bearbeiten"
       edit_cc: "Cc: bearbeiten"
       edit_subject: "Betreff bearbeiten"
       edit_message: "Nachricht bearbeiten"
       save_as_draft: "Als Entwurf speichern"
-      attach_file: "Anhang hinzufügen"
+      attach_file: "Anhang hinzufÃ¼gen"
       delete_attachment: "Anhang entfernen"
       move_cursor_right: "Cursor nach rechts bewegen"
       move_cursor_left: "Cursor nach links bewegen"
 
 buffer_list:
   keymap:
-    jump_to_buffer: "Zum ausgewählten Buffer springen"
+    jump_to_buffer: "Zum ausgewÃ¤hlten Buffer springen"
     reload_list: "Bufferliste aktualisieren"
 
 console:
@@ -72,25 +72,25 @@ console:
 
 contact_list:
   ask:
-    alias_for: "Alias für #{NAME}: "
-    name_for: "Name für #{NAME}: "
+    alias_for: "Alias fÃ¼r #{NAME}: "
+    name_for: "Name fÃ¼r #{NAME}: "
   keymap:
     load_more: "Lade #{NUM} weitere Kontakte"
-    reload: "Kontaktliste löschen neu erstellen"
-    alias: "Alias/Name für Kontakt bearbeiten"
+    reload: "Kontaktliste lÃ¶schen neu erstellen"
+    alias: "Alias/Name fÃ¼r Kontakt bearbeiten"
     toggle_tagged: "Aktuelle Zeile taggen/untaggen"
-    apply_to_tagged: "Nächsten Befehl für alle getaggten Einträge durchführen"
+    apply_to_tagged: "NÃ¤chsten Befehl fÃ¼r alle getaggten EintrÃ¤ge durchfÃ¼hren"
     search: "Suche nach Nachrichten von bestimmten Personen"
 
 file_browser:
   keymap:
-    back: "Gehe zurück zum letzten Verzeichnis"
+    back: "Gehe zurÃ¼ck zum letzten Verzeichnis"
     view: "Datei ansehen"
     select_file_or_follow_directory: "Selektiere die hervorgehobene Datei: oder folge dem Verzeichnis"
     reload: "Dateiliste aktualisieren"
 
 help:
-  help_for: "Hilfe für"
+  help_for: "Hilfe fÃ¼r"
   global_keymap:
     headline: "Globale Tastenbelegungen"
 
@@ -104,7 +104,7 @@ label_list:
   keymap:
     select_label: "Suche via Label"
     reload: "Verwerfe Labels und aktualisiere"
-    jump_to_next_new: "Springe zum nächsten neuen Thread"
+    jump_to_next_new: "Springe zum nÃ¤chsten neuen Thread"
     toggle_show_unread_only: "Wechsel alle Labels / Labels mit ungelesenen Nachrichten"
 
 label_search_results:
@@ -118,7 +118,7 @@ line_cursor:
   keymap:
     cursor_down: "Cursor eine Zeile nach unten bewegen"
     cursor_up: "Cursor eine Zeile nach oben bewegen"
-    select: "Diesen Gegenstand auswählen"
+    select: "Diesen Gegenstand auswÃ¤hlen"
 
 log:
   keymap:
@@ -131,14 +131,14 @@ poll:
 reply:
   type:
     sender: "Absender"
-    recipient: "Empfänger"
+    recipient: "EmpfÃ¤nger"
     all: "Alle"
     list: "Mailingliste"
     user: "Angepasst"
 
 resume:
   ask:
-    discard_draft: "Entwurf löschen?"
+    discard_draft: "Entwurf lÃ¶schen?"
 
 scroll:
   keymap:
@@ -154,7 +154,7 @@ scroll:
     jump_to_end: "Nach unten springen"
     jump_to_left: "Nach links springen"
     search_in_buffer: "In aktuellem Buffer suchen"
-    continue_search_in_buffer: "Springe zu nächstem Fund im Buffer"
+    continue_search_in_buffer: "Springe zu nÃ¤chstem Fund im Buffer"
   ask:
     search_in_buffer: "Suche im Buffer"
 
@@ -175,29 +175,29 @@ text:
 thread_index:
   keymap:
     load_threads: "Lade #{NUM} weitere Threads"
-    add_multi: "Lade alle Threads (! zum Bestätigen) :"
-    load_all_threads: "Lade alle Threads (könnte _sehr_ viele Threads auflisten)"
+    add_multi: "Lade alle Threads (! zum BestÃ¤tigen) :"
+    load_all_threads: "Lade alle Threads (kÃ¶nnte _sehr_ viele Threads auflisten)"
     cancel_search: "Aktuelle Suche abbrechen"
     reload: "Ansicht aktualisieren"
     toggle_archived: "Archiviert-status umschalten"
-    toggle_starred: "Sternchen für alle Nachrichten im Thread umschalten"
+    toggle_starred: "Sternchen fÃ¼r alle Nachrichten im Thread umschalten"
     toggle_new: "Gelesen-status von allen Nachrichten im Thread umschalten"
-    edit_labels: "Labels für Thread bearbeiten / hinzufügen"
-    edit_message: "Nachricht bearbeiten (nur für Entwürfe)"
+    edit_labels: "Labels fÃ¼r Thread bearbeiten / hinzufÃ¼gen"
+    edit_message: "Nachricht bearbeiten (nur fÃ¼r EntwÃ¼rfe)"
     toggle_spam: "Spam-status des Threads umschalten"
-    toggle_deleted: "Gelöscht-status des Thread umschalten"
+    toggle_deleted: "GelÃ¶scht-status des Thread umschalten"
     kill: "Thread killen (erscheint nicht mehr in Inbox)"
-    save: "Änderungen jetzt speichern"
-    jump_to_next_new: "Zum nächsten neuen Thread springen"
+    save: "Ã„nderungen jetzt speichern"
+    jump_to_next_new: "Zum nÃ¤chsten neuen Thread springen"
     reply: "Auf letzte Nachricht im Thread antworten"
     reply_all: "Auf alle Teilnehmer der letzten Nachricht im Thread antworten"
     forward: "Letzte Nachricht im Thread weiterleiten"
-    toggle_tagged: "Tag-status des ausgewählten Threads umschalten"
+    toggle_tagged: "Tag-status des ausgewÃ¤hlten Threads umschalten"
     toggle_tagged_all: "Tag-status aller Threads umschalten"
     tag_matching: "Alle passenden Threads taggen"
     apply_to_tagged: "Wende den folgenden Befehl auf alle getaggten Threads an"
     join_threads: "Erzwinge Verschmelzung aller getaggten Threads zu einem einzigen Thread"
-    undo: "Letzte Operation rückgängig machen"
+    undo: "Letzte Operation rÃ¼ckgÃ¤ngig machen"
   edit_message: "Nachricht bearbeiten"
   saving_contacts: "Speichere Kontakte"
   saving_threads: "Speichere Threads"
@@ -207,76 +207,76 @@ thread_index:
   line_n_of_m: "Zeile #{N} von #{M}"
   ask:
     tag_threads_matching: "tagge passende Threads"
-    labels_for_thread: "Labels für Thread"
-    add_remove_labels: "Hinzufügen/Entfernen von Labels (nutze -label zum Entfernen)"
+    labels_for_thread: "Labels fÃ¼r Thread"
+    add_remove_labels: "HinzufÃ¼gen/Entfernen von Labels (nutze -label zum Entfernen)"
 
 thread_view:
   keymap:
     toggle_detailed_header: "Detailierter Header anzeigen/ausblenden"
-    show_header: "Vollen Header für Nachricht anzeigen"
+    show_header: "Vollen Header fÃ¼r Nachricht anzeigen"
     show_message: "Ganze Nachricht anzeigen (in roher Form)"
     activate_chunk: "Gegenstand auf/zuklappen oder aktivieren"
     expand_all_messages: "Alle Nachrichten auf-/zuklappen"
     edit_draft: "Entwurf bearbeiten"
     send_draft: "Entwurf versenden"
-    edit_labels: "Labels für einen Thread bearbeiten oder hinzufügen"
+    edit_labels: "Labels fÃ¼r einen Thread bearbeiten oder hinzufÃ¼gen"
     expand_all_quotes: "Alle Zitate einer Nachricht auf-/zuklappen"
-    jump_to_next_open: "Springen zu nächster geöffneter Nachricht"
-    jump_to_prev_open: "Springe zu letzter geöffneter Nachricht"
+    jump_to_next_open: "Springen zu nÃ¤chster geÃ¶ffneter Nachricht"
+    jump_to_prev_open: "Springe zu letzter geÃ¶ffneter Nachricht"
     align_current_message: "Aktuelle Nachricht im Buffer ausrichten"
     toggle_starred: "Nachricht mit Sternchen markieren / Sternchen entfernen"
     toggle_new: "Gelesen-status einer Nachricht umschalten"
     reply: "Auf Nachricht antworten"
-    reply_all: "Auf alle Empfänger einer Nachricht antworten"
+    reply_all: "Auf alle EmpfÃ¤nger einer Nachricht antworten"
     forward: "Nachricht oder Anhang weiterleiten"
-    bounce: "Nachricht zu anderen Empfängern bouncen"
+    bounce: "Nachricht zu anderen EmpfÃ¤ngern bouncen"
     alias: "Alias/Nickname einer Person bearbeiten"
     edit_as_new: "Nachricht als neu bearbeiten"
     save_to_disk: "Nachricht/Anhang speichern"
-    save_all_to_disk: "Alle Anhänge speichern"
+    save_all_to_disk: "Alle AnhÃ¤nge speichern"
     search: "Suche nach Nachrichten von bestimmten Personen"
     compose: "Nachricht an Person verassen"
-    subscribe_to_list: "Mailingliste abonnieren/kündigen"
-    unsubscribe_from_list: "Mailingliste abonnieren/kündigen"
+    subscribe_to_list: "Mailingliste abonnieren/kÃ¼ndigen"
+    unsubscribe_from_list: "Mailingliste abonnieren/kÃ¼ndigen"
     pipe_message: "Nachricht oder Anhang zu einem Shellbefehl pipen"
-    archive_and_next: "Thread archivieren, Buffer killen und nächsten Thread anzeigen"
-    delete_and_next: "Thread löschen, Buffer killen und nächsten Thread anzeigen"
+    archive_and_next: "Thread archivieren, Buffer killen und nÃ¤chsten Thread anzeigen"
+    delete_and_next: "Thread lÃ¶schen, Buffer killen und nÃ¤chsten Thread anzeigen"
     add_multi_01: "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read:"
     archive_and_kill: "Thread archivieren und Buffer killen"
-    delete_and_kill: "Thread löschen und Buffer killen"
+    delete_and_kill: "Thread lÃ¶schen und Buffer killen"
     spam_and_kill: "Thread als Spam markieren und Buffer killen"
     unread_and_kill: "Thread als ungelesen markieren und Buffer killen"
     add_multi_02: "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:"
-    archive_and_next: "Thread archivieren, Buffer killen und nächsten Thread anzeigen"
-    spam_and_next: "Thread als Spam markieren, Buffer killen und nächsten Thread anzeigen"
-    unread_and_next: "Thread als ungelesen markieren, Buffer killen und nächsten Thread anzeigen"
-    do_nothing_and_next: "Buffer killen und nächsten Thread anzeigen"
+    archive_and_next: "Thread archivieren, Buffer killen und nÃ¤chsten Thread anzeigen"
+    spam_and_next: "Thread als Spam markieren, Buffer killen und nÃ¤chsten Thread anzeigen"
+    unread_and_next: "Thread als ungelesen markieren, Buffer killen und nÃ¤chsten Thread anzeigen"
+    do_nothing_and_next: "Buffer killen und nÃ¤chsten Thread anzeigen"
     archive_and_prev: "Thread archivieren, Buffer killen und vorherigen Thread anzeigen"
-    delete_and_prev: "Thread löschen, Buffer killen und vorherigen Thread anzeigen"
+    delete_and_prev: "Thread lÃ¶schen, Buffer killen und vorherigen Thread anzeigen"
     spam_and_prev: "Thread als Spam markieren, Buffer killen und vorherigen Thread anzeigen"
     unread_and_prev: "Thread als ungelesen markieren, Buffer killen und vorherigen Thread anzeigen"
     do_nothing_and_prev: "Buffer killen und vorherigen Thread anzeigen"
-  full_header_for: "Voller Header für #{ID}"
-  raw_message_for: "Rohe Nachricht für #{ID}"
+  full_header_for: "Voller Header fÃ¼r #{ID}"
+  raw_message_for: "Rohe Nachricht fÃ¼r #{ID}"
   reply_to: "Antwort auf #{SUBJECT}"
   search_for: "Suche nach #{NAME}"
   edit_as_new: "Als neu bearbeiten"
   draft_notice: "Diese Nachricht ist ein Entwurf. Benutze 'e' zum Bearbeiten, 'y' zum Versenden."
   ask:
-    labels_for_thread: "Labels für Thread"
+    labels_for_thread: "Labels fÃ¼r Thread"
     save_attachment_to_file: "Anhang speichern unter"
     save_message_to_file: "Nachricht speichern unter"
-    save_all_attachments_to_folder: "Alle Anhänge in Ordner speichern"
+    save_all_attachments_to_folder: "Alle AnhÃ¤nge in Ordner speichern"
 
 buffer:
   completion:
-    possible_completions_for: "Vervollständigungen für"
+    possible_completions_for: "VervollstÃ¤ndigungen fÃ¼r"
 
 crypto:
   notice:
-    message_has_been_decrypted: "Diese Nachricht wurde für die Darstellung entschlüsselt"
-    message_coult_not_be_decrypted: "Diese Nachricht konnte nicht entschlüsselt werden"
-    unable_to_determine_validity: "Konnte Korrektheit der kryptographischen Signatur nicht überprüfen"
+    message_has_been_decrypted: "Diese Nachricht wurde fÃ¼r die Darstellung entschlÃ¼sselt"
+    message_coult_not_be_decrypted: "Diese Nachricht konnte nicht entschlÃ¼sselt werden"
+    unable_to_determine_validity: "Konnte Korrektheit der kryptographischen Signatur nicht Ã¼berprÃ¼fen"
   error:
     cant_find_gpg_binary_in_path: "Konnte gpg Programm nicht finden (im PATH)."
 
@@ -291,7 +291,7 @@ words:
   problem: "Problem"
   done: "fertig"
   attachment: "Anhang"
-  completions: "Vervollständigungen"
+  completions: "VervollstÃ¤ndigungen"
   sign: "Signieren"
-  sign_and_encrypt: "Signieren und verschlüsseln"
-  encrypt_only: "Nur verschlüsseln"
+  sign_and_encrypt: "Signieren und verschlÃ¼sseln"
+  encrypt_only: "Nur verschlÃ¼sseln"
