@@ -26,6 +26,11 @@ flash:
     couldnt_exec_view_cmd: "Konnte Betrachtungsprogramm nicht ausführen, betrachte als Text"
     no_draft_messages: "Keine Entwürfe vorhanden."
     successfully_wrote_file: "Erfolgreich Datei geschrieben: #{FN}."
+    loaded_one_new_message: "1 neue Nachricht geladen, #{M} nach Inbox."
+    loaded_n_new_messages: "#{N} neue Nachrichten geladen, #{M} nach Inbox."
+    loaded_one_thread: "1 Thread geladen"
+    loaded_n_threads: "#{N} Threads geladen"
+
   error:
     cant_read_filename: "Kann Datei nicht lesen: #{FN}: #{ERROR_MESSAGE}"
     could_not_exec: "Konnte nicht ausführen: #{MESSAGE}"
@@ -34,6 +39,7 @@ flash:
     interpreting_query: "Fehler beim Interpretieren von '#{QUERY}': #{MESSAGE}"
     writing_file: "Fehler beim Schreiben der Datei: #{MESSAGE}"
     running_cmd: "Fehler beim Ausführen von #{COMMAND}!"
+
   warn:
     sending_mail: "Problem beim Versenden: #{MESSAGE}"
     label_is_reserved: "'#{LABEL}' ist ein reserviertes Label!"

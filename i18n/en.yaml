@@ -26,6 +26,11 @@ flash:
     couldnt_exec_view_cmd: "Couldn't execute view command, viewing as text."
     no_draft_messages: "No draft messages."
     successfully_wrote_file: "Successfully wrote #{FN}."
+    loaded_one_new_message: "Loaded 1 new message, #{M} to inbox."
+    loaded_n_new_messages: "Loaded #{N} new messages, #{M} to inbox."
+    loaded_one_thread: "Loaded 1 thread"
+    loaded_n_threads: "Loaded #{N} threads."
+
   error:
     cant_read_filename: "Can't read #{FN}: #{ERROR_MESSAGE}"
     could_not_exec: "Couldn't execute #{MESSAGE}"
@@ -34,6 +39,7 @@ flash:
     interpreting_query: "error interpreting '#{QUERY}': #{MESSAGE}"
     writing_file: "Error writing file: #{MESSAGE}"
     running_cmd: "Error running #{COMMAND}!"
+
   warn:
     sending_mail: "Problem sending mail: #{MESSAGE}"
     label_is_reserved: "'#{LABEL}' is a reserved label!"

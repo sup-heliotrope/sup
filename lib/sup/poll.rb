@@ -46,7 +46,8 @@ EOS
     BufferManager.flash I18n['flash.info.polling_for_new_messages']
     num, numi, from_and_subj, from_and_subj_inbox = @mode.poll
     if num > 0
-      BufferManager.flash "Loaded #{num.pluralize 'new message'}, #{numi} to inbox."
+      msg = num > 1 ? 'loaded_n_new_messages' : 'loaded_one_new_message'
+      BufferManager.flash I18n["flash.info.#{msg}", {:N => num, :M => numi}]
     else
       BufferManager.flash I18n['flash.info.no_new_messages']
     end

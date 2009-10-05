@@ -625,7 +625,8 @@ EOS
     last_update = Time.now
     @ts.load_n_threads(ts_to_load, opts) do |i|
       if (Time.now - last_update) >= 0.25
-        BufferManager.say "Loaded #{i.pluralize 'thread'}...", @mbid
+        msg = i > 1 ? 'loaded_n_threads' : 'loaded_one_thread'
+        BufferManager.say "#{I18n["flash.info.#{msg}", {:N => i}]}...", @mbid
         update
         BufferManager.draw_screen
         last_update = Time.now
