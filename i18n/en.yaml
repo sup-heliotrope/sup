@@ -25,12 +25,15 @@ flash:
     viewing_attachment: "viewing #{CONTENT_TYPE} attachment..."
     couldnt_exec_view_cmd: "Couldn't execute view command, viewing as text."
     no_draft_messages: "No draft messages."
+    successfully_wrote_file: "Successfully wrote #{FN}."
   error:
     cant_read_filename: "Can't read #{FN}: #{ERROR_MESSAGE}"
     could_not_exec: "Couldn't execute #{MESSAGE}"
     permission_denied: "Permission denied - #{REASON}"
     error: "Error: #{MESSAGE}"
     interpreting_query: "error interpreting '#{QUERY}': #{MESSAGE}"
+    writing_file: "Error writing file: #{MESSAGE}"
+    running_cmd: "Error running #{COMMAND}!"
   warn:
     sending_mail: "Problem sending mail: #{MESSAGE}"
     label_is_reserved: "'#{LABEL}' is a reserved label!"
@@ -311,7 +314,12 @@ global:
   label_list: "Label list"
   all_drafts: "All drafts"
   unknown_keypress_for: "Unknown keypress '#{KEY}' for #{MODE_NAME}."
-    
+
+mode:
+  keybindings_from: "Keybindings from #{MODE_NAME}"
+  ask:
+    file_overwrite:  "File \"#{FN}\" exists. Overwrite?"
+
 words:
   unread: "unread"
   message: "message"

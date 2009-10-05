@@ -56,7 +56,7 @@ class Mode
     used_keys = {}
     ancestors.map do |klass|
       km = @@keymaps[klass] or next
-      title = "Keybindings from #{Mode.make_name klass.name}"
+      title = I18n['mode.keybindings_from', {:MODE_NAME => Mode.make_name(klass.name)}]
       s = <<EOS
 #{title}
 #{'-' * title.display_length}
@@ -76,17 +76,17 @@ EOS
 
   def save_to_file fn, talk=true
     if File.exists? fn
-      unless BufferManager.ask_yes_or_no "File \"#{fn}\" exists. Overwrite?"
+      unless BufferManager.ask_yes_or_no I18n['mode.ask.file_overwrite', {:FN => fn}]
         info "Not overwriting #{fn}"
         return
       end
     end
     begin
       File.open(fn, "w") { |f| yield f }
-      BufferManager.flash "Successfully wrote #{fn}." if talk
+      BufferManager.flash I18n['flash.info.successfully_wrote_file', {:FN => fn}] if talk
       true
     rescue SystemCallError, IOError => e
-      m = "Error writing file: #{e.message}"
+      m = I18n['flash.error.writing_file', {:MESSAGE => e.message}]
       info m
       BufferManager.flash m
       false
@@ -101,10 +101,10 @@ EOS
         message = err.first.read
         if message =~ /^\s*$/
           warn "error running #{command} (but no error message)"
-          BufferManager.flash "Error running #{command}!"
+          BufferManager.flash I18n['flash.error.running_cmd', {:COMMAND => command}]
         else
           warn "error running #{command}: #{message}"
-          BufferManager.flash "Error: #{message}"
+          BufferManager.flash I18n['flash.error.error', {:MESSAGE => message}]
         end
         return
       end
@@ -120,7 +120,7 @@ EOS
       data = data.first
 
       if data.eof
-        BufferManager.flash "'#{command}' done!"
+        BufferManager.flash "'#{command}' #{I18n['words.done']}!"
         nil
       else
         data.read

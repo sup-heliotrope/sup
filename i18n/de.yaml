@@ -25,12 +25,15 @@ flash:
     viewing_attachment: "Betrachte #{CONTENT_TYPE} Anhang..."
     couldnt_exec_view_cmd: "Konnte Betrachtungsprogramm nicht ausführen, betrachte als Text"
     no_draft_messages: "Keine Entwürfe vorhanden."
+    successfully_wrote_file: "Erfolgreich Datei geschrieben: #{FN}."
   error:
     cant_read_filename: "Kann Datei nicht lesen: #{FN}: #{ERROR_MESSAGE}"
     could_not_exec: "Konnte nicht ausführen: #{MESSAGE}"
     permission_denied: "Keine Berechtigung - #{REASON}"
     error: "Fehler: #{MESSAGE}"
     interpreting_query: "Fehler beim Interpretieren von '#{QUERY}': #{MESSAGE}"
+    writing_file: "Fehler beim Schreiben der Datei: #{MESSAGE}"
+    running_cmd: "Fehler beim Ausführen von #{COMMAND}!"
   warn:
     sending_mail: "Problem beim Versenden: #{MESSAGE}"
     label_is_reserved: "'#{LABEL}' ist ein reserviertes Label!"
@@ -311,6 +314,12 @@ global:
   label_list: "Labelliste"
   all_drafts: "Alle Entwürfe"
   unknown_keypress_for: "Unbelegte Taste '#{KEY}' für #{MODE_NAME} gedrückt."
+
+mode:
+  keybindings_from: "Tastenbelegungen für #{MODE_NAME}"
+  ask:
+    file_overwrite:  "Datei \"#{FN}\" existiert bereits. Überschreiben?"
+
 
 words:
   unread: "ungelesen"
