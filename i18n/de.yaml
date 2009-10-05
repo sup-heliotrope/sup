@@ -24,6 +24,7 @@ flash:
     couldnt_write_n_attachments: "Konnte #{N} von ihnen nicht senden (siehe Log)."
     viewing_attachment: "Betrachte #{CONTENT_TYPE} Anhang..."
     couldnt_exec_view_cmd: "Konnte Betrachtungsprogramm nicht ausführen, betrachte als Text"
+    no_draft_messages: "Keine Entwürfe vorhanden."
   error:
     cant_read_filename: "Kann Datei nicht lesen: #{FN}: #{ERROR_MESSAGE}"
     could_not_exec: "Konnte nicht ausführen: #{MESSAGE}"
@@ -280,6 +281,36 @@ crypto:
   error:
     cant_find_gpg_binary_in_path: "Konnte gpg Programm nicht finden (im PATH)."
 
+global:
+  keymap:
+    quit_ask: "Sup beenden (aber vorher fragen)"
+    quit_now: "Sup sofort beenden"
+    help: "Hilfe anzeigen"
+    roll_buffers: "Zum nächsten Buffer wechseln"
+    roll_buffers_backwards: "Zum vorherigen Buffer wechseln"
+    kill_buffer: "Aktuellen Buffer killen (schließen)"
+    list_buffers: "Alle Buffer auflisten"
+    list_contacts: "Kontakte auflisten"
+    redraw: "Bildschirm neu zeichen / aktualisieren"
+    search: "Alle Nachrichten durchsuchen"
+    search_unread: "Alle ungelesenen Nachrichten auflisten"
+    list_labels: "Alle Labels auflisten"
+    poll: "Nach neuen Nachrichten sehen"
+    poll_unusual: "Nach neuen Nachrichten aus ungewöhnlichen Quellen sehen"
+    compose: "Neue Nachricht verfassen"
+    nothing: "Tue nichts"
+    recall_draft: "Neuesten Entwurf bearbeiten"
+    show_inbox: "Inbox-Buffer anzeigen"
+    show_console: "Consolen-Buffer anzeigen"
+  ask:
+    really_quit: "Wirklich beenden?"
+    search_all_messages: "Alle Nachrichten durchsuchen"
+    show_threads_with_label: "Threads mit Label anzeigen (Enter um aufzulisten)"
+    really_poll_unusual_sources: "Wirklich nach neuen Nachrichten aus ungewöhnlichen Quellen sehen?"
+  buffer_list: "Bufferliste"
+  label_list: "Labelliste"
+  all_drafts: "Alle Entwürfe"
+  unknown_keypress_for: "Unbelegte Taste '#{KEY}' für #{MODE_NAME} gedrückt."
 
 words:
   unread: "ungelesen"

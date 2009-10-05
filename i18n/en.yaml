@@ -24,6 +24,7 @@ flash:
     couldnt_write_n_attachments: "couldn't write #{N} of them (see log)."
     viewing_attachment: "viewing #{CONTENT_TYPE} attachment..."
     couldnt_exec_view_cmd: "Couldn't execute view command, viewing as text."
+    no_draft_messages: "No draft messages."
   error:
     cant_read_filename: "Can't read #{FN}: #{ERROR_MESSAGE}"
     could_not_exec: "Couldn't execute #{MESSAGE}"
@@ -279,7 +280,38 @@ crypto:
     unable_to_determine_validity: "Unable to determine validity of cryptographic signature"
   error:
     cant_find_gpg_binary_in_path: "Can't find gpg binary in path."
-  
+
+global:
+  keymap:
+    quit_ask: "Quit Sup: but ask first"
+    quit_now: "Quit Sup immediately"
+    help: "Show help"
+    roll_buffers: "Switch to next buffer"
+    roll_buffers_backwards: "Switch to previous buffer"
+    kill_buffer: "Kill the current buffer"
+    list_buffers: "List all buffers"
+    list_contacts: "List contacts"
+    redraw: "Redraw screen"
+    search: "Search all messages"
+    search_unread: "Show all unread messages"
+    list_labels: "List labels"
+    poll: "Poll for new messages"
+    poll_unusual: "Poll for new messages from unusual sources"
+    compose: "Compose new message"
+    nothing: "Do nothing"
+    recall_draft: "Edit most recent draft message"
+    show_inbox: "Show the Inbox buffer"
+    show_console: "Show the Console buffer"
+  ask:
+    really_quit: "Really quit?"
+    search_all_messages: "search all messages"
+    show_threads_with_label: "Show threads with label (enter for listing)"
+    really_poll_unusual_sources: "Really poll unusual sources?"
+  buffer_list: "buffer list"
+  label_list: "Label list"
+  all_drafts: "All drafts"
+  unknown_keypress_for: "Unknown keypress '#{KEY}' for #{MODE_NAME}."
+    
 words:
   unread: "unread"
   message: "message"
