@@ -137,7 +137,7 @@ def add_source
     system cmd
     if $?.success?
       say "Great! Added!"
-      break 
+      break
     else
       say "Rats, that failed. You may have to do it manually."
       if axe_yes("Try again?") then next else return end
@@ -165,6 +165,20 @@ account = $config[:accounts][:default]
 
 name = axe "What's your name?", account[:name]
 email = axe "What's your (primary) email address?", account[:email]
+
+
+## ask for user's language
+m17n_base_dir = File.expand_path(File.dirname(__FILE__)) + "/../m17n"
+supported_languages = Dir[m17n_base_dir + "/*.yaml"].collect{ |lf| File.basename(lf).split(".yaml")[0] }
+
+say "Sup currently supports the following languages:"
+supported_languages.each do |l|
+  say "'#{l}'"
+end
+
+language = axe "What's your language?", "en"
+$config[:language] = language
+
 
 say "Ok, your from header will look like this:"
 say "  From: #{name} <#{email}>"
@@ -244,7 +258,7 @@ if axe_yes "Run sup-sync to import all messages now?"
     system cmd
     if $?.success?
       say "Great! It worked!"
-      break 
+      break
     else
       say "Rats, that failed. You may have to do it manually."
       if axe_yes("Try again?") then next else break end
