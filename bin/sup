@@ -65,7 +65,7 @@ module Redwood
 global_keymap = Keymap.new do |k|
   km = I18n['global.keymap']
   k.add :quit_ask, km['quit_ask'], 'q'
-  k.add :quit_now, km['quit_ask'], 'Q'
+  k.add :quit_now, km['quit_now'], 'Q'
   k.add :help, km['help'], '?'
   k.add :roll_buffers, km['roll_buffers'], 'b'
   k.add :roll_buffers_backwards, km['roll_buffers_backwards'], 'B'
