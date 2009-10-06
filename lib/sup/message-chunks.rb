@@ -187,7 +187,9 @@ EOS
     def viewable?; false end
 
     def patina_color; :quote_patina_color end
-    def patina_text; "(#{lines.length} quoted lines)" end
+    def patina_text
+      "(#{I18n['message.chunks.n_quoted_lines', {:N => lines.length}]})" 
+    end
     def color; :quote_color end
   end
 
@@ -203,7 +205,9 @@ EOS
     def viewable?; false end
 
     def patina_color; :sig_patina_color end
-    def patina_text; "(#{lines.length}-line signature)" end
+    def patina_text
+      "(#{I18n['message.chunks.n_line_signature', {:N => lines.length}]})" 
+    end
     def color; :sig_color end
   end
 

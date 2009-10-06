@@ -70,6 +70,9 @@ message:
       delete_attachment: "Delete an attachment"
       move_cursor_right: "Move selector to the right"
       move_cursor_left: "Move selector to the left"
+  chunks:
+    n_line_signature: "#{N}-line signature" 
+    n_quoted_lines: "#{N} quoted lines"
 
 buffer_list:
   keymap:

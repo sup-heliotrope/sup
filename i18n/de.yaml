@@ -70,6 +70,9 @@ message:
       delete_attachment: "Anhang entfernen"
       move_cursor_right: "Cursor nach rechts bewegen"
       move_cursor_left: "Cursor nach links bewegen"
+  chunks:
+    n_line_signature: "#{N}-zeilige Signatur" 
+    n_quoted_lines: "#{N}-zeiliges Zitat"
 
 buffer_list:
   keymap:
