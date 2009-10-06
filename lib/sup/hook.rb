@@ -78,10 +78,11 @@ class HookManager
     context = @contexts[hook] ||= HookContext.new(name)
 
     result = nil
+    fn = fn_for name
     begin
-      result = context.__run hook, fn_for(name), locals
+      result = context.__run hook, fn, locals
     rescue Exception => e
-      log "error running hook: #{e.message}"
+      log "error running #{fn}: #{e.message}"
       log e.backtrace.join("\n")
       @hooks[name] = nil # disable it
       BufferManager.flash "Error running hook: #{e.message}" if BufferManager.instantiated?
