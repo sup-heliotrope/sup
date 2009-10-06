@@ -153,6 +153,7 @@ end
 
 class BufferManager
   include Singleton
+  include M17n
 
   attr_reader :focus_buf
 
@@ -524,7 +525,7 @@ EOS
     user_labels = answer.to_set_of_symbols
     user_labels.each do |l|
       if forbidden_labels.include?(l) || LabelManager::RESERVED_LABELS.include?(l)
-        BufferManager.flash I18n['flash.warn.label_is_reserved', {:LABEL => l}]
+        BufferManager.flash m('flash.warn.label_is_reserved', :label => l)
         return
       end
     end
@@ -578,8 +579,8 @@ EOS
         shorts = tf.completions.map { |full, short| short }
         prefix_len = shorts.shared_prefix.length
 
-        mode = CompletionMode.new shorts, :header => "#{I18n['buffer.completion.possible_completions_for']} \"#{tf.value}\": ", :prefix_len => prefix_len
-        completion_buf = spawn "<#{I18n['words.completions']}>", mode, :height => 10
+        mode = CompletionMode.new shorts, :header => "#{m('buffer.completion.possible_completions_for')} \"#{tf.value}\": ", :prefix_len => prefix_len
+        completion_buf = spawn "<#{m('words.completions')}>", mode, :height => 10
 
         draw_screen :skip_minibuf => true
         tf.position_cursor

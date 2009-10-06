@@ -1,9 +1,11 @@
 module Redwood
 
 class BufferListMode < LineCursorMode
+  include M17n
+
   register_keymap do |k|
-    k.add :jump_to_buffer, I18n['buffer_list.keymap.jump_to_buffer'], :enter
-    k.add :reload, I18n['buffer_list.keymap.reload_list'], "@"
+    k.add :jump_to_buffer, m('buffer_list.keymap.jump_to_buffer'), :enter
+    k.add :reload, m('buffer_list.keymap.reload_list'), "@"
   end
 
   def initialize

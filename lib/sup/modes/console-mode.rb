@@ -60,8 +60,10 @@ class Console
 end
 
 class ConsoleMode < LogMode
+  include M17n
+
   register_keymap do |k|
-    k.add :run, I18n['console.keymap.restart_eval'], 'e'
+    k.add :run, m('console.keymap.restart_eval'), 'e'
   end
 
   def initialize

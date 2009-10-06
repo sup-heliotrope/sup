@@ -13,6 +13,8 @@ module Redwood
 class SendmailCommandFailed < StandardError; end
 
 class EditMessageMode < LineCursorMode
+  include M17n
+
   DECORATION_LINES = 1
 
   FORCE_HEADERS = %w(From To Cc Bcc Subject)
@@ -46,7 +48,7 @@ EOS
   bool_reader :edited
 
   register_keymap do |k|
-    km = I18n['message.editing.keymap']
+    km = m('message.editing.keymap')
     k.add :send_message, km['send_message'], 'y'
     k.add :edit_message_or_field, km['edit_message_or_field'], 'e'
     k.add :edit_to, km['edit_to'], 't'
@@ -155,13 +157,13 @@ EOS
   end
 
   def killable?
-    !edited? || BufferManager.ask_yes_or_no(I18n['message.editing.question.discard_message'])
+    !edited? || BufferManager.ask_yes_or_no(m('message.editing.question.discard_message'))
   end
 
   def unsaved?; edited? end
 
   def attach_file
-    fn = BufferManager.ask_for_filename :attachment, I18n['message.editing.attachment.ask_for_filename']
+    fn = BufferManager.ask_for_filename :attachment, m('message.editing.attachment.ask_for_filename')
     return unless fn
     begin
       Dir[fn].each do |f|
@@ -170,13 +172,13 @@ EOS
       end
       update
     rescue SystemCallError => e
-      BufferManager.flash I18n['flash.error.cant_read_filename', {:FN => fn, :ERROR_MESSAGE => e.message}]
+      BufferManager.flash m('flash.error.cant_read_filename', :fn => fn, :error_message => e.message)
     end
   end
 
   def delete_attachment
     i = curpos - @attachment_lines_offset - DECORATION_LINES - 1
-    if i >= 0 && i < @attachments.size && BufferManager.ask_yes_or_no(I18n['message.editing.question.delete_attachment', {:AT_NAME => @attachment_names[i]}])
+    if i >= 0 && i < @attachments.size && BufferManager.ask_yes_or_no(m('message.editing.question.delete_attachment', :at_name => @attachment_names[i]))
       @attachments.delete_at i
       @attachment_names.delete_at i
       update
@@ -305,9 +307,9 @@ protected
   end
 
   def send_message
-    return false if !edited? && !BufferManager.ask_yes_or_no(I18n['message.editing.question.unedited_send'])
-    return false if $config[:confirm_no_attachments] && mentions_attachments? && @attachments.size == 0 && !BufferManager.ask_yes_or_no(I18n['message.editing.question.no_attachments_send'])#" stupid ruby-mode
-    return false if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no(I18n['message.editing.question.top_posting_send']) #" stupid ruby-mode
+    return false if !edited? && !BufferManager.ask_yes_or_no(m('message.editing.question.unedited_send'))
+    return false if $config[:confirm_no_attachments] && mentions_attachments? && @attachments.size == 0 && !BufferManager.ask_yes_or_no(m('message.editing.question.no_attachments_send'))#" stupid ruby-mode
+    return false if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no(m('message.editing.question.top_posting_send')) #" stupid ruby-mode
 
     from_email =
       if @header["From"] =~ /<?(\S+@(\S+?))>?$/
@@ -317,20 +319,20 @@ protected
       end
 
     acct = AccountManager.account_for(from_email) || AccountManager.default_account
-    BufferManager.flash I18n['flash.info.sending']
+    BufferManager.flash m('flash.info.sending')
 
     begin
       date = Time.now
       m = build_message date
       IO.popen(acct.sendmail, "w") { |p| p.puts m }
-      raise SendmailCommandFailed, I18n['flash.error.could_not_exec', {:MESSAGE => acct.sendmail}] unless $? == 0
+      raise SendmailCommandFailed, m('flash.error.could_not_exec', :message => acct.sendmail) unless $? == 0
       SentManager.write_sent_message(date, from_email) { |f| f.puts sanitize_body(m.to_s) }
       BufferManager.kill_buffer buffer
-      BufferManager.flash I18n['flash.info.message_sent']
+      BufferManager.flash m('flash.info.message_sent')
       true
     rescue SystemCallError, SendmailCommandFailed, CryptoManager::Error => e
       warn "Problem sending mail: #{e.message}"
-      BufferManager.flash I18n['flash.warn.sending_mail', {:MESSAGE => e.message}]
+      BufferManager.flash m('flash.warn.sending_mail', :message => e.message)
       false
     end
   end
@@ -338,7 +340,7 @@ protected
   def save_as_draft
     DraftManager.write_draft { |f| write_message f, false }
     BufferManager.kill_buffer buffer
-    BufferManager.flash I18n['flash.info.saved_for_later_editing']
+    BufferManager.flash m('flash.info.saved_for_later_editing')
   end
 
   def build_message date
@@ -446,7 +448,7 @@ private
   end
 
   def mentions_attachments?
-    @body.any? { |l| l =~ /^[^>]/ && l =~ I18n['message.editing.regexp.mentions_attachment'] }
+    @body.any? { |l| l =~ /^[^>]/ && l =~ m('message.editing.regexp.mentions_attachment') }
   end
 
   def top_posting?

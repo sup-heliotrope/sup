@@ -10,12 +10,14 @@ class ScrollMode < Mode
   ## width. (whereas botline is topline + at most the buffer height,
   ## and can be == to topline in the case that there's no content.)
 
+  include Redwood::M17n
+
   attr_reader :status, :topline, :botline, :leftcol
 
   COL_JUMP = 2
 
   register_keymap do |k|
-    km = I18n['scroll.keymap']
+    km = m('scroll.keymap')
     k.add :line_down, km['line_down'], :down, 'j', 'J', "\C-e"
     k.add :line_up, km['line_up'], :up, 'k', 'K', "\C-y"
     k.add :col_left, km['col_left'], :left, 'h'
@@ -62,7 +64,7 @@ class ScrollMode < Mode
 
   def continue_search_in_buffer
     unless @search_query
-      BufferManager.flash I18n['flash.info.no_current_search']
+      BufferManager.flash m('flash.info.no_current_search')
       return
     end
 
@@ -70,19 +72,19 @@ class ScrollMode < Mode
     line, col = find_text @search_query, start
     if line.nil? && (start > 0)
       line, col = find_text @search_query, 0
-      BufferManager.flash I18n['flash.info.search_wrapped_to_top'] if line
+      BufferManager.flash m('flash.info.search_wrapped_to_top') if line
     end
     if line
       @search_line = line + 1
       search_goto_pos line, col, col + @search_query.display_length
       buffer.mark_dirty
     else
-      BufferManager.flash I18n['flash.info.not_found']
+      BufferManager.flash m('flash.info.not_found')
     end
   end
 
   def search_in_buffer
-    query = BufferManager.ask :search, "#{I18n['scroll.ask.search_in_buffer']}: "
+    query = BufferManager.ask :search, "#{m('scroll.ask.search_in_buffer')}: "
     return if query.nil? || query.empty?
     @search_query = Regexp.escape query
     continue_search_in_buffer

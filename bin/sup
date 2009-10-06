@@ -44,7 +44,7 @@ No variables.
 No return value.
 EOS
 
-Redwood::HookManager.register "shutdown", <<EOS 
+Redwood::HookManager.register "shutdown", <<EOS
 Executes when sup is shutting down. May be run when sup is crashing,
 so don\'t do anything too important. Run before the label, contacts,
 and people are saved.
@@ -63,7 +63,7 @@ Thread.current.priority = 1 # keep ui responsive
 module Redwood
 
 global_keymap = Keymap.new do |k|
-  km = I18n['global.keymap']
+  km = m('global.keymap')
   k.add :quit_ask, km['quit_ask'], 'q'
   k.add :quit_now, km['quit_now'], 'Q'
   k.add :help, km['help'], '?'
@@ -249,7 +249,7 @@ begin
     when :quit_now
       break if bm.kill_all_buffers_safely
     when :quit_ask
-      if bm.ask_yes_or_no I18n['global.ask.really_quit']
+      if bm.ask_yes_or_no m('global.ask.really_quit')
         break if bm.kill_all_buffers_safely
       end
     when :help
@@ -262,22 +262,22 @@ begin
     when :kill_buffer
       bm.kill_buffer_safely bm.focus_buf
     when :list_buffers
-      bm.spawn_unless_exists(I18n['global.buffer_list'], :system => true) { BufferListMode.new }
+      bm.spawn_unless_exists(m('global.buffer_list'), :system => true) { BufferListMode.new }
     when :list_contacts
       b, new = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
       b.mode.load_in_background if new
     when :search
-      query = BufferManager.ask :search, "#{I18n['global.ask.search_all_messages']}: "
+      query = BufferManager.ask :search, "#{m('global.ask.search_all_messages')}: "
       next unless query && query !~ /^\s*$/
       SearchResultsMode.spawn_from_query query
     when :search_unread
       SearchResultsMode.spawn_from_query "is:unread"
     when :list_labels
       labels = LabelManager.all_labels.map { |l| LabelManager.string_for l }
-      user_label = bm.ask_with_completions :label, "#{I18n['global.ask.show_threads_with_label']}: ", labels
+      user_label = bm.ask_with_completions :label, "#{m('global.ask.show_threads_with_label')}: ", labels
       unless user_label.nil?
         if user_label.empty?
-          bm.spawn_unless_exists(I18n['global.label_list']) { LabelListMode.new } if user_label && user_label.empty?
+          bm.spawn_unless_exists(m('global.label_list')) { LabelListMode.new } if user_label && user_label.empty?
         else
           LabelSearchResultsMode.spawn_nicely user_label
         end
@@ -287,21 +287,21 @@ begin
     when :poll
       reporting_thread("user-invoked poll") { PollManager.poll }
     when :poll_unusual
-      if BufferManager.ask_yes_or_no I18n['global.ask.really_poll_unusual_sources']
+      if BufferManager.ask_yes_or_no m('global.ask.really_poll_unusual_sources')
         reporting_thread("user-invoked unusual poll") { PollManager.poll_unusual }
       end
     when :recall_draft
       case Index.num_results_for :label => :draft
       when 0
-        bm.flash I18n['flash.info.no_draft_messages']
+        bm.flash m('flash.info.no_draft_messages')
       when 1
         m = nil
         Index.each_id_by_date(:label => :draft) { |mid, builder| m = builder.call }
         r = ResumeMode.new(m)
-        BufferManager.spawn I18n['thread_index.edit_message'], r
+        BufferManager.spawn m('thread_index.edit_message'), r
         r.edit_message
       else
-        b, new = BufferManager.spawn_unless_exists(I18n['global.all_drafts']) { LabelSearchResultsMode.new [:draft] }
+        b, new = BufferManager.spawn_unless_exists(m('global.all_drafts')) { LabelSearchResultsMode.new [:draft] }
         b.mode.load_threads :num => b.content_height if new
       end
     when :show_inbox
@@ -313,7 +313,7 @@ begin
     when :redraw
       bm.completely_redraw_screen
     else
-      bm.flash I18n['global.unknown_keypress_for', {:KEY => c.to_character, :MODE_NAME => bm.focus_buf.mode.name}]
+      bm.flash m('global.unknown_keypress_for', :key => c.to_character, :mode_name => bm.focus_buf.mode.name)
     end
 
     bm.draw_screen

@@ -159,6 +159,7 @@ EOS
   end
 
   class Text
+    include M17n
 
     attr_reader :lines
     def initialize lines
@@ -180,7 +181,7 @@ EOS
     def initialize lines
       @lines = lines
     end
-    
+
     def inlineable?; @lines.length == 1 end
     def quotable?; true end
     def expandable?; !inlineable? end
@@ -188,12 +189,14 @@ EOS
 
     def patina_color; :quote_patina_color end
     def patina_text
-      "(#{I18n['message.chunks.n_quoted_lines', {:N => lines.length}]})" 
+      "(#{m('message.chunks.n_quoted_lines', :n => lines.length)})"
     end
     def color; :quote_color end
   end
 
   class Signature
+    include M17n
+
     attr_reader :lines
     def initialize lines
       @lines = lines
@@ -206,7 +209,7 @@ EOS
 
     def patina_color; :sig_patina_color end
     def patina_text
-      "(#{I18n['message.chunks.n_line_signature', {:N => lines.length}]})" 
+      "(#{m('message.chunks.n_line_signature', :n => lines.length)})"
     end
     def color; :sig_color end
   end

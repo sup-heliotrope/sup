@@ -2,6 +2,8 @@ require 'open3'
 module Redwood
 
 class Mode
+  include M17n
+
   attr_accessor :buffer
   @@keymaps = {}
 
@@ -56,7 +58,7 @@ class Mode
     used_keys = {}
     ancestors.map do |klass|
       km = @@keymaps[klass] or next
-      title = I18n['mode.keybindings_from', {:MODE_NAME => Mode.make_name(klass.name)}]
+      title = m('mode.keybindings_from', :mode_name => Mode.make_name(klass.name))
       s = <<EOS
 #{title}
 #{'-' * title.display_length}
@@ -76,17 +78,17 @@ EOS
 
   def save_to_file fn, talk=true
     if File.exists? fn
-      unless BufferManager.ask_yes_or_no I18n['mode.ask.file_overwrite', {:FN => fn}]
+      unless BufferManager.ask_yes_or_no m('mode.ask.file_overwrite', :fn => fn)
         info "Not overwriting #{fn}"
         return
       end
     end
     begin
       File.open(fn, "w") { |f| yield f }
-      BufferManager.flash I18n['flash.info.successfully_wrote_file', {:FN => fn}] if talk
+      BufferManager.flash m('flash.info.successfully_wrote_file', :fn => fn) if talk
       true
     rescue SystemCallError, IOError => e
-      m = I18n['flash.error.writing_file', {:MESSAGE => e.message}]
+      m = m('flash.error.writing_file', :message => e.message)
       info m
       BufferManager.flash m
       false
@@ -101,10 +103,10 @@ EOS
         message = err.first.read
         if message =~ /^\s*$/
           warn "error running #{command} (but no error message)"
-          BufferManager.flash I18n['flash.error.running_cmd', {:COMMAND => command}]
+          BufferManager.flash m('flash.error.running_cmd', :command => command)
         else
           warn "error running #{command}: #{message}"
-          BufferManager.flash I18n['flash.error.error', {:MESSAGE => message}]
+          BufferManager.flash m('flash.error.error', :message => message)
         end
         return
       end
@@ -120,7 +122,7 @@ EOS
       data = data.first
 
       if data.eof
-        BufferManager.flash "'#{command}' #{I18n['words.done']}!"
+        BufferManager.flash "'#{command}' #{m('words.done')}!"
         nil
       else
         data.read

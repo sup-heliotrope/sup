@@ -1,17 +1,19 @@
 module Redwood
 
 class SearchResultsMode < ThreadIndexMode
+  include M17n
+
   def initialize query
     @query = query
     super [], query
   end
 
   register_keymap do |k|
-    k.add :refine_search, I18n['search_results.keymap.refine_search'], '|'
+    k.add :refine_search, m('search_results.keymap.refine_search'), '|'
   end
 
   def refine_search
-    text = BufferManager.ask :search, "#{I18n['search_results.refine_query']}: ", (@query[:text] + " ")
+    text = BufferManager.ask :search, "#{m('search_results.refine_query')}: ", (@query[:text] + " ")
     return unless text && text !~ /^\s*$/
     SearchResultsMode.spawn_from_query text
   end
@@ -28,10 +30,10 @@ class SearchResultsMode < ThreadIndexMode
       return unless query
       short_text = text.length < 20 ? text : text[0 ... 20] + "..."
       mode = SearchResultsMode.new query
-      BufferManager.spawn "#{I18n['words.search']}: \"#{short_text}\"", mode
+      BufferManager.spawn "#{m('words.search')}: \"#{short_text}\"", mode
       mode.load_threads :num => mode.buffer.content_height
     rescue Index::ParseError => e
-      BufferManager.flash "#{I18n['words.problem']}: #{e.message}!"
+      BufferManager.flash "#{m('words.problem')}: #{e.message}!"
     end
   end
 end

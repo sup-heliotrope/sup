@@ -4,10 +4,12 @@ module Redwood
 
 ## meant to be spawned via spawn_modal!
 class FileBrowserMode < LineCursorMode
+  include M17n
+
   RESERVED_ROWS = 1
 
   register_keymap do |k|
-    km = I18n['file_browser.keymap']
+    km = m('file_browser.keymap')
     k.add :back, km['back'], "B"
     k.add :view, km['view'], "v"
     k.add :select_file_or_follow_directory, km['select_file_or_follow_directory'], :enter
@@ -30,7 +32,7 @@ class FileBrowserMode < LineCursorMode
   def [] i; @text[i]; end
 
 protected
-  
+
   def back
     return if @dirs.size == 1
     @dirs.pop
@@ -63,7 +65,7 @@ protected
         @dirs.push f
         reload
       else
-        BufferManager.flash I18n['flash.error.permission_denied', {:REASON => f.realpath}]
+        BufferManager.flash m('flash.error.permission_denied', :reason => f.realpath)
       end
     else
       begin
@@ -76,13 +78,13 @@ protected
   end
 
   def regen_text
-    @files = 
+    @files =
       begin
         cwd.entries.sort_by do |f|
           [f.directory? ? 0 : 1, f.basename.to_s]
         end
       rescue SystemCallError => e
-        BufferManager.flash I18n['flash.error.error', {:MESSAGE => e.message}]
+        BufferManager.flash m('flash.error.error', :message => e.message)
         [Pathname.new("."), Pathname.new("..")]
       end.map do |f|
       real_f = cwd + f

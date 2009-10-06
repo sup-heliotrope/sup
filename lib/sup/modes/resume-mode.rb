@@ -1,6 +1,8 @@
 module Redwood
 
 class ResumeMode < EditMessageMode
+  include M17n
+
   def initialize m
     @m = m
     @safe = false
@@ -16,16 +18,16 @@ class ResumeMode < EditMessageMode
   def killable?
     return true if @safe
 
-    case BufferManager.ask_yes_or_no I18n['resume.ask.discard_draft']
+    case BufferManager.ask_yes_or_no m('resume.ask.discard_draft')
     when true
       DraftManager.discard @m
-      BufferManager.flash I18n['flash.info.draft_discarded']
+      BufferManager.flash m('flash.info.draft_discarded')
       true
     when false
       if edited?
         DraftManager.write_draft { |f| write_message f, false }
         DraftManager.discard @m
-        BufferManager.flash I18n['flash.info.draft_saved']
+        BufferManager.flash m('flash.info.draft_saved')
       end
       true
     else

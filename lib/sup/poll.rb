@@ -4,6 +4,7 @@ module Redwood
 
 class PollManager
   include Singleton
+  include M17n
 
   HookManager.register "before-add-message", <<EOS
 Executes immediately before a message is added to the index.
@@ -43,13 +44,13 @@ EOS
     @mode ||= PollMode.new
     HookManager.run "before-poll"
 
-    BufferManager.flash I18n['flash.info.polling_for_new_messages']
+    BufferManager.flash m('flash.info.polling_for_new_messages')
     num, numi, from_and_subj, from_and_subj_inbox = @mode.poll
     if num > 0
       msg = num > 1 ? 'loaded_n_new_messages' : 'loaded_one_new_message'
-      BufferManager.flash I18n["flash.info.#{msg}", {:N => num, :M => numi}]
+      BufferManager.flash m("flash.info.#{msg}", :n => num, :m => numi)
     else
-      BufferManager.flash I18n['flash.info.no_new_messages']
+      BufferManager.flash m('flash.info.no_new_messages')
     end
 
     HookManager.run "after-poll", :num => num, :num_inbox => numi, :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox, :num_inbox_total_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] }

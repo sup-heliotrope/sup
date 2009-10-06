@@ -1,6 +1,8 @@
 module Redwood
 
 class ThreadViewMode < LineCursorMode
+  include M17n
+
   ## this holds all info we need to lay out a message
   class MessageLayout
     attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color, :star_color, :orig_new
@@ -36,7 +38,7 @@ Return value:
 EOS
 
   register_keymap do |k|
-    km = I18n['thread_view.keymap']
+    km = m('thread_view.keymap')
     k.add :toggle_detailed_header, km['toggle_detailed_header'], 'h'
     k.add :show_header, km['show_header'], 'H'
     k.add :show_message, km['show_message'], 'V'
@@ -148,14 +150,14 @@ EOS
 
   def show_header
     m = @message_lines[curpos] or return
-    BufferManager.spawn_unless_exists(I18n['thread_view.full_header_for', {:ID => m.id}]) do
+    BufferManager.spawn_unless_exists(m('thread_view.full_header_for', :id => m.id)) do
       TextMode.new m.raw_header
     end
   end
 
   def show_message
     m = @message_lines[curpos] or return
-    BufferManager.spawn_unless_exists(I18n['thread_view.raw_message_for', {:ID => m.id}]) do
+    BufferManager.spawn_unless_exists(m('thread_view.raw_message_for', :id => m.id)) do
       TextMode.new m.raw_message
     end
   end
@@ -169,7 +171,7 @@ EOS
   def reply type_arg=nil
     m = @message_lines[curpos] or return
     mode = ReplyMode.new m, type_arg
-    BufferManager.spawn I18n['thread_view.reply_to', {:SUBJECT => m.subj}], mode
+    BufferManager.spawn m('thread_view.reply_to', :subject => m.subj), mode
   end
 
   def reply_all; reply :all; end
@@ -179,7 +181,7 @@ EOS
     if m.list_subscribe && m.list_subscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
       ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [Person.from_address($1)], :subj => ($3 || "subscribe")
     else
-      BufferManager.flash I18n['flash.info.cant_find_list_subscribe_header']
+      BufferManager.flash m('flash.info.cant_find_list_subscribe_header')
     end
   end
 
@@ -188,7 +190,7 @@ EOS
     if m.list_unsubscribe && m.list_unsubscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
       ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [Person.from_address($1)], :subj => ($3 || "unsubscribe")
     else
-      BufferManager.flash I18n['thread_view.cant_find_list_unsubscribe_header']
+      BufferManager.flash m('thread_view.cant_find_list_unsubscribe_header')
     end
   end
 
@@ -227,7 +229,7 @@ EOS
         raise SendmailCommandFailed, "Couldn't execute #{cmd}" unless $? == 0
       rescue SystemCallError, SendmailCommandFailed => e
         warn "problem sending mail: #{e.message}"
-        BufferManager.flash I18n['flash.warn.problem_sending_mail', {:MESSAGE => e.message}]
+        BufferManager.flash m('flash.warn.problem_sending_mail', :message => e.message)
       end
     end
   end
@@ -242,7 +244,7 @@ EOS
   def search
     p = @person_lines[curpos] or return
     mode = PersonSearchResultsMode.new [p]
-    BufferManager.spawn I18n['thread_view.search_for', {:NAME => p.name}], mode
+    BufferManager.spawn m('thread_view.search_for', :name => p.name), mode
     mode.load_threads :num => mode.buffer.content_height
   end
 
@@ -257,7 +259,7 @@ EOS
 
   def edit_labels
     reserved_labels = @thread.labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
-    new_labels = BufferManager.ask_for_labels :label, "#{I18n['thread_view.ask.labels_for_thread']}: ", @thread.labels
+    new_labels = BufferManager.ask_for_labels :label, "#{m('thread_view.ask.labels_for_thread')}: ", @thread.labels
 
     return unless new_labels
     @thread.labels = Set.new(reserved_labels) + new_labels
@@ -329,11 +331,11 @@ EOS
     case chunk
     when Chunk::Attachment
       default_dir = File.join(($config[:default_attachment_save_dir] || "."), chunk.filename)
-      fn = BufferManager.ask_for_filename :filename, "#{I18n['thread_view.ask.save_attachment_to_file']}: ", default_dir
+      fn = BufferManager.ask_for_filename :filename, "#{m('thread_view.ask.save_attachment_to_file')}: ", default_dir
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn
     else
       m = @message_lines[curpos]
-      fn = BufferManager.ask_for_filename :filename, "#{I18n['thread_view.ask.save_message_to_file']}: "
+      fn = BufferManager.ask_for_filename :filename, "#{m('thread_view.ask.save_message_to_file')}: "
       return unless fn
       save_to_file(fn) do |f|
         m.each_raw_message_line { |l| f.print l }
@@ -344,7 +346,7 @@ EOS
   def save_all_to_disk
     m = @message_lines[curpos] or return
     default_dir = ($config[:default_attachment_save_dir] || ".")
-    folder = BufferManager.ask_for_filename :filename, "#{I18n['thread_view.ask.save_all_attachments_to_folder']}: ", default_dir, true
+    folder = BufferManager.ask_for_filename :filename, "#{m('thread_view.ask.save_all_attachments_to_folder')}: ", default_dir, true
     return unless folder
 
     num = 0
@@ -357,16 +359,16 @@ EOS
     end
 
     if num == 0
-      BufferManager.flash I18n['flash.warn.didnt_find_any_attachments']
+      BufferManager.flash m('flash.warn.didnt_find_any_attachments')
     else
       if num_errors == 0
         msg = num > 1 ? 'wrote_n_attachments_to_folder' : 'wrote_one_attachment_to_folder'
-        BufferManager.flash I18n["flash.info.#{msg}", {:N => num, :FOLDER => folder}]
+        BufferManager.flash m("flash.info.#{msg}", :n => num, :folder => folder)
       else
         msg = (num - num_errors) > 1 ? 'wrote_n_attachments_to_folder' : 'wrote_one_attachment_to_folder'
-        notice = I18n["flash.info.#{msg}", {:N => (num - num_errors), :FOLDER => folder}]
+        notice = m("flash.info.#{msg}", :n => (num - num_errors), :folder => folder)
         notice += "; "
-        notice += I18n['flash.info.couldnt_write_n_attachments', {:N => num_errors}]
+        notice += m('flash.info.couldnt_write_n_attachments', :n => num_errors)
         BufferManager.flash notice
       end
     end
@@ -376,11 +378,11 @@ EOS
     m = @message_lines[curpos] or return
     if m.is_draft?
       mode = ResumeMode.new m
-      BufferManager.spawn I18n['thread_index.edit_message'], mode
+      BufferManager.spawn m('thread_index.edit_message'), mode
       BufferManager.kill_buffer self.buffer
       mode.edit_message
     else
-      BufferManager.flash I18n['flash.info.not_a_draft_message']
+      BufferManager.flash m('flash.info.not_a_draft_message')
     end
   end
 
@@ -388,11 +390,11 @@ EOS
     m = @message_lines[curpos] or return
     if m.is_draft?
       mode = ResumeMode.new m
-      BufferManager.spawn I18n['message.editing.keymap.send_message'], mode
+      BufferManager.spawn m('message.editing.keymap.send_message'), mode
       BufferManager.kill_buffer self.buffer
       mode.send_message
     else
-      BufferManager.flash I18n['flash.info.not_a_draft_message']
+      BufferManager.flash m('flash.info.not_a_draft_message')
     end
   end
 
@@ -566,7 +568,7 @@ EOS
 
     return unless chunk || message
 
-    command = BufferManager.ask(:shell, "#{I18n['text.ask.pipe_command']}: ")
+    command = BufferManager.ask(:shell, "#{m('text.ask.pipe_command')}: ")
     return if command.nil? || command.empty?
 
     output = pipe_to_process(command) do |stream|
@@ -578,9 +580,9 @@ EOS
     end
 
     if output
-      BufferManager.spawn "#{I18n['text.output_of']} '#{command}'", TextMode.new(output)
+      BufferManager.spawn "#{m('text.output_of')} '#{command}'", TextMode.new(output)
     else
-      BufferManager.flash "'#{command}' #{I18n['words.done']}!"
+      BufferManager.flash "'#{command}' #{m('words.done')}!"
     end
   end
 
@@ -750,7 +752,7 @@ private
       [[[:missing_message_color, "#{prefix}<an unreceived message>"]]]
     when Message
       message_patina_lines(chunk, state, start, parent, prefix, color, star_color) +
-        (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> #{I18n['thread_view.draft_notice']} <<<"]]] : [])
+        (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> #{m('thread_view.draft_notice')} <<<"]]] : [])
 
     else
       raise "Bad chunk: #{chunk.inspect}" unless chunk.respond_to?(:inlineable?) ## debugging
@@ -770,13 +772,13 @@ private
   end
 
   def view chunk
-    BufferManager.flash I18n['flash.info.viewing_attachment', {:CONTENT_TYPE => chunk.content_type}]
+    BufferManager.flash m('flash.info.viewing_attachment', :content_type => chunk.content_type)
     success = chunk.view!
     BufferManager.erase_flash
     BufferManager.completely_redraw_screen
     unless success
-      BufferManager.spawn "#{I18n['words.attachment']}: #{chunk.filename}", TextMode.new(chunk.to_s, chunk.filename)
-      BufferManager.flash I18n['flash.info.couldnt_exec_view_cmd']
+      BufferManager.spawn "#{m('words.attachment')}: #{chunk.filename}", TextMode.new(chunk.to_s, chunk.filename)
+      BufferManager.flash m('flash.info.couldnt_exec_view_cmd')
     end
   end
 end

@@ -5,8 +5,10 @@ module Redwood
 ## and respawns when << is called if necessary.
 
 class LogMode < TextMode
+  include M17n
+
   register_keymap do |k|
-    k.add :toggle_follow, I18n['log.keymap.toggle_follow'], 'f'
+    k.add :toggle_follow, m('log.keymap.toggle_follow'), 'f'
   end
 
   ## if buffer_name is supplied, this mode will spawn a buffer
@@ -44,7 +46,7 @@ class LogMode < TextMode
   end
 
   def status
-    super + " (#{I18n['words.follow']}: #@follow)"
+    super + " (#{m('words.follow')}: #@follow)"
   end
 
   def cleanup

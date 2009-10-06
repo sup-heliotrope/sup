@@ -1,9 +1,11 @@
 module Redwood
 
 class TextMode < ScrollMode
+  include M17n
+
   attr_reader :text
   register_keymap do |k|
-    km = I18n['text.keymap']
+    km = m('text.keymap')
     k.add :save_to_disk, km['save_to_disk'], 's'
     k.add :pipe, km['pipe'], '|'
   end
@@ -17,12 +19,12 @@ class TextMode < ScrollMode
   end
 
   def save_to_disk
-    fn = BufferManager.ask_for_filename :filename, "#{I18n['text.ask.for_filename']}: ", @filename
+    fn = BufferManager.ask_for_filename :filename, "#{m('text.ask.for_filename')}: ", @filename
     save_to_file(fn) { |f| f.puts text } if fn
   end
 
   def pipe
-    command = BufferManager.ask(:shell, "#{I18n['text.ask.pipe_command']}: ")
+    command = BufferManager.ask(:shell, "#{m('text.ask.pipe_command')}: ")
     return if command.nil? || command.empty?
 
     output = pipe_to_process(command) do |stream|
@@ -30,9 +32,9 @@ class TextMode < ScrollMode
     end
 
     if output
-      BufferManager.spawn "#{I18n['text.output_of']} '#{command}'", TextMode.new(output)
+      BufferManager.spawn "#{m('text.output_of')} '#{command}'", TextMode.new(output)
     else
-      BufferManager.flash "'#{command}' #{I18n['words.done']}!"
+      BufferManager.flash "'#{command}' #{m('words.done')}!"
     end
   end
 

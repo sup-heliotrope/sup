@@ -240,11 +240,12 @@ end
 
 require "sup/util"
 require "sup/hook"
-require "sup/i18n"
+require "sup/m17n"
 
 ## we have to initialize this guy, since most of sup relies on it
 SUP_LANGUAGE = ENV['SUP_LANGUAGE'] || $config[:language] || :en
-Redwood::I18n.init SUP_LANGUAGE.to_sym, File.expand_path(File.dirname(__FILE__)) + "/../i18n"
+Redwood::M17nImpl::M17n.init SUP_LANGUAGE.to_sym, File.expand_path(File.dirname(__FILE__)) + "/../m17n"
+include Redwood::M17n
 
 ## we have to initialize this guy first, because other classes must
 ## reference it in order to register hooks, and they do that at parse

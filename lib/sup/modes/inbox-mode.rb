@@ -3,10 +3,12 @@ require 'sup'
 module Redwood
 
 class InboxMode < ThreadIndexMode
+  include M17n
+
   register_keymap do |k|
     ## overwrite toggle_archived with archive
-    k.add :archive, I18n['inbox.keymap.archive'], 'a'
-    k.add :read_and_archive, I18n['inbox.keymap.read_and_archive'], 'A'
+    k.add :archive, m('inbox.keymap.archive'), 'a'
+    k.add :read_and_archive, m('inbox.keymap.read_and_archive'), 'A'
   end
 
   def initialize
@@ -99,7 +101,7 @@ class InboxMode < ThreadIndexMode
   end
 
   def status
-    super + "    #{I18n['inbox.amount_messages_in_index', {:AMOUNT => Index.size}]}"
+    super + "    #{m('inbox.amount_messages_in_index', :amount => Index.size)}"
   end
 end
 

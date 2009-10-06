@@ -15,35 +15,35 @@ flash:
     not_found: "Nicht gefunden!"
     not_a_draft_message: "Nachricht ist kein Entwurf!"
     found_one_thread: "1 Thread gefunden."
-    found_n_threads: "#{N} Threads gefunden."
+    found_n_threads: "#{n} Threads gefunden."
     no_matches: "Keine Treffer."
     cant_find_list_subscribe_header: "Konnte List-Subscribe Header für Nachricht nicht finden"
     cant_find_list_unsubscribe_header: "Konnte List-Unsubscribe Header für Nachricht nicht finden"
-    wrote_one_attachment_to_folder: "1 Anhang in #{FOLDER} gespeichert"
-    wrote_n_attachments_to_folder: "#{N} Anhänge in #{FOLDER} gespeichert"
-    couldnt_write_n_attachments: "Konnte #{N} von ihnen nicht senden (siehe Log)."
-    viewing_attachment: "Betrachte #{CONTENT_TYPE} Anhang..."
+    wrote_one_attachment_to_folder: "1 Anhang in #{folder} gespeichert"
+    wrote_n_attachments_to_folder: "#{n} Anhänge in #{folder} gespeichert"
+    couldnt_write_n_attachments: "Konnte #{n} von ihnen nicht senden (siehe Log)."
+    viewing_attachment: "Betrachte #{content_type} Anhang..."
     couldnt_exec_view_cmd: "Konnte Betrachtungsprogramm nicht ausführen, betrachte als Text"
     no_draft_messages: "Keine Entwürfe vorhanden."
-    successfully_wrote_file: "Erfolgreich Datei geschrieben: #{FN}."
-    loaded_one_new_message: "1 neue Nachricht geladen, #{M} nach Inbox."
-    loaded_n_new_messages: "#{N} neue Nachrichten geladen, #{M} nach Inbox."
+    successfully_wrote_file: "Erfolgreich Datei geschrieben: #{fn}."
+    loaded_one_new_message: "1 neue Nachricht geladen, #{m} nach Inbox."
+    loaded_n_new_messages: "#{n} neue Nachrichten geladen, #{m} nach Inbox."
     loaded_one_thread: "1 Thread geladen"
-    loaded_n_threads: "#{N} Threads geladen"
+    loaded_n_threads: "#{n} Threads geladen"
 
   error:
-    cant_read_filename: "Kann Datei nicht lesen: #{FN}: #{ERROR_MESSAGE}"
-    could_not_exec: "Konnte nicht ausführen: #{MESSAGE}"
-    permission_denied: "Keine Berechtigung - #{REASON}"
-    error: "Fehler: #{MESSAGE}"
-    interpreting_query: "Fehler beim Interpretieren von '#{QUERY}': #{MESSAGE}"
-    writing_file: "Fehler beim Schreiben der Datei: #{MESSAGE}"
-    running_cmd: "Fehler beim Ausführen von #{COMMAND}!"
+    cant_read_filename: "Kann Datei nicht lesen: #{fn}: #{error_message}"
+    could_not_exec: "Konnte nicht ausführen: #{message}"
+    permission_denied: "Keine Berechtigung - #{reason}"
+    error: "Fehler: #{message}"
+    interpreting_query: "Fehler beim Interpretieren von '#{query}': #{message}"
+    writing_file: "Fehler beim Schreiben der Datei: #{message}"
+    running_cmd: "Fehler beim Ausführen von #{command}!"
 
   warn:
-    sending_mail: "Problem beim Versenden: #{MESSAGE}"
-    label_is_reserved: "'#{LABEL}' ist ein reserviertes Label!"
-    problem_sending_mail: "Problem beim Versenden der Nachricht: #{MESSAGE}"
+    sending_mail: "Problem beim Versenden: #{message}"
+    label_is_reserved: "'#{label}' ist ein reserviertes Label!"
+    problem_sending_mail: "Problem beim Versenden der Nachricht: #{message}"
     didnt_find_any_attachments: "Keine Anhänge gefunden!"
 
 message:
@@ -52,7 +52,7 @@ message:
       mentions_attachment: !ruby/regexp '/\b(A|a)n(geh\S+ngt|hang)\b/i'
     question:
       discard_message: "Nachricht verwerfen?"
-      delete_attachment: "Anhang '#{AT_NAME}' entfernen?"
+      delete_attachment: "Anhang '#{at_name}' entfernen?"
       unedited_send: "Nachricht unbearbeitet. Wirklich versenden?"
       no_attachments_send: "Keine Anhänge angefügt. Wirklich versenden?"
       top_posting_send: "Du wirst top-posten. Das macht dich zu bösen Person. Wirklich versenden?"
@@ -71,8 +71,8 @@ message:
       move_cursor_right: "Cursor nach rechts bewegen"
       move_cursor_left: "Cursor nach links bewegen"
   chunks:
-    n_line_signature: "#{N}-zeilige Signatur" 
-    n_quoted_lines: "#{N}-zeiliges Zitat"
+    n_line_signature: "#{n}-zeilige Signatur" 
+    n_quoted_lines: "#{n}-zeiliges Zitat"
 
 buffer_list:
   keymap:
@@ -85,10 +85,10 @@ console:
 
 contact_list:
   ask:
-    alias_for: "Alias für #{NAME}: "
-    name_for: "Name für #{NAME}: "
+    alias_for: "Alias für #{name}: "
+    name_for: "Name für #{name}: "
   keymap:
-    load_more: "Lade #{NUM} weitere Kontakte"
+    load_more: "Lade #{num} weitere Kontakte"
     reload: "Kontaktliste löschen neu erstellen"
     alias: "Alias/Name für Kontakt bearbeiten"
     toggle_tagged: "Aktuelle Zeile taggen/untaggen"
@@ -111,7 +111,7 @@ inbox:
   keymap:
     archive: "Thread archivieren (aus Inbox entfernen)"
     read_and_archive: "Thread archivieren (aus Inbox entfernen) und als gelesen markieren"
-  amount_messages_in_index: "#{AMOUNT} Nachrichten im Index"
+  amount_messages_in_index: "#{amount} Nachrichten im Index"
 
 label_list:
   keymap:
@@ -125,7 +125,7 @@ label_search_results:
     refine_search: "Suche verfeinern"
   ask:
     refine_query: "Query verfeinern"
-  all_threads_with_label: "Alle Threads mit Label '#{LABEL}'"
+  all_threads_with_label: "Alle Threads mit Label '#{label}'"
 
 line_cursor:
   keymap:
@@ -139,7 +139,7 @@ log:
 
 poll:
   poll_for_new_messages: "Nach neuen Nachrichten suchen"
-  started_at: "Suche gestartet um #{TIME}"
+  started_at: "Suche gestartet um #{time}"
 
 reply:
   type:
@@ -187,7 +187,7 @@ text:
 
 thread_index:
   keymap:
-    load_threads: "Lade #{NUM} weitere Threads"
+    load_threads: "Lade #{num} weitere Threads"
     add_multi: "Lade alle Threads (! zum Bestätigen) :"
     load_all_threads: "Lade alle Threads (könnte _sehr_ viele Threads auflisten)"
     cancel_search: "Aktuelle Suche abbrechen"
@@ -214,10 +214,10 @@ thread_index:
   edit_message: "Nachricht bearbeiten"
   saving_contacts: "Speichere Kontakte"
   saving_threads: "Speichere Threads"
-  saving_modified_threads: "Speichere modifizierten Thread #{N} von #{NUM_ALL}"
-  reply_to_subject: "Antwort auf #{SUBJECT}"
+  saving_modified_threads: "Speichere modifizierten Thread #{n} von #{num_all}"
+  reply_to_subject: "Antwort auf #{subject}"
   searching_for_threads: "Suche nach Threads"
-  line_n_of_m: "Zeile #{N} von #{M}"
+  line_n_of_m: "Zeile #{n} von #{m}"
   ask:
     tag_threads_matching: "tagge passende Threads"
     labels_for_thread: "Labels für Thread"
@@ -269,10 +269,10 @@ thread_view:
     spam_and_prev: "Thread als Spam markieren, Buffer killen und vorherigen Thread anzeigen"
     unread_and_prev: "Thread als ungelesen markieren, Buffer killen und vorherigen Thread anzeigen"
     do_nothing_and_prev: "Buffer killen und vorherigen Thread anzeigen"
-  full_header_for: "Voller Header für #{ID}"
-  raw_message_for: "Rohe Nachricht für #{ID}"
-  reply_to: "Antwort auf #{SUBJECT}"
-  search_for: "Suche nach #{NAME}"
+  full_header_for: "Voller Header für #{id}"
+  raw_message_for: "Rohe Nachricht für #{id}"
+  reply_to: "Antwort auf #{subject}"
+  search_for: "Suche nach #{name}"
   edit_as_new: "Als neu bearbeiten"
   draft_notice: "Diese Nachricht ist ein Entwurf. Benutze 'e' zum Bearbeiten, 'y' zum Versenden."
   ask:
@@ -322,12 +322,12 @@ global:
   buffer_list: "Bufferliste"
   label_list: "Labelliste"
   all_drafts: "Alle Entwürfe"
-  unknown_keypress_for: "Unbelegte Taste '#{KEY}' für #{MODE_NAME} gedrückt."
+  unknown_keypress_for: "Unbelegte Taste '#{key}' für #{mode_name} gedrückt."
 
 mode:
-  keybindings_from: "Tastenbelegungen für #{MODE_NAME}"
+  keybindings_from: "Tastenbelegungen für #{mode_name}"
   ask:
-    file_overwrite:  "Datei \"#{FN}\" existiert bereits. Überschreiben?"
+    file_overwrite:  "Datei \"#{fn}\" existiert bereits. Überschreiben?"
 
 
 words:

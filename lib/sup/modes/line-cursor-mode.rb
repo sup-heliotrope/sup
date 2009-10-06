@@ -2,10 +2,12 @@ module Redwood
 
 ## extends ScrollMode to have a line-based cursor.
 class LineCursorMode < ScrollMode
+  include M17n
+
   register_keymap do |k|
     ## overwrite scrollmode binding on arrow keys for cursor movement
     ## but j and k still scroll!
-    km = I18n['line_cursor.keymap']
+    km = m('line_cursor.keymap')
     k.add :cursor_down, km['cursor_down'], :down, 'j'
     k.add :cursor_up, km['cursor_up'], :up, 'k'
     k.add :select, km['select'], :enter
@@ -173,7 +175,7 @@ private
 
   def set_status
     l = lines
-    @status = l > 0 ? I18n['thread_index.line_n_of_m', {:N => (@curpos + 1), :M => l}] : ""
+    @status = l > 0 ? m('thread_index.line_n_of_m', :n => (@curpos + 1), :m => l) : ""
   end
 
   def call_load_more_callbacks size

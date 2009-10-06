@@ -1,8 +1,10 @@
 module Redwood
 
 class ReplyMode < EditMessageMode
+  include M17n
+
   REPLY_TYPES = [:sender, :recipient, :list, :all, :user]
-  rt = I18n['reply.type']
+  rt = m('reply.type')
   TYPE_DESCRIPTIONS = {
     :sender => rt['sender'],
     :recipient => rt['recipient'],

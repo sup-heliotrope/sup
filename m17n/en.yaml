@@ -15,35 +15,35 @@ flash:
     not_found: "Not found!"
     not_a_draft_message: "Not a draft message!"
     found_one_thread: "Found 1 thread."
-    found_n_threads: "Found #{N} threads."
+    found_n_threads: "Found #{n} threads."
     no_matches: "No matches."
     cant_find_list_subscribe_header: "Can't find List-Subscribe header for this message."
     cant_find_list_unsubscribe_header: "Can't find List-Unsubscribe header for this message."
-    wrote_one_attachment_to_folder: "Wrote 1 attachment to #{FOLDER}"
-    wrote_n_attachments_to_folder: "Wrote #{N} attachments to #{FOLDER}"
-    couldnt_write_n_attachments: "couldn't write #{N} of them (see log)."
-    viewing_attachment: "viewing #{CONTENT_TYPE} attachment..."
+    wrote_one_attachment_to_folder: "Wrote 1 attachment to #{folder}"
+    wrote_n_attachments_to_folder: "Wrote #{n} attachments to #{folder}"
+    couldnt_write_n_attachments: "couldn't write #{n} of them (see log)."
+    viewing_attachment: "viewing #{content_type} attachment..."
     couldnt_exec_view_cmd: "Couldn't execute view command, viewing as text."
     no_draft_messages: "No draft messages."
-    successfully_wrote_file: "Successfully wrote #{FN}."
-    loaded_one_new_message: "Loaded 1 new message, #{M} to inbox."
-    loaded_n_new_messages: "Loaded #{N} new messages, #{M} to inbox."
+    successfully_wrote_file: "Successfully wrote #{fn}."
+    loaded_one_new_message: "Loaded 1 new message, #{m} to inbox."
+    loaded_n_new_messages: "Loaded #{n} new messages, #{m} to inbox."
     loaded_one_thread: "Loaded 1 thread"
-    loaded_n_threads: "Loaded #{N} threads."
+    loaded_n_threads: "Loaded #{n} threads."
 
   error:
-    cant_read_filename: "Can't read #{FN}: #{ERROR_MESSAGE}"
-    could_not_exec: "Couldn't execute #{MESSAGE}"
-    permission_denied: "Permission denied - #{REASON}"
-    error: "Error: #{MESSAGE}"
-    interpreting_query: "error interpreting '#{QUERY}': #{MESSAGE}"
-    writing_file: "Error writing file: #{MESSAGE}"
-    running_cmd: "Error running #{COMMAND}!"
+    cant_read_filename: "Can't read #{fn}: #{error_message}"
+    could_not_exec: "Couldn't execute #{message}"
+    permission_denied: "Permission denied - #{reason}"
+    error: "Error: #{message}"
+    interpreting_query: "error interpreting '#{query}': #{message}"
+    writing_file: "Error writing file: #{message}"
+    running_cmd: "Error running #{command}!"
 
   warn:
-    sending_mail: "Problem sending mail: #{MESSAGE}"
-    label_is_reserved: "'#{LABEL}' is a reserved label!"
-    problem_sending_mail: "Problem sending mail: #{MESSAGE}"
+    sending_mail: "Problem sending mail: #{message}"
+    label_is_reserved: "'#{label}' is a reserved label!"
+    problem_sending_mail: "Problem sending mail: #{message}"
     didnt_find_any_attachments: "Didn't find any attachments!"
 
 message:
@@ -52,7 +52,7 @@ message:
       mentions_attachment: !ruby/regexp '/\battach(ment|ed|ing|)\b/i'
     question:
       discard_message: "Discard message?"
-      delete_attachment: "Delete attachment #{AT_NAME}?"
+      delete_attachment: "Delete attachment #{at_name}?"
       unedited_send: "Message unedited. Really send?"
       no_attachments_send: "You haven't added any attachments. Really send?"
       top_posting_send: "You're top-posting. That makes you a bad person. Really send?"
@@ -71,8 +71,8 @@ message:
       move_cursor_right: "Move selector to the right"
       move_cursor_left: "Move selector to the left"
   chunks:
-    n_line_signature: "#{N}-line signature" 
-    n_quoted_lines: "#{N} quoted lines"
+    n_line_signature: "#{n}-line signature" 
+    n_quoted_lines: "#{n} quoted lines"
 
 buffer_list:
   keymap:
@@ -85,10 +85,10 @@ console:
 
 contact_list:
   ask:
-    alias_for: "Alias for #{NAME}: "
-    name_for: "Name for #{NAME}: "
+    alias_for: "Alias for #{name}: "
+    name_for: "Name for #{name}: "
   keymap:
-    load_more: "Load #{NUM} more contacts"
+    load_more: "Load #{num} more contacts"
     reload: "Drop contact list and reload"
     alias: "Edit alias/or name for contact"
     toggle_tagged: "Tag/untag current line"
@@ -111,7 +111,7 @@ inbox:
   keymap:
     archive: "Archive thread (remove from inbox)"
     read_and_archive: "Archive thread (remove from inbox) and mark read"
-  amount_messages_in_index: "#{AMOUNT} messages in index"
+  amount_messages_in_index: "#{amount} messages in index"
 
 label_list:
   keymap:
@@ -125,7 +125,7 @@ label_search_results:
     refine_search: "Refine search"
   ask:
     refine_query: "refine query"
-  all_threads_with_label: "All threads with label '#{LABEL}'"
+  all_threads_with_label: "All threads with label '#{label}'"
 
 line_cursor:
   keymap:
@@ -139,7 +139,7 @@ log:
 
 poll:
   poll_for_new_messages: "poll for new messages"
-  started_at: "Poll started at #{TIME}"
+  started_at: "Poll started at #{time}"
 
 reply:
   type:
@@ -187,7 +187,7 @@ text:
 
 thread_index:
   keymap:
-    load_threads: "Load #{NUM} more threads"
+    load_threads: "Load #{num} more threads"
     add_multi: "Load all threads (! to confirm) :"
     load_all_threads: "Load all threads (may list a _lot_ of threads)"
     cancel_search: "Cancel current search"
@@ -214,10 +214,10 @@ thread_index:
   edit_message: "Edit message"
   saving_contacts: "Saving contacts"
   saving_threads: "Saving threads"
-  saving_modified_threads: "Saving modified thread #{N} of #{NUM_ALL}"
-  reply_to_subject: "Reply to #{SUBJECT}"
+  saving_modified_threads: "Saving modified thread #{n} of #{num_all}"
+  reply_to_subject: "Reply to #{subject}"
   searching_for_threads: "Searching for threads"
-  line_n_of_m: "line #{N} of #{M}"
+  line_n_of_m: "line #{n} of #{m}"
   ask:
     tag_threads_matching: "tag threads matching"
     labels_for_thread: "Labels for thread"
@@ -269,10 +269,10 @@ thread_view:
     spam_and_prev: "Mark this thread as spam, kill buffer, and view previous"
     unread_and_prev: "Mark this thread as unread, kill buffer, and view previous"
     do_nothing_and_prev: "Kill buffer, and view previous"
-  full_header_for: "Full header for #{ID}"
-  raw_message_for: "Raw message for #{ID}"
-  reply_to: "Reply to #{SUBJECT}"
-  search_for: "Search for #{NAME}"
+  full_header_for: "Full header for #{id}"
+  raw_message_for: "Raw message for #{id}"
+  reply_to: "Reply to #{subject}"
+  search_for: "Search for #{name}"
   edit_as_new: "edit as new"
   draft_notice: "This message is a draft. Hit 'e' to edit, 'y' to send."
   ask:
@@ -322,12 +322,12 @@ global:
   buffer_list: "buffer list"
   label_list: "Label list"
   all_drafts: "All drafts"
-  unknown_keypress_for: "Unknown keypress '#{KEY}' for #{MODE_NAME}."
+  unknown_keypress_for: "Unknown keypress '#{key}' for #{mode_name}."
 
 mode:
-  keybindings_from: "Keybindings from #{MODE_NAME}"
+  keybindings_from: "Keybindings from #{mode_name}"
   ask:
-    file_overwrite:  "File \"#{FN}\" exists. Overwrite?"
+    file_overwrite:  "File \"#{fn}\" exists. Overwrite?"
 
 words:
   unread: "unread"

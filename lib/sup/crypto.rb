@@ -1,14 +1,15 @@
 module Redwood
 
 class CryptoManager
-  include Singleton
+  include Singleton#
+  include M17n
 
   class Error < StandardError; end
 
   OUTGOING_MESSAGE_OPERATIONS = OrderedHash.new(
-    [:sign, I18n['words.sign']],
-    [:sign_and_encrypt, I18n['words.sign_and_encrypt']],
-    [:encrypt, I18n['words.encrypt_only']]
+    [:sign, m('words.sign')],
+    [:sign_and_encrypt, m('words.sign_and_encrypt')],
+    [:encrypt, m('words.encrypt_only')]
   )
 
   def initialize
@@ -146,21 +147,21 @@ class CryptoManager
         decrypted_payload = "MIME-Version: 1.0\n" + decrypted_payload
         msg = RMail::Parser.read(decrypted_payload)
       end
-      notice = Chunk::CryptoNotice.new :valid, I18n['crypto.notice.message_has_been_decrypted']
+      notice = Chunk::CryptoNotice.new :valid, m('crypto.notice.message_has_been_decrypted')
       [notice, sig, msg]
     else
-      Chunk::CryptoNotice.new :invalid, I18n['crypto.notice.message_coult_not_be_decrypted'], output.split("\n")
+      Chunk::CryptoNotice.new :invalid, m('crypto.notice.message_coult_not_be_decrypted'), output.split("\n")
     end
   end
 
 private
 
   def unknown_status lines=[]
-    Chunk::CryptoNotice.new :unknown, I18n['crypto.notice.unable_to_determine_validity'], lines
+    Chunk::CryptoNotice.new :unknown, m('crypto.notice.unable_to_determine_validity'), lines
   end
 
   def cant_find_binary
-    [I18n['crypto.error.cant_find_gpg_binary_in_path']]
+    [m('crypto.error.cant_find_gpg_binary_in_path')]
   end
 
   ## here's where we munge rmail output into the format that signed/encrypted

@@ -6,6 +6,8 @@ module Redwood
 ## - is_relevant?
 
 class ThreadIndexMode < LineCursorMode
+  include M17n
+
   DATE_WIDTH = Time::TO_NICE_S_MAX_LEN
   MIN_FROM_WIDTH = 15
   LOAD_MORE_THREAD_NUM = 20
@@ -23,8 +25,8 @@ Variables:
 EOS
 
   register_keymap do |k|
-    km = I18n['thread_index.keymap']
-    k.add :load_threads, I18n['load_threads', {:NUM => LOAD_MORE_THREAD_NUM}], 'M'
+    km = m('thread_index.keymap')
+    k.add :load_threads, m('load_threads', :num => LOAD_MORE_THREAD_NUM), 'M'
     k.add_multi km['add_multi'], '!' do |kk|
       kk.add :load_all_threads, km['load_all_threads'], '!'
     end
@@ -236,9 +238,9 @@ EOS
     message, *crap = t.find { |m, *o| m.has_label? :draft }
     if message
       mode = ResumeMode.new message
-      BufferManager.spawn I18n['thread_index.edit_message'], mode
+      BufferManager.spawn m('thread_index.edit_message'), mode
     else
-      BufferManager.flash I18n['flash.info.not_a_draft_message']
+      BufferManager.flash m('flash.info.not_a_draft_message')
     end
   end
 
@@ -400,7 +402,7 @@ EOS
       jump_to_line n unless n >= topline && n < botline
       set_cursor_pos n
     else
-      BufferManager.flash I18n['flash.info.no_new_messages']
+      BufferManager.flash m('flash.info.no_new_messages')
     end
   end
 
@@ -471,13 +473,13 @@ EOS
 
   def actually_save
     @save_thread_mutex.synchronize do
-      BufferManager.say("#{I18n['thread_index.saving_contacts']}...") { ContactManager.instance.save }
+      BufferManager.say("#{m('thread_index.saving_contacts')}...") { ContactManager.instance.save }
       dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
       next if dirty_threads.empty?
 
-      BufferManager.say("#{I18n['thread_index.saving_threads']}...") do |say_id|
+      BufferManager.say("#{m('thread_index.saving_threads')}...") do |say_id|
         dirty_threads.each_with_index do |t, i|
-          BufferManager.say "#{I18n['thread_index.saving_modified_threads', {:N => (i + 1), :NUM_ALL => dirty_threads.length}]}...", say_id
+          BufferManager.say "#{m('thread_index.saving_modified_threads', :n => (i + 1), :num_all => dirty_threads.length)}...", say_id
           t.save_state Index
         end
       end
@@ -510,12 +512,12 @@ EOS
   end
 
   def tag_matching
-    query = BufferManager.ask :search, "#{I18n['thread_index.ask.tag_threads_matching']} (regex): "
+    query = BufferManager.ask :search, "#{m('thread_index.ask.tag_threads_matching')} (regex): "
     return if query.nil? || query.empty?
     query = begin
       /#{query}/i
     rescue RegexpError => e
-      BufferManager.flash I18n['flash.error.interpreting_query', {:QUERY => query, :MESSAGE => e.message}]
+      BufferManager.flash m('flash.error.interpreting_query', :query => query, :message => e.message)
       return
     end
     @mutex.synchronize { @threads.each { |t| @tags.tag t if thread_matches?(t, query) } }
@@ -533,7 +535,7 @@ EOS
 
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
-    user_labels = BufferManager.ask_for_labels :label, "#{I18n['thread_index.ask.labels_for_thread']}: ", modifyl, @hidden_labels
+    user_labels = BufferManager.ask_for_labels :label, "#{m('thread_index.ask.labels_for_thread')}: ", modifyl, @hidden_labels
     return unless user_labels
 
     thread.labels = Set.new(keepl) + user_labels
@@ -550,13 +552,13 @@ EOS
   end
 
   def multi_edit_labels threads
-    user_labels = BufferManager.ask_for_labels :labels, "#{I18n['thread_index.ask.add_remove_labels']}: ", [], @hidden_labels
+    user_labels = BufferManager.ask_for_labels :labels, "#{m('thread_index.ask.add_remove_labels')}: ", [], @hidden_labels
     return unless user_labels
 
     user_labels.map! { |l| (l.to_s =~ /^-/)? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
     hl = user_labels.select { |(l,_)| @hidden_labels.member? l }
     unless hl.empty?
-      BufferManager.flash I18n['flash.warn.label_is_reserved', {:LABEL => hl}]
+      BufferManager.flash m('flash.warn.label_is_reserved', :label => hl)
       return
     end
 
@@ -591,7 +593,7 @@ EOS
     return if m.nil? # probably won't happen
     m.load_from_source!
     mode = ReplyMode.new m, type_arg
-    BufferManager.spawn I18n['thread_index.reply_to_subject', {:SUBJECT => m.subj}], mode
+    BufferManager.spawn m('thread_index.reply_to_subject', :subject => m.subj), mode
   end
 
   def reply_all; reply :all; end
@@ -616,7 +618,7 @@ EOS
   ## TODO: figure out @ts_mutex in this method
   def load_n_threads n=LOAD_MORE_THREAD_NUM, opts={}
     @interrupt_search = false
-    @mbid = BufferManager.say "#{I18n['thread_index.searching_for_threads']}..."
+    @mbid = BufferManager.say "#{m('thread_index.searching_for_threads')}..."
 
     ts_to_load = n
     ts_to_load = ts_to_load + @ts.size unless n == -1 # -1 means all threads
@@ -626,7 +628,7 @@ EOS
     @ts.load_n_threads(ts_to_load, opts) do |i|
       if (Time.now - last_update) >= 0.25
         msg = i > 1 ? 'loaded_n_threads' : 'loaded_one_thread'
-        BufferManager.say "#{I18n["flash.info.#{msg}", {:N => i}]}...", @mbid
+        BufferManager.say "#{m("flash.info.#{msg}", :n => i)}...", @mbid
         update
         BufferManager.draw_screen
         last_update = Time.now
@@ -646,9 +648,9 @@ EOS
 
   def status
     if (l = lines) == 0
-      I18n['thread_index.line_n_of_m', {:N => 0, :M => 0}]
+      m('thread_index.line_n_of_m', :n => 0, :m => 0)
     else
-      I18n['thread_index.line_n_of_m', {:N => (curpos + 1), :M => l}] + " #{dirty? ? '*modified*' : ''}"
+      m('thread_index.line_n_of_m', :n => (curpos + 1), :m => l) + " #{dirty? ? '*modified*' : ''}"
     end
   end
 
@@ -672,9 +674,9 @@ EOS
 
       if num > 0
         msg = num > 1 ? 'found_n_threads' : 'found_one_thread'
-        BufferManager.flash I18n["flash.info.#{msg}", {:N => num}]
+        BufferManager.flash m("flash.info.#{msg}", :n => num)
       else
-        BufferManager.flash I18n['flash.info.no_matches']
+        BufferManager.flash m('flash.info.no_matches')
       end
     end)})
 
