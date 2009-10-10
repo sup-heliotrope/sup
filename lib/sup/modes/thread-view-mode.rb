@@ -202,12 +202,7 @@ EOS
     m = @message_lines[curpos] or return
     to = BufferManager.ask_for_contacts(:people, "Bounce To: ") or return
 
-    defcmd = AccountManager.default_account.sendmail.sub(/\s(\-(ti|it|t))\b/) do |match|
-      case "$1"
-        when '-t' then ''
-        else ' -i'
-      end
-    end
+    defcmd = AccountManager.default_account.bounce_sendmail
 
     cmd = case (hookcmd = HookManager.run "bounce-command", :from => m.from, :to => to)
           when nil, /^$/ then defcmd
