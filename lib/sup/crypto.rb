@@ -119,12 +119,17 @@ class CryptoManager
     payload_fn.write payload.to_s
     payload_fn.close
 
-    output = run_gpg "--decrypt #{payload_fn.path}"
+    output_fn = Tempfile.new "redwood.output"
+    output_fn.close
+
+    message = run_gpg "--output #{output_fn.path} --yes --decrypt #{payload_fn.path}", :interactive => true
 
     unless $?.success?
-      return Chunk::CryptoNotice.new(:invalid, "This message could not be decrypted", output.split("\n"))
+      info "Error while running gpg: #{message}"
+      return Chunk::CryptoNotice.new(:invalid, "This message could not be decrypted", message.split("\n"))
     end
 
+    output = IO.read output_fn.path
     decrypted_payload, sig_lines = if output =~ /\A(.*?)((^gpg: .*$)+)\Z/m
       [$1, $2]
     else
