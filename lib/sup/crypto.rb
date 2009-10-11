@@ -169,10 +169,17 @@ private
     payload.to_s.gsub(/(^|[^\r])\n/, "\\1\r\n").gsub(/^MIME-Version: .*\r\n/, "")
   end
 
-  def run_gpg args
-    cmd = "#{@cmd} #{args} 2> /dev/null"
-    output = `#{cmd}`
-    output
+  def run_gpg args, opts={}
+    cmd = "#{@cmd} #{args}"
+    if opts[:interactive] && BufferManager.instantiated?
+      output_fn = Tempfile.new "redwood.output"
+      output_fn.close
+      cmd += " > #{output_fn.path} 2> /dev/null"
+      BufferManager.shell_out cmd
+      IO.read(output_fn.path) rescue "can't read output"
+    else
+      `#{cmd} 2> /dev/null`
+    end
   end
 end
 end
