@@ -130,18 +130,15 @@ class CryptoManager
     end
 
     output = IO.read output_fn.path
-    decrypted_payload, sig_lines = if output =~ /\A(.*?)((^gpg: .*$)+)\Z/m
-      [$1, $2]
-    else
-      [output, nil]
-    end
 
-    sig = if sig_lines # encrypted & signed
-      if sig_lines =~ /^gpg: (Good signature from .*$)/
-        Chunk::CryptoNotice.new :valid, $1, sig_lines.split("\n")
-      else
-        Chunk::CryptoNotice.new :invalid, $1, sig_lines.split("\n")
-      end
+    ## there's probably a better way to do this, but we're using the output to
+    ## look for a valid signature being present.
+
+    sig = case message
+    when /^gpg: (Good signature from .*$)/i
+      Chunk::CryptoNotice.new :valid, $1, message.split("\n")
+    when /^gpg: (Bad signature from .*$)/i
+      Chunk::CryptoNotice.new :invalid, $1, message.split("\n")
     end
 
     # This is gross. This decrypted payload could very well be a multipart
@@ -157,10 +154,10 @@ class CryptoManager
     # required. This causes for the part not to be detected as multipart,
     # hence being shown as an attachment. If we detect this is happening,
     # we force the decrypted payload to be interpreted as MIME.
-    msg = RMail::Parser.read(decrypted_payload)
+    msg = RMail::Parser.read output
     if msg.header.content_type =~ %r{^multipart/} && !msg.multipart?
-      decrypted_payload = "MIME-Version: 1.0\n" + decrypted_payload
-      msg = RMail::Parser.read(decrypted_payload)
+      output = "MIME-Version: 1.0\n" + output
+      msg = RMail::Parser.read output
     end
     notice = Chunk::CryptoNotice.new :valid, "This message has been decrypted for display"
     [notice, sig, msg]
