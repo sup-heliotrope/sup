@@ -755,6 +755,7 @@ EOS
   end
 
 private
+
   def default_status_bar buf
     " [#{buf.mode.name}] #{buf.title}   #{buf.mode.status}"
   end
