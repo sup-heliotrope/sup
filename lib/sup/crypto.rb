@@ -33,15 +33,19 @@ class CryptoManager
     payload_fn.write format_payload(payload)
     payload_fn.close
 
-    output = run_gpg "--output - --armor --detach-sign --textmode --local-user '#{from}' #{payload_fn.path}"
+    sig_fn = Tempfile.new "redwood.signature"; sig_fn.close
 
-    raise Error, (output || "gpg command failed: #{cmd}") unless $?.success?
+    message = run_gpg "--output #{sig_fn.path} --yes --armor --detach-sign --textmode --local-user '#{from}' #{payload_fn.path}", :interactive => true
+    unless $?.success?
+      info "Error while running gpg: #{message}"
+      raise Error, "GPG command failed. See log for details."
+    end
 
     envelope = RMail::Message.new
     envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature; micalg=pgp-sha1'
 
     envelope.add_part payload
-    signature = RMail::Message.make_attachment output, "application/pgp-signature", nil, "signature.asc"
+    signature = RMail::Message.make_attachment IO.read(sig_fn.path), "application/pgp-signature", nil, "signature.asc"
     envelope.add_part signature
     envelope
   end
@@ -51,15 +55,20 @@ class CryptoManager
     payload_fn.write format_payload(payload)
     payload_fn.close
 
+    encrypted_fn = Tempfile.new "redwood.encrypted"; encrypted_fn.close
+
     recipient_opts = (to + [ from ] ).map { |r| "--recipient '<#{r}>'" }.join(" ")
     sign_opts = sign ? "--sign --local-user '#{from}'" : ""
-    gpg_output = run_gpg "--output - --armor --encrypt --textmode #{sign_opts} #{recipient_opts} #{payload_fn.path}"
-    raise Error, (gpg_output || "gpg command failed: #{cmd}") unless $?.success?
+    message = run_gpg "--output #{encrypted_fn.path} --yes --armor --encrypt --textmode #{sign_opts} #{recipient_opts} #{payload_fn.path}", :interactive => true
+    unless $?.success?
+      info "Error while running gpg: #{message}"
+      raise Error, "GPG command failed. See log for details."
+    end
 
     encrypted_payload = RMail::Message.new
     encrypted_payload.header["Content-Type"] = "application/octet-stream"
     encrypted_payload.header["Content-Disposition"] = 'inline; filename="msg.asc"'
-    encrypted_payload.body = gpg_output
+    encrypted_payload.body = IO.read(encrypted_fn.path)
 
     control = RMail::Message.new
     control.header["Content-Type"] = "application/pgp-encrypted"
