@@ -36,7 +36,10 @@ EOS
   opt :no_initial_poll, "Don't poll for new messages when starting."
   opt :search, "Search for this query upon startup", :type => String
   opt :compose, "Compose message to this recipient upon startup", :type => String
+  opt :subject, "When composing, use this subject", :type => String, :short => "j"
 end
+
+Trollop::die :subject, "requires --compose" if $opts[:subject] && !$opts[:compose]
 
 Redwood::HookManager.register "startup", <<EOS
 Executes at startup
@@ -197,7 +200,10 @@ begin
   imode.load_threads :num => ibuf.content_height, :when_done => lambda { |num| reporting_thread("poll after loading inbox") { sleep 1; PollManager.poll } unless $opts[:no_threads] || $opts[:no_initial_poll] }
 
   if $opts[:compose]
-    ComposeMode.spawn_nicely :to_default => $opts[:compose]
+    to = Person.from_address_list $opts[:compose]
+    mode = ComposeMode.new :to => to, :subj => $opts[:subject]
+    BufferManager.spawn "New Message", mode
+    mode.edit_message
   end
 
   unless $opts[:no_threads]
