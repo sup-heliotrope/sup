@@ -16,7 +16,7 @@ module CanAliasContacts
 end
 
 class ContactListMode < LineCursorMode
-  LOAD_MORE_CONTACTS_NUM = 10
+  LOAD_MORE_CONTACTS_NUM = 100
 
   register_keymap do |k|
     k.add :load_more, "Load #{LOAD_MORE_CONTACTS_NUM} more contacts", 'M'
@@ -106,7 +106,7 @@ class ContactListMode < LineCursorMode
   end
 
   def load
-    @num ||= buffer.content_height
+    @num ||= (buffer.content_height * 2)
     @user_contacts = ContactManager.contacts_with_aliases
     num = [@num - @user_contacts.length, 0].max
     BufferManager.say("Loading #{num} contacts from index...") do
