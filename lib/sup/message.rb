@@ -499,7 +499,7 @@ private
         # Lowercase the filename because searches are easier that way 
         @attachments.push filename.downcase unless filename =~ /^sup-attachment-/
         add_label :attachment unless filename =~ /^sup-attachment-/
-        content_type = m.header.content_type.downcase || "application/unknown" # sometimes RubyMail gives us nil
+        content_type = (m.header.content_type || "application/unknown").downcase # sometimes RubyMail gives us nil
         [Chunk::Attachment.new(content_type, filename, m, sibling_types)]
 
       ## otherwise, it's body text
