@@ -158,6 +158,7 @@ index, or you can make use of the full Ferret query syntax:
   (parentheses required for multi-word descriptions).
 
 You can combine those all together. For example:
+
      label:ruby-talk subject:\[ANN\] -rails on:today
 
 Play around with the search, and see the Ferret documentation for
@@ -167,6 +168,7 @@ etc.)
 At this point, you're well on your way to figuring out all the cool
 things Sup can do. By repeated application of the '?' key, see if you
 can figure out how to:
+
  - List some recent contacts
  - Easily search for all mail from a recent contact
  - Easily search for all mail from several recent contacts
@@ -201,6 +203,7 @@ Appendix A: sup-add and sup-sync
 
 Instead of using sup-config to add a new source, you can manually run
 `sup-add` with a URI pointing to it. The URI should be of the form:
+
 - mbox://path/to/a/filename, for an mbox file on disk.
 - maildir://path/to/a/filename, for a maildir directory on disk.
 - imap://imap.server/folder for an unsecure IMAP folder.
@@ -210,28 +213,28 @@ Instead of using sup-config to add a new source, you can manually run
 Before you add the source, you need make three decisions. The first is
 whether you want Sup to regularly poll this source for new messages.
 By default it will, but if this is a source that will never have new
-messages, you can specify --unusual. Sup polls only "usual" sources
+messages, you can specify `--unusual`. Sup polls only "usual" sources
 when checking for new mail (unless you manually invoke sup-sync).
 
 The second is whether you want messages from the source to be
 automatically archived. An archived message will not show up in your
 inbox, but will be found when you search. (Your inbox in Sup is, by
 definition, the set of all all non-archived messages). Specify
---archive to automatically archive all messages from the source. This
+`--archive` to automatically archive all messages from the source. This
 is useful for sources that contain, for example, high-traffic mailing
 lists that you don't want polluting your inbox.
 
 The final decision is whether you want any labels automatically
-applied to messages from this source. You can use --labels to do this.
+applied to messages from this source. You can use `--labels` to do this.
 
 If Sup requires account information, e.g. for IMAP servers and remote
-mbox files, sup-add will ask for it.
+mbox files, `sup-add` will ask for it.
 
 Now that you've added the source, let's import all the current
 messages from it, by running sup-sync with the source URI. You can
-specify --archive to automatically archive all messages in this
+specify `--archive` to automatically archive all messages in this
 import; typically you'll want to specify this for every source you
-import except your actual inbox. You can also specify --read to mark
+import except your actual inbox. You can also specify `--read` to mark
 all imported messages as read; the default is to preserve the
 read/unread status from the source.
 
@@ -244,7 +247,7 @@ Appendix B: Automatically labeling incoming email
 
 One option is to filter incoming email into different sources with
 something like procmail, and have each of these sources auto-apply
-labels by using sup-add --labels.
+labels by using `sup-add --labels`.
 
 But the better option is to learn Ruby and write a before-add hook.
 This will allow you to apply labels based on whatever crazy logic you
