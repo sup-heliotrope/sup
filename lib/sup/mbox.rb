@@ -14,7 +14,7 @@ module MBox
       ## hack -- make Time.parse fail when trying to substitute values from Time.now
       Time.parse time, 0
       true
-    rescue NoMethodError
+    rescue NoMethodError, ArgumentError
       warn "found invalid date in potential mbox split line, not splitting: #{l.inspect}"
       false
     end
