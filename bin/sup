@@ -366,7 +366,7 @@ unless Redwood::exceptions.empty?
 ----------------------------------------------------------------
 I'm very sorry. It seems that an error occurred in Sup. Please
 accept my sincere apologies. If you don't mind, please send the
-contents of ~/.sup/exception-log.txt and a brief report of the
+contents of #{BASE_DIR}/exception-log.txt and a brief report of the
 circumstances to sup-talk at rubyforge dot orgs so that I might
 address this problem. Thank you!
 
