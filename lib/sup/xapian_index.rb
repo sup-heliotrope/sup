@@ -114,7 +114,7 @@ EOS
       :cc => (entry[:cc] || m.cc.map { |p| [p.email, p.name] }),
       :bcc => (entry[:bcc] || m.bcc.map { |p| [p.email, p.name] }),
       :subject => m.subj,
-      :refs => (entry[:refs] || m.refs),
+      :refs => m.refs,
       :replytos => (entry[:replytos] || m.replytos),
     }
 

@@ -127,8 +127,11 @@ EOS
       :from => (m.from ? m.from.indexable_content : ""),
       :to => (m.to + m.cc + m.bcc).map { |x| x.indexable_content }.join(" "),
 
+      ## always overwrite :refs.
+      ## these might have changed due to manual thread joining.
+      :refs => (m.refs + m.replytos).uniq.join(" "),
+
       :subject => (entry[:subject] || wrap_subj(Message.normalize_subj(m.subj))),
-      :refs => (entry[:refs] || (m.refs + m.replytos).uniq.join(" ")),
     }
 
     @index_mutex.synchronize do
