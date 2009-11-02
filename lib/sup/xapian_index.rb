@@ -565,35 +565,32 @@ EOS
       raise "Invalid term type #{type}"
     end
   end
-
-  module DocumentMethods
-    def entry
-      Marshal.load data
-    end
-
-    def entry=(x)
-      self.data = Marshal.dump x
-    end
-
-    def index_text text, prefix, weight=1
-      term_generator = Xapian::TermGenerator.new
-      term_generator.stemmer = Xapian::Stem.new(STEM_LANGUAGE)
-      term_generator.document = self
-      term_generator.index_text text, weight, prefix
-    end
-
-    def add_term term
-      if term.length <= MAX_TERM_LENGTH
-        super term
-      else
-        warn "dropping excessively long term #{term}"
-      end
-    end
-  end
 end
 
 end
 
 class Xapian::Document
-  include Redwood::XapianIndex::DocumentMethods
+  def entry
+    Marshal.load data
+  end
+
+  def entry=(x)
+    self.data = Marshal.dump x
+  end
+
+  def index_text text, prefix, weight=1
+    term_generator = Xapian::TermGenerator.new
+    term_generator.stemmer = Xapian::Stem.new(Redwood::XapianIndex::STEM_LANGUAGE)
+    term_generator.document = self
+    term_generator.index_text text, weight, prefix
+  end
+
+  alias old_add_term add_term
+  def add_term term
+    if term.length <= Redwood::XapianIndex::MAX_TERM_LENGTH
+      old_add_term term
+    else
+      warn "dropping excessively long term #{term}"
+    end
+  end
 end
