@@ -45,9 +45,9 @@ EOS
     HookManager.run "before-poll"
 
     BufferManager.flash "Polling for new messages..."
-    num, numi, from_and_subj, from_and_subj_inbox = @mode.poll
+    num, numi, from_and_subj, from_and_subj_inbox, loaded_labels = @mode.poll
     if num > 0
-      BufferManager.flash "Loaded #{num.pluralize 'new message'}, #{numi} to inbox." 
+      BufferManager.flash "Loaded #{num.pluralize 'new message'}, #{numi} to inbox. Labels: #{loaded_labels.map{|l| l.to_s}.join(', ')}"
     else
       BufferManager.flash "No new messages." 
     end
@@ -76,6 +76,7 @@ EOS
     total_num = total_numi = 0
     from_and_subj = []
     from_and_subj_inbox = []
+    loaded_labels = Set.new
 
     @mutex.synchronize do
       SourceManager.usual_sources.each do |source|
@@ -107,6 +108,7 @@ EOS
           else
             yield "Found new message at #{m.source_info} with labels #{m.labels.to_a * ','}"
             add_new_message m
+            loaded_labels.merge m.labels
             num += 1
             from_and_subj << [m.from && m.from.longname, m.subj]
             if (m.labels & [:inbox, :spam, :deleted, :killed]) == Set.new([:inbox])
@@ -121,11 +123,12 @@ EOS
         total_numi += numi
       end
 
+      loaded_labels = loaded_labels - LabelManager::HIDDEN_RESERVED_LABELS - [:inbox, :killed]
       yield "Done polling; loaded #{total_num} new messages total"
       @last_poll = Time.now
       @polling = false
     end
-    [total_num, total_numi, from_and_subj, from_and_subj_inbox]
+    [total_num, total_numi, from_and_subj, from_and_subj_inbox, loaded_labels]
   end
 
   ## like Source#each, but yields successive Message objects, which have their
