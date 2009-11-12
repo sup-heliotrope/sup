@@ -29,7 +29,7 @@ class ForwardMode < EditMessageMode
   end
 
   def self.spawn_nicely opts={}
-    to = opts[:to] || BufferManager.ask_for_contacts(:people, "To: ") or return
+    to = opts[:to] || BufferManager.ask_for_contacts(:people, "To: ") or return if $config[:ask_for_to]
     cc = opts[:cc] || BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc]
     bcc = opts[:bcc] || BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc]
     
