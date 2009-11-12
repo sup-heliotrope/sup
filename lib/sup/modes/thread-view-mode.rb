@@ -254,7 +254,8 @@ EOS
   end    
 
   def edit_labels
-    reserved_labels = @thread.labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
+    old_labels = @thread.labels
+    reserved_labels = old_labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
     new_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", @thread.labels
 
     return unless new_labels
@@ -262,6 +263,10 @@ EOS
     new_labels.each { |l| LabelManager << l }
     update
     UpdateManager.relay self, :labeled, @thread.first
+    UndoManager.register "labeling thread" do
+      @thread.labels = old_labels
+      UpdateManager.relay self, :labeled, @thread.first
+    end
   end
 
   def toggle_starred
@@ -476,6 +481,10 @@ EOS
     dispatch op do
       @thread.remove_label :inbox
       UpdateManager.relay self, :archived, @thread.first
+      UndoManager.register "archiving 1 thread" do
+        @thread.apply_label :inbox
+        UpdateManager.relay self, :unarchived, @thread.first
+      end
     end
   end
 
@@ -483,6 +492,10 @@ EOS
     dispatch op do
       @thread.apply_label :spam
       UpdateManager.relay self, :spammed, @thread.first
+      UndoManager.register "marking 1 thread as spam" do
+        @thread.remove_label :spam
+        UpdateManager.relay self, :unspammed, @thread.first
+      end
     end
   end
 
@@ -490,6 +503,10 @@ EOS
     dispatch op do
       @thread.apply_label :deleted
       UpdateManager.relay self, :deleted, @thread.first
+      UndoManager.register "deleting 1 thread" do
+        @thread.remove_label :deleted
+        UpdateManager.relay self, :undeleted, @thread.first
+      end
     end
   end
 
