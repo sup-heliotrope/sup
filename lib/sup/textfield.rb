@@ -114,6 +114,9 @@ class TextField
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
         nop
         Ncurses::Form::REQ_BEG_FIELD
+      when ?\C-w
+        Ncurses::Form.form_driver @form, Ncurses::Form::REQ_PREV_CHAR
+        Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_WORD
       when Ncurses::KEY_UP, Ncurses::KEY_DOWN
         unless @history.empty?
           value = get_cursed_value
