@@ -3,7 +3,7 @@ require 'set'
 
 module Redwood
 
-# This index implementation uses Xapian for searching and GDBM for storage. It
+# This index implementation uses Xapian for searching and storage. It
 # tends to be slightly faster than Ferret for indexing and significantly faster
 # for searching due to precomputing thread membership.
 class XapianIndex < BaseIndex
