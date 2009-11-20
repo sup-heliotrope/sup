@@ -10,7 +10,7 @@ class ThreadViewMode < LineCursorMode
     attr_accessor :state
   end
 
-  DATE_FORMAT = "%B %e %Y %l:%M%P"
+  DATE_FORMAT = "%B %e %Y %l:%M%p"
   INDENT_SPACES = 2 # how many spaces to indent child messages
 
   HookManager.register "detailed-headers", <<EOS
