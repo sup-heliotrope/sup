@@ -494,6 +494,8 @@ private
 
       ## if there's a filename, we'll treat it as an attachment.
       if filename
+        ## filename could be 2047 encoded
+        filename = Rfc2047.decode_to $encoding, filename
         # add this to the attachments list if its not a generated html
         # attachment (should we allow images with generated names?).
         # Lowercase the filename because searches are easier that way 
