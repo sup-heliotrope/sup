@@ -29,9 +29,9 @@ class ForwardMode < EditMessageMode
   end
 
   def self.spawn_nicely opts={}
-    to = opts[:to] || BufferManager.ask_for_contacts(:people, "To: ") or return
-    cc = opts[:cc] || BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc]
-    bcc = opts[:bcc] || BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc]
+    to = opts[:to] || (BufferManager.ask_for_contacts(:people, "To: ") or return if ($config[:ask_for_to] != false))
+    cc = opts[:cc] || (BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc])
+    bcc = opts[:bcc] || (BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc])
     
     attachment_hash = {}
     attachments = opts[:attachments] || []
