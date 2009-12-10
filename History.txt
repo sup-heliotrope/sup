@@ -1,3 +1,16 @@
+== 0.9.1 / 2009-12-10
+* Make textfield behave more like readline, including C-w
+* Add ask_for_to config option. You can set all ask_for_* options to false, and
+  composing a message will go immediately to the editor.
+* RFC 2047 decode attachment file names
+        * default ask_for_to to true
+* add undo power to thread-view-mode
+* display labels of polled messages
+* increase numbers in contact-list-mode
+* fix --compose option, and add a --subject option
+* include hook filename in error messages
+* As always, many bugfixes and tweaks.
+
 == 0.9 / 2009-10-01
 * Experimental Xapian backend to replace Ferret. Not everything works with it,
   but it's fast and less likely to barf. See release notes.
