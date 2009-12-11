@@ -1,3 +1,10 @@
+Release 0.9.1:
+
+This is mainly a bugfix release, with a couple minor new features rolled up.
+
+If you are using the Ferret backend, consider convering soon. I will probably
+add a deprecation notice in 0.10, and you support will be dropped in 0.11.
+
 Release 0.9:
 
 There's a new Xapian backend as an alternative to the Ferret one. It's still in
