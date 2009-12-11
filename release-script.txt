@@ -12,6 +12,6 @@ vi lib/sup.rb bin/sup # and bump BOTH version numbers
 # ... git add, commit, etc
 rake gem
 rake tarball
-# manually upload
+gem push pkg/<gem name> # now using gemcutter
 git publish-branch
 rake upload_webpage
