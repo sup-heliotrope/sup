@@ -135,7 +135,6 @@ EOS
     @layout[earliest].state = :detailed if earliest.has_label?(:unread) || @thread.size == 1
 
     @thread.remove_label :unread
-    regen_text
   end
 
   def toggle_wrap
@@ -153,6 +152,14 @@ EOS
   end
   def lines; @text.length; end
   def [] i; @text[i]; end
+
+  ## a little hacky---since regen_text can depend on buffer features like the
+  ## content_width, we don't call it in the constructor, and instead call it
+  ## here, which is set before we're responsible for drawing ourself.
+  def buffer= b
+    super
+    regen_text
+  end
 
   def show_header
     m = @message_lines[curpos] or return
@@ -771,7 +778,10 @@ private
       raise "Bad chunk: #{chunk.inspect}" unless chunk.respond_to?(:inlineable?) ## debugging
       if chunk.inlineable?
         lines = chunk.lines
-        lines = lines.map { |l| l.chomp.wrap buffer.content_width }.flatten if @wrap
+        if @wrap
+          width = buffer.content_width
+          lines = lines.map { |l| l.chomp.wrap width }.flatten
+        end
         lines.map { |line| [[chunk.color, "#{prefix}#{line}"]] }
       elsif chunk.expandable?
         case state
