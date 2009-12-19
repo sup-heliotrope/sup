@@ -365,9 +365,9 @@ unless Redwood::exceptions.empty?
   $stderr.puts <<EOS
 ----------------------------------------------------------------
 I'm very sorry. It seems that an error occurred in Sup. Please
-accept my sincere apologies. If you don't mind, please send the
-contents of #{BASE_DIR}/exception-log.txt and a brief report of the
-circumstances to sup-talk at rubyforge dot orgs so that I might
+accept my sincere apologies. Please submit the contents of
+#{BASE_DIR}/exception-log.txt and a brief report of the
+circumstances to http://masanjin.net/sup-bugs/ so that I might
 address this problem. Thank you!
 
 Sincerely,
