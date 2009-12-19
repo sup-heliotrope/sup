@@ -187,6 +187,8 @@ class Maildir < Source
   def mark_seen msg; maildir_mark_file msg, "S" unless seen? msg; end
   def mark_trashed msg; maildir_mark_file msg, "T" unless trashed? msg; end
 
+  def filename_for_id id; @ids_to_fns[id] end
+
 private
 
   def make_id fn
