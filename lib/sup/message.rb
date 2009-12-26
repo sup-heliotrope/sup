@@ -121,6 +121,8 @@ class Message
         header["list-post"] # just try the whole fucking thing
       end
       address && Person.from_address(address)
+    elsif header["x-mailing-list"]
+      Person.from_address header["x-mailing-list"]
     end
 
     @recipient_email = header["envelope-to"] || header["x-original-to"] || header["delivered-to"]
