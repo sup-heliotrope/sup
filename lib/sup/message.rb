@@ -114,12 +114,14 @@ class Message
     @replytos = (header["in-reply-to"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
 
     @replyto = Person.from_address header["reply-to"]
-    @list_address =
-      if header["list-post"]
-        @list_address = Person.from_address header["list-post"].gsub(/^<mailto:|>$/, "")
-      else
-        nil
+    @list_address = if header["list-post"]
+      address = if header["list-post"] =~ /mailto:(.*?)[>\s$]/
+        $1
+      elsif list-post =~ /@/
+        header["list-post"] # just try the whole fucking thing
       end
+      address && Person.from_address(address)
+    end
 
     @recipient_email = header["envelope-to"] || header["x-original-to"] || header["delivered-to"]
     @source_marked_read = header["status"] == "RO"
