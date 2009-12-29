@@ -1,7 +1,15 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'ncurses'
+
+no_ncursesw = false
+begin
+  require 'ncursesw'
+rescue LoadError
+  require 'ncurses'
+  no_ncursesw = true
+end
+
 require 'curses'
 require 'fileutils'
 require 'trollop'
@@ -19,6 +27,10 @@ The sup libraries are at version #{Redwood::VERSION.inspect}.
 Is your development environment conflicting with rubygems?
 EOS
   exit(-1)
+end
+
+if no_ncursesw
+  debug "No 'ncursesw' gem detected. Install it for wide character support."
 end
 
 $opts = Trollop::options do
