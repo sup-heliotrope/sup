@@ -28,6 +28,8 @@ class BaseIndex
   def initialize dir=BASE_DIR
     @dir = dir
     @lock = Lockfile.new lockfile, :retries => 0, :max_age => nil
+    @sync_worker = nil
+    @sync_queue = Queue.new
   end
 
   def lockfile; File.join @dir, "lock" end
@@ -175,8 +177,30 @@ class BaseIndex
 
   def save_thread t
     t.each_dirty_message do |m|
-      update_message_state m
+      if @sync_worker
+        @sync_queue << m
+      else
+        update_message_state m
+      end
       m.clear_dirty
+    end
+  end
+
+  def start_sync_worker
+    @sync_worker = Redwood::reporting_thread('index sync') { run_sync_worker }
+  end
+
+  def stop_sync_worker
+    return unless worker = @sync_worker
+    @sync_worker = nil
+    @sync_queue << :die
+    worker.join
+  end
+
+  def run_sync_worker
+    while m = @sync_queue.deq
+      return if m == :die
+      update_message_state m
     end
   end
 end

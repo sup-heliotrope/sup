@@ -152,6 +152,7 @@ Index.lock_interactively or exit
 begin
   Redwood::start
   Index.load
+  Index.start_sync_worker unless $opts[:no_threads]
 
   $die = false
   trap("TERM") { |x| $die = true }
@@ -340,6 +341,7 @@ ensure
 
   HookManager.run "shutdown"
 
+  Index.stop_sync_worker
   Redwood::finish
   stop_cursing
   Redwood::Logger.remove_all_sinks!
