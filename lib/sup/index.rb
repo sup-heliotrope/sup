@@ -172,6 +172,13 @@ class BaseIndex
   def parse_query s
     unimplemented
   end
+
+  def save_thread t
+    t.each_dirty_message do |m|
+      update_message_state m
+      m.clear_dirty
+    end
+  end
 end
 
 index_name = ENV['SUP_INDEX'] || $config[:index] || DEFAULT_INDEX

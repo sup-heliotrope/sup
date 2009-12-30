@@ -477,7 +477,7 @@ EOS
       BufferManager.say("Saving threads...") do |say_id|
         dirty_threads.each_with_index do |t, i|
           BufferManager.say "Saving modified thread #{i + 1} of #{dirty_threads.length}...", say_id
-          t.save_state Index
+          Index.save_thread t
         end
       end
     end

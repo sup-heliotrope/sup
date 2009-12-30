@@ -182,11 +182,8 @@ class Message
   ## don't tempt me.
   def sanitize_message_id mid; mid.gsub(/(\s|[^\000-\177])+/, "")[0..254] end
 
-  def save_state index
-    return unless @dirty
-    index.update_message_state self
+  def clear_dirty
     @dirty = false
-    true
   end
 
   def has_label? t; @labels.member? t; end
