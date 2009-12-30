@@ -201,6 +201,8 @@ class BaseIndex
     while m = @sync_queue.deq
       return if m == :die
       update_message_state m
+      # Necessary to keep Xapian calls from lagging the UI too much.
+      sleep 0.03
     end
   end
 end
