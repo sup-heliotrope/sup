@@ -39,6 +39,7 @@ EOS
   opt :unusual, "Do not automatically poll these sources for new messages."
   opt :labels, "A comma-separated set of labels to apply to all messages from this source", :type => String
   opt :force_new, "Create a new account for this source, even if one already exists."
+  opt :force_account, "Reuse previously defined account user@hostname.", :type => String
 end
 
 Trollop::die "require one or more sources" if ARGV.empty?
@@ -56,13 +57,20 @@ def get_login_info uri, sources
 
   username, password = nil, nil
   unless accounts.empty? || $opts[:force_new]
-    say "Would you like to use the same account as for a previous source for #{uri}?"
-    choose do |menu|
-      accounts.each do |host, olduser, oldpw|
-        menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
+    if $opts[:force_account]
+      host, username, password = accounts.find { |h, u, p| $opts[:force_account] == "#{u}@#{h}" }
+      unless username && password
+        say "No previous account #{$opts[:force_account].inspect} found."
       end
-      menu.choice("Use a new account") { }
-      menu.prompt = "Account selection? "
+    else
+      say "Would you like to use the same account as for a previous source for #{uri}?"
+      choose do |menu|
+        accounts.each do |host, olduser, oldpw|
+          menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
+        end
+        menu.choice("Use a new account") { }
+        menu.prompt = "Account selection? "
+      end
     end
   end
 
