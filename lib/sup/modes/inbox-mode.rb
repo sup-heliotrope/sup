@@ -42,6 +42,7 @@ class InboxMode < ThreadIndexMode
     cursor_thread.remove_label :inbox
     hide_thread cursor_thread
     regen_text
+    Index.save_thread thread
   end
 
   def multi_archive threads
@@ -58,6 +59,7 @@ class InboxMode < ThreadIndexMode
       hide_thread t
     end
     regen_text
+    threads.each { |t| Index.save_thread t }
   end
 
   def read_and_archive
@@ -74,6 +76,7 @@ class InboxMode < ThreadIndexMode
     cursor_thread.remove_label :inbox
     hide_thread cursor_thread
     regen_text
+    Index.save_thread thread
   end
 
   def multi_read_and_archive threads
@@ -94,6 +97,7 @@ class InboxMode < ThreadIndexMode
       regen_text
     end
 
+    threads.each { |t| Index.save_thread t }
   end
 
   def handle_unarchived_update sender, m
