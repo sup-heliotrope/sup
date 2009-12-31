@@ -6,7 +6,7 @@ begin
   require 'chronic'
   $have_chronic = true
 rescue LoadError => e
-  debug "optional 'chronic' library not found; date-time query restrictions disabled"
+  debug "No 'chronic' gem detected. Install it for date/time query restrictions."
   $have_chronic = false
 end
 
