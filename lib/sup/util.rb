@@ -664,21 +664,26 @@ class FinishLine
 end
 
 class Iconv
-  def self.easy_decode target, charset, text
-    return text if charset =~ /^(x-unknown|unknown[-_ ]?8bit|ascii[-_ ]?7[-_ ]?bit)$/i
-    charset = case charset
+  def self.easy_decode target, orig_charset, text
+    if text.respond_to? :force_encoding
+      text = text.dup
+      text.force_encoding Encoding::BINARY
+    end
+    charset = case orig_charset
       when /UTF[-_ ]?8/i then "utf-8"
       when /(iso[-_ ])?latin[-_ ]?1$/i then "ISO-8859-1"
       when /iso[-_ ]?8859[-_ ]?15/i then 'ISO-8859-15'
       when /unicode[-_ ]1[-_ ]1[-_ ]utf[-_]7/i then "utf-7"
-      else charset
+      when /^euc$/i then 'EUC-JP' # XXX try them all?
+      when /^(x-unknown|unknown[-_ ]?8bit|ascii[-_ ]?7[-_ ]?bit)$/i then 'ASCII'
+      else orig_charset
     end
 
     begin
-      Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]
-    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::InvalidCharacter, Iconv::IllegalSequence => e
-      warn "couldn't transcode text from #{charset} to #{target} (\"#{text[0 ... 20]}\"...) (got #{e.message}); using original as is"
-      text
+      returning(Iconv.iconv(target, charset, text + " ").join[0 .. -2]) { |str| str.check }
+    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::InvalidCharacter, Iconv::IllegalSequence, String::CheckError
+      warn "couldn't transcode text from #{orig_charset} (#{charset}) to #{target}) (#{text[0 ... 20].inspect}...) (got #{$!.message} (#{$!.class}))"
+      text.ascii
     end
   end
 end
