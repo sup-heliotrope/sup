@@ -117,7 +117,7 @@ class Message
     @list_address = if header["list-post"]
       address = if header["list-post"] =~ /mailto:(.*?)[>\s$]/
         $1
-      elsif list-post =~ /@/
+      elsif header["list-post"] =~ /@/
         header["list-post"] # just try the whole fucking thing
       end
       address && Person.from_address(address)
