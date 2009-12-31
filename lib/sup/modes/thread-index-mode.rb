@@ -406,7 +406,6 @@ EOS
   def toggle_spam
     t = cursor_thread or return
     multi_toggle_spam [t]
-    HookManager.run("mark-as-spam", :thread => t)
   end
 
   ## both spam and deleted have the curious characteristic that you
@@ -418,6 +417,7 @@ EOS
   ## you also want them to disappear immediately.
   def multi_toggle_spam threads
     undos = threads.map { |t| actually_toggle_spammed t }
+    threads.each { |t| HookManager.run("mark-as-spam", :thread => t) }
     UndoManager.register "marking/unmarking  #{threads.size.pluralize 'thread'} as spam",
                          undos, lambda { regen_text }
     regen_text
