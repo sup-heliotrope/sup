@@ -10,7 +10,6 @@ rescue LoadError
   no_ncursesw = true
 end
 
-require 'curses'
 require 'fileutils'
 require 'trollop'
 require "sup"
