@@ -319,6 +319,10 @@ class String
     out.force_encoding Encoding::UTF_8 if out.respond_to? :force_encoding
     out
   end
+
+  def transcode src_encoding=$encoding
+    Iconv.easy_decode $encoding, src_encoding, self
+  end
 end
 
 class Numeric
