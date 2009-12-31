@@ -296,6 +296,16 @@ class String
   ##
   ## split_on will be passed to String#split, so you can leave this nil for space.
   def to_set_of_symbols split_on=nil; Set.new split(split_on).map { |x| x.strip.intern } end
+
+  class CheckError < ArgumentError; end
+  def check
+    begin
+      fail "unexpected encoding #{encoding}" if respond_to?(:encoding) && !(encoding == Encoding::UTF_8 || encoding == Encoding::ASCII)
+      fail "invalid encoding" if respond_to?(:valid_encoding?) && !valid_encoding?
+    rescue
+      raise CheckError.new($!.message)
+    end
+  end
 end
 
 class Numeric
