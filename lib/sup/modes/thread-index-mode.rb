@@ -843,7 +843,7 @@ protected
 
     [ 
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
-      [:none, sprintf("%#{@date_width}s", date)],
+      [:date_color, sprintf("%#{@date_width}s", date)],
       (starred ? [:starred_color, "*"] : [:none, " "]),
     ] +
       from +
