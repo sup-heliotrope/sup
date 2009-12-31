@@ -446,15 +446,12 @@ private
         from = payload.header.from.first ? payload.header.from.first.format : ""
         to = payload.header.to.map { |p| p.format }.join(", ")
         cc = payload.header.cc.map { |p| p.format }.join(", ")
-        subj = payload.header.subject
-        subj = subj ? Message.normalize_subj(payload.header.subject.gsub(/\s+/, " ").gsub(/\s+$/, "")) : subj
-        if Rfc2047.is_encoded? subj
-          subj = Rfc2047.decode_to $encoding, subj
-        end
+        subj = decode_header_field(payload.header.subject) || DEFAULT_SUBJECT
+        subj = Message.normalize_subj(subj.gsub(/\s+/, " ").gsub(/\s+$/, ""))
         msgdate = payload.header.date
-        from_person = from ? Person.from_address(from) : nil
-        to_people = to ? Person.from_address_list(to) : nil
-        cc_people = cc ? Person.from_address_list(cc) : nil
+        from_person = from ? Person.from_address(decode_header_field from) : nil
+        to_people = to ? Person.from_address_list(decode_header_field to) : nil
+        cc_people = cc ? Person.from_address_list(decode_header_field cc) : nil
         [Chunk::EnclosedMessage.new(from_person, to_people, cc_people, msgdate, subj)] + message_to_chunks(payload, encrypted)
       else
         debug "no body for message/rfc822 enclosure; skipping"
