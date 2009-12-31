@@ -132,7 +132,12 @@ EOS
     def initial_state; :open end
     def viewable?; @lines.nil? end
     def view_default! path
-      cmd = "/usr/bin/run-mailcap --action=view '#{@content_type}:#{path}'"
+      case Config::CONFIG['arch']
+        when /darwin/
+          cmd = "open '#{path}'"
+        else
+          cmd = "/usr/bin/run-mailcap --action=view '#{@content_type}:#{path}'"
+      end
       debug "running: #{cmd.inspect}"
       BufferManager.shell_out(cmd)
       $? == 0

@@ -8,12 +8,36 @@ class LabelListMode < LineCursorMode
     k.add :toggle_show_unread_only, "Toggle between showing all labels and those with unread mail", 'u'
   end
 
+  HookManager.register "label-list-filter", <<EOS
+Filter the label list, typically to sort.
+Variables:
+  counted: an array of counted labels.
+Return value:
+  An array of counted labels with sort_by output structure.
+EOS
+
+  HookManager.register "label-list-format", <<EOS
+Create the sprintf format string for label-list-mode.
+Variables:
+  width: the maximum label width
+  tmax: the maximum total message count
+  umax: the maximum unread message count
+Return value:
+  A format string for sprintf
+EOS
+
   def initialize
     @labels = []
     @text = []
     @unread_only = false
     super
+    UpdateManager.register self
     regen_text
+  end
+
+  def cleanup
+    UpdateManager.unregister self
+    super
   end
 
   def lines; @text.length end
@@ -34,6 +58,10 @@ class LabelListMode < LineCursorMode
     reload # make sure unread message counts are up-to-date
   end
 
+  def handle_added_update sender, m
+    reload
+  end
+
 protected
 
   def toggle_show_unread_only
@@ -50,14 +78,22 @@ protected
     @text = []
     labels = LabelManager.all_labels
 
-    counts = labels.map do |label|
+    counted = labels.map do |label|
       string = LabelManager.string_for label
       total = Index.num_results_for :label => label
       unread = (label == :unread)? total : Index.num_results_for(:labels => [label, :unread])
       [label, string, total, unread]
-    end.sort_by { |l, s, t, u| s.downcase }
+    end
+
+    if HookManager.enabled? "label-list-filter"
+      counts = HookManager.run "label-list-filter", :counted => counted
+    else
+      counts = counted.sort_by { |l, s, t, u| s.downcase }
+    end
 
     width = counts.max_of { |l, s, t, u| s.length }
+    tmax  = counts.max_of { |l, s, t, u| t }
+    umax  = counts.max_of { |l, s, t, u| u }
 
     if @unread_only
       counts.delete_if { | l, s, t, u | u == 0 }
@@ -78,8 +114,13 @@ protected
         next
       end
 
+      fmt = HookManager.run "label-list-format", :width => width, :tmax => tmax, :umax => umax
+      if !fmt
+        fmt = "%#{width + 1}s %5d %s, %5d unread"
+      end
+
       @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),
-          sprintf("%#{width + 1}s %5d %s, %5d unread", string, total, total == 1 ? " message" : "messages", unread)]]
+          sprintf(fmt, string, total, total == 1 ? " message" : "messages", unread)]]
       @labels << [label, unread]
       yield i if block_given?
     end.compact

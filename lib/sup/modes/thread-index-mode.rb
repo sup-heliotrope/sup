@@ -66,7 +66,7 @@ EOS
     @date_width = DATE_WIDTH
 
     @interrupt_search = false
-    
+
     initialize_threads # defines @ts and @ts_mutex
     update # defines @text and @lines
 
@@ -759,30 +759,36 @@ protected
     @lines = threads.map_with_index { |t, i| [t, i] }.to_h
     buffer.mark_dirty if buffer
   end
-  
+
   def authors; map { |m, *o| m.from if m }.compact.uniq; end
 
+  ## preserve author order from the thread
   def author_names_and_newness_for_thread t, limit=nil
     new = {}
-    authors = Set.new
-    t.each do |m, *o|
-      next unless m
-      break if limit and authors.size >= limit
+    seen = {}
+    authors = t.map do |m, *o|
+      next unless m && m.from
+      new[m.from] ||= m.has_label?(:unread)
+      next if seen[m.from]
+      seen[m.from] = true
+      m.from
+    end.compact
 
-      name = 
-        if AccountManager.is_account?(m.from)
-          "me"
-        elsif t.authors.size == 1
-          m.from.mediumname
-        else
-          m.from.shortname
-        end
+    result = []
+    authors.each do |a|
+      break if limit && result.size >= limit
+      name = if AccountManager.is_account?(a)
+        "me"
+      elsif t.authors.size == 1
+        a.mediumname
+      else
+        a.shortname
+      end
 
-      new[name] ||= m.has_label?(:unread)
-      authors << name
+      result << [name, new[a]]
     end
 
-    authors.to_a.map { |a| [a, new[a]] }
+    result
   end
 
   AUTHOR_LIMIT = 5

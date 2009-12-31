@@ -7,6 +7,7 @@ class InboxMode < ThreadIndexMode
     ## overwrite toggle_archived with archive
     k.add :archive, "Archive thread (remove from inbox)", 'a'
     k.add :read_and_archive, "Archive thread (remove from inbox) and mark read", 'A'
+    k.add :refine_search, "Refine search", '|'
   end
 
   def initialize
@@ -16,6 +17,13 @@ class InboxMode < ThreadIndexMode
   end
 
   def is_relevant? m; (m.labels & [:spam, :deleted, :killed, :inbox]) == Set.new([:inbox]) end
+
+  def refine_search
+    text = BufferManager.ask :search, "refine inbox with query: "
+    return unless text && text !~ /^\s*$/
+    text = "label:inbox -label:spam -label:deleted " + text
+    SearchResultsMode.spawn_from_query text
+  end
 
   ## label-list-mode wants to be able to raise us if the user selects
   ## the "inbox" label, so we need to keep our singletonness around

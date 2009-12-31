@@ -35,12 +35,11 @@ EOS
     @thread = nil
     @last_poll = nil
     @polling = false
+    @poll_sources = nil
     @mode = nil
   end
 
-  def poll
-    return if @polling
-    @polling = true
+  def poll_with_sources
     @mode ||= PollMode.new
     HookManager.run "before-poll"
 
@@ -54,6 +53,22 @@ EOS
 
     HookManager.run "after-poll", :num => num, :num_inbox => numi, :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox, :num_inbox_total_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] }
 
+  end
+
+  def poll
+    return if @polling
+    @polling = true
+    @poll_sources = SourceManager.usual_sources
+    num, numi = poll_with_sources
+    @polling = false
+    [num, numi]
+  end
+
+  def poll_unusual
+    return if @polling
+    @polling = true
+    @poll_sources = SourceManager.unusual_sources
+    num, numi = poll_with_sources
     @polling = false
     [num, numi]
   end
@@ -79,7 +94,7 @@ EOS
     loaded_labels = Set.new
 
     @mutex.synchronize do
-      SourceManager.usual_sources.each do |source|
+      @poll_sources.each do |source|
 #        yield "source #{source} is done? #{source.done?} (cur_offset #{source.cur_offset} >= #{source.end_offset})"
         begin
           yield "Loading from #{source}... " unless source.done? || (source.respond_to?(:has_errors?) && source.has_errors?)

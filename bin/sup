@@ -90,6 +90,7 @@ global_keymap = Keymap.new do |k|
   k.add :search_unread, "Show all unread messages", 'U'
   k.add :list_labels, "List labels", 'L'
   k.add :poll, "Poll for new messages", 'P'
+  k.add :poll_unusual, "Poll for new messages from unusual sources", '{'
   k.add :compose, "Compose new message", 'm', 'c'
   k.add :nothing, "Do nothing", :ctrl_g
   k.add :recall_draft, "Edit most recent draft message", 'R'
@@ -300,6 +301,10 @@ begin
       ComposeMode.spawn_nicely
     when :poll
       reporting_thread("user-invoked poll") { PollManager.poll }
+    when :poll_unusual
+      if BufferManager.ask_yes_or_no "Really poll unusual sources?"
+        reporting_thread("user-invoked unusual poll") { PollManager.poll_unusual }
+      end
     when :recall_draft
       case Index.num_results_for :label => :draft
       when 0

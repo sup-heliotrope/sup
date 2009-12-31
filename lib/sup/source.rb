@@ -207,6 +207,7 @@ class SourceManager
 
   def source_for uri; sources.find { |s| s.is_source_for? uri }; end
   def usual_sources; sources.find_all { |s| s.usual? }; end
+  def unusual_sources; sources.find_all { |s| !s.usual? }; end
 
   def load_sources fn=Redwood::SOURCE_FN
     source_array = (Redwood::load_yaml_obj(fn) || []).map { |o| Recoverable.new o }
