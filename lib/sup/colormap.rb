@@ -50,6 +50,7 @@ class Colormap
     :system_buf => { :fg => "blue", :bg => "default" },
     :regular_buf => { :fg => "white", :bg => "default" },
     :modified_buffer => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
+    :date => { :fg => "white", :bg => "default"},
   }
   
   def initialize
