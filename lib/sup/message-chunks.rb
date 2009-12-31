@@ -99,7 +99,7 @@ EOS
 
       text = case @content_type
       when /^text\/plain\b/
-        Iconv.easy_decode $encoding, encoded_content.charset || $encoding, @raw_content
+        @raw_content
       else
         HookManager.run "mime-decode", :content_type => content_type,
                         :filename => lambda { write_to_disk },
@@ -109,6 +109,7 @@ EOS
 
       @lines = nil
       if text
+        text = text.transcode(encoded_content.charset || $encoding)
         @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
         @lines = lines.map {|l| l.chomp.wrap WRAP_LEN}.flatten
         @quotable = true
