@@ -31,6 +31,7 @@ class Message
   MAX_SIG_DISTANCE = 15 # lines from the end
   DEFAULT_SUBJECT = ""
   DEFAULT_SENDER = "(missing sender)"
+  MAX_HEADER_VALUE_SIZE = 4096
 
   attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :source,
               :cc, :bcc, :labels, :attachments, :list_address, :recipient_email, :replyto,
@@ -59,13 +60,15 @@ class Message
     #parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
-  def parse_header header
-    ## forcibly decode these headers from and to the current encoding,
-    ## which serves to strip out characters that aren't displayable
-    ## (and which would otherwise be screwing up the display)
-    %w(from to subject cc bcc).each do |f|
-      header[f] = Iconv.easy_decode($encoding, $encoding, header[f]) if header[f]
-    end
+  def decode_header_field v
+    return unless v
+    return v unless v.is_a? String
+    return unless v.size < MAX_HEADER_VALUE_SIZE # avoid regex blowup on spam
+    Rfc2047.decode_to $encoding, Iconv.easy_decode($encoding, 'ASCII', v)
+  end
+
+  def parse_header encoded_header
+    header = SavingHash.new { |k| decode_header_field encoded_header[k] }
 
     @id = if header["message-id"]
       mid = header["message-id"] =~ /<(.+?)>/ ? $1 : header["message-id"]
@@ -100,7 +103,7 @@ class Message
       Time.now
     end
 
-    @subj = header.member?("subject") ? header["subject"].gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
+    @subj = header["subject"] ? header["subject"].gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
     @to = Person.from_address_list header["to"]
     @cc = Person.from_address_list header["cc"]
     @bcc = Person.from_address_list header["bcc"]
@@ -236,8 +239,9 @@ class Message
           ## bloat the index.
           ## actually, it's also the differentiation between to/cc/bcc,
           ## so i will keep this.
-          parse_header @source.load_header(@source_info)
-          message_to_chunks @source.load_message(@source_info)
+          rmsg = @source.load_message(@source_info)
+          parse_header rmsg.header
+          message_to_chunks rmsg
         rescue SourceError, SocketError => e
           warn "problem getting messages from #{@source}: #{e.message}"
           ## we need force_to_top here otherwise this window will cover
@@ -443,15 +447,12 @@ private
         from = payload.header.from.first ? payload.header.from.first.format : ""
         to = payload.header.to.map { |p| p.format }.join(", ")
         cc = payload.header.cc.map { |p| p.format }.join(", ")
-        subj = payload.header.subject
-        subj = subj ? Message.normalize_subj(payload.header.subject.gsub(/\s+/, " ").gsub(/\s+$/, "")) : subj
-        if Rfc2047.is_encoded? subj
-          subj = Rfc2047.decode_to $encoding, subj
-        end
+        subj = decode_header_field(payload.header.subject) || DEFAULT_SUBJECT
+        subj = Message.normalize_subj(subj.gsub(/\s+/, " ").gsub(/\s+$/, ""))
         msgdate = payload.header.date
-        from_person = from ? Person.from_address(from) : nil
-        to_people = to ? Person.from_address_list(to) : nil
-        cc_people = cc ? Person.from_address_list(cc) : nil
+        from_person = from ? Person.from_address(decode_header_field from) : nil
+        to_people = to ? Person.from_address_list(decode_header_field to) : nil
+        cc_people = cc ? Person.from_address_list(decode_header_field cc) : nil
         [Chunk::EnclosedMessage.new(from_person, to_people, cc_people, msgdate, subj)] + message_to_chunks(payload, encrypted)
       else
         debug "no body for message/rfc822 enclosure; skipping"

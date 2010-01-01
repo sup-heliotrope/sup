@@ -59,7 +59,7 @@ class Maildir < Source
         File.stat(tmp_path)
       rescue Errno::ENOENT #this is what we want.
         begin
-          File.open(tmp_path, 'w') do |f|
+          File.open(tmp_path, 'wb:BINARY') do |f|
             yield f #provide a writable interface for the caller
             f.fsync
           end
@@ -207,7 +207,7 @@ private
   def with_file_for id
     fn = @ids_to_fns[id] or raise OutOfSyncSourceError, "No such id: #{id.inspect}."
     begin
-      File.open(fn) { |f| yield f }
+      File.open(fn, 'rb:BINARY') { |f| yield f }
     rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
     end
