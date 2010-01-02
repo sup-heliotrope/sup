@@ -23,6 +23,8 @@ class BaseIndex
     def method_missing m; @h[m.to_s] end
   end
 
+  def is_a_deprecated_ferret_index?; false end
+
   include Singleton
 
   def initialize dir=BASE_DIR
