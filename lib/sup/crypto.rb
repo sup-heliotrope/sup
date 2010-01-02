@@ -130,6 +130,7 @@ class CryptoManager
     end
 
     output = IO.read output_fn.path
+    output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
 
     ## there's probably a better way to do this, but we're using the output to
     ## look for a valid signature being present.
@@ -157,6 +158,7 @@ class CryptoManager
     msg = RMail::Parser.read output
     if msg.header.content_type =~ %r{^multipart/} && !msg.multipart?
       output = "MIME-Version: 1.0\n" + output
+      output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
       msg = RMail::Parser.read output
     end
     notice = Chunk::CryptoNotice.new :valid, "This message has been decrypted for display"
