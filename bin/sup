@@ -48,6 +48,7 @@ EOS
   opt :search, "Search for this query upon startup", :type => String
   opt :compose, "Compose message to this recipient upon startup", :type => String
   opt :subject, "When composing, use this subject", :type => String, :short => "j"
+  opt :index, "Use this index type ('auto' for autodetect)", :default => "auto"
 end
 
 Trollop::die :subject, "requires --compose" if $opts[:subject] && !$opts[:compose]
@@ -147,9 +148,8 @@ def stop_cursing
 end
 module_function :start_cursing, :stop_cursing
 
-Index.init
+Index.init $opts[:index]
 Index.lock_interactively or exit
-
 
 if Index.is_a_deprecated_ferret_index?
   FERRET_DEPRECATION_WARNING_FN = File.join BASE_DIR, "you-have-been-warned-about-ferret-deprecation"
