@@ -42,6 +42,12 @@ def run cmd
   puts
 end
 
+begin
+  require 'xapian'
+rescue LoadError
+  Trollop::die "you don't have the xapian gem installed, so this script won't do much for you--`gem install xapian` (or xapian-full) first"
+end
+
 Redwood::start
 index = Redwood::Index.init
 Trollop::die "you appear to already have a Xapian index--delete #{File.join(Redwood::BASE_DIR, "xapian")} if you really want to do this" unless Redwood::Index.is_a_deprecated_ferret_index?
