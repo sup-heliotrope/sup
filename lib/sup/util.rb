@@ -513,9 +513,9 @@ class Time
       strftime "%b %e"
     else
       if is_the_same_day? from
-        strftime("%l:%M%P")
+        strftime("%l:%M%p").downcase # emulate %P (missing on ruby 1.8 darwin)
       elsif is_the_day_before? from
-        "Yest."  + nearest_hour.strftime("%l%P")
+        "Yest."  + nearest_hour.strftime("%l%p").downcase # emulate %P
       else
         strftime "%b %e"
       end

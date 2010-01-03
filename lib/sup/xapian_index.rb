@@ -127,7 +127,7 @@ EOS
     while not queue.empty?
       thread_id = queue.pop
       next if seen_threads.member? thread_id
-      return false if thread_killed? thread_id
+      return false if opts[:skip_killed] && thread_killed?(thread_id)
       seen_threads << thread_id
       docs = term_docids(mkterm(:thread, thread_id)).map { |x| @xapian.document x }
       docs.each do |doc|

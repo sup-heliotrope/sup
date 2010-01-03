@@ -12,7 +12,7 @@ class Loader < Source
   attr_reader :labels
 
   ## uri_or_fp is horrific. need to refactor.
-  def initialize uri_or_fp, start_offset=0, usual=true, archived=false, id=nil, labels=nil
+  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=nil
     @mutex = Mutex.new
     @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
 
@@ -29,6 +29,7 @@ class Loader < Source
       @path = uri_or_fp.path
     end
 
+    start_offset ||= 0
     super uri_or_fp, start_offset, usual, archived, id
   end
 
