@@ -54,7 +54,7 @@ module Redwood
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
 
-  DEFAULT_INDEX = 'ferret'
+  DEFAULT_NEW_INDEX_TYPE = 'xapian'
 
   ## record exceptions thrown in threads nicely
   @exceptions = []

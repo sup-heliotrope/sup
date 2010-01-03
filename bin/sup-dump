@@ -17,11 +17,12 @@ Usage:
   sup-dump > <filename>
   sup-dump | bzip2 > <filename> # even better
 
-No options.
+Options:
 EOS
+  opt :index, "Use this index type ('auto' for autodetect)", :default => "auto"
 end
 
-index = Redwood::Index.init
+index = Redwood::Index.init $opts[:index]
 Redwood::SourceManager.init
 index.load
 

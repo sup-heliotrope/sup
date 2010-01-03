@@ -11,6 +11,8 @@ Variables:
   subs: The string being searched.
 EOS
 
+  def is_a_deprecated_ferret_index?; true end
+
   def initialize dir=BASE_DIR
     super
 

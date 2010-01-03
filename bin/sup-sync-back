@@ -47,6 +47,7 @@ EOS
   opt :with_dotlockfile, "Specific dotlockfile location (mbox files only).", :default => "/usr/bin/dotlockfile", :short => :none
   opt :dont_use_dotlockfile, "Don't use dotlockfile to lock mbox files. Dangerous if other processes modify them concurrently.", :default => false, :short => :none
 
+  opt :index, "Use this index type ('auto' for autodetect)", :default => "auto"
   opt :verbose, "Print message ids as they're processed."
   opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
   opt :version, "Show version information", :short => :none
@@ -65,7 +66,7 @@ EOS
 end
 
 Redwood::start
-index = Redwood::Index.init
+index = Redwood::Index.init $opts[:index]
 index.lock_interactively or exit
 
 deleted_fp, spam_fp = nil

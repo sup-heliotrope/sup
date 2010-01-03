@@ -76,6 +76,7 @@ text <<EOS
 
 Other options:
 EOS
+  opt :index, "Use this index type ('auto' for autodetect)", :default => "auto"
   opt :verbose, "Print message ids as they're processed."
   opt :optimize, "As the final operation, optimize the index."
   opt :all_sources, "Scan over all sources.", :short => :none
@@ -95,7 +96,7 @@ target = [:new, :changed, :all, :restored].find { |x| opts[x] } || :new
 op = [:asis, :restore, :discard].find { |x| opts[x] } || :asis
 
 Redwood::start
-index = Redwood::Index.init
+index = Redwood::Index.init opts[:index]
 
 restored_state = if opts[:restore]
   dump = {}
