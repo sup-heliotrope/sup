@@ -48,6 +48,8 @@ EOS
   end
 
   def save_index
+    info "Flushing Xapian updates to disk. This may take a while..."
+    @xapian.flush
   end
 
   def optimize
