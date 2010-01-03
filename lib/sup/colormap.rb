@@ -68,11 +68,15 @@ class Colormap
   def initialize
     raise "only one instance can be created" if @@instance
     @@instance = self
-    @entries = {}
     @color_pairs = {[Curses::COLOR_WHITE, Curses::COLOR_BLACK] => 0}
     @users = []
     @next_id = 0
+    reset
     yield self if block_given?
+  end
+
+  def reset
+    @entries = {}
     @entries[highlight_sym(:none)] = highlight_for(Curses::COLOR_WHITE,
                                                    Curses::COLOR_BLACK,
                                                    []) + [nil]
