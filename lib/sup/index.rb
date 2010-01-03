@@ -176,13 +176,31 @@ class BaseIndex
   end
 end
 
-index_name = ENV['SUP_INDEX'] || $config[:index] || DEFAULT_INDEX
-case index_name
-  when "xapian"; require "sup/xapian_index"
-  when "ferret"; require "sup/ferret_index"
-  else fail "unknown index type #{index_name.inspect}"
+## just to make the backtraces even more insane, here we engage in yet more
+## method_missing metaprogramming so that Index.init(index_type_name) will
+## magically make Index act like the correct Index class.
+class Index
+  def self.init type=nil
+    ## determine the index type from the many possible ways of setting it
+    type = (type == "auto" ? nil : type) ||
+      ENV['SUP_INDEX'] ||
+      $config[:index] ||
+      (File.exist?(File.join(BASE_DIR, "xapian")) && "xapian") || ## PRIORITIZE THIS
+      (File.exist?(File.join(BASE_DIR, "ferret")) && "ferret") || ## deprioritize this
+      DEFAULT_NEW_INDEX_TYPE
+    begin
+      require "sup/#{type}_index"
+      @klass = Redwood.const_get "#{type.capitalize}Index"
+      @obj = @klass.init
+    rescue LoadError, NameError => e
+      raise "unknown index type #{type.inspect}: #{e.message}"
+    end
+    debug "using #{type} index"
+    @obj
+  end
+
+  def self.instance; @obj end
+  def self.method_missing m, *a, &b; @obj.send(m, *a, &b) end
 end
-Index = Redwood.const_get "#{index_name.capitalize}Index"
-debug "using index #{Index.name}"
 
 end
