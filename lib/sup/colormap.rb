@@ -1,17 +1,29 @@
 module Curses
   COLOR_DEFAULT = -1
+
+  NUM_COLORS = `tput colors`.to_i
+  MAX_PAIRS = `tput pairs`.to_i
+
+  def self.color! name, value
+    const_set "COLOR_#{name.to_s.upcase}", value
+  end
+
+  ## numeric colors
+  Curses::NUM_COLORS.times { |x| color! x, x }
+
+  if Curses::NUM_COLORS == 256
+    ## xterm 6x6x6 color cube
+    6.times { |x| 6.times { |y| 6.times { |z| color! "c#{x}#{y}#{z}", 16 + z + 6*y + 36*x } } }
+
+    ## xterm 24-shade grayscale
+    24.times { |x| color! "g#{x}", (16+6*6*6) + x }
+  end
 end
 
 module Redwood
 
 class Colormap
   @@instance = nil
-
-  CURSES_COLORS = [Curses::COLOR_BLACK, Curses::COLOR_RED, Curses::COLOR_GREEN,
-                   Curses::COLOR_YELLOW, Curses::COLOR_BLUE,
-                   Curses::COLOR_MAGENTA, Curses::COLOR_CYAN,
-                   Curses::COLOR_WHITE, Curses::COLOR_DEFAULT]
-  NUM_COLORS = (CURSES_COLORS.size - 1) * (CURSES_COLORS.size - 1)
 
   DEFAULT_COLORS = {
     :status => { :fg => "white", :bg => "blue", :attrs => ["bold"] },
@@ -68,8 +80,8 @@ class Colormap
 
   def add sym, fg, bg, attr=nil, opts={}
     raise ArgumentError, "color for #{sym} already defined" if @entries.member? sym
-    raise ArgumentError, "color '#{fg}' unknown" unless CURSES_COLORS.include? fg
-    raise ArgumentError, "color '#{bg}' unknown" unless CURSES_COLORS.include? bg
+    raise ArgumentError, "color '#{fg}' unknown" unless (-1...Curses::NUM_COLORS).include? fg
+    raise ArgumentError, "color '#{bg}' unknown" unless (-1...Curses::NUM_COLORS).include? bg
     attrs = [attr].flatten.compact
 
     @entries[sym] = [fg, bg, attrs, nil]
@@ -127,7 +139,7 @@ class Colormap
     if(cp = @color_pairs[[fg, bg]])
       ## nothing
     else ## need to get a new colorpair
-      @next_id = (@next_id + 1) % NUM_COLORS
+      @next_id = (@next_id + 1) % Curses::MAX_PAIRS
       @next_id += 1 if @next_id == 0 # 0 is always white on black
       id = @next_id
       debug "colormap: for color #{sym}, using id #{id} -> #{fg}, #{bg}"
@@ -169,7 +181,7 @@ class Colormap
       if user_colors && (ucolor = user_colors[k])
         if(ufg = ucolor[:fg])
           begin
-            fg = Curses.const_get "COLOR_#{ufg.upcase}"
+            fg = Curses.const_get "COLOR_#{ufg.to_s.upcase}"
           rescue NameError
             error ||= "Warning: there is no color named \"#{ufg}\", using fallback."
             warn "there is no color named \"#{ufg}\""
@@ -178,7 +190,7 @@ class Colormap
 
         if(ubg = ucolor[:bg])
           begin
-            bg = Curses.const_get "COLOR_#{ubg.upcase}"
+            bg = Curses.const_get "COLOR_#{ubg.to_s.upcase}"
           rescue NameError
             error ||= "Warning: there is no color named \"#{ubg}\", using fallback."
             warn "there is no color named \"#{ubg}\""
