@@ -4,6 +4,7 @@ class BufferListMode < LineCursorMode
   register_keymap do |k|
     k.add :jump_to_buffer, "Jump to selected buffer", :enter
     k.add :reload, "Reload buffer list", "@"
+    k.add :kill_selected_buffer, "Kill selected buffer", "X"
   end
 
   def initialize
@@ -39,6 +40,10 @@ protected
 
   def jump_to_buffer
     BufferManager.raise_to_front @bufs[curpos][1]
+  end
+
+  def kill_selected_buffer
+    reload if BufferManager.kill_buffer_safely @bufs[curpos][1]
   end
 end
 
