@@ -213,7 +213,7 @@ class Colormap
       add symbol, fg, bg, attrs
     end
 
-    BufferManager.flash error if error
+    warn error if error
   end
 
   def self.instance; @@instance; end
