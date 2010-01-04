@@ -64,9 +64,10 @@ class InboxMode < ThreadIndexMode
     return unless cursor_thread
     thread = cursor_thread # to make sure lambda only knows about 'old' cursor_thread
 
+    was_unread = thread.labels.member? :unread
     UndoManager.register "reading and archiving thread" do
       thread.apply_label :inbox
-      thread.apply_label :unread
+      thread.apply_label :unread if was_unread
       add_or_unhide thread.first
     end
 
