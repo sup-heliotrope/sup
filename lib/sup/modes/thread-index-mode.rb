@@ -399,7 +399,7 @@ EOS
       jump_to_line n unless n >= topline && n < botline
       set_cursor_pos n
     else
-      BufferManager.flash "No new messages"
+      BufferManager.flash "No new messages."
     end
   end
 
