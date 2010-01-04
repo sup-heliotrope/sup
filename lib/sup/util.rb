@@ -290,6 +290,12 @@ class String
     end
   end
 
+  unless method_defined? :each
+    def each &b
+      each_line &b
+    end
+  end
+
   ## takes a list of words, and returns an array of symbols.  typically used in
   ## Sup for translating Ferret's representation of a list of labels (a string)
   ## to an array of label symbols.
