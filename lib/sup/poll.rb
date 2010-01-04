@@ -28,7 +28,7 @@ num_inbox_total_unread: the total number of unread messages in the inbox
                         only those messages appearing in the inbox
 EOS
 
-  DELAY = 300
+  DELAY = $config[:poll_interval] || 300
 
   def initialize
     @mutex = Mutex.new
