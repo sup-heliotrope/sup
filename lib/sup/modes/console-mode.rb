@@ -21,6 +21,10 @@ class Console
 
   def xapian; Index.instance.instance_variable_get :@xapian; end
   def ferret; Index.instance.instance_variable_get :@index; end
+
+  def loglevel; Redwood::Logger.level; end
+  def set_loglevel(level); Redwood::Logger.level = level; end
+
   def special_methods; methods - Object.methods end
 
   ## files that won't cause problems when reloaded
