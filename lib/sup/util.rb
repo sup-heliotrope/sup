@@ -691,3 +691,10 @@ class Iconv
     end
   end
 end
+
+class File
+  def self.open_binary filename, mode
+    mode += 'b:BINARY' if String.method_defined? :encoding
+    open filename, mode
+  end
+end
