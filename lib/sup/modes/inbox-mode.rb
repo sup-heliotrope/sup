@@ -29,6 +29,7 @@ class InboxMode < ThreadIndexMode
     UndoManager.register "archiving thread" do
       thread.apply_label :inbox
       add_or_unhide thread.first
+      Index.save_thread thread
     end
 
     cursor_thread.remove_label :inbox
@@ -42,6 +43,7 @@ class InboxMode < ThreadIndexMode
       threads.map do |t|
         t.apply_label :inbox
         add_or_unhide t.first
+        Index.save_thread t
       end
       regen_text
     end
@@ -62,6 +64,7 @@ class InboxMode < ThreadIndexMode
       thread.apply_label :inbox
       thread.apply_label :unread
       add_or_unhide thread.first
+      Index.save_thread thread
     end
 
     cursor_thread.remove_label :unread
@@ -85,6 +88,7 @@ class InboxMode < ThreadIndexMode
       threads.zip(old_labels).each do |t, l|
         t.labels = l
         add_or_unhide t.first
+        Index.save_thread t
       end
       regen_text
     end

@@ -262,6 +262,7 @@ EOS
     Index.save_thread @thread
     UndoManager.register "labeling thread" do
       @thread.labels = old_labels
+      Index.save_thread @thread
       UpdateManager.relay self, :labeled, @thread.first
     end
   end
@@ -484,6 +485,7 @@ EOS
       Index.save_thread @thread
       UndoManager.register "archiving 1 thread" do
         @thread.apply_label :inbox
+        Index.save_thread @thread
         UpdateManager.relay self, :unarchived, @thread.first
       end
     end
@@ -496,6 +498,7 @@ EOS
       Index.save_thread @thread
       UndoManager.register "marking 1 thread as spam" do
         @thread.remove_label :spam
+        Index.save_thread @thread
         UpdateManager.relay self, :unspammed, @thread.first
       end
     end
@@ -508,6 +511,7 @@ EOS
       Index.save_thread @thread
       UndoManager.register "deleting 1 thread" do
         @thread.remove_label :deleted
+        Index.save_thread @thread
         UpdateManager.relay self, :undeleted, @thread.first
       end
     end
