@@ -161,14 +161,15 @@ EOS
 
     subs = HookManager.run("custom-search", :subs => s) || s
     subs = subs.gsub(/\b(to|from):(\S+)\b/) do
-      field, name = $1, $2
-      if(p = ContactManager.contact_for(name))
-        [field, p.email]
-      elsif name == "me"
-        [field, "(" + AccountManager.user_emails.join("||") + ")"]
+      field, value = $1, $2
+      email_field, name_field = %w(email name).map { |x| "#{field}_#{x}" }
+      if(p = ContactManager.contact_for(value))
+        "#{email_field}:#{p.email}"
+      elsif value == "me"
+        '(' + AccountManager.user_emails.map { |e| "#{email_field}:#{e}" }.join(' OR ') + ')'
       else
-        [field, name]
-      end.join(":")
+        "(#{email_field}:#{value} OR #{name_field}:#{value})"
+      end
     end
 
     ## if we see a label:deleted or a label:spam term anywhere in the query
@@ -252,6 +253,8 @@ EOS
       end
     end
 
+    debug "translated query: #{subs.inspect}"
+
     qp = Xapian::QueryParser.new
     qp.database = @xapian
     qp.stemmer = Xapian::Stem.new(STEM_LANGUAGE)
@@ -261,6 +264,8 @@ EOS
     NORMAL_PREFIX.each { |k,v| qp.add_prefix k, v }
     BOOLEAN_PREFIX.each { |k,v| qp.add_boolean_prefix k, v }
     xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD, PREFIX['body'])
+
+    debug "parsed xapian query: #{xapian_query.description}"
 
     raise ParseError if xapian_query.nil? or xapian_query.empty?
     query[:qobj] = xapian_query
