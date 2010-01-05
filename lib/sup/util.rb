@@ -654,7 +654,7 @@ class Iconv
     begin
       Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]
     rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::InvalidCharacter, Iconv::IllegalSequence => e
-      warn "couldn't transcode text from #{charset} to #{target} (\"#{text[0 ... 20]}\"...) (got #{e.message}); using original as is"
+      debug "couldn't transcode text from #{charset} to #{target} (\"#{text[0 ... 20]}\"...) (got #{e.message}); using original as is"
       text
     end
   end
