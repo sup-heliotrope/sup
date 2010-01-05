@@ -234,6 +234,7 @@ class Index
 
   def self.instance; @obj end
   def self.method_missing m, *a, &b; @obj.send(m, *a, &b) end
+  def self.const_missing x; @obj.class.const_get(x) end
 end
 
 end
