@@ -229,7 +229,8 @@ else
     :confirm_top_posting => true,
     :discard_snippets_from_encrypted_messages => false,
     :default_attachment_save_dir => "",
-    :sent_source => "sup://sent"
+    :sent_source => "sup://sent",
+    :poll_interval => 300
   }
   begin
     FileUtils.mkdir_p Redwood::BASE_DIR

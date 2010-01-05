@@ -14,13 +14,14 @@ class Logger
 
   def initialize level=nil
     level ||= ENV["SUP_LOG_LEVEL"] || "info"
-    @level = LEVELS.index(level) or raise ArgumentError, "invalid log level #{level.inspect}: should be one of #{LEVELS * ', '}"
+    self.level = level
     @mutex = Mutex.new
     @buf = StringIO.new
     @sinks = []
   end
 
   def level; LEVELS[@level] end
+  def level=(level); @level = LEVELS.index(level) || raise(ArgumentError, "invalid log level #{level.inspect}: should be one of #{LEVELS * ', '}"); end
 
   def add_sink s, copy_current=true
     @mutex.synchronize do
