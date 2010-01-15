@@ -597,7 +597,7 @@ class Xapian::Document
   alias old_add_term add_term
   def add_term term
     if term.length <= Redwood::XapianIndex::MAX_TERM_LENGTH
-      old_add_term term
+      old_add_term term, 0
     else
       warn "dropping excessively long term #{term}"
     end
