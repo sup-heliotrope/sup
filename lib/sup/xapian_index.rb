@@ -300,6 +300,7 @@ EOS
     'source_id' => 'I',
     'attachment_extension' => 'O',
     'msgid' => 'Q',
+    'id' => 'Q',
     'thread' => 'H',
     'ref' => 'R',
   }
