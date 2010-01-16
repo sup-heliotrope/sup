@@ -263,9 +263,9 @@ EOS
     qp.stemming_strategy = Xapian::QueryParser::STEM_SOME
     qp.default_op = Xapian::Query::OP_AND
     qp.add_valuerangeprocessor(Xapian::NumberValueRangeProcessor.new(DATE_VALUENO, 'date:', true))
-    NORMAL_PREFIX.each { |k,v| qp.add_prefix k, v }
-    BOOLEAN_PREFIX.each { |k,v| qp.add_boolean_prefix k, v }
-    xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD, PREFIX['body'])
+    NORMAL_PREFIX.each { |k,vs| vs.each { |v| qp.add_prefix k, v } }
+    BOOLEAN_PREFIX.each { |k,vs| vs.each { |v| qp.add_boolean_prefix k, v } }
+    xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD)
 
     debug "parsed xapian query: #{xapian_query.description}"
 
@@ -283,8 +283,9 @@ EOS
     'body' => 'B',
     'from_name' => 'FN',
     'to_name' => 'TN',
-    'name' => 'N',
+    'name' => %w(FN TN),
     'attachment' => 'A',
+    '' => %w(S B FN TN A),
   }
 
   # Unstemmed
@@ -292,7 +293,7 @@ EOS
     'type' => 'K',
     'from_email' => 'FE',
     'to_email' => 'TE',
-    'email' => 'E',
+    'email' => %w(FE TE),
     'date' => 'D',
     'label' => 'L',
     'source_id' => 'I',
@@ -464,10 +465,8 @@ EOS
     # Person names are indexed with several prefixes
     person_termer = lambda do |d|
       lambda do |p|
-        ["#{d}_name", "name", "body"].each do |x|
-          doc.index_text p.name, PREFIX[x]
-        end if p.name
-        [d, :any].each { |x| doc.add_term mkterm(:email, x, p.email) }
+        doc.index_text p.name, PREFIX["#{d}_name"] if p.name
+        doc.add_term mkterm(:email, d, p.email)
       end
     end
 
@@ -478,7 +477,6 @@ EOS
     subject_text = m.indexable_subject
     body_text = m.indexable_body
     doc.index_text subject_text, PREFIX['subject']
-    doc.index_text subject_text, PREFIX['body']
     doc.index_text body_text, PREFIX['body']
     m.attachments.each { |a| doc.index_text a, PREFIX['attachment'] }
 
@@ -561,7 +559,6 @@ EOS
       case args[0]
       when :from then PREFIX['from_email']
       when :to then PREFIX['to_email']
-      when :any then PREFIX['email']
       else raise "Invalid email term type #{args[0]}"
       end + args[1].to_s.downcase
     when :source_id
