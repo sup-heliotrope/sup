@@ -285,7 +285,8 @@ EOS
     'to_name' => 'TN',
     'name' => %w(FN TN),
     'attachment' => 'A',
-    '' => %w(S B FN TN A),
+    'email_text' => 'E',
+    '' => %w(S B FN TN A E),
   }
 
   # Unstemmed
@@ -466,6 +467,7 @@ EOS
     person_termer = lambda do |d|
       lambda do |p|
         doc.index_text p.name, PREFIX["#{d}_name"] if p.name
+        doc.index_text p.email, PREFIX['email_text']
         doc.add_term mkterm(:email, d, p.email)
       end
     end
