@@ -1,0 +1,83 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'trollop'
+require 'sup'
+
+STATE_BACKUP_FN = "/tmp/sup-state.txt"
+SOURCE_BACKUP_FN = "sources.yaml-before-xapian-upgrade"
+BIN_DIR = File.dirname __FILE__
+
+$opts = Trollop::options do
+  version "sup-convert-ferret-index (sup #{Redwood::VERSION})"
+  banner <<EOS
+Convert an Sup Ferret index to a Xapian index.
+
+This will be a very slow process, but it will be lossless.
+
+If you interrupt it, nothing bad will happen. However, you will have to
+restart it from scratch.
+
+Usage:
+  sup-convert-ferret-index
+
+Options:
+EOS
+  opt :verbose, "Be verbose", :short => "-v"
+  opt :dry_run, "Don't actually do anything, just print out what would happen.", :short => "-n"
+  opt :version, "Show version information", :short => :none
+end
+
+def build_cmd cmd
+  (ENV["RUBY_INVOCATION"] ? ENV["RUBY_INVOCATION"] + " " : "") + File.join(BIN_DIR, cmd)
+end
+
+def run cmd
+  puts cmd
+  unless $opts[:dry_run]
+    startt = Time.now
+    system cmd or abort
+    printf "(completed in %.1fs)\n", (Time.now - startt)
+  end
+  puts
+end
+
+begin
+  require 'xapian'
+rescue LoadError
+  Trollop::die "you don't have the xapian gem installed, so this script won't do much for you--`gem install xapian` (or xapian-full) first"
+end
+
+Redwood::start
+index = Redwood::Index.init
+Trollop::die "you appear to already have a Xapian index--delete #{File.join(Redwood::BASE_DIR, "xapian")} if you really want to do this" unless Redwood::Index.is_a_deprecated_ferret_index?
+
+puts "## Step one: back up all message state to #{STATE_BACKUP_FN}"
+run "#{build_cmd 'sup-dump'} --index ferret > #{STATE_BACKUP_FN}"
+puts "## message state saved to #{STATE_BACKUP_FN}"
+
+source_backup_fn = File.join Redwood::BASE_DIR, SOURCE_BACKUP_FN
+puts "## Step two: back up sources.yaml file to #{source_backup_fn}"
+run "cp #{Redwood::SOURCE_FN} #{source_backup_fn}"
+
+puts "## Step three: build the Xapian index"
+run "#{build_cmd 'sup-sync'} --all --all-sources --index xapian --restore #{STATE_BACKUP_FN} #{$opts[:verbose] ? '--verbose' : ''}"
+puts "## xapian index successfully built!"
+
+puts <<EOS
+
+Congratulations, your index has been upgraded to the Xapian backend.
+From now on, running sup should detect this index automatically.
+
+If you want to revert to the Ferret index:
+1. overwrite #{Redwood::SOURCE_FN} with #{source_backup_fn}
+2. use sup --index ferret, OR delete your #{Redwood::BASE_DIR}/xapian directory"
+Note that the Ferret index will not be supported as of the next Sup release, so
+you probably shouldn't do this.
+
+If you are happy with Xapian and want to reclaim precious hard drive space:
+1. rm #{source_backup_fn}
+2. rm -r #{Redwood::BASE_DIR}/ferret
+
+Happy supping!
+EOS

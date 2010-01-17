@@ -40,6 +40,7 @@ EOS
   opt :labels, "A comma-separated set of labels to apply to all messages from this source", :type => String
   opt :force_new, "Create a new account for this source, even if one already exists."
   opt :force_account, "Reuse previously defined account user@hostname.", :type => String
+  opt :index, "Use this index type ('auto' for autodetect)", :default => "auto"
 end
 
 Trollop::die "require one or more sources" if ARGV.empty?
@@ -85,7 +86,7 @@ end
 
 $terminal.wrap_at = :auto
 Redwood::start
-index = Redwood::Index.init
+index = Redwood::Index.init $opts[:index]
 index.load
 
 index.lock_interactively or exit
