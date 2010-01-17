@@ -37,6 +37,7 @@ EOS
     k.add :toggle_spam, "Mark/unmark thread as spam", 'S'
     k.add :toggle_deleted, "Delete/undelete thread", 'd'
     k.add :kill, "Kill thread (never to be seen in inbox again)", '&'
+    k.add :flush_index, "Flush all changes now", '$'
     k.add :jump_to_next_new, "Jump to next new thread", :tab
     k.add :reply, "Reply to latest message in a thread", 'r'
     k.add :reply_all, "Reply to all participants of the latest message in a thread", 'G'
@@ -450,6 +451,12 @@ EOS
   def kill
     t = cursor_thread or return
     multi_kill [t]
+  end
+
+  def flush_index
+    @flush_id = BufferManager.say "Flushing index..."
+    Index.save_index
+    BufferManager.clear @flush_id
   end
 
   ## m-m-m-m-MULTI-KILL
