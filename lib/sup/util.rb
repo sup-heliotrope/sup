@@ -697,12 +697,3 @@ class Iconv
     end
   end
 end
-
-class File
-  ## ruby 1.8.5 can't handle the :BINARY flag that ruby 1.9 *requires*.
-  ## SO LAMEEEEEEEEEEEEEEEeeeeeeeeeeeeeeeeeee.
-  def self.open_binary filename, mode, &b
-    mode += 'b:BINARY' if String.method_defined? :encoding
-    open filename, mode, &b
-  end
-end
