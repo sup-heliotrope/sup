@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'trollop'
-require 'sup'
+require "sup"; Redwood::check_library_version_against "git"
 
 STATE_BACKUP_FN = "/tmp/sup-state.txt"
 SOURCE_BACKUP_FN = "sources.yaml-before-xapian-upgrade"

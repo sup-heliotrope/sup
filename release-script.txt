@@ -8,7 +8,7 @@ vi CONTRIBUTORS   # and merge
 vi www/index.html # and include CONTRIBUTORS
 # ... git add, commit, etc
 git checkout -b release-<releasename>
-vi lib/sup.rb bin/sup # and bump BOTH version numbers
+vi lib/sup.rb bin/* # and bump version numbers in all files
 # ... git add, commit, etc
 rake gem
 rake tarball
