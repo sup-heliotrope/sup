@@ -196,9 +196,8 @@ EOM
   def check_library_version_against v
     unless Redwood::VERSION == v
       $stderr.puts <<EOS
-
 Error: version mismatch!
-The sup executable is at version #{BIN_VERSION.inspect}.
+The sup executable is at version #{v.inspect}.
 The sup libraries are at version #{Redwood::VERSION.inspect}.
 
 Your development environment may be picking up code from a
@@ -206,11 +205,13 @@ rubygems installation of sup.
 
 If you're running from git with a commandline like
 
-  ruby -Ilib bin/#{$0}
+  ruby -Ilib #{$0}
 
 try this instead:
 
-  RUBY_INVOCATION="ruby -Ilib" ruby -Ilib bin/#{$0}"
+  RUBY_INVOCATION="ruby -Ilib" ruby -Ilib #{$0}
+
+You can also try `gem uninstall sup` and removing all Sup rubygems.
 
 EOS
       abort
