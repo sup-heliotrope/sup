@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'trollop'
-require "sup"
+require "sup"; Redwood::check_library_version_against "git"
 
 $opts = Trollop::options do
   version "sup-dump (sup #{Redwood::VERSION})"

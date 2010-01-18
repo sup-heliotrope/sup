@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'trollop'
-require 'sup'
+require "sup"; Redwood::check_library_version_against "git"
 
 STATE_BACKUP_FN = "/tmp/sup-state.txt"
 SOURCE_BACKUP_FN = "sources.yaml-before-xapian-upgrade"
@@ -25,6 +25,7 @@ Options:
 EOS
   opt :verbose, "Be verbose", :short => "-v"
   opt :dry_run, "Don't actually do anything, just print out what would happen.", :short => "-n"
+  opt :force, "Force overwrite of an old Xapian index"
   opt :version, "Show version information", :short => :none
 end
 
@@ -50,7 +51,7 @@ end
 
 Redwood::start
 index = Redwood::Index.init
-Trollop::die "you appear to already have a Xapian index--delete #{File.join(Redwood::BASE_DIR, "xapian")} if you really want to do this" unless Redwood::Index.is_a_deprecated_ferret_index?
+Trollop::die "you appear to already have a Xapian index--delete #{File.join(Redwood::BASE_DIR, "xapian")} or use --force if you really want to do this" unless Redwood::Index.is_a_deprecated_ferret_index? || $opts[:force]
 
 puts "## Step one: back up all message state to #{STATE_BACKUP_FN}"
 run "#{build_cmd 'sup-dump'} --index ferret > #{STATE_BACKUP_FN}"

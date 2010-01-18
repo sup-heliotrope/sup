@@ -1,3 +1,5 @@
+ENV["XAPIAN_FLUSH_THRESHOLD"] = "1000"
+
 require 'xapian'
 require 'set'
 

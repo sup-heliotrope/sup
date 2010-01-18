@@ -12,21 +12,7 @@ end
 
 require 'fileutils'
 require 'trollop'
-require "sup"
-
-BIN_VERSION = "git"
-
-unless Redwood::VERSION == BIN_VERSION
-  $stderr.puts <<EOS
-
-Error: version mismatch!
-The sup executable is at version #{BIN_VERSION.inspect}.
-The sup libraries are at version #{Redwood::VERSION.inspect}.
-
-Is your development environment conflicting with rubygems?
-EOS
-  exit(-1)
-end
+require "sup"; Redwood::check_library_version_against "git"
 
 if no_ncursesw
   debug "No 'ncursesw' gem detected. Install it for wide character support."
