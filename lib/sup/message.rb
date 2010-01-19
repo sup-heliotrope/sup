@@ -33,17 +33,16 @@ class Message
   DEFAULT_SENDER = "(missing sender)"
   MAX_HEADER_VALUE_SIZE = 4096
 
-  attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :source,
+  attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :locations,
               :cc, :bcc, :labels, :attachments, :list_address, :recipient_email, :replyto,
-              :source_info, :list_subscribe, :list_unsubscribe
+              :list_subscribe, :list_unsubscribe
 
   bool_reader :dirty, :source_marked_read, :snippet_contains_encrypted_content
 
   ## if you specify a :header, will use values from that. otherwise,
   ## will try and load the header from the source.
   def initialize opts
-    @source = opts[:source] or raise ArgumentError, "source can't be nil"
-    @source_info = opts[:source_info] or raise ArgumentError, "source_info can't be nil"
+    @locations = opts[:locations] or raise ArgumentError, "locations can't be nil"
     @snippet = opts[:snippet]
     @snippet_contains_encrypted_content = false
     @have_snippet = !(opts[:snippet].nil? || opts[:snippet].empty?)
@@ -224,6 +223,16 @@ class Message
     @chunks
   end
 
+  def source
+    fail if @locations.empty?
+    @locations.last[0]
+  end
+
+  def source_info
+    fail if @locations.empty?
+    @locations.last[1]
+  end
+
   ## this is called when the message body needs to actually be loaded.
   def load_from_source!
     @chunks ||=
@@ -336,7 +345,7 @@ EOS
   end
 
   def self.build_from_source source, source_info
-    m = Message.new :source => source, :source_info => source_info
+    m = Message.new :locations => [[source, source_info]]
     m.load_from_source!
     m
   end
