@@ -33,11 +33,13 @@ class Message
   DEFAULT_SENDER = "(missing sender)"
   MAX_HEADER_VALUE_SIZE = 4096
 
-  attr_reader :id, :date, :from, :subj, :refs, :replytos, :to, :locations,
+  attr_reader :id, :date, :from, :subj, :refs, :replytos, :to,
               :cc, :bcc, :labels, :attachments, :list_address, :recipient_email, :replyto,
               :list_subscribe, :list_unsubscribe
 
   bool_reader :dirty, :source_marked_read, :snippet_contains_encrypted_content
+
+  attr_accessor :locations
 
   ## if you specify a :header, will use values from that. otherwise,
   ## will try and load the header from the source.
