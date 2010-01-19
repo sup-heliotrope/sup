@@ -29,7 +29,7 @@ class TextMode < ScrollMode
     end
 
     if output
-      BufferManager.spawn "Output of '#{command}'", TextMode.new(output)
+      BufferManager.spawn "Output of '#{command}'", TextMode.new(output.ascii)
     else
       BufferManager.flash "'#{command}' done!"
     end
