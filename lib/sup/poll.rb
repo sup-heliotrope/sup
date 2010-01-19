@@ -116,13 +116,14 @@ EOS
         each_message_from source do |m|
           old_m = Index.build_message m.id
           if old_m
-              if old_m.source.id != source.id || old_m.source_info != m.source_info
+            if not old_m.locations.member? [source, m.source_info]
               ## here we merge labels between new and old versions, but we don't let the new
               ## message add :unread or :inbox labels. (they can exist in the old version,
               ## just not be added.)
               new_labels = old_m.labels + (m.labels - [:unread, :inbox])
               yield "Message at #{m.source_info} is an updated of an old message. Updating labels from #{m.labels.to_a * ','} => #{new_labels.to_a * ','}"
               m.labels = new_labels
+              m.locations = old_m.locations + m.locations
               Index.update_message m
             else
               yield "Skipping already-imported message at #{m.source_info}"
