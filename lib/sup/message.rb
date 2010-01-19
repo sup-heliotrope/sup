@@ -170,10 +170,10 @@ class Message
 
   attr_reader :snippet
   def is_list_message?; !@list_address.nil?; end
-  def is_draft?; @source.is_a? DraftLoader; end
+  def is_draft?; source.is_a? DraftLoader; end
   def draft_filename
     raise "not a draft" unless is_draft?
-    @source.fn_for_offset @source_info
+    source.fn_for_offset source_info
   end
 
   ## sanitize message ids by removing spaces and non-ascii characters.
@@ -227,8 +227,8 @@ class Message
   ## this is called when the message body needs to actually be loaded.
   def load_from_source!
     @chunks ||=
-      if @source.respond_to?(:has_errors?) && @source.has_errors?
-        [Chunk::Text.new(error_message(@source.error.message).split("\n"))]
+      if source.respond_to?(:has_errors?) && source.has_errors?
+        [Chunk::Text.new(error_message(source.error.message).split("\n"))]
       else
         begin
           ## we need to re-read the header because it contains information
@@ -239,14 +239,14 @@ class Message
           ## bloat the index.
           ## actually, it's also the differentiation between to/cc/bcc,
           ## so i will keep this.
-          rmsg = @source.load_message(@source_info)
+          rmsg = source.load_message(source_info)
           parse_header rmsg.header
           message_to_chunks rmsg
         rescue SourceError, SocketError => e
-          warn "problem getting messages from #{@source}: #{e.message}"
+          warn "problem getting messages from #{source}: #{e.message}"
           ## we need force_to_top here otherwise this window will cover
           ## up the error message one
-          @source.error ||= e
+          source.error ||= e
           Redwood::report_broken_sources :force_to_top => true
           [Chunk::Text.new(error_message(e.message).split("\n"))]
         end
@@ -264,7 +264,7 @@ class Message
  should have popped up at some point.
 
  The message location was:
- #@source##@source_info
+ #{source}##{source_info}
 ***********************************************************************
 
 The error message was:
@@ -277,24 +277,24 @@ EOS
     begin
       yield
     rescue SourceError => e
-      warn "problem getting messages from #{@source}: #{e.message}"
-      @source.error ||= e
+      warn "problem getting messages from #{source}: #{e.message}"
+      source.error ||= e
       Redwood::report_broken_sources :force_to_top => true
       error_message e.message
     end
   end
 
   def raw_header
-    with_source_errors_handled { @source.raw_header @source_info }
+    with_source_errors_handled { source.raw_header source_info }
   end
 
   def raw_message
-    with_source_errors_handled { @source.raw_message @source_info }
+    with_source_errors_handled { source.raw_message source_info }
   end
 
   ## much faster than raw_message
   def each_raw_message_line &b
-    with_source_errors_handled { @source.each_raw_message_line(@source_info, &b) }
+    with_source_errors_handled { source.each_raw_message_line(source_info, &b) }
   end
 
   ## returns all the content from a message that will be indexed
