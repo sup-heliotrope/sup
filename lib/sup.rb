@@ -50,6 +50,7 @@ module Redwood
   LOCK_FN    = File.join(BASE_DIR, "lock")
   SUICIDE_FN = File.join(BASE_DIR, "please-kill-yourself")
   HOOK_DIR   = File.join(BASE_DIR, "hooks")
+  SEARCH_FN  = File.join(BASE_DIR, "searches.txt")
 
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
@@ -131,12 +132,14 @@ module Redwood
     Redwood::CryptoManager.init
     Redwood::UndoManager.init
     Redwood::SourceManager.init
+    Redwood::SearchManager.init Redwood::SEARCH_FN
   end
 
   def finish
     Redwood::LabelManager.save if Redwood::LabelManager.instantiated?
     Redwood::ContactManager.save if Redwood::ContactManager.instantiated?
     Redwood::BufferManager.deinstantiate! if Redwood::BufferManager.instantiated?
+    Redwood::SearchManager.save if Redwood::SearchManager.instantiated?
   end
 
   ## not really a good place for this, so I'll just dump it here.
@@ -341,6 +344,8 @@ require "sup/modes/file-browser-mode"
 require "sup/modes/completion-mode"
 require "sup/modes/console-mode"
 require "sup/sent"
+require "sup/search"
+require "sup/modes/search-list-mode"
 
 $:.each do |base|
   d = File.join base, "sup/share/modes/"
