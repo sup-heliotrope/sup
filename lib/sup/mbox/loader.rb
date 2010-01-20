@@ -22,7 +22,7 @@ class Loader < Source
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
       raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
       raise ArgumentError, "mbox URI must have a path component" unless uri.path
-      @f = File.open uri.path
+      @f = File.open uri.path, 'rb'
       @path = uri.path
     else
       @f = uri_or_fp
@@ -115,7 +115,7 @@ class Loader < Source
 
   def store_message date, from_email, &block
     need_blank = File.exists?(@filename) && !File.zero?(@filename)
-    File.open(@filename, "a") do |f|
+    File.open(@filename, "ab") do |f|
       f.puts if need_blank
       f.puts "From #{from_email} #{date.rfc2822}"
       yield f

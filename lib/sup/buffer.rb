@@ -609,7 +609,7 @@ EOS
   def ask_getch question, accept=nil
     raise "impossible!" if @asking
 
-    accept = accept.split(//).map { |x| x[0] } if accept
+    accept = accept.split(//).map { |x| x.ord } if accept
 
     status, title = get_status_and_title @focus_buf
     Ncurses.sync do
@@ -645,7 +645,7 @@ EOS
   ## returns true (y), false (n), or nil (ctrl-g / cancel)
   def ask_yes_or_no question
     case(r = ask_getch question, "ynYN")
-    when ?y, ?Y
+    when ?y.ord, ?Y.ord
       true
     when nil
       nil
