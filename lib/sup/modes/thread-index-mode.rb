@@ -37,7 +37,7 @@ EOS
     k.add :toggle_spam, "Mark/unmark thread as spam", 'S'
     k.add :toggle_deleted, "Delete/undelete thread", 'd'
     k.add :kill, "Kill thread (never to be seen in inbox again)", '&'
-    k.add :save, "Save changes now", '$'
+    k.add :flush_index, "Flush all changes now", '$'
     k.add :jump_to_next_new, "Jump to next new thread", :tab
     k.add :reply, "Reply to latest message in a thread", 'r'
     k.add :reply_all, "Reply to all participants of the latest message in a thread", 'G'
@@ -266,15 +266,18 @@ EOS
   def toggle_starred 
     t = cursor_thread or return
     undo = actually_toggle_starred t
-    UndoManager.register "toggling thread starred status", undo
+    UndoManager.register "toggling thread starred status", undo, lambda { Index.save_thread t }
     update_text_for_line curpos
     cursor_down
+    Index.save_thread t
   end
 
   def multi_toggle_starred threads
     UndoManager.register "toggling #{threads.size.pluralize 'thread'} starred status",
-      threads.map { |t| actually_toggle_starred t }
+      threads.map { |t| actually_toggle_starred t },
+      lambda { threads.each { |t| Index.save_thread t } }
     regen_text
+    threads.each { |t| Index.save_thread t }
   end
 
   ## returns an undo lambda
@@ -350,14 +353,18 @@ EOS
   def toggle_archived 
     t = cursor_thread or return
     undo = actually_toggle_archived t
-    UndoManager.register "deleting/undeleting thread #{t.first.id}", undo, lambda { update_text_for_line curpos }
+    UndoManager.register "deleting/undeleting thread #{t.first.id}", undo, lambda { update_text_for_line curpos },
+                         lambda { Index.save_thread t }
     update_text_for_line curpos
+    Index.save_thread t
   end
 
   def multi_toggle_archived threads
     undos = threads.map { |t| actually_toggle_archived t }
-    UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}", undos, lambda { regen_text }
+    UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}", undos, lambda { regen_text },
+                         lambda { threads.each { |t| Index.save_thread t } }
     regen_text
+    threads.each { |t| Index.save_thread t }
   end
 
   def toggle_new
@@ -365,11 +372,13 @@ EOS
     t.toggle_label :unread
     update_text_for_line curpos
     cursor_down
+    Index.save_thread t
   end
 
   def multi_toggle_new threads
     threads.each { |t| t.toggle_label :unread }
     regen_text
+    threads.each { |t| Index.save_thread t }
   end
 
   def multi_toggle_tagged threads
@@ -385,6 +394,7 @@ EOS
 
   def multi_join_threads threads
     @ts.join_threads threads or return
+    threads.each { |t| Index.save_thread t }
     @tags.drop_all_tags # otherwise we have tag pointers to invalid threads!
     update
   end
@@ -419,8 +429,9 @@ EOS
     undos = threads.map { |t| actually_toggle_spammed t }
     threads.each { |t| HookManager.run("mark-as-spam", :thread => t) }
     UndoManager.register "marking/unmarking  #{threads.size.pluralize 'thread'} as spam",
-                         undos, lambda { regen_text }
+                         undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
     regen_text
+    threads.each { |t| Index.save_thread t }
   end
 
   def toggle_deleted
@@ -432,13 +443,20 @@ EOS
   def multi_toggle_deleted threads
     undos = threads.map { |t| actually_toggle_deleted t }
     UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}",
-                         undos, lambda { regen_text }
+                         undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
     regen_text
+    threads.each { |t| Index.save_thread t }
   end
 
   def kill
     t = cursor_thread or return
     multi_kill [t]
+  end
+
+  def flush_index
+    @flush_id = BufferManager.say "Flushing index..."
+    Index.save_index
+    BufferManager.clear @flush_id
   end
 
   ## m-m-m-m-MULTI-KILL
@@ -447,6 +465,7 @@ EOS
       threads.each do |t|
         t.remove_label :killed
         add_or_unhide t.first
+        Index.save_thread t
       end
       regen_text
     end
@@ -458,29 +477,7 @@ EOS
 
     regen_text
     BufferManager.flash "#{threads.size.pluralize 'thread'} killed."
-  end
-
-  def save background=true
-    if background
-      Redwood::reporting_thread("saving thread") { actually_save }
-    else
-      actually_save
-    end
-  end
-
-  def actually_save
-    @save_thread_mutex.synchronize do
-      BufferManager.say("Saving contacts...") { ContactManager.instance.save }
-      dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
-      next if dirty_threads.empty?
-
-      BufferManager.say("Saving threads...") do |say_id|
-        dirty_threads.each_with_index do |t, i|
-          BufferManager.say "Saving modified thread #{i + 1} of #{dirty_threads.length}...", say_id
-          t.save_state Index
-        end
-      end
-    end
+    threads.each { |t| Index.save_thread t }
   end
 
   def cleanup
@@ -492,7 +489,8 @@ EOS
       sleep 0.1 # TODO: necessary?
       BufferManager.erase_flash
     end
-    save false
+    dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
+    fail "dirty threads remain" unless dirty_threads.empty?
     super
   end
 
@@ -543,9 +541,11 @@ EOS
       thread.labels = old_labels
       update_text_for_line pos
       UpdateManager.relay self, :labeled, thread.first
+      Index.save_thread thread
     end
 
     UpdateManager.relay self, :labeled, thread.first
+    Index.save_thread thread
   end
 
   def multi_edit_labels threads
@@ -579,9 +579,12 @@ EOS
       threads.zip(old_labels).map do |t, old_labels|
         t.labels = old_labels
         UpdateManager.relay self, :labeled, t.first
+        Index.save_thread t
       end
       regen_text
     end
+
+    threads.each { |t| Index.save_thread t }
   end
 
   def reply type_arg=nil
