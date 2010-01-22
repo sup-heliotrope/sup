@@ -1,3 +1,14 @@
+== 0.10 / 2010-01-22
+* Make Xapian backend the default, and add deprecation notice to Ferret indexes.
+* Now Ruby 1.9 compatible (Xapian backend only).
+* Changes are now saved automatically to the index. Pressing "$" now just
+  forces a flush of Xapian indexes, which can minimize quit time.
+* Fix problem with replying to Google Groups messages.
+* Allow toggling of line wrap. Useful for long URLs.
+* Multiple attachments can be added at once by specifying a wildcard.
+* New command to save all attachments at once.
+* As always, many bugfixes and tweaks.
+
 == 0.9.1 / 2009-12-10
 * Make textfield behave more like readline, including C-w
 * Add ask_for_to config option. You can set all ask_for_* options to false, and
