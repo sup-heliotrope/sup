@@ -1,3 +1,13 @@
+Release 0.10:
+
+The Xapian backend is now the default. Convert your old, crash-prone Ferret
+index to Xapian by running sup-convert-ferret-index.
+
+Using a Ferret backend will produce a deprecation notice, and will not be
+supported in 0.11.
+
+Many thanks to Rich Lane.
+
 Release 0.9.1:
 
 This is mainly a bugfix release, with a couple minor new features rolled up.
