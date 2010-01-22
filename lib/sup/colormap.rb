@@ -77,19 +77,26 @@ class Colormap
 
   def reset
     @entries = {}
+    @highlights = { :none => highlight_sym(:none)}
     @entries[highlight_sym(:none)] = highlight_for(Curses::COLOR_WHITE,
                                                    Curses::COLOR_BLACK,
                                                    []) + [nil]
   end
 
-  def add sym, fg, bg, attr=nil, opts={}
+  def add sym, fg, bg, attr=nil, highlight=nil
     raise ArgumentError, "color for #{sym} already defined" if @entries.member? sym
     raise ArgumentError, "color '#{fg}' unknown" unless (-1...Curses::NUM_COLORS).include? fg
     raise ArgumentError, "color '#{bg}' unknown" unless (-1...Curses::NUM_COLORS).include? bg
     attrs = [attr].flatten.compact
 
     @entries[sym] = [fg, bg, attrs, nil]
-    @entries[highlight_sym(sym)] = opts[:highlight] ? @entries[opts[:highlight]] : highlight_for(fg, bg, attrs) + [nil]
+
+    if not highlight
+      highlight = highlight_sym(sym)
+      @entries[highlight] = highlight_for(fg, bg, attrs) + [nil]
+    end
+
+    @highlights[sym] = highlight
   end
 
   def highlight_sym sym
@@ -132,7 +139,7 @@ class Colormap
   end
 
   def color_for sym, highlight=false
-    sym = highlight_sym(sym) if highlight
+    sym = @highlights[sym] if highlight
     return Curses::COLOR_BLACK if sym == :none
     raise ArgumentError, "undefined color #{sym}" unless @entries.member? sym
 
@@ -213,8 +220,11 @@ class Colormap
         end
       end
 
+      highlight = ucolor[:highlight] || v[:highlight]
+      highlight_symbol = highlight ? :"#{highlight}_color" : nil
+
       symbol = (k.to_s + "_color").to_sym
-      add symbol, fg, bg, attrs
+      add symbol, fg, bg, attrs, highlight_symbol
     end
 
     warn error if error
