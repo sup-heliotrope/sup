@@ -537,7 +537,7 @@ EOS
   end
 
   def ask_for_contacts domain, question, default_contacts=[]
-    default = default_contacts.map { |s| s.to_s }.join(" ")
+    default = default_contacts.is_a?(String) ? default_contacts : default_contacts.map { |s| s.to_s }.join(", ")
     default += " " unless default.empty?
 
     recent = Index.load_contacts(AccountManager.user_emails, :num => 10).map { |c| [c.full_address, c.email] }
