@@ -613,7 +613,7 @@ EOS
     end
 
     if output
-      BufferManager.spawn "Output of '#{command}'", TextMode.new(output)
+      BufferManager.spawn "Output of '#{command}'", TextMode.new(output.ascii)
     else
       BufferManager.flash "'#{command}' done!"
     end
@@ -815,7 +815,7 @@ private
     BufferManager.erase_flash
     BufferManager.completely_redraw_screen
     unless success
-      BufferManager.spawn "Attachment: #{chunk.filename}", TextMode.new(chunk.to_s, chunk.filename)
+      BufferManager.spawn "Attachment: #{chunk.filename}", TextMode.new(chunk.to_s.ascii, chunk.filename)
       BufferManager.flash "Couldn't execute view command, viewing as text."
     end
   end
