@@ -366,6 +366,12 @@ class Fixnum
     end
   end
 
+  unless method_defined?(:ord)
+    def ord
+      self
+    end
+  end
+
   ## hacking the english language
   def pluralize s
     to_s + " " +
