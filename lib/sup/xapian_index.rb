@@ -407,7 +407,7 @@ EOS
     pos_terms << mkterm(:source_id, opts[:source_id]) if opts[:source_id]
 
     if opts[:participants]
-      participant_terms = opts[:participants].map { |p| mkterm(:email,:any, (Redwood::Person === p) ? p.email : p) }
+      participant_terms = opts[:participants].map { |p| [:from,:to].map { |d| mkterm(:email, d, (Redwood::Person === p) ? p.email : p) } }.flatten
       pos_terms << Q.new(Q::OP_OR, participant_terms)
     end
 
