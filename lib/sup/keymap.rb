@@ -60,10 +60,31 @@ class Keymap
     end
   end
 
+  def delete k
+    kc = Keymap.keysym_to_keycode(k)
+    return unless @map.member? kc
+    entry = @map.delete kc
+    keys = entry[2]
+    keys.delete k
+    @order.delete entry if keys.empty?
+  end
+
+  def add! action, help, *keys
+    keys.each { |k| delete k }
+    add action, help, *keys
+  end
+
   def add_multi prompt, key
-    submap = Keymap.new
-    add submap, prompt, key
-    yield submap
+    kc = Keymap.keysym_to_keycode(key)
+    if @map.member? kc
+      action = @map[kc].first
+      raise "existing action is not a keymap" unless action.is_a?(Keymap)
+      yield action
+    else
+      submap = Keymap.new
+      add submap, prompt, key
+      yield submap
+    end
   end
 
   def action_for kc
