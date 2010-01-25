@@ -85,10 +85,13 @@ global_keymap = Keymap.new do |k|
   k.add :show_console, "Show the Console buffer", '~'
 
   ## Submap for less often used keybindings
-  k.add_multi "reload (c)olors", 'O' do |kk|
+  k.add_multi "reload (c)olors, rerun (k)eybindings hook", 'O' do |kk|
     kk.add :reload_colors, "Reload colors", 'c'
+    kk.add :run_keybindings_hook, "Rerun keybindings hook", 'k'
   end
 end
+  
+Redwood::Keymap.run_hook global_keymap
 
 ## the following magic enables wide characters when used with a ruby
 ## ncurses.so that's been compiled against libncursesw. (note the w.) why
@@ -355,6 +358,10 @@ begin
       Colormap.populate_colormap
       bm.completely_redraw_screen
       bm.flash "reloaded colors"
+    when :run_keybindings_hook
+      HookManager.clear_one 'keybindings'
+      Keymap.run_hook global_keymap
+      bm.flash "keybindings hook run"
     when :nothing, InputSequenceAborted
     when :redraw
       bm.completely_redraw_screen

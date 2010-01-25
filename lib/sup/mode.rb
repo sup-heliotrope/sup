@@ -14,6 +14,10 @@ class Mode
     @@keymaps[self] || register_keymap
   end
 
+  def self.keymaps
+    @@keymaps
+  end
+
   def initialize
     @buffer = nil
   end

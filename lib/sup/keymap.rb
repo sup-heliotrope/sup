@@ -1,6 +1,14 @@
 module Redwood
 
 class Keymap
+
+  HookManager.register "keybindings", <<EOS
+Add custom keybindings.
+Methods:
+  modes: Hash from mode names to mode classes.
+  global_keymap: The top-level keymap.
+EOS
+
   def initialize
     @map = {}
     @order = []
@@ -115,6 +123,15 @@ class Keymap
     lines = help_lines except_for
     llen = lines.max_of { |a, b| a.length }
     lines.map { |a, b| sprintf " %#{llen}s : %s", a, b }.join("\n")
+  end
+
+  def self.run_hook global_keymap
+    modes = Hash[Mode.keymaps.map { |klass,keymap| [Mode.make_name(klass.name),klass] }]
+    locals = {
+      :modes => modes,
+      :global_keymap => global_keymap,
+    }
+    HookManager.run 'keybindings', locals
   end
 end
 

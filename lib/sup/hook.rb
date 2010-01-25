@@ -113,6 +113,7 @@ EOS
   def enabled? name; !hook_for(name).nil? end
 
   def clear; @hooks.clear; end
+  def clear_one k; @hooks.delete k; end
 
 private
 
