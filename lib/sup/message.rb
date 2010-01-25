@@ -450,9 +450,9 @@ private
         subj = decode_header_field(payload.header.subject) || DEFAULT_SUBJECT
         subj = Message.normalize_subj(subj.gsub(/\s+/, " ").gsub(/\s+$/, ""))
         msgdate = payload.header.date
-        from_person = from ? Person.from_address(decode_header_field from) : nil
-        to_people = to ? Person.from_address_list(decode_header_field to) : nil
-        cc_people = cc ? Person.from_address_list(decode_header_field cc) : nil
+        from_person = from ? Person.from_address(decode_header_field(from)) : nil
+        to_people = to ? Person.from_address_list(decode_header_field(to)) : nil
+        cc_people = cc ? Person.from_address_list(decode_header_field(cc)) : nil
         [Chunk::EnclosedMessage.new(from_person, to_people, cc_people, msgdate, subj)] + message_to_chunks(payload, encrypted)
       else
         debug "no body for message/rfc822 enclosure; skipping"
