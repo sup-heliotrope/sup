@@ -47,8 +47,8 @@ spec = Gem::Specification.new do |s|
   s.files = SUP_FILES
   s.executables = SUP_EXECUTABLES
 
-  s.add_dependency "ferret", ">= 0.11.6"
-  s.add_dependency "ncurses", ">= 0.9.1"
+  s.add_dependency "xapian-full", ">= 1.1.3.1"
+  s.add_dependency "ncursesw"
   s.add_dependency "rmail", ">= 0.17"
   s.add_dependency "highline"
   s.add_dependency "net-ssh"
@@ -56,7 +56,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "lockfile"
   s.add_dependency "mime-types", "~> 1"
   s.add_dependency "gettext"
-  s.add_dependency "fastthread"
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
