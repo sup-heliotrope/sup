@@ -74,6 +74,7 @@ EOS
       kk.add :delete_and_kill, "Delete this thread and kill buffer", 'd'
       kk.add :spam_and_kill, "Mark this thread as spam and kill buffer", 's'
       kk.add :unread_and_kill, "Mark this thread as unread and kill buffer", 'N'
+      kk.add :do_nothing_and_kill, "Just kill this buffer", '.'
     end
 
     k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ',' do |kk|
@@ -81,7 +82,7 @@ EOS
       kk.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
       kk.add :spam_and_next, "Mark this thread as spam, kill buffer, and view next", 's'
       kk.add :unread_and_next, "Mark this thread as unread, kill buffer, and view next", 'N'
-      kk.add :do_nothing_and_next, "Kill buffer, and view next", 'n'
+      kk.add :do_nothing_and_next, "Kill buffer, and view next", 'n', ','
     end
 
     k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ']' do |kk|
@@ -89,7 +90,7 @@ EOS
       kk.add :delete_and_prev, "Delete this thread, kill buffer, and view previous", 'd'
       kk.add :spam_and_prev, "Mark this thread as spam, kill buffer, and view previous", 's'
       kk.add :unread_and_prev, "Mark this thread as unread, kill buffer, and view previous", 'N'
-      kk.add :do_nothing_and_prev, "Kill buffer, and view previous", 'n'
+      kk.add :do_nothing_and_prev, "Kill buffer, and view previous", 'n', ']'
     end
   end
 
@@ -508,6 +509,7 @@ EOS
   def spam_and_kill; spam_and_then :kill end
   def delete_and_kill; delete_and_then :kill end
   def unread_and_kill; unread_and_then :kill end
+  def do_nothing_and_kill; do_nothing_and_then :kill end
 
   def archive_and_next; archive_and_then :next end
   def spam_and_next; spam_and_then :next end
