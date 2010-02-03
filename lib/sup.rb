@@ -264,7 +264,8 @@ else
     :discard_snippets_from_encrypted_messages => false,
     :default_attachment_save_dir => "",
     :sent_source => "sup://sent",
-    :poll_interval => 300
+    :poll_interval => 300,
+    :wrap_width => 0
   }
   begin
     FileUtils.mkdir_p Redwood::BASE_DIR

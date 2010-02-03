@@ -792,7 +792,12 @@ private
       if chunk.inlineable?
         lines = chunk.lines
         if @wrap
-          width = buffer.content_width
+          config_width = $config[:wrap_width]
+          if config_width and config_width != 0
+            width = [config_width, buffer.content_width].min
+          else
+            width = buffer.content_width
+          end
           lines = lines.map { |l| l.chomp.wrap width }.flatten
         end
         lines.map { |line| [[chunk.color, "#{prefix}#{line}"]] }
