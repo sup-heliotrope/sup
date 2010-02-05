@@ -23,7 +23,7 @@ class DraftManager
   def discard m
     raise ArgumentError, "not a draft: source id #{m.source.id.inspect}, should be #{DraftManager.source_id.inspect} for #{m.id.inspect}" unless m.source.id.to_i == DraftManager.source_id
     Index.delete m.id
-    File.delete @source.fn_for_offset(m.source_info)
+    File.delete @source.fn_for_offset(m.source_info) rescue Errono::ENOENT
     UpdateManager.relay self, :single_message_deleted, m
   end
 end
@@ -72,6 +72,7 @@ class DraftLoader < Source
   end
 
   def load_message offset
+    raise SourceError, "Draft not found" unless File.exists? fn_for_offset(offset)
     File.open fn_for_offset(offset) do |f|
       RMail::Mailbox::MBoxReader.new(f).each_message do |input|
         return RMail::Parser.read(input)

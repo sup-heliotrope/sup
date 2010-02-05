@@ -9,6 +9,9 @@ class ResumeMode < EditMessageMode
     header.delete "Date"
 
     super :header => header, :body => body, :have_signature => true
+  rescue Errno::ENOENT
+    DraftManager.discard @m
+    BufferManager.flash "Draft deleted outside of sup."
   end
 
   def unsaved?; !@safe end
