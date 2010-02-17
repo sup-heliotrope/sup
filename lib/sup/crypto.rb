@@ -11,6 +11,17 @@ class CryptoManager
     [:encrypt, "Encrypt only"]
   )
 
+  HookManager.register "gpg-args", <<EOS
+Runs before gpg is executed, allowing you to modify the arguments (most
+likely you would want to add something to certain commands, like
+--trust-model always to signing/encrypting a message, but who knows).
+
+Variables:
+args: arguments for running GPG
+
+Return value: the arguments for running GPG
+EOS
+
   def initialize
     @mutex = Mutex.new
 
@@ -182,6 +193,7 @@ private
   end
 
   def run_gpg args, opts={}
+    args = HookManager.run("gpg-args", { :args => args }) || args
     cmd = "#{@cmd} #{args}"
     if opts[:interactive] && BufferManager.instantiated?
       output_fn = Tempfile.new "redwood.output"
