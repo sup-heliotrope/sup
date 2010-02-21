@@ -330,7 +330,7 @@ EOS
     elsif chunk.viewable?
       view chunk
     end
-    if chunk.is_a?(Message)
+    if chunk.is_a?(Message) && $config[:jump_to_open_message]
       jump_to_message chunk
       jump_to_next_open if layout.state == :closed
     end

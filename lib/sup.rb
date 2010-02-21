@@ -260,6 +260,7 @@ else
     :ask_for_subject => true,
     :confirm_no_attachments => true,
     :confirm_top_posting => true,
+    :jump_to_open_message => true,
     :discard_snippets_from_encrypted_messages => false,
     :default_attachment_save_dir => "",
     :sent_source => "sup://sent",
