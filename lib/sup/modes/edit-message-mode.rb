@@ -40,6 +40,16 @@ Return value:
 	none
 EOS
 
+  HookManager.register "mentions-attachments", <<EOS
+Detects if given message mentions attachments the way it is probable
+that there should be files attached to the message.
+Variables:
+	header: a hash of headers. See 'signature' hook for documentation.
+	body: an array of lines of body text.
+Return value:
+	True if attachments are mentioned.
+EOS
+
   attr_reader :status
   attr_accessor :body, :header
   bool_reader :edited
@@ -444,7 +454,11 @@ private
   end
 
   def mentions_attachments?
-    @body.any? { |l| l =~ /^[^>]/ && l =~ /\battach(ment|ed|ing|)\b/i }
+    if HookManager.enabled? "mentions-attachments"
+      HookManager.run "mentions-attachments", :header => @header, :body => @body
+    else
+      @body.any? {  |l| l =~ /^[^>]/ && l =~ /\battach(ment|ed|ing|)\b/i }
+    end
   end
 
   def top_posting?
