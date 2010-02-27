@@ -793,6 +793,16 @@ protected
       result << [name, new[a]]
     end
 
+    if result.size == 1 && (author_and_newness = result.assoc("me"))
+      unless (recipients = t.participants - t.authors).empty?
+        result = recipients.collect do |r|
+          break if limit && result.size >= limit
+          name = (recipients.size == 1) ? r.mediumname : r.shortname
+          ["(#{name})", author_and_newness[1]]
+        end
+      end
+    end
+
     result
   end
 
