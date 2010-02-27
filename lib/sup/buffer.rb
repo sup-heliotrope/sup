@@ -38,7 +38,13 @@ module Ncurses
     ## background threads will be BLOCKED. (except in very modern versions
     ## of libncurses-ruby. the current one on ubuntu seems to work well.)
     if IO.select([$stdin], nil, nil, 0.5)
-      c = Ncurses.getch
+      if Redwood::BufferManager.shelled?
+        # If we get input while we're shelled, we'll ignore it for the
+        # moment and use Ncurses.sync to wait until the shell_out is done.
+        Ncurses.sync { nil }
+      else
+        Ncurses.getch
+      end
     end
   end
 
@@ -218,6 +224,7 @@ EOS
   def sigwinch_happened?; @sigwinch_mutex.synchronize { @sigwinch_happened } end
 
   def buffers; @name_map.to_a; end
+  def shelled?; @shelled; end
 
   def focus_on buf
     return unless @buffers.member? buf
