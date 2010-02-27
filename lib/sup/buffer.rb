@@ -84,7 +84,7 @@ class Buffer
   def content_height; @height - 1; end
   def content_width; @width; end
 
-  def resize rows, cols 
+  def resize rows, cols
     return if cols == @width && rows == @height
     @width = cols
     @height = rows
