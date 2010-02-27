@@ -10,7 +10,7 @@ module Redwood
 # for searching due to precomputing thread membership.
 class XapianIndex < BaseIndex
   STEM_LANGUAGE = "english"
-  INDEX_VERSION = '1'
+  INDEX_VERSION = '2'
 
   ## dates are converted to integers for xapian, and are used for document ids,
   ## so we must ensure they're reasonably valid. this typically only affect
@@ -37,7 +37,10 @@ EOS
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
       db_version = @xapian.get_metadata 'version'
       db_version = '0' if db_version.empty?
-      if db_version != INDEX_VERSION
+      if db_version == '1'
+        info "Upgrading index format 1 to 2"
+        @xapian.set_metadata 'version', INDEX_VERSION
+      elsif db_version != INDEX_VERSION
         fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please downgrade to your previous version and dump your labels before upgrading to this version (then run sup-sync --restore)."
       end
     else
@@ -263,9 +266,9 @@ EOS
     qp.stemming_strategy = Xapian::QueryParser::STEM_SOME
     qp.default_op = Xapian::Query::OP_AND
     qp.add_valuerangeprocessor(Xapian::NumberValueRangeProcessor.new(DATE_VALUENO, 'date:', true))
-    NORMAL_PREFIX.each { |k,v| qp.add_prefix k, v }
-    BOOLEAN_PREFIX.each { |k,v| qp.add_boolean_prefix k, v }
-    xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD, PREFIX['body'])
+    NORMAL_PREFIX.each { |k,vs| vs.each { |v| qp.add_prefix k, v } }
+    BOOLEAN_PREFIX.each { |k,vs| vs.each { |v| qp.add_boolean_prefix k, v } }
+    xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD)
 
     debug "parsed xapian query: #{xapian_query.description}"
 
@@ -283,8 +286,10 @@ EOS
     'body' => 'B',
     'from_name' => 'FN',
     'to_name' => 'TN',
-    'name' => 'N',
+    'name' => %w(FN TN),
     'attachment' => 'A',
+    'email_text' => 'E',
+    '' => %w(S B FN TN A E),
   }
 
   # Unstemmed
@@ -292,12 +297,13 @@ EOS
     'type' => 'K',
     'from_email' => 'FE',
     'to_email' => 'TE',
-    'email' => 'E',
+    'email' => %w(FE TE),
     'date' => 'D',
     'label' => 'L',
     'source_id' => 'I',
     'attachment_extension' => 'O',
     'msgid' => 'Q',
+    'id' => 'Q',
     'thread' => 'H',
     'ref' => 'R',
   }
@@ -396,7 +402,7 @@ EOS
     pos_terms << mkterm(:source_id, opts[:source_id]) if opts[:source_id]
 
     if opts[:participants]
-      participant_terms = opts[:participants].map { |p| mkterm(:email,:any, (Redwood::Person === p) ? p.email : p) }
+      participant_terms = opts[:participants].map { |p| [:from,:to].map { |d| mkterm(:email, d, (Redwood::Person === p) ? p.email : p) } }.flatten
       pos_terms << Q.new(Q::OP_OR, participant_terms)
     end
 
@@ -464,10 +470,9 @@ EOS
     # Person names are indexed with several prefixes
     person_termer = lambda do |d|
       lambda do |p|
-        ["#{d}_name", "name", "body"].each do |x|
-          doc.index_text p.name, PREFIX[x]
-        end if p.name
-        [d, :any].each { |x| doc.add_term mkterm(:email, x, p.email) }
+        doc.index_text p.name, PREFIX["#{d}_name"] if p.name
+        doc.index_text p.email, PREFIX['email_text']
+        doc.add_term mkterm(:email, d, p.email)
       end
     end
 
@@ -478,7 +483,6 @@ EOS
     subject_text = m.indexable_subject
     body_text = m.indexable_body
     doc.index_text subject_text, PREFIX['subject']
-    doc.index_text subject_text, PREFIX['body']
     doc.index_text body_text, PREFIX['body']
     m.attachments.each { |a| doc.index_text a, PREFIX['attachment'] }
 
@@ -561,7 +565,6 @@ EOS
       case args[0]
       when :from then PREFIX['from_email']
       when :to then PREFIX['to_email']
-      when :any then PREFIX['email']
       else raise "Invalid email term type #{args[0]}"
       end + args[1].to_s.downcase
     when :source_id
