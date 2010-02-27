@@ -273,7 +273,12 @@ EOS
     qp.add_valuerangeprocessor(Xapian::NumberValueRangeProcessor.new(DATE_VALUENO, 'date:', true))
     NORMAL_PREFIX.each { |k,vs| vs.each { |v| qp.add_prefix k, v } }
     BOOLEAN_PREFIX.each { |k,vs| vs.each { |v| qp.add_boolean_prefix k, v } }
-    xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD)
+
+    begin
+      xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD)
+    rescue RuntimeError => e
+      raise ParseError, "xapian query parser error: #{e}"
+    end
 
     debug "parsed xapian query: #{xapian_query.description}"
 
@@ -435,7 +440,7 @@ EOS
       :message_id => m.id,
       :source_id => m.source.id,
       :source_info => m.source_info,
-      :date => m.date,
+      :date => truncate_date(m.date),
       :snippet => snippet,
       :labels => m.labels.to_a,
       :from => [m.from.email, m.from.name],

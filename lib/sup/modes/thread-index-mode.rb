@@ -651,7 +651,7 @@ EOS
     if (l = lines) == 0
       "line 0 of 0"
     else
-      "line #{curpos + 1} of #{l} #{dirty? ? '*modified*' : ''}"
+      "line #{curpos + 1} of #{l}"
     end
   end
 

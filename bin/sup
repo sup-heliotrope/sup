@@ -14,6 +14,11 @@ require 'fileutils'
 require 'trollop'
 require "sup"; Redwood::check_library_version_against "git"
 
+if ENV['SUP_PROFILE']
+  require 'ruby-prof'
+  RubyProf.start
+end
+
 if no_ncursesw
   debug "No 'ncursesw' gem detected. Install it for wide character support."
 end
@@ -402,6 +407,11 @@ ensure
   end
 
   Index.unlock
+
+  if (fn = ENV['SUP_PROFILE'])
+    result = RubyProf.stop
+    File.open(fn, 'w') { |io| RubyProf::CallTreePrinter.new(result).print(io) }
+  end
 end
 
 unless Redwood::exceptions.empty?
