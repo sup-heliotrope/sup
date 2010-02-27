@@ -247,6 +247,7 @@ begin
 
   unless $opts[:no_threads]
     PollManager.start
+    IdleManager.start
     Index.start_lock_update_thread
   end
 
@@ -270,6 +271,8 @@ begin
       end
       next
     end
+
+    IdleManager.ping
 
     if c == 410
       ## this is ncurses's way of telling us it's detected a refresh.
@@ -383,6 +386,7 @@ rescue Exception => e
 ensure
   unless $opts[:no_threads]
     PollManager.stop if PollManager.instantiated?
+    IdleManager.stop if IdleManager.instantiated?
     Index.stop_lock_update_thread
   end
 
