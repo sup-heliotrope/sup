@@ -35,6 +35,14 @@ Return value:
   which will be appended by sup.
 EOS
 
+  HookManager.register "publish", <<EOS
+Executed when a message or a chunk is requested to be published.
+Variables:
+     chunk: Redwood::Message or Redwood::Chunk::* to be published.
+Return value:
+  None.
+EOS
+
   register_keymap do |k|
     k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
@@ -59,6 +67,7 @@ EOS
     k.add :edit_as_new, "Edit message as new", 'D'
     k.add :save_to_disk, "Save message/attachment to disk", 's'
     k.add :save_all_to_disk, "Save all attachments to disk", 'A'
+    k.add :publish, "Publish message/attachment using publish-hook", 'P'
     k.add :search, "Search for messages from particular people", 'S'
     k.add :compose, "Compose message to person", 'm'
     k.add :subscribe_to_list, "Subscribe to/unsubscribe from mailing list", "("
@@ -385,6 +394,15 @@ EOS
       else
         BufferManager.flash "Wrote #{(num - num_errors).pluralize 'attachment'} to #{folder}; couldn't write #{num_errors} of them (see log)."
       end
+    end
+  end
+
+  def publish
+    chunk = @chunk_lines[curpos] or return
+    if HookManager.enabled? "publish"
+      HookManager.run "publish", :chunk => chunk
+    else
+      BufferManager.flash "Publishing hook not defined."
     end
   end
 
