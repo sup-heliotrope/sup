@@ -77,19 +77,26 @@ class Colormap
 
   def reset
     @entries = {}
+    @highlights = { :none => highlight_sym(:none)}
     @entries[highlight_sym(:none)] = highlight_for(Curses::COLOR_WHITE,
                                                    Curses::COLOR_BLACK,
                                                    []) + [nil]
   end
 
-  def add sym, fg, bg, attr=nil, opts={}
+  def add sym, fg, bg, attr=nil, highlight=nil
     raise ArgumentError, "color for #{sym} already defined" if @entries.member? sym
     raise ArgumentError, "color '#{fg}' unknown" unless (-1...Curses::NUM_COLORS).include? fg
     raise ArgumentError, "color '#{bg}' unknown" unless (-1...Curses::NUM_COLORS).include? bg
     attrs = [attr].flatten.compact
 
     @entries[sym] = [fg, bg, attrs, nil]
-    @entries[highlight_sym(sym)] = opts[:highlight] ? @entries[opts[:highlight]] : highlight_for(fg, bg, attrs) + [nil]
+
+    if not highlight
+      highlight = highlight_sym(sym)
+      @entries[highlight] = highlight_for(fg, bg, attrs) + [nil]
+    end
+
+    @highlights[sym] = highlight
   end
 
   def highlight_sym sym
@@ -132,7 +139,7 @@ class Colormap
   end
 
   def color_for sym, highlight=false
-    sym = highlight_sym(sym) if highlight
+    sym = @highlights[sym] if highlight
     return Curses::COLOR_BLACK if sym == :none
     raise ArgumentError, "undefined color #{sym}" unless @entries.member? sym
 
@@ -176,48 +183,35 @@ class Colormap
       Redwood::load_yaml_obj Redwood::COLOR_FN
     end
 
-    error = nil
-    Colormap::DEFAULT_COLORS.each_pair do |k, v|
-      fg = Curses.const_get "COLOR_#{v[:fg].upcase}"
-      bg = Curses.const_get "COLOR_#{v[:bg].upcase}"
-      attrs = v[:attrs] ? v[:attrs].map { |a| Curses.const_get "A_#{a.upcase}" } : []
-
-      if user_colors && (ucolor = user_colors[k])
-        if(ufg = ucolor[:fg])
-          begin
-            fg = Curses.const_get "COLOR_#{ufg.to_s.upcase}"
-          rescue NameError
-            error ||= "Warning: there is no color named \"#{ufg}\", using fallback."
-            warn "there is no color named \"#{ufg}\""
-          end
-        end
-
-        if(ubg = ucolor[:bg])
-          begin
-            bg = Curses.const_get "COLOR_#{ubg.to_s.upcase}"
-          rescue NameError
-            error ||= "Warning: there is no color named \"#{ubg}\", using fallback."
-            warn "there is no color named \"#{ubg}\""
-          end
-        end
-
-        if(uattrs = ucolor[:attrs])
-          attrs = [*uattrs].flatten.map do |a|
-            begin
-              Curses.const_get "A_#{a.upcase}"
-            rescue NameError
-              error ||= "Warning: there is no attribute named \"#{a}\", using fallback."
-              warn "there is no attribute named \"#{a}\", using fallback."
-            end
-          end
-        end
+    Colormap::DEFAULT_COLORS.merge(user_colors||{}).each_pair do |k, v|
+      fg = begin
+        Curses.const_get "COLOR_#{v[:fg].to_s.upcase}"
+      rescue NameError
+        warn "there is no color named \"#{v[:fg]}\""
+        Curses::COLOR_GREEN
       end
 
-      symbol = (k.to_s + "_color").to_sym
-      add symbol, fg, bg, attrs
-    end
+      bg = begin
+        Curses.const_get "COLOR_#{v[:bg].to_s.upcase}"
+      rescue NameError
+        warn "there is no color named \"#{v[:bg]}\""
+        Curses::COLOR_RED
+      end
 
-    warn error if error
+      attrs = (v[:attrs]||[]).map do |a|
+        begin
+          Curses.const_get "A_#{a.upcase}"
+        rescue NameError
+          warn "there is no attribute named \"#{a}\", using fallback."
+          nil
+        end
+      end.compact
+
+      highlight_symbol = v[:highlight] ? :"#{v[:highlight]}_color" : nil
+
+      symbol = (k.to_s + "_color").to_sym
+      add symbol, fg, bg, attrs, highlight_symbol
+    end
   end
 
   def self.instance; @@instance; end
