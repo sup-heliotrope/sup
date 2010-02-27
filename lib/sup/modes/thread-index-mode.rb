@@ -16,6 +16,12 @@ Variables:
   thread: The message thread to be formatted.
 EOS
 
+  HookManager.register "index-mode-date-widget", <<EOS
+Generates the per-thread date widget for each thread.
+Variables:
+  thread: The message thread to be formatted.
+EOS
+
   HookManager.register "mark-as-spam", <<EOS
 This hook is run when a thread is marked as spam
 Variables:
@@ -53,10 +59,12 @@ EOS
   def initialize hidden_labels=[], load_thread_opts={}
     super()
     @mutex = Mutex.new # covers the following variables:
-    @threads = {}
+    @threads = []
     @hidden_threads = {}
     @size_widget_width = nil
-    @size_widgets = {}
+    @size_widgets = []
+    @date_widget_width = nil
+    @date_widgets = []
     @tags = Tagger.new self
 
     ## these guys, and @text and @lines, are not covered
@@ -226,6 +234,8 @@ EOS
       @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| [t.date, t.first.id] }.reverse
       @size_widgets = @threads.map { |t| size_widget_for_thread t }
       @size_widget_width = @size_widgets.max_of { |w| w.display_length }
+      @date_widgets = @threads.map { |t| date_widget_for_thread t }
+      @date_widget_width = @date_widgets.max_of { |w| w.display_length }
     end
     set_cursor_pos @threads.index(old_cursor_thread)||curpos
 
@@ -719,6 +729,10 @@ protected
     HookManager.run("index-mode-size-widget", :thread => t) || default_size_widget_for(t)
   end
 
+  def date_widget_for_thread t
+    HookManager.run("index-mode-date-widget", :thread => t) || default_date_widget_for(t)
+  end
+
   def cursor_thread; @mutex.synchronize { @threads[curpos] }; end
 
   def drop_all_threads
@@ -734,6 +748,7 @@ protected
       @hidden_threads[t] = true
       @threads.delete_at i
       @size_widgets.delete_at i
+      @date_widgets.delete_at i
       @tags.drop_tag_for t
     end
   end
@@ -745,9 +760,12 @@ protected
 
     @mutex.synchronize do
       @size_widgets[l] = size_widget_for_thread @threads[l]
+      @date_widgets[l] = date_widget_for_thread @threads[l]
 
-      ## if the widget size has increased, we need to redraw everyone
-      need_update = @size_widgets[l].size > @size_widget_width
+      ## if a widget size has increased, we need to redraw everyone
+      need_update =
+        (@size_widgets[l].size > @size_widget_width) or
+        (@date_widgets[l].size > @date_widget_width)
     end
 
     if need_update
@@ -808,9 +826,9 @@ protected
 
   AUTHOR_LIMIT = 5
   def text_for_thread_at line
-    t, size_widget = @mutex.synchronize { [@threads[line], @size_widgets[line]] }
-
-    date = t.date.to_nice_s
+    t, size_widget, date_widget = @mutex.synchronize do
+      [@threads[line], @size_widgets[line], @date_widgets[line]]
+    end
 
     starred = t.has_label? :starred
 
@@ -861,10 +879,11 @@ protected
     snippet = t.snippet + (t.snippet.empty? ? "" : "...")
 
     size_widget_text = sprintf "%#{ @size_widget_width}s", size_widget
+    date_widget_text = sprintf "%#{ @date_widget_width}s", date_widget
 
     [ 
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
-      [:date_color, sprintf("%#{@date_width}s", date)],
+      [:date_color, date_widget_text],
       (starred ? [:starred_color, "*"] : [:none, " "]),
     ] +
       from +
@@ -891,6 +910,10 @@ private
     else
       "(#{t.size})"
     end
+  end
+
+  def default_date_widget_for t
+    t.date.to_nice_s
   end
 
   def from_width
