@@ -83,6 +83,11 @@ global_keymap = Keymap.new do |k|
   k.add :recall_draft, "Edit most recent draft message", 'R'
   k.add :show_inbox, "Show the Inbox buffer", 'I'
   k.add :show_console, "Show the Console buffer", '~'
+
+  ## Submap for less often used keybindings
+  k.add_multi "reload (c)olors", 'O' do |kk|
+    kk.add :reload_colors, "Reload colors", 'c'
+  end
 end
 
 ## the following magic enables wide characters when used with a ruby
@@ -339,6 +344,11 @@ begin
     when :show_console
       b, new = bm.spawn_unless_exists("Console", :system => true) { ConsoleMode.new }
       b.mode.run
+    when :reload_colors
+      Colormap.reset
+      Colormap.populate_colormap
+      bm.completely_redraw_screen
+      bm.flash "reloaded colors"
     when :nothing, InputSequenceAborted
     when :redraw
       bm.completely_redraw_screen
