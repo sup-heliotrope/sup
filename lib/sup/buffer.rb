@@ -30,6 +30,8 @@ module Ncurses
   def mutex; @mutex ||= Mutex.new; end
   def sync &b; mutex.synchronize(&b); end
 
+  ## magically, this stuff seems to work now. i could swear it didn't
+  ## before. hm.
   def nonblocking_getch
     ## INSANTIY
     ## it is NECESSARY to wrap Ncurses.getch in a select() otherwise all

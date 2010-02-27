@@ -69,7 +69,7 @@ class ConsoleMode < LogMode
   end
 
   def initialize
-    super
+    super "console"
     @console = Console.new self
     @binding = @console.instance_eval { binding }
   end

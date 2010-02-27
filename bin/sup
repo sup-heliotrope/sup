@@ -271,15 +271,16 @@ begin
 
     bm.erase_flash
 
-    action = begin
-      if bm.handle_input c
+    action =
+      begin
+        if bm.handle_input c
+          :nothing
+        else
+          bm.resolve_input_with_keymap c, global_keymap
+        end
+      rescue InputSequenceAborted
         :nothing
-      else
-        bm.resolve_input_with_keymap c, global_keymap
       end
-    rescue InputSequenceAborted
-      :nothing
-    end
     case action
     when :quit_now
       break if bm.kill_all_buffers_safely
