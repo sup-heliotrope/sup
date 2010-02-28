@@ -612,7 +612,7 @@ EOS
       tf.deactivate
       draw_screen :sync => false, :status => status, :title => title
     end
-    tf.value
+    tf.value.tap { |x| x.force_encoding Encoding::UTF_8 if x && x.respond_to?(:encoding) }
   end
 
   def ask_getch question, accept=nil
