@@ -329,6 +329,13 @@ class String
   def transcode src_encoding=$encoding
     Iconv.easy_decode $encoding, src_encoding, self
   end
+
+  unless method_defined? :ascii_only?
+    def ascii_only?
+      size.times { |i| return false if self[i] & 128 != 0 }
+      return true
+    end
+  end
 end
 
 class Numeric
