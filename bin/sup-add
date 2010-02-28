@@ -20,15 +20,6 @@ For mbox files on local disk, use the form:
     mbox:<path to mbox file>, or
     mbox://<path to mbox file>
 
-For mbox files on remote machines, use the form:
-    mbox+ssh://<machine name>/<path to mbox file>
-
-For IMAP folders, use the form (note no username or password!):
-    imap://<machine name>/          # unsecure, "INBOX" folder  
-    imap://<machine name>/<folder>  # unsecure, arbitrary
-    imaps://<machine name>/         # secure, "INBOX" folder
-    imaps://<machine name>/<folder> # secure, arbitrary folder 
-
 For Maildir folders, use the form:
     maildir:<path to Maildir directory>; or
     maildir://<path to Maildir directory>
@@ -105,14 +96,6 @@ begin
 
     source = 
       case parsed_uri.scheme
-      when "mbox+ssh"
-        say "For SSH connections, if you will use public key authentication, you may leave the username and password blank."
-        say ""
-        username, password = get_login_info uri, Redwood::SourceManager.sources
-        Redwood::MBox::SSHLoader.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
-      when "imap", "imaps"
-        username, password = get_login_info uri, Redwood::SourceManager.sources
-        Redwood::IMAP.new uri, username, password, nil, !$opts[:unusual], $opts[:archive], nil, labels
       when "maildir"
         Redwood::Maildir.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
       when "mbox"
