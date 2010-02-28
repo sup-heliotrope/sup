@@ -216,10 +216,10 @@ EOS
 
   ## Given an array of email addresses, return an array of Person objects that
   ## have sent mail to or received mail from any of the given addresses.
-  def load_contacts email_addresses, h={}
+  def load_contacts email_addresses, opts={}
     contacts = Set.new
     num = opts[:num] || 20
-    each_id_by_date :participants => emails do |id,b|
+    each_id_by_date :participants => email_addresses do |id,b|
       break if contacts.size >= num
       m = b.call
       ([m.from]+m.to+m.cc+m.bcc).compact.each { |p| contacts << [p.name, p.email] }
@@ -739,14 +739,14 @@ class Xapian::Document
 
   def index_text text, prefix, weight=1
     term_generator = Xapian::TermGenerator.new
-    term_generator.stemmer = Xapian::Stem.new(Redwood::XapianIndex::STEM_LANGUAGE)
+    term_generator.stemmer = Xapian::Stem.new(Redwood::Index::STEM_LANGUAGE)
     term_generator.document = self
     term_generator.index_text text, weight, prefix
   end
 
   alias old_add_term add_term
   def add_term term
-    if term.length <= Redwood::XapianIndex::MAX_TERM_LENGTH
+    if term.length <= Redwood::Index::MAX_TERM_LENGTH
       old_add_term term, 0
     else
       warn "dropping excessively long term #{term}"
