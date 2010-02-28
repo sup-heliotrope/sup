@@ -39,7 +39,6 @@ EOS
   opt :search, "Search for this query upon startup", :type => String
   opt :compose, "Compose message to this recipient upon startup", :type => String
   opt :subject, "When composing, use this subject", :type => String, :short => "j"
-  opt :index, "Use this index type ('auto' for autodetect)", :default => "auto"
 end
 
 Trollop::die :subject, "requires --compose" if $opts[:subject] && !$opts[:compose]
@@ -144,35 +143,8 @@ def stop_cursing
 end
 module_function :start_cursing, :stop_cursing
 
-Index.init $opts[:index]
+Index.init
 Index.lock_interactively or exit
-
-if Index.is_a_deprecated_ferret_index?
-  FERRET_DEPRECATION_WARNING_FN = File.join BASE_DIR, "you-have-been-warned-about-ferret-deprecation"
-  unless File.exist? FERRET_DEPRECATION_WARNING_FN
-    $stderr.puts <<EOS
-Warning! Your 30-day trial period for using Sup is almost over!
-
-To purchase the full version of Sup, please see http://sup.rubyforge.org/.
-
-Just kidding. BUT! You are using an old Ferret index. The Ferret backend is
-deprecated and support will be removed in the next version of Sup.
-
-You should convert to Xapian before that happens.
-
-The conversion process may take several hours. It is safe and interruptable.
-You can start it at any point by typing:
-
-  sup-convert-ferret-index
-
-Press enter to continue and be on your way. You won't see this message
-again, just a brief reminder at shutdown.
-EOS
-
-    $stdin.gets
-    FileUtils.touch FERRET_DEPRECATION_WARNING_FN
-  end
-end
 
 begin
   Redwood::start
@@ -430,10 +402,6 @@ EOS
     puts "--- #{e.class.name} from thread: #{name}"
     puts e.message, e.backtrace
   end
-end
-
-if Index.is_a_deprecated_ferret_index?
-  puts "Reminder: to update your Ferret index to Xapian, run sup-convert-ferret-index."
 end
 
 end
