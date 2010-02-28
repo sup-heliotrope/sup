@@ -20,7 +20,6 @@ class Console
   end
 
   def xapian; Index.instance.instance_variable_get :@xapian; end
-  def ferret; Index.instance.instance_variable_get :@index; end
 
   def loglevel; Redwood::Logger.level; end
   def set_loglevel(level); Redwood::Logger.level = level; end
@@ -29,7 +28,7 @@ class Console
 
   ## files that won't cause problems when reloaded
   ## TODO expand this list / convert to blacklist
-  RELOAD_WHITELIST = %w(sup/xapian_index.rb sup/modes/console-mode.rb)
+  RELOAD_WHITELIST = %w(sup/index.rb sup/modes/console-mode.rb)
 
   def reload
     old_verbose = $VERBOSE

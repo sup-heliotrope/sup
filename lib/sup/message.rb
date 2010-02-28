@@ -178,7 +178,7 @@ class Message
 
   ## sanitize message ids by removing spaces and non-ascii characters.
   ## also, truncate to 255 characters. all these steps are necessary
-  ## to make ferret happy. of course, we probably fuck up a couple
+  ## to make the index happy. of course, we probably fuck up a couple
   ## valid message ids as well. as long as we're consistent, this
   ## should be fine, though.
   ##
