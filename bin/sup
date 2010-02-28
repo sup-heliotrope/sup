@@ -179,6 +179,26 @@ begin
   Index.load
   Index.start_sync_worker unless $opts[:no_threads]
 
+  if Redwood::SourceManager.sources.any? { |x| x.is_a? Redwood::MBox::SSHLoader }
+    $stderr.puts <<EOS
+mbox+ssh sources are deprecated and will be removed in the next release.
+Running rsync in your before-poll hook is a good alternative.
+
+Press enter to continue.
+EOS
+    $stdin.gets
+  end
+
+  if Redwood::SourceManager.sources.any? { |x| x.is_a? Redwood::IMAP }
+    $stderr.puts <<EOS
+IMAP sources are deprecated and will be removed in the next release.
+Running offlineimap or fetchmail in your before-poll hook is a good alternative.
+
+Press enter to continue.
+EOS
+    $stdin.gets
+  end
+
   $die = false
   trap("TERM") { |x| $die = true }
   trap("WINCH") { |x| BufferManager.sigwinch_happened! }

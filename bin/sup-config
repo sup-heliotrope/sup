@@ -44,9 +44,6 @@ def add_source
     menu.prompt = "What type of mail source is it? "
     menu.choice("mbox file") { type = :mbox }
     menu.choice("maildir directory") { type = :maildir }
-    menu.choice("remote mbox file (accessible via ssh)") { type = :mboxssh }
-    menu.choice("IMAP server (secure)") { type = :imaps }
-    menu.choice("IMAP server (unsecure)") { type = :imap }
     menu.choice("Get me out of here!") { return }
   end
 
@@ -70,37 +67,6 @@ def add_source
       $last_fn = fn
       [Redwood::Maildir.suggest_labels_for(fn),
        { :scheme => "maildir", :path => fn }]
-    when :mboxssh
-      $last_server ||= "localhost"
-      srv = axe "What machine is the mbox file located on?", $last_server
-      return if srv.nil? || srv.empty?
-      $last_server = srv
-
-      fn = axe "What's the path to the mbox file?", $last_fn
-      return if fn.nil? || fn.empty?
-      $last_fn = fn
-      fn = "/#{fn}" # lame
-      [Redwood::MBox::SSHLoader.suggest_labels_for(fn),
-       { :scheme => "mbox+ssh", :host => srv, :path => fn }]
-    when :imap, :imaps
-      $last_server ||= "localhost"
-      srv = axe "What is the IMAP server (host, or host:port notation)?", $last_server
-      return if srv.nil? || srv.empty?
-      $last_server = srv
-
-      $last_folder ||= "INBOX"
-      fn = axe "What's the folder path?", $last_folder
-      return if fn.nil? || fn.empty?
-      $last_folder = fn
-
-      fn = "/#{fn}"
-      if srv =~ /^(\S+):(\d+)$/
-        host, port = $1, $2.to_i
-      else
-        host, port = srv, nil
-      end
-      [Redwood::IMAP.suggest_labels_for(fn),
-       { :scheme => type.to_s, :host => host, :port => port, :path => fn }]
     end
 
     uri = begin
