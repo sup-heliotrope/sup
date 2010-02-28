@@ -3,10 +3,6 @@ require 'socket' # just for gethostname!
 require 'pathname'
 require 'rmail'
 
-# from jcode.rb, not included in ruby 1.9
-PATTERN_UTF8 = '[\xc0-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf][\x80-\xbf]'
-RE_UTF8 = Regexp.new(PATTERN_UTF8, 0, 'n')
-
 module Redwood
 
 class SendmailCommandFailed < StandardError; end
@@ -208,7 +204,7 @@ protected
   end
 
   def mime_encode_subject string
-    return string unless string.match(RE_UTF8)
+    return string if string.ascii_only?
     mime_encode string
   end
 
@@ -217,7 +213,7 @@ protected
   # Encode "bælammet mitt <user@example.com>" into
   # "=?utf-8?q?b=C3=A6lammet_mitt?= <user@example.com>
   def mime_encode_address string
-    return string unless string.match(RE_UTF8)
+    return string if string.ascii_only?
     string.sub(RE_ADDRESS) { |match| mime_encode($1) + $2 }
   end
 
