@@ -34,8 +34,10 @@ class TextField
     @question = question
     @completion_block = block
     @field = Ncurses::Form.new_field 1, @width - question.length, @y, @x + question.length, 0, 0
-    @field.opts_off Ncurses::Form::O_STATIC
-    @field.opts_off Ncurses::Form::O_BLANK
+    if @field.respond_to? :opts_off
+      @field.opts_off Ncurses::Form::O_STATIC
+      @field.opts_off Ncurses::Form::O_BLANK
+    end
     @form = Ncurses::Form.new_form [@field]
     @value = default || ''
     Ncurses::Form.post_form @form
