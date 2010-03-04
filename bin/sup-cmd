@@ -1,0 +1,110 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+require 'trollop'
+require 'sup'
+require 'pp'
+require 'yaml'
+include Redwood
+
+SUB_COMMANDS = %w(query count label add)
+global_opts = Trollop::options do
+  #version = "sup-cmd (sup #{Redwood::VERSION})"
+  banner <<EOS
+Interact with a Sup index.
+
+Usage:
+  sup-cmd [global options] command [options]
+
+  Valid commands: #{SUB_COMMANDS * ', '}
+
+  Global options:
+EOS
+
+  opt :verbose
+
+  stop_on SUB_COMMANDS
+end
+
+cmd = ARGV.shift
+cmd_opts = case cmd
+when "query"
+  Trollop.options do
+    opt :offset, "Offset", :default => 0, :type => :int
+    opt :limit, "Limit", :type => :int
+    opt :raw, "Retrieve raw message text", :default => false
+  end
+when "count"
+  Trollop.options do
+  end
+when "label"
+  Trollop.options do
+    opt :add_labels, "Labels to add", :default => ""
+    opt :remove_labels, "Labels to remove", :default => ""
+  end
+when "add"
+  Trollop.options do
+    opt :labels, "Labels separated by commas", :default => ""
+    opt :mbox, "Treat input files as mboxes", :default => false
+  end
+else
+  Trollop::die "unrecognized command #{cmd.inspect}"
+end
+
+def get_query
+  text = ARGV.first or fail "query argument required"
+  Redwood::Index.parse_query text
+end
+
+Redwood.start
+Index.init
+Index.lock_interactively or exit
+begin
+  if(s = Redwood::SourceManager.source_for SentManager.source_uri)
+    SentManager.source = s
+  else
+    Redwood::SourceManager.add_source SentManager.default_source
+  end
+
+  Index.load
+  c = Redwood::Connection.new
+
+case cmd
+when "query"
+  c.query get_query, cmd_opts[:offset], cmd_opts[:limit], cmd_opts[:raw] do |result|
+    puts YAML.dump(result['summary'])
+    puts YAML.dump(result['raw']) if cmd_opts[:raw]
+  end
+when "count"
+  puts c.count(get_query)
+when "label"
+  c.label get_query, cmd_opts[:remove_labels].split(','), cmd_opts[:add_labels].split(',')
+when "add"
+  ARGF.binmode
+  labels = cmd_opts[:labels].split(',')
+  get_message = lambda do
+    return ARGF.gets(nil) unless cmd_opts[:mbox]
+    str = ""
+    l = ARGF.gets
+    str << l until ARGF.closed? || ARGF.eof? || MBox::is_break_line?(l = ARGF.gets)
+    str.empty? ? nil : str
+  end
+  i_s = i = 0
+  t = Time.now
+  while raw = get_message[]
+    i += 1
+    t_d = Time.now - t
+    if t_d >= 5
+      i_d = i - i_s
+      puts "indexed #{i} messages (#{i_d/t_d} m/s)" if global_opts[:verbose]
+      t = Time.now
+      i_s = i
+    end
+    c.add raw, labels
+  end
+else
+  fail "#{cmd} command unimplemented"
+end
+
+ensure
+  Index.unlock
+end

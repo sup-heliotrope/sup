@@ -348,6 +348,7 @@ require "sup/sent"
 require "sup/search"
 require "sup/modes/search-list-mode"
 require "sup/idle"
+require "sup/connection"
 
 $:.each do |base|
   d = File.join base, "sup/share/modes/"
