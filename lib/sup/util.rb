@@ -132,6 +132,10 @@ class Object
   ## "k combinator"
   def returning x; yield x; x; end
 
+  unless method_defined? :tap
+    def tap; yield self; self; end
+  end
+
   ## clone of java-style whole-method synchronization
   ## assumes a @mutex variable
   ## TODO: clean up, try harder to avoid namespace collisions
