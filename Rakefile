@@ -48,7 +48,7 @@ spec = Gem::Specification.new do |s|
   s.executables = SUP_EXECUTABLES
 
   s.add_dependency "xapian-full", ">= 1.1.3.1"
-  s.add_dependency "ncursesw"
+  s.add_dependency "ncurses"
   s.add_dependency "rmail", ">= 0.17"
   s.add_dependency "highline"
   s.add_dependency "net-ssh"
