@@ -20,7 +20,7 @@ if ENV['SUP_PROFILE']
 end
 
 if no_ncursesw
-  debug "No 'ncursesw' gem detected. Install it for wide character support."
+  info "No 'ncursesw' gem detected. Install it for wide character support."
 end
 
 $opts = Trollop::options do
