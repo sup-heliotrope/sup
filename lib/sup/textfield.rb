@@ -107,19 +107,19 @@ class TextField
         Ncurses::Form::REQ_DEL_CHAR
       when Ncurses::KEY_BACKSPACE, 127 # 127 is also a backspace keysym
         Ncurses::Form::REQ_DEL_PREV
-      when ?\C-a, Ncurses::KEY_HOME
+      when ?\C-a.ord, Ncurses::KEY_HOME
         nop
         Ncurses::Form::REQ_BEG_FIELD
-      when ?\C-e, Ncurses::KEY_END
+      when ?\C-e.ord, Ncurses::KEY_END
         Ncurses::Form::REQ_END_FIELD
-      when ?\C-k
+      when ?\C-k.ord
         Ncurses::Form::REQ_CLR_EOF
-      when ?\C-u
+      when ?\C-u.ord
         set_cursed_value cursed_value_after_point
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
         nop
         Ncurses::Form::REQ_BEG_FIELD
-      when ?\C-w
+      when ?\C-w.ord
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_PREV_CHAR
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_WORD
       when Ncurses::KEY_UP, Ncurses::KEY_DOWN
@@ -179,7 +179,7 @@ private
   ## this is almost certainly unnecessary, but it's the only way
   ## i could get ncurses to remember my form's value
   def nop
-    Ncurses::Form.form_driver @form, " "[0]
+    Ncurses::Form.form_driver @form, " ".ord
     Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_PREV
   end
 end
