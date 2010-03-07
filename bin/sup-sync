@@ -3,7 +3,7 @@
 require 'uri'
 require 'rubygems'
 require 'trollop'
-require "sup"; Redwood::check_library_version_against "git"
+require "sup"; Redwood::check_library_version_against "0.11"
 
 PROGRESS_UPDATE_INTERVAL = 15 # seconds
 

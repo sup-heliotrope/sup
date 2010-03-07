@@ -5,7 +5,7 @@ require 'uri'
 require 'tempfile'
 require 'trollop'
 require 'enumerator'
-require "sup"; Redwood::check_library_version_against "git"
+require "sup"; Redwood::check_library_version_against "0.11"
 
 ## save a message 'm' to an open file pointer 'fp'
 def save m, fp

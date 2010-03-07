@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'trollop'
 require 'enumerator'
-require "sup"; Redwood::check_library_version_against "git"
+require "sup"; Redwood::check_library_version_against "0.11"
 
 class Float
   def to_s; sprintf '%.2f', self; end
