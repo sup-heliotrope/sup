@@ -67,6 +67,7 @@ class TextField
     when Ncurses::KEY_ENTER # submit!
       @value = get_cursed_value
       @history.push @value unless @value =~ /^\s*$/
+      @i = @history.size
       return false
     when Ncurses::KEY_CANCEL # cancel
       @value = nil
@@ -106,29 +107,29 @@ class TextField
         Ncurses::Form::REQ_DEL_CHAR
       when Ncurses::KEY_BACKSPACE, 127 # 127 is also a backspace keysym
         Ncurses::Form::REQ_DEL_PREV
-      when ?\C-a
+      when ?\C-a.ord, Ncurses::KEY_HOME
         nop
         Ncurses::Form::REQ_BEG_FIELD
-      when ?\C-e
+      when ?\C-e.ord, Ncurses::KEY_END
         Ncurses::Form::REQ_END_FIELD
-      when ?\C-k
+      when ?\C-k.ord
         Ncurses::Form::REQ_CLR_EOF
-      when ?\C-u
+      when ?\C-u.ord
         set_cursed_value cursed_value_after_point
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
         nop
         Ncurses::Form::REQ_BEG_FIELD
-      when ?\C-w
+      when ?\C-w.ord
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_PREV_CHAR
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_WORD
       when Ncurses::KEY_UP, Ncurses::KEY_DOWN
-        unless @history.empty?
+        unless !@i || @history.empty?
           value = get_cursed_value
-          @i ||= @history.size
           #debug "history before #{@history.inspect}"
-          @history[@i] = value #unless value =~ /^\s*$/
-          @i = (@i + (c == Ncurses::KEY_UP ? -1 : 1)) % @history.size
-          @value = @history[@i]
+          @i = @i + (c == Ncurses::KEY_UP ? -1 : 1)
+          @i = 0 if @i < 0
+          @i = @history.size if @i > @history.size
+          @value = @history[@i] || ''
           #debug "history after #{@history.inspect}"
           set_cursed_value @value
           Ncurses::Form::REQ_END_FIELD
@@ -178,7 +179,7 @@ private
   ## this is almost certainly unnecessary, but it's the only way
   ## i could get ncurses to remember my form's value
   def nop
-    Ncurses::Form.form_driver @form, " "[0]
+    Ncurses::Form.form_driver @form, " ".ord
     Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_PREV
   end
 end
