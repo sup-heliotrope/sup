@@ -37,6 +37,9 @@ EOS
     @polling = false
     @poll_sources = nil
     @mode = nil
+    @should_clear_running_totals = false
+    clear_running_totals # defines @running_totals
+    UpdateManager.register self
   end
 
   def poll_with_sources
@@ -45,8 +48,12 @@ EOS
 
     BufferManager.flash "Polling for new messages..."
     num, numi, from_and_subj, from_and_subj_inbox, loaded_labels = @mode.poll
-    if num > 0
-      BufferManager.flash "Loaded #{num.pluralize 'new message'}, #{numi} to inbox. Labels: #{loaded_labels.map{|l| l.to_s}.join(', ')}"
+    clear_running_totals if @should_clear_running_totals
+    @running_totals[:num] += num
+    @running_totals[:numi] += numi
+    @running_totals[:loaded_labels] += loaded_labels || []
+    if @running_totals[:num] > 0
+      BufferManager.flash "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox. Labels: #{@running_totals[:loaded_labels].map{|l| l.to_s}.join(', ')}"
     else
       BufferManager.flash "No new messages." 
     end
@@ -183,6 +190,10 @@ EOS
     Index.add_message m
     UpdateManager.relay self, :added, m
   end
+
+  def handle_idle_update sender, idle_since; @should_clear_running_totals = false; end
+  def handle_unidle_update sender, idle_since; @should_clear_running_totals = true; clear_running_totals; end
+  def clear_running_totals; @running_totals = {:num => 0, :numi => 0, :loaded_labels => Set.new}; end
 end
 
 end

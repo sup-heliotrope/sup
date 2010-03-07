@@ -131,6 +131,7 @@ module Redwood
     Redwood::UndoManager.init
     Redwood::SourceManager.init
     Redwood::SearchManager.init Redwood::SEARCH_FN
+    Redwood::IdleManager.init
   end
 
   def finish
@@ -346,6 +347,7 @@ require "sup/modes/console-mode"
 require "sup/sent"
 require "sup/search"
 require "sup/modes/search-list-mode"
+require "sup/idle"
 
 $:.each do |base|
   d = File.join base, "sup/share/modes/"
