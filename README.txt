@@ -12,8 +12,7 @@ email as an extension of your long-term memory, Sup is for you.
 Sup makes it easy to:
 - Handle massive amounts of email.
 
-- Mix email from different sources: mbox files (even across different
-  machines), Maildir directories, IMAP folders, and GMail accounts.
+- Mix email from different sources: mbox files and Maildirs.
 
 - Instantaneously search over your entire email collection. Search over
   body text, or use a query language to combine search predicates in any
@@ -39,7 +38,7 @@ Features:
   operability, regardless of how much amount of email you have.
 
 - Immediate full-text search of your entire email archive, using the
-  Ferret query language. Search over message bodies, labels, from: and
+  Xapian query language. Search over message bodies, labels, from: and
   to: fields, or any combination thereof.
 
 - Thread-centrism. Operations are performed at the thread, not the
@@ -73,13 +72,6 @@ Current limitations which will be fixed:
   source (read, move, delete, etc) with another client Sup will punish
   you with a lengthy reindexing process.
 
-- Support for mbox, Maildir, and IMAP only at this point. No support for
-  POP or mh.
-
-- IMAP support is very slow due mostly to Ruby's IMAP library.  You may
-  consider something like offlineimap to mirror your IMAP folders with
-  local Maildir ones.
-
 - Unix-centrism in MIME attachment handling and in sendmail invocation.
 
 == SYNOPSYS:
@@ -96,7 +88,7 @@ Current limitations which will be fixed:
 
 == REQUIREMENTS:
 
- - ferret >= 0.11.6
+ - xapian-full >= 1.1.3.2
  - ncurses >= 0.9.1
  - rmail >= 0.17
  - highline

@@ -1,3 +1,19 @@
+Release 0.11:
+
+The deprecated Ferret index has been removed.
+
+Remote sources (IMAP, IMAPS, and mbox+ssh) have been deprecated and will be
+removed in 0.12. Tools like offlineimap, fetchmail, and rsync provide a much
+better user experience for these mail sources than Sup would ever be able to by
+itself.
+
+If your terminal supports it you can now use 256 colors in your colorscheme. Run
+the contrib/colorpicker.rb program to get the color names to put in colors.yaml.
+
+Saved searches are now supported. Hit '%' in search-results-mode to save the
+current search, and enter an empty search string to open the list of saved
+searches.
+
 Release 0.10:
 
 The Xapian backend is now the default. Convert your old, crash-prone Ferret

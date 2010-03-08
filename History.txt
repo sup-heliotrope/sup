@@ -1,3 +1,17 @@
+== 0.11 / 2010-03-07
+* Remove deprecated Ferret backend.
+* Add deprecation notices to IMAP, IMAPS, and mbox+ssh sources.
+* 256 color support.
+* Backwards-compatible index format improvements.
+* Saved searches.
+* Improved support for custom keybindings.
+* Idle detection - poll totals accumulate and index flushes on idle.
+* Several textfield improvments.
+* New hooks: publish, mentions-attachments, keybindings,
+  index-mode-date-widget, gpg-args, and crypto-settings.
+* sup-cmd for easy programmatic access to a Sup index.
+* As always, many bugfixes and tweaks.
+
 == 0.10.2 / 2010-01-26
 * Update gem dependencies to pull in xapian-full and ncursesw instead of ferret
   and ncurses.
