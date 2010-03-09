@@ -42,6 +42,7 @@ EOS
 
   def initialize message, type_arg=nil
     @m = message
+    @edited = false
 
     ## it's important to put this early because it forces a read of
     ## the full headers (most importantly the list-post header, if
@@ -150,11 +151,13 @@ EOS
         :recipient
       end)
 
+    @bodies = {}
     @headers.each do |k, v|
-      HookManager.run "before-edit", :header => v, :body => body
+      @bodies[k] = body
+      HookManager.run "before-edit", :header => v, :body => @bodies[k]
     end
 
-    super :header => @headers[@type_selector.val], :body => body, :twiddles => false
+    super :header => @headers[@type_selector.val], :body => @bodies[@type_selector.val], :twiddles => false
     add_selector @type_selector
   end
 
@@ -164,6 +167,7 @@ protected
     super
     if @headers[@type_selector.val] != self.header
       self.header = @headers[@type_selector.val]
+      self.body = @bodies[@type_selector.val] unless @edited
       update
     end
   end
@@ -172,6 +176,7 @@ protected
     super
     if @headers[@type_selector.val] != self.header
       self.header = @headers[@type_selector.val]
+      self.body = @bodies[@type_selector.val] unless @edited
       update
     end
   end
@@ -188,6 +193,10 @@ protected
   end
 
   def handle_new_text new_header, new_body
+    if new_body != @bodies[@type_selector.val]
+      @bodies[@type_selector.val] = new_body
+      @edited = true
+    end
     old_header = @headers[@type_selector.val]
     if new_header.size != old_header.size || old_header.any? { |k, v| new_header[k] != v }
       @type_selector.set_to :user
