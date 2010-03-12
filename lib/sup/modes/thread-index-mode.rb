@@ -878,8 +878,11 @@ protected
 
     snippet = t.snippet + (t.snippet.empty? ? "" : "...")
 
-    size_widget_text = sprintf "%#{ @size_widget_width}s", size_widget
-    date_widget_text = sprintf "%#{ @date_widget_width}s", date_widget
+    size_padding = @size_widget_width - size_widget.display_length
+    size_widget_text = sprintf "%#{size_padding}s%s", "", size_widget
+
+    date_padding = @date_widget_width - date_widget.display_length
+    date_widget_text = sprintf "%#{date_padding}s%s", "", date_widget
 
     [ 
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
