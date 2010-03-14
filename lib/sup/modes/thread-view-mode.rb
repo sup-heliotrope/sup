@@ -111,7 +111,7 @@ EOS
   ## objects. @person_lines is a map from row #s to Person objects.
 
   def initialize thread, hidden_labels=[], index_mode=nil
-    super()
+    super :slip_rows => $config[:slip_rows]
     @thread = thread
     @hidden_labels = hidden_labels
 
