@@ -459,6 +459,11 @@ module Enumerable
   def max_of
     map { |e| yield e }.max
   end
+
+  ## returns all the entries which are equal to startline up to endline
+  def between startline, endline
+    select { |l| true if l == startline .. l == endline }
+  end
 end
 
 class Array
