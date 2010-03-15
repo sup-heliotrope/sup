@@ -264,7 +264,8 @@ else
     :default_attachment_save_dir => "",
     :sent_source => "sup://sent",
     :poll_interval => 300,
-    :wrap_width => 0
+    :wrap_width => 0,
+    :slip_rows => 0
   }
   begin
     FileUtils.mkdir_p Redwood::BASE_DIR
