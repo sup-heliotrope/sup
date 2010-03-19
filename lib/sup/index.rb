@@ -21,7 +21,7 @@ class Index
   include InteractiveLock
 
   STEM_LANGUAGE = "english"
-  INDEX_VERSION = '2'
+  INDEX_VERSION = '3'
 
   ## dates are converted to integers for xapian, and are used for document ids,
   ## so we must ensure they're reasonably valid. this typically only affect
@@ -104,8 +104,8 @@ EOS
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
       db_version = @xapian.get_metadata 'version'
       db_version = '0' if db_version.empty?
-      if db_version == '1'
-        info "Upgrading index format 1 to 2"
+      if db_version == '1' || db_version == '2'
+        info "Upgrading index format #{db_version} to #{INDEX_VERSION}"
         @xapian.set_metadata 'version', INDEX_VERSION
       elsif db_version != INDEX_VERSION
         fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please downgrade to your previous version and dump your labels before upgrading to this version (then run sup-sync --restore)."
