@@ -519,7 +519,7 @@ EOS
 
   def get_entry id
     return unless doc = find_doc(id)
-    Marshal.load doc.data
+    doc.entry
   end
 
   def thread_killed? thread_id
@@ -661,7 +661,7 @@ EOS
   def index_message_locations doc, entry, old_entry
     old_entry[:locations].map { |x| x[0] }.uniq.each { |x| doc.remove_term mkterm(:source_id, x) } if old_entry
     entry[:locations].map { |x| x[0] }.uniq.each { |x| doc.add_term mkterm(:source_id, x) }
-    old_entry[:locations].each { |x| doc.remove_term mkterm(:location, *x) } if old_entry
+    old_entry[:locations].each { |x| (doc.remove_term mkterm(:location, *x) rescue nil) } if old_entry
     entry[:locations].each { |x| doc.add_term mkterm(:location, *x) }
   end
 
@@ -743,7 +743,13 @@ end
 
 class Xapian::Document
   def entry
-    Marshal.load data
+    entry = Marshal.load data
+    if entry[:source_id]
+      entry[:locations] = [[entry[:source_id], entry[:source_info]]]
+      entry.delete :source_id
+      entry.delete :source_info
+    end
+    entry
   end
 
   def entry=(x)
