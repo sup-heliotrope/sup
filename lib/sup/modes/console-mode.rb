@@ -8,7 +8,7 @@ class Console
   end
 
   def query(query)
-    Enumerable::Enumerator.new(Index, :each_message, Index.parse_query(query))
+    Enumerator.new(Index, :each_message, Index.parse_query(query))
   end
 
   def add_labels(query, *labels)

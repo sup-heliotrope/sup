@@ -3,6 +3,7 @@ require 'lockfile'
 require 'mime/types'
 require 'pathname'
 require 'set'
+require 'enumerator'
 
 ## time for some monkeypatching!
 class Lockfile
@@ -459,6 +460,10 @@ module Enumerable
   def max_of
     map { |e| yield e }.max
   end
+end
+
+unless Object.const_defined? :Enumerator
+  Enumerator = Enumerable::Enumerator
 end
 
 class Array

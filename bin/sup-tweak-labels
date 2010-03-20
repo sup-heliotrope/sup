@@ -2,7 +2,6 @@
 
 require 'rubygems'
 require 'trollop'
-require 'enumerator'
 require "sup"; Redwood::check_library_version_against "git"
 
 class Float
@@ -84,8 +83,8 @@ begin
 
   parsed_query = index.parse_query query
   parsed_query.merge! :load_spam => true, :load_deleted => true, :load_killed => true
-  ids = Enumerable::Enumerator.new(index, :each_id, parsed_query).map
-  num_total = ids.size
+  ids = Enumerator.new(index, :each_id, parsed_query)
+  num_total = index.num_results_for parsed_query
 
   $stderr.puts "Found #{num_total} documents across #{source_ids.length} sources. Scanning..."
 
