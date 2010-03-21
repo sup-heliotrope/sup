@@ -1,6 +1,4 @@
 require "sup/mbox/loader"
-require "sup/mbox/ssh-file"
-require "sup/mbox/ssh-loader"
 
 module Redwood
 
