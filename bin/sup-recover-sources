@@ -58,17 +58,7 @@ ARGV.each do |fn|
   next if Redwood::SourceManager.source_for fn
 
   ## TODO: merge this code with the same snippet in import
-  source = 
-    case fn
-    when %r!^imaps?://!
-      print "Username for #{fn}: "
-      username = $stdin.gets.chomp
-      print "Password for #{fn} (warning: cleartext): "
-      password = $stdin.gets.chomp
-      Redwood::IMAP.new(fn, username, password, nil, !$opts[:unusual], $opts[:archive])
-    else
-      Redwood::MBox::Loader.new(fn, nil, !$opts[:unusual], $opts[:archive])
-    end
+  source = Redwood::MBox::Loader.new(fn, nil, !$opts[:unusual], $opts[:archive])
 
   source_ids = Hash.new 0
   count = 0
