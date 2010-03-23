@@ -2,7 +2,6 @@
 
 require 'rubygems'
 require 'trollop'
-require 'enumerator'
 require "sup"; Redwood::check_library_version_against "git"
 
 class Float
@@ -74,18 +73,18 @@ begin
   end.map { |s| s.id }
   Trollop::die "nothing to do: no sources" if source_ids.empty?
 
-  query = "+(" + source_ids.map { |id| "source_id:#{id}" }.join(" OR ") + ")"
+  query = "(" + source_ids.map { |id| "source_id:#{id}" }.join(" OR ") + ")"
   if add_labels.empty?
     ## if all we're doing is removing labels, we can further restrict the
     ## query to only messages with those labels
-    query += " +(" + remove_labels.map { |l| "label:#{l}" }.join(" ") + ")"
+    query += " (" + remove_labels.map { |l| "label:#{l}" }.join(" OR ") + ")"
   end
   query += ' ' + opts[:query] if opts[:query]
 
   parsed_query = index.parse_query query
   parsed_query.merge! :load_spam => true, :load_deleted => true, :load_killed => true
-  ids = Enumerable::Enumerator.new(index, :each_id, parsed_query).map
-  num_total = ids.size
+  ids = Enumerator.new(index, :each_id, parsed_query)
+  num_total = index.num_results_for parsed_query
 
   $stderr.puts "Found #{num_total} documents across #{source_ids.length} sources. Scanning..."
 

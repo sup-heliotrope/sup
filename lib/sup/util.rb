@@ -3,6 +3,7 @@ require 'lockfile'
 require 'mime/types'
 require 'pathname'
 require 'set'
+require 'enumerator'
 
 ## time for some monkeypatching!
 class Lockfile
@@ -464,6 +465,10 @@ module Enumerable
   def between startline, endline
     select { |l| true if l == startline .. l == endline }
   end
+end
+
+unless Object.const_defined? :Enumerator
+  Enumerator = Enumerable::Enumerator
 end
 
 class Array

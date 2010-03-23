@@ -3,6 +3,7 @@ ENV["XAPIAN_FLUSH_THRESHOLD"] = "1000"
 require 'xapian'
 require 'set'
 require 'fileutils'
+require 'monitor'
 
 begin
   require 'chronic'
