@@ -51,6 +51,7 @@ module Redwood
   SUICIDE_FN = File.join(BASE_DIR, "please-kill-yourself")
   HOOK_DIR   = File.join(BASE_DIR, "hooks")
   SEARCH_FN  = File.join(BASE_DIR, "searches.txt")
+  LOG_FN     = File.join(BASE_DIR, "log")
 
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
@@ -286,6 +287,7 @@ Redwood::HookManager.init Redwood::HOOK_DIR
 ## everything we need to get logging working
 require "sup/logger"
 Redwood::Logger.init.add_sink $stderr
+Redwood::Logger.add_sink File.open(Redwood::LOG_FN, 'a')
 include Redwood::LogsStuff
 
 ## determine encoding and character set
@@ -309,7 +311,6 @@ require "sup/message"
 require "sup/source"
 require "sup/mbox"
 require "sup/maildir"
-require "sup/imap"
 require "sup/person"
 require "sup/account"
 require "sup/thread"
