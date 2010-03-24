@@ -122,47 +122,32 @@ class MBox < Source
   end
 
   def each
-    offset = 0
+    offset = first_new_message
     end_offset = File.size @f
-    while offset < end_offset
-      returned_offset = nil
-      next_offset = offset
-
-      begin
-        @mutex.synchronize do
-          @f.seek offset
-
-          ## offset could be at one of two places here:
-
-          ## 1. before a \n and a mbox separator, if it was previously at
-          ##    EOF and a new message was added; or,
-          ## 2. at the beginning of an mbox separator (in all other
-          ##    cases).
-
-          l = @f.gets or break
-          if l =~ /^\s*$/ # case 1
-            returned_offset = @f.tell
-            @f.gets # now we're at a BREAK_RE, so skip past it
-          else # case 2
-            returned_offset = offset
-            ## we've already skipped past the BREAK_RE, so just go
-          end
-
-          while(line = @f.gets)
-            break if MBox::is_break_line? line
-            next_offset = @f.tell
-          end
-        end
-      rescue SystemCallError, IOError => e
-        raise FatalSourceError, "Error reading #{@f.path}: #{e.message}"
-      end
-
-      offset = next_offset
-      yield returned_offset, (labels + [:unread])
+    while offset and offset < end_offset
+      yield offset, (labels + [:unread])
+      offset = next_offset offset
     end
   end
 
-  def next
+  def next_offset offset
+    @mutex.synchronize do
+      @f.seek offset
+      nil while line = @f.gets and not MBox::is_break_line? line
+      @f.tell
+    end
+  end
+
+  ## TODO binary search
+  def first_new_message
+    offset = 0
+    end_offset = File.size @f
+    while offset < end_offset
+      offset = next_offset offset
+      new = Index.num_results_for(:location => [@id, offset]) == 0
+      return offset if new
+    end
+    return nil
   end
 
   def self.is_break_line? l
