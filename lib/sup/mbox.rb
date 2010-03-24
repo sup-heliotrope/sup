@@ -30,7 +30,6 @@ class MBox < Source
       @path = uri_or_fp.path
     end
 
-    @offset = 0
     super uri_or_fp, usual, archived, id
   end
 
@@ -73,18 +72,6 @@ class MBox < Source
       rescue RMail::Parser::Error => e
         raise FatalSourceError, "error parsing mbox file: #{e.message}"
       end
-    end
-  end
-
-  ## scan forward until we're at the valid start of a message
-  def correct_offset!
-    @mutex.synchronize do
-      @f.seek @offset
-      string = ""
-      until @f.eof? || MBox::is_break_line?(l = @f.gets)
-        string << l
-      end
-      @offset += string.length
     end
   end
 
@@ -131,20 +118,21 @@ class MBox < Source
   end
 
   def pct_done
-    (@offset.to_f / File.size(@f)) * 100
+    (0.to_f / File.size(@f)) * 100
   end
 
   def each
+    offset = 0
     end_offset = File.size @f
-    while @offset < end_offset
+    while offset < end_offset
       returned_offset = nil
-      next_offset = @offset
+      next_offset = offset
 
       begin
         @mutex.synchronize do
-          @f.seek @offset
+          @f.seek offset
 
-          ## @offset could be at one of two places here:
+          ## offset could be at one of two places here:
 
           ## 1. before a \n and a mbox separator, if it was previously at
           ##    EOF and a new message was added; or,
@@ -156,7 +144,7 @@ class MBox < Source
             returned_offset = @f.tell
             @f.gets # now we're at a BREAK_RE, so skip past it
           else # case 2
-            returned_offset = @offset
+            returned_offset = offset
             ## we've already skipped past the BREAK_RE, so just go
           end
 
@@ -169,7 +157,7 @@ class MBox < Source
         raise FatalSourceError, "Error reading #{@f.path}: #{e.message}"
       end
 
-      @offset = next_offset
+      offset = next_offset
       yield returned_offset, (labels + [:unread])
     end
   end
