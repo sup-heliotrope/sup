@@ -59,50 +59,29 @@ class Source
   ## Examples for you to look at: mbox/loader.rb, imap.rb, and
   ## maildir.rb.
 
-  ## let's begin!
-  ##
-  ## dirty? means cur_offset has changed, so the source info needs to
-  ## be re-saved to sources.yaml.
-  bool_reader :usual, :archived, :dirty
-  attr_reader :uri, :cur_offset
+  bool_reader :usual, :archived
+  attr_reader :uri
   attr_accessor :id
 
-  def initialize uri, initial_offset=nil, usual=true, archived=false, id=nil
+  def initialize uri, usual=true, archived=false, id=nil
     raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
 
     @uri = uri
-    @cur_offset = initial_offset
     @usual = usual
     @archived = archived
     @id = id
-    @dirty = false
   end
 
   ## overwrite me if you have a disk incarnation (currently used only for sup-sync-back)
   def file_path; nil end
 
   def to_s; @uri.to_s; end
-  def seek_to! o; self.cur_offset = o; end
-  def reset!; seek_to! start_offset; end
   def == o; o.uri == uri; end
-  def done?; start_offset.nil? || (self.cur_offset ||= start_offset) >= end_offset; end
   def is_source_for? uri; uri == @uri; end
 
-  ## check should throw a FatalSourceError or an OutOfSyncSourcError
-  ## if it can detect a problem. it is called when the sup starts up
-  ## to proactively notify the user of any source problems.
-  def check; end
-
-  ## yields successive offsets and labels, starting at #cur_offset.
-  ##
-  ## when implementing a source, you can overwrite either #each or #next. the
-  ## default #each just calls next over and over.
+  ## yields successive offsets and labels
   def each
-    self.cur_offset ||= start_offset
-    until done?
-      offset, labels = self.next
-      yield offset, labels
-    end
+    unimplemented
   end
 
   ## utility method to read a raw email header from an IO stream and turn it
@@ -153,11 +132,6 @@ protected
 
   def Source.expand_filesystem_uri uri
     uri.gsub "~", File.expand_path("~")
-  end
-
-  def cur_offset= o
-    @cur_offset = o
-    @dirty = true
   end
 end
 
@@ -219,7 +193,7 @@ class SourceManager
 
   def save_sources fn=Redwood::SOURCE_FN
     @source_mutex.synchronize do
-      if @sources_dirty || @sources.any? { |id, s| s.dirty? }
+      if @sources_dirty
         bakfn = fn + ".bak"
         if File.exists? fn
           File.chmod 0600, fn

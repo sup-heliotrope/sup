@@ -53,16 +53,6 @@ where <source>* is zero or more source URIs. If no sources are given,
 sync from all usual sources. Supported source URI schemes can be seen
 by running "sup-add --help".
 
-Options controlling WHICH messages sup-sync operates on:
-EOS
-  opt :new, "Operate on new messages only. Don't scan over the entire source. (Default.)", :short => :none
-  opt :changed, "Scan over the entire source for messages that have been deleted, altered, or moved from another source."
-  opt :restored, "Operate only on those messages included in a dump file as specified by --restore which have changed state."
-  opt :all, "Operate on all messages in the source, regardless of newness or changedness."
-  opt :start_at, "For --changed, --restored and --all, start at a particular offset.", :type => :int
-
-text <<EOS
-
 Options controlling HOW message state is altered:
 EOS
   opt :asis, "If the message is already in the index, preserve its state. Otherwise, use default source state. (Default.)", :short => :none
@@ -82,16 +72,9 @@ EOS
   opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
   opt :version, "Show version information", :short => :none
 
-  conflicts :changed, :all, :new, :restored
   conflicts :asis, :restore, :discard
 end
-Trollop::die :restored, "requires --restore" if opts[:restored] unless opts[:restore]
-if opts[:start_at]
-  Trollop::die :start_at, "must be non-negative" if opts[:start_at] < 0
-  Trollop::die :start_at, "requires either --changed, --restored or --all" unless opts[:changed] || opts[:restored] || opts[:all]
-end
 
-target = [:new, :changed, :all, :restored].find { |x| opts[x] } || :new
 op = [:asis, :restore, :discard].find { |x| opts[x] } || :asis
 
 Redwood::start
@@ -126,18 +109,6 @@ begin
     end
   end
 
-  ## for all target specifications except for only-new messages, reset the
-  ## source to the beginning (or to the user-specified starting point.)
-  unless target == :new
-    if opts[:start_at]
-      Trollop::die :start_at, "can only be used on one source" unless sources.size == 1
-      sources.first.seek_to! opts[:start_at]
-      sources.first.correct_offset! if sources.first.respond_to?(:correct_offset!)
-    else
-      sources.each { |s| s.reset! }
-    end
-  end
-
   sources.each do |source|
     puts "Scanning #{source}..."
     num_added = num_updated = num_scanned = num_restored = 0
@@ -147,24 +118,6 @@ begin
       num_scanned += 1
       seen[m.id] = true
       old_m = index.build_message m.id
-
-      case target
-      when :changed
-        ## skip this message if we're operating only on changed messages, the
-        ## message is in the index, and it's unchanged from what the source is
-        ## reporting.
-        next if old_m && old_m.locations.member?([m.source, m.source_info])
-      when :restored
-        ## skip if we're operating on restored messages, and this one
-        ## ain't (or we wouldn't be making a change)
-        next unless old_m && restored_state[m.id] && restored_state[m.id] != old_m.labels
-      when :new
-        ## nothing to do; we'll consider all messages starting at the start offset, which
-        ## hasn't been changed.
-      when :all
-        ## nothing to do; we'll consider all messages starting at the start offset, which
-        ## was reset to the beginning above.
-      end
 
       ## tweak source labels according to commandline arguments if necessary
       m.labels.delete :inbox if opts[:archive]
@@ -226,34 +179,14 @@ begin
       if Time.now - last_info_time > PROGRESS_UPDATE_INTERVAL
         last_info_time = Time.now
         elapsed = last_info_time - start_time
-        pctdone = source.respond_to?(:pct_done) ? source.pct_done : 100.0 * (source.cur_offset.to_f - source.start_offset).to_f / (source.end_offset - source.start_offset).to_f
+        pctdone = source.pct_done
         remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
-        printf "## read %dm (~%.0f%%) @ %.1fm/s. %s elapsed, ~%s remaining, offset #{source.cur_offset}\n", num_scanned, pctdone, num_scanned / elapsed, elapsed.to_time_s, remaining.to_time_s
+        printf "## read %dm (~%.0f%%) @ %.1fm/s. %s elapsed, ~%s remaining\n", num_scanned, pctdone, num_scanned / elapsed, elapsed.to_time_s, remaining.to_time_s
       end
     end
 
     puts "Scanned #{num_scanned}, added #{num_added}, updated #{num_updated} messages from #{source}."
     puts "Restored state on #{num_restored} (#{100.0 * num_restored / num_scanned}%) messages." if num_restored > 0
-  end
-
-  ## delete any messages in the index that claim they're from one of
-  ## these sources, but that we didn't see.
-  if (target == :all || target == :changed)
-    puts "Deleting missing messages from the index..."
-    num_del, num_scanned = 0, 0
-    sources.each do |source|
-      raise "no source id for #{source}" unless source.id
-      index.each_message :source_id => source.id, :load_spam => true, :load_deleted => true, :load_killed => true do |m|
-        num_scanned += 1
-        unless seen[m.id]
-          next unless m.source_info >= opts[:start_at] if opts[:start_at]
-          puts "Deleting #{m.id}" if opts[:verbose]
-          index.delete m.id unless opts[:dry_run]
-          num_del += 1
-        end
-      end
-    end
-    puts "Deleted #{num_del} / #{num_scanned} messages"
   end
 
   index.save

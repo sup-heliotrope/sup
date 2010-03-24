@@ -8,12 +8,12 @@ class MBox < Source
   BREAK_RE = /^From \S+ (.+)$/
 
   include SerializeLabelsNicely
-  yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
+  yaml_properties :uri, :usual, :archived, :id, :labels
 
   attr_reader :labels
 
   ## uri_or_fp is horrific. need to refactor.
-  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=nil
+  def initialize uri_or_fp, usual=true, archived=false, id=nil, labels=nil
     @mutex = Mutex.new
     @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
 
@@ -30,8 +30,8 @@ class MBox < Source
       @path = uri_or_fp.path
     end
 
-    start_offset ||= 0
-    super uri_or_fp, start_offset, usual, archived, id
+    @offset = 0
+    super uri_or_fp, usual, archived, id
   end
 
   def file_path; @path end
@@ -46,15 +46,6 @@ class MBox < Source
       [File.basename(path).downcase.intern]
     end
   end
-
-  def check
-    if (cur_offset ||= start_offset) > end_offset
-      raise OutOfSyncSourceError, "mbox file is smaller than last recorded message offset. Messages have probably been deleted by another client."
-    end
-  end
-
-  def start_offset; 0; end
-  def end_offset; File.size @f; end
 
   def load_header offset
     header = nil
@@ -88,12 +79,12 @@ class MBox < Source
   ## scan forward until we're at the valid start of a message
   def correct_offset!
     @mutex.synchronize do
-      @f.seek cur_offset
+      @f.seek @offset
       string = ""
       until @f.eof? || MBox::is_break_line?(l = @f.gets)
         string << l
       end
-      self.cur_offset += string.length
+      @offset += string.length
     end
   end
 
@@ -139,41 +130,51 @@ class MBox < Source
     end
   end
 
-  def next
-    returned_offset = nil
-    next_offset = cur_offset
+  def pct_done
+    (@offset.to_f / File.size(@f)) * 100
+  end
 
-    begin
-      @mutex.synchronize do
-        @f.seek cur_offset
+  def each
+    end_offset = File.size @f
+    while @offset < end_offset
+      returned_offset = nil
+      next_offset = @offset
 
-        ## cur_offset could be at one of two places here:
+      begin
+        @mutex.synchronize do
+          @f.seek @offset
 
-        ## 1. before a \n and a mbox separator, if it was previously at
-        ##    EOF and a new message was added; or,
-        ## 2. at the beginning of an mbox separator (in all other
-        ##    cases).
+          ## @offset could be at one of two places here:
 
-        l = @f.gets or return nil
-        if l =~ /^\s*$/ # case 1
-          returned_offset = @f.tell
-          @f.gets # now we're at a BREAK_RE, so skip past it
-        else # case 2
-          returned_offset = cur_offset
-          ## we've already skipped past the BREAK_RE, so just go
+          ## 1. before a \n and a mbox separator, if it was previously at
+          ##    EOF and a new message was added; or,
+          ## 2. at the beginning of an mbox separator (in all other
+          ##    cases).
+
+          l = @f.gets or break
+          if l =~ /^\s*$/ # case 1
+            returned_offset = @f.tell
+            @f.gets # now we're at a BREAK_RE, so skip past it
+          else # case 2
+            returned_offset = @offset
+            ## we've already skipped past the BREAK_RE, so just go
+          end
+
+          while(line = @f.gets)
+            break if MBox::is_break_line? line
+            next_offset = @f.tell
+          end
         end
-
-        while(line = @f.gets)
-          break if MBox::is_break_line? line
-          next_offset = @f.tell
-        end
+      rescue SystemCallError, IOError => e
+        raise FatalSourceError, "Error reading #{@f.path}: #{e.message}"
       end
-    rescue SystemCallError, IOError => e
-      raise FatalSourceError, "Error reading #{@f.path}: #{e.message}"
-    end
 
-    self.cur_offset = next_offset
-    [returned_offset, (labels + [:unread])]
+      @offset = next_offset
+      yield returned_offset, (labels + [:unread])
+    end
+  end
+
+  def next
   end
 
   def self.is_break_line? l
@@ -190,7 +191,7 @@ class MBox < Source
   end
 
   class Loader < self
-    yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
+    yaml_properties :uri, :usual, :archived, :id, :labels
   end
 end
 end

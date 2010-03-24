@@ -14,9 +14,9 @@ class Maildir < Source
   MYHOSTNAME = Socket.gethostname
 
   ## remind me never to use inheritance again.
-  yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels, :mtimes
-  def initialize uri, last_date=nil, usual=true, archived=false, id=nil, labels=[], mtimes={}
-    super uri, last_date, usual, archived, id
+  yaml_properties :uri, :usual, :archived, :id, :labels
+  def initialize uri, usual=true, archived=false, id=nil, labels=[]
+    super uri, usual, archived, id
     uri = URI(Source.expand_filesystem_uri(uri))
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
@@ -32,20 +32,13 @@ class Maildir < Source
     #the mtime from the subdirs in the maildir with the unix epoch as default.
     #these are used to determine whether scanning the directory for new mail
     #is a worthwhile effort
-    @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }.merge(mtimes || {})
+    @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
     @dir_ids = { 'cur' => [], 'new' => [] }
   end
 
   def file_path; @dir end
   def self.suggest_labels_for path; [] end
   def is_source_for? uri; super || (URI(Source.expand_filesystem_uri(uri)) == URI(self.uri)); end
-
-  def check
-    scan_mailbox
-    return unless start_offset
-
-    start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
-  end
 
   def store_message date, from_email, &block
     stored = false
@@ -150,13 +143,7 @@ class Maildir < Source
 
   def each
     scan_mailbox
-    return unless start_offset
-
-    start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
-
-    start.upto(@ids.length - 1) do |i|
-      id = @ids[i]
-      self.cur_offset = id
+    @ids.each do |id|
       yield id, @labels + (seen?(id) ? [] : [:unread]) + (trashed?(id) ? [:deleted] : []) + (flagged?(id) ? [:starred] : [])
     end
   end
@@ -171,7 +158,7 @@ class Maildir < Source
     @ids.last + 1
   end
 
-  def pct_done; 100.0 * (@ids.index(cur_offset) || 0).to_f / (@ids.length - 1).to_f; end
+  def pct_done; 100.0 * (0).to_f / (@ids.length - 1).to_f; end
 
   def draft? msg; maildir_data(msg)[2].include? "D"; end
   def flagged? msg; maildir_data(msg)[2].include? "F"; end

@@ -102,9 +102,8 @@ EOS
 
     @mutex.synchronize do
       @poll_sources.each do |source|
-#        yield "source #{source} is done? #{source.done?} (cur_offset #{source.cur_offset} >= #{source.end_offset})"
         begin
-          yield "Loading from #{source}... " unless source.done? || (source.respond_to?(:has_errors?) && source.has_errors?)
+          yield "Loading from #{source}... " unless source.has_errors?
         rescue SourceError => e
           warn "problem getting messages from #{source}: #{e.message}"
           Redwood::report_broken_sources :force_to_top => true
@@ -160,7 +159,7 @@ EOS
   ## this is the primary mechanism for iterating over messages from a source.
   def each_message_from source, opts={}
     begin
-      return if source.done? || source.has_errors?
+      return if source.has_errors?
 
       source.each do |offset, source_labels|
         if source.has_errors?

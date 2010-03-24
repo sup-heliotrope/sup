@@ -97,9 +97,9 @@ begin
     source = 
       case parsed_uri.scheme
       when "maildir"
-        Redwood::Maildir.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
+        Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when "mbox"
-        Redwood::MBox::Loader.new uri, nil, !$opts[:unusual], $opts[:archive], nil, labels
+        Redwood::MBox::Loader.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when nil
         Trollop::die "Sources must be specified with an URI"
       else
