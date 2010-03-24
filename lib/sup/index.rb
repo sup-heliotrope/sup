@@ -553,6 +553,7 @@ EOS
     pos_terms.concat(labels.map { |l| mkterm(:label,l) })
     pos_terms << opts[:qobj] if opts[:qobj]
     pos_terms << mkterm(:source_id, opts[:source_id]) if opts[:source_id]
+    pos_terms << mkterm(:location, *opts[:location]) if opts[:location]
 
     if opts[:participants]
       participant_terms = opts[:participants].map { |p| [:from,:to].map { |d| mkterm(:email, d, (Redwood::Person === p) ? p.email : p) } }.flatten
