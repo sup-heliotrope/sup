@@ -20,6 +20,7 @@ class Maildir < Source
     @dir = uri.path
     @labels = Set.new(labels || [])
     @mutex = Mutex.new
+    @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
   end
 
   def file_path; @dir end
@@ -86,13 +87,20 @@ class Maildir < Source
 
   ## XXX use less memory
   def each
-    old_ids = benchmark(:index) { Enumerator.new(Index, :each_source_info, self.id).to_a }
-    new_ids = benchmark(:glob) { Dir.glob("#{@dir}/*/*").map { |x| x[@dir.length..-1] }.sort }
-    added = new_ids - old_ids
-    deleted = old_ids - new_ids
-    info "#{added.size} added, #{deleted.size} deleted"
-    added.each do |id|
-      yield id, @labels + (seen?(id) ? [] : [:unread]) + (trashed?(id) ? [:deleted] : []) + (flagged?(id) ? [:starred] : [])
+    @mtimes.each do |d,prev_mtime|
+      subdir = File.join @dir, d
+      raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
+      mtime = File.mtime subdir
+      next if prev_mtime >= mtime
+      @mtimes[d] = mtime
+      old_ids = benchmark(:index) { Enumerator.new(Index, :each_source_info, self.id, "#{subdir}/").to_a }
+      new_ids = benchmark(:glob) { Dir.glob("#{@dir}/#{subdir}/*").map { |x| x[@dir.length..-1] }.sort }
+      added = new_ids - old_ids
+      deleted = old_ids - new_ids
+      info "#{added.size} added, #{deleted.size} deleted"
+      added.each do |id|
+        yield id, @labels + (seen?(id) ? [] : [:unread]) + (trashed?(id) ? [:deleted] : []) + (flagged?(id) ? [:starred] : [])
+      end
     end
     nil
   end
