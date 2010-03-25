@@ -142,8 +142,7 @@ class MBox < Source
   ## TODO optimize this by iterating over allterms list backwards or
   ## storing source_info negated
   def last_indexed_message
-    prefix = "J#{[@id].pack('n')}" # XXX index internal
-    Enumerator.new(Index, :each_prefixed_term, prefix).map { |x| x[prefix.length..-1].to_i }.max
+    Enumerator.new(Index, :each_source_info, self.id).map(&:to_i).max
   end
 
   ## offset of first new message or nil

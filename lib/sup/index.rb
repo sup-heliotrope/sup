@@ -276,6 +276,14 @@ EOS
     nil
   end
 
+  ## Yields (in lexicographical order) the source infos of all locations from the given source
+  def each_source_info source_id, &b
+    prefix = mkterm :location, source_id, ''
+    each_prefixed_term prefix do |x|
+      yield x[prefix.length..-1]
+    end
+  end
+
   class ParseError < StandardError; end
 
   ## parse a query string from the user. returns a query object
