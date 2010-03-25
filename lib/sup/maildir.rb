@@ -97,7 +97,7 @@ class Maildir < Source
     nil
   end
 
-  def pct_done; 100.0 * (0).to_f / (@ids.length - 1).to_f; end
+  def pct_done; 0.0; end
 
   def draft? id; maildir_data(id)[2].include? "D"; end
   def flagged? id; maildir_data(id)[2].include? "F"; end

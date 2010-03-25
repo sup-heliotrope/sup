@@ -118,7 +118,7 @@ class MBox < Source
   end
 
   def pct_done
-    (0.to_f / File.size(@f)) * 100
+    0.0
   end
 
   def each
