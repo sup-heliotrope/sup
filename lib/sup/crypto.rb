@@ -97,6 +97,20 @@ EOS
     encrypt from, to, payload, true
   end
 
+  def verified_ok? output, rc
+    output_lines = output.split(/\n/)
+
+    if output =~ /^gpg: (.* signature from .*$)/
+      if rc == 0
+        Chunk::CryptoNotice.new :valid, $1, output_lines
+      else
+        Chunk::CryptoNotice.new :invalid, $1, output_lines
+      end
+    else
+      unknown_status output_lines
+    end
+  end
+
   def verify payload, signature, detached=true # both RubyMail::Message objects
     return unknown_status(cant_find_binary) unless @cmd
 
@@ -115,17 +129,8 @@ EOS
     else
       output = run_gpg "--verify #{signature_fn.path}"
     end
-    output_lines = output.split(/\n/)
 
-    if output =~ /^gpg: (.* signature from .*$)/
-      if $? == 0
-        Chunk::CryptoNotice.new :valid, $1, output_lines
-      else
-        Chunk::CryptoNotice.new :invalid, $1, output_lines
-      end
-    else
-      unknown_status output_lines
-    end
+    self.verified_ok? output, $?
   end
 
   ## returns decrypted_message, status, desc, lines
@@ -139,7 +144,7 @@ EOS
     output_fn = Tempfile.new "redwood.output"
     output_fn.close
 
-    message = run_gpg "--output #{output_fn.path} --yes --decrypt #{payload_fn.path}", :interactive => true
+    message = run_gpg "--output #{output_fn.path} --skip-verify --yes --decrypt #{payload_fn.path}", :interactive => true
 
     unless $?.success?
       info "Error while running gpg: #{message}"
@@ -149,15 +154,10 @@ EOS
     output = IO.read output_fn.path
     output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
 
-    ## there's probably a better way to do this, but we're using the output to
-    ## look for a valid signature being present.
-
-    sig = case message
-    when /^gpg: (Good signature from .*$)/i
-      Chunk::CryptoNotice.new :valid, $1, message.split("\n")
-    when /^gpg: (Bad signature from .*$)/i
-      Chunk::CryptoNotice.new :invalid, $1, message.split("\n")
-    end
+    ## check for a valid signature in an extra run because gpg aborts if the
+    ## signature cannot be verified (but it is still able to decrypt)
+    sigoutput = run_gpg "#{payload_fn.path}"
+    sig = self.verified_ok? sigoutput, $?
 
     if armor
       msg = RMail::Message.new
