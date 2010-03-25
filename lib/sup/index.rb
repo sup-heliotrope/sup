@@ -276,9 +276,10 @@ EOS
     nil
   end
 
-  ## Yields (in lexicographical order) the source infos of all locations from the given source
-  def each_source_info source_id, &b
-    prefix = mkterm :location, source_id, ''
+  ## Yields (in lexicographical order) the source infos of all locations from
+  ## the given source with the given source_info prefix
+  def each_source_info source_id, prefix='', &b
+    prefix = mkterm :location, source_id, prefix
     each_prefixed_term prefix do |x|
       yield x[prefix.length..-1]
     end
