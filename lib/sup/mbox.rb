@@ -134,20 +134,21 @@ class MBox < Source
     @mutex.synchronize do
       @f.seek offset
       nil while line = @f.gets and not MBox::is_break_line? line
-      @f.tell
+      offset = @f.tell
+      offset != File.size(@f) ? offset : nil
     end
   end
 
-  ## TODO binary search
+  ## TODO optimize this by iterating over allterms list backwards or
+  ## storing source_info negated
+  def last_indexed_message
+    prefix = "J#{[@id].pack('n')}" # XXX index internal
+    Enumerator.new(Index, :each_prefixed_term, prefix).map { |x| x[prefix.length..-1].to_i }.max
+  end
+
+  ## offset of first new message or nil
   def first_new_message
-    offset = 0
-    end_offset = File.size @f
-    while offset < end_offset
-      offset = next_offset offset
-      new = Index.num_results_for(:location => [@id, offset]) == 0
-      return offset if new
-    end
-    return nil
+    next_offset(last_indexed_message || 0)
   end
 
   def self.is_break_line? l

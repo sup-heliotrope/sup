@@ -265,6 +265,17 @@ EOS
     synchronize { get_entry(id)[:source_id] }
   end
 
+  ## Yields each tearm in the index that starts with prefix
+  def each_prefixed_term prefix
+    term = @xapian._dangerous_allterms_begin prefix
+    lastTerm = @xapian._dangerous_allterms_end prefix
+    until term.equals lastTerm
+      yield term.term
+      term.next
+    end
+    nil
+  end
+
   class ParseError < StandardError; end
 
   ## parse a query string from the user. returns a query object
