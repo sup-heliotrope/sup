@@ -4,6 +4,7 @@ require 'mime/types'
 require 'pathname'
 require 'set'
 require 'enumerator'
+require 'benchmark'
 
 ## time for some monkeypatching!
 class Lockfile
@@ -175,6 +176,13 @@ class Object
         end
       EOF
     end
+  end
+
+  def benchmark s, &b
+    ret = nil
+    times = Benchmark.measure { ret = b.call }
+    debug "benchmark #{s}: #{times}"
+    ret
   end
 end
 

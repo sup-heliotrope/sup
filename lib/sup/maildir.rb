@@ -86,8 +86,8 @@ class Maildir < Source
 
   ## XXX use less memory
   def each
-    old_ids = Enumerator.new(Index, :each_source_info, self.id).to_a
-    new_ids = Dir.glob("#{@dir}/*/*").map { |x| x[@dir.length..-1] }.sort
+    old_ids = benchmark(:index) { Enumerator.new(Index, :each_source_info, self.id).to_a }
+    new_ids = benchmark(:glob) { Dir.glob("#{@dir}/*/*").map { |x| x[@dir.length..-1] }.sort }
     added = new_ids - old_ids
     deleted = old_ids - new_ids
     info "#{added.size} added, #{deleted.size} deleted"
