@@ -148,16 +148,6 @@ class Maildir < Source
     end
   end
 
-  def start_offset
-    scan_mailbox
-    @ids.first
-  end
-
-  def end_offset
-    scan_mailbox :rescan => true
-    @ids.last + 1
-  end
-
   def pct_done; 100.0 * (0).to_f / (@ids.length - 1).to_f; end
 
   def draft? msg; maildir_data(msg)[2].include? "D"; end
