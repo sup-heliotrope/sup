@@ -171,7 +171,8 @@ EOS
         fail unless sym == :add
 
         m = Message.build_from_source source, args[:info]
-        m.labels += args[:labels] + (source.archived? ? [] : [:inbox])
+        m.labels += args[:labels]
+        m.labels.delete :unread if source.read?
         m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
         m.labels.each { |l| LabelManager << l }
 
@@ -181,6 +182,14 @@ EOS
     rescue SourceError => e
       warn "problem getting messages from #{source}: #{e.message}"
       Redwood::report_broken_sources :force_to_top => true
+    end
+  end
+
+  def add_new_messages source, add_labels, remove_labels
+    each_message_from(source) do |m|
+      remove_labels.each { |l| m.remove_label l }
+      add_labels.each { |l| m.add_label l }
+      add_new_message m
     end
   end
 

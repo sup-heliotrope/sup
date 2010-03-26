@@ -79,6 +79,8 @@ class Source
   def == o; o.uri == uri; end
   def is_source_for? uri; uri == @uri; end
 
+  def read?; false; end
+
   ## Yields values of the form [Symbol, Hash]
   ## add: info, labels, progress
   ## delete: info, progress
