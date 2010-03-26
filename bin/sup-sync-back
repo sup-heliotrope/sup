@@ -82,12 +82,12 @@ begin
 
   sources = ARGV.map do |uri|
     s = Redwood::SourceManager.source_for(uri) or die "unknown source: #{uri}. Did you add it with sup-add first?"
-    s.is_a?(Redwood::MBox::Loader) or die "#{uri} is not an mbox source."
+    s.is_a?(Redwood::MBox) or die "#{uri} is not an mbox source."
     s
   end
 
   if sources.empty?
-    sources = Redwood::SourceManager.usual_sources.select { |s| s.is_a? Redwood::MBox::Loader }
+    sources = Redwood::SourceManager.usual_sources.select { |s| s.is_a? Redwood::MBox }
   end
 
   unless sources.all? { |s| s.file_path.nil? } || File.executable?(dotlockfile) || opts[:dont_use_dotlockfile]

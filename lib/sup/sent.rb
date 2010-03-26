@@ -35,7 +35,7 @@ class SentManager
   end
 end
 
-class SentLoader < MBox::Loader
+class SentLoader < MBox
   yaml_properties
 
   def initialize
