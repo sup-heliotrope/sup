@@ -86,26 +86,41 @@ class Maildir < Source
   end
 
   ## XXX use less memory
-  def each
+  def poll
     @mtimes.each do |d,prev_mtime|
       subdir = File.join @dir, d
       raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
       mtime = File.mtime subdir
       next if prev_mtime >= mtime
       @mtimes[d] = mtime
-      old_ids = benchmark(:index) { Enumerator.new(Index, :each_source_info, self.id, "#{subdir}/").to_a }
-      new_ids = benchmark(:glob) { Dir.glob("#{subdir}/*").map { |x| x[@dir.length..-1] }.sort }
+
+      old_ids = benchmark(:index) { Enumerator.new(Index, :each_source_info, self.id, "#{d}/").to_a }
+      new_ids = benchmark(:glob) { Dir.glob("#{subdir}/*").map { |x| File.basename x }.sort }
       added = new_ids - old_ids
       deleted = old_ids - new_ids
-      info "#{added.size} added, #{deleted.size} deleted"
+      debug "#{added.size} added, #{deleted.size} deleted"
+
       added.each do |id|
-        yield id, @labels + (seen?(id) ? [] : [:unread]) + (trashed?(id) ? [:deleted] : []) + (flagged?(id) ? [:starred] : [])
+        yield :add,
+          :info => File.join(d,id),
+          :labels => @labels + maildir_labels(id),
+          :progress => 0.0
+      end
+
+      deleted.each do |id|
+        yield :delete,
+          :info => File.join(d,id),
+          :progress => 0.0
       end
     end
     nil
   end
 
-  def pct_done; 0.0; end
+  def maildir_labels id
+    (seen?(id) ? [] : [:unread]) +
+      (trashed?(id) ?  [:deleted] : []) +
+      (flagged?(id) ? [:starred] : [])
+  end
 
   def draft? id; maildir_data(id)[2].include? "D"; end
   def flagged? id; maildir_data(id)[2].include? "F"; end

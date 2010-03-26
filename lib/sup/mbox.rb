@@ -121,11 +121,14 @@ class MBox < Source
     0.0
   end
 
-  def each
+  def poll
     offset = first_new_message
     end_offset = File.size @f
     while offset and offset < end_offset
-      yield offset, (labels + [:unread])
+      yield :add,
+        :info => offset,
+        :labels => (labels + [:unread]),
+        :progress => 0.0
       offset = next_offset offset
     end
   end

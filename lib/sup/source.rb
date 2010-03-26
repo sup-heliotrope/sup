@@ -79,8 +79,10 @@ class Source
   def == o; o.uri == uri; end
   def is_source_for? uri; uri == @uri; end
 
-  ## yields successive offsets and labels
-  def each
+  ## Yields values of the form [Symbol, Hash]
+  ## add: info, labels, progress
+  ## delete: info, progress
+  def poll
     unimplemented
   end
 

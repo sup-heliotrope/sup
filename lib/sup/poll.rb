@@ -161,14 +161,17 @@ EOS
     begin
       return if source.has_errors?
 
-      source.each do |offset, source_labels|
+      source.poll do |sym, args|
         if source.has_errors?
           warn "error loading messages from #{source}: #{source.error.message}"
           return
         end
 
-        m = Message.build_from_source source, offset
-        m.labels += source_labels + (source.archived? ? [] : [:inbox])
+        next if sym == :delete
+        fail unless sym == :add
+
+        m = Message.build_from_source source, args[:info]
+        m.labels += args[:labels] + (source.archived? ? [] : [:inbox])
         m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
         m.labels.each { |l| LabelManager << l }
 
