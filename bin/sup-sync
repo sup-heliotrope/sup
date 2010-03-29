@@ -114,7 +114,12 @@ begin
     num_added = num_updated = num_scanned = num_restored = 0
     last_info_time = start_time = Time.now
 
-    Redwood::PollManager.each_message_from source do |m|
+    Redwood::PollManager.each_message_from source do |action,m|
+      if action == :delete
+        puts "Deleting #{m.id}"
+        next
+      end
+
       num_scanned += 1
       seen[m.id] = true
       old_m = index.build_message m.id

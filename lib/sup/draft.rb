@@ -43,12 +43,12 @@ class DraftLoader < Source
   def to_s; DraftManager.source_name; end
   def uri; DraftManager.source_name; end
 
-  def each
+  def poll
     ids = get_ids
     ids.each do |id|
       if id >= cur_offset
         self.cur_offset = id + 1
-        yield [id, [:draft, :inbox]]
+        yield :add, id, [:draft, :inbox]
       end
     end
   end

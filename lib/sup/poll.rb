@@ -112,7 +112,12 @@ EOS
 
         num = 0
         numi = 0
-        each_message_from source do |m|
+        each_message_from source do |action,m|
+          if action == :delete
+            yield "Deleting #{m.id}"
+            next
+          end
+
           old_m = Index.build_message m.id
           if old_m
             if not old_m.locations.member? [source, m.source_info]
@@ -167,17 +172,20 @@ EOS
           return
         end
 
-        next if sym == :delete
-        fail unless sym == :add
-
-        m = Message.build_from_source source, args[:info]
-        m.labels += args[:labels]
-        m.labels.delete :unread if source.read?
-        m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
-        m.labels.each { |l| LabelManager << l }
-
-        HookManager.run "before-add-message", :message => m
-        yield m
+        case sym
+        when :add
+          m = Message.build_from_source source, args[:info]
+          m.labels += args[:labels]
+          m.labels.delete :unread if source.read?
+          m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
+          m.labels.each { |l| LabelManager << l }
+          HookManager.run "before-add-message", :message => m
+          yield :add, m
+        when :delete
+          Index.each_message :location => [source.id, args[:info]] do |m|
+            yield :delete, m
+          end
+        end
       end
     rescue SourceError => e
       warn "problem getting messages from #{source}: #{e.message}"
@@ -186,7 +194,8 @@ EOS
   end
 
   def add_new_messages source, add_labels, remove_labels
-    each_message_from(source) do |m|
+    each_message_from(source) do |action,m|
+      next unless action == :add
       remove_labels.each { |l| m.remove_label l }
       add_labels.each { |l| m.add_label l }
       add_new_message m
