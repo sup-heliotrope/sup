@@ -26,7 +26,7 @@ class SentManager
 
   def write_sent_message date, from_email, &block
     @source.store_message date, from_email, &block
-    PollManager.add_new_messages @sources, [:sent], [:unread]
+    PollManager.poll_from @source
   end
 end
 
@@ -46,6 +46,7 @@ class SentLoader < MBox
 
   def id; 9998; end
   def labels; [:inbox, :sent]; end
+  def default_labels; []; end
   def read?; true; end
 end
 

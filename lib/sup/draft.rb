@@ -17,7 +17,7 @@ class DraftManager
     offset = @source.gen_offset
     fn = @source.fn_for_offset offset
     File.open(fn, "w") { |f| yield f }
-    PollManager.add_new_messages @source
+    PollManager.poll_from @source
   end
 
   def discard m
@@ -37,6 +37,7 @@ class DraftLoader < Source
     Dir.mkdir dir unless File.exists? dir
     super DraftManager.source_name, true, false
     @dir = dir
+    @cur_offset = 0
   end
 
   def id; DraftManager.source_id; end
@@ -46,9 +47,12 @@ class DraftLoader < Source
   def poll
     ids = get_ids
     ids.each do |id|
-      if id >= cur_offset
-        self.cur_offset = id + 1
-        yield :add, id, [:draft, :inbox]
+      if id >= @cur_offset
+        @cur_offset = id + 1
+        yield :add,
+          :info => id,
+          :labels => [:draft, :inbox],
+          :progress => 0.0
       end
     end
   end

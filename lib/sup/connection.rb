@@ -49,7 +49,10 @@ class Connection
     SentManager.source.store_message Time.now, "test@example.com" do |io|
       io.write raw
     end
-    PollManager.add_new_messages SentManager.source, labels, []
+    PollManager.poll_from SentManager.source do |sym,m,old_m|
+      next unless sym == :add
+      m.labels = labels
+    end
     nil
   end
 end

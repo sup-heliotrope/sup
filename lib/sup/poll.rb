@@ -190,15 +190,6 @@ EOS
     end
   end
 
-  def add_new_messages source, add_labels, remove_labels
-    each_message_from(source) do |action,m|
-      next unless action == :add
-      remove_labels.each { |l| m.remove_label l }
-      add_labels.each { |l| m.add_label l }
-      add_new_message m
-    end
-  end
-
   def handle_idle_update sender, idle_since; @should_clear_running_totals = false; end
   def handle_unidle_update sender, idle_since; @should_clear_running_totals = true; clear_running_totals; end
   def clear_running_totals; @running_totals = {:num => 0, :numi => 0, :loaded_labels => Set.new}; end
