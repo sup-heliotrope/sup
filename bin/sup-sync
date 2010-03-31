@@ -117,65 +117,64 @@ begin
     Redwood::PollManager.poll_from source do |action,m,old_m|
       if action == :delete
         puts "Deleting #{m.id}"
-      else
+      elsif action == :add
+        num_scanned += 1
+        seen[m.id] = true
 
-      num_scanned += 1
-      seen[m.id] = true
+        ## tweak source labels according to commandline arguments if necessary
+        m.labels.delete :inbox if opts[:archive]
+        m.labels.delete :unread if opts[:read]
+        m.labels += opts[:extra_labels].to_set_of_symbols(",")
 
-      ## tweak source labels according to commandline arguments if necessary
-      m.labels.delete :inbox if opts[:archive]
-      m.labels.delete :unread if opts[:read]
-      m.labels += opts[:extra_labels].to_set_of_symbols(",")
-
-      ## decide what to do based on message labels and the operation we're performing
-      dothis = case
-      when (op == :restore) && restored_state[m.id]
-        if old_m && (old_m.labels != restored_state[m.id])
-          num_restored += 1
-          m.labels = restored_state[m.id]
-          :update_message_state
-        elsif old_m.nil?
-          num_restored += 1
-          m.labels = restored_state[m.id]
-          :add_message
+        ## decide what to do based on message labels and the operation we're performing
+        dothis = case
+        when (op == :restore) && restored_state[m.id]
+          if old_m && (old_m.labels != restored_state[m.id])
+            num_restored += 1
+            m.labels = restored_state[m.id]
+            :update_message_state
+          elsif old_m.nil?
+            num_restored += 1
+            m.labels = restored_state[m.id]
+            :add_message
+          else
+            # labels are the same; don't do anything
+          end
+        when op == :discard
+          if old_m && (old_m.labels != m.labels)
+            :update_message_state
+          else
+            # labels are the same; don't do anything
+          end
         else
-          # labels are the same; don't do anything
+          if old_m
+            :update_message
+          else
+            :add_message
+          end
         end
-      when op == :discard
-        if old_m && (old_m.labels != m.labels)
-          :update_message_state
-        else
-          # labels are the same; don't do anything
+
+        ## now, actually do the operation
+        case dothis
+        when :add_message
+          puts "Adding new message #{source}##{m.source_info} with labels #{m.labels}" if opts[:verbose]
+          num_added += 1
+        when :update_message
+          puts "Updating message #{source}##{m.source_info}; labels #{old_m.labels} => #{m.labels}; offset #{old_m.source_info} => #{m.source_info}" if opts[:verbose]
+          num_updated += 1
+        when :update_message_state
+          puts "Changing flags for #{source}##{m.source_info} from #{old_m.labels} to #{m.labels}" if opts[:verbose]
+          num_updated += 1
         end
-      else
-        if old_m
-          :update_message
-        else
-          :add_message
+
+        if Time.now - last_info_time > PROGRESS_UPDATE_INTERVAL
+          last_info_time = Time.now
+          elapsed = last_info_time - start_time
+          pctdone = 0.0 * 100.0
+          remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
+          printf "## read %dm (~%.0f%%) @ %.1fm/s. %s elapsed, ~%s remaining\n", num_scanned, pctdone, num_scanned / elapsed, elapsed.to_time_s, remaining.to_time_s
         end
-      end
-
-      ## now, actually do the operation
-      case dothis
-      when :add_message
-        puts "Adding new message #{source}##{m.source_info} with labels #{m.labels}" if opts[:verbose]
-        num_added += 1
-      when :update_message
-        puts "Updating message #{source}##{m.source_info}; labels #{old_m.labels} => #{m.labels}; offset #{old_m.source_info} => #{m.source_info}" if opts[:verbose]
-        num_updated += 1
-      when :update_message_state
-        puts "Changing flags for #{source}##{m.source_info} from #{old_m.labels} to #{m.labels}" if opts[:verbose]
-        num_updated += 1
-      end
-
-      if Time.now - last_info_time > PROGRESS_UPDATE_INTERVAL
-        last_info_time = Time.now
-        elapsed = last_info_time - start_time
-        pctdone = 0.0 * 100.0
-        remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
-        printf "## read %dm (~%.0f%%) @ %.1fm/s. %s elapsed, ~%s remaining\n", num_scanned, pctdone, num_scanned / elapsed, elapsed.to_time_s, remaining.to_time_s
-      end
-
+      else fail
       end
       next if opts[:dry_run]
     end

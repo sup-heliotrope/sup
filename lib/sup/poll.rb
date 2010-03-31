@@ -115,23 +115,24 @@ EOS
         poll_from source do |action,m,old_m|
           if action == :delete
             yield "Deleting #{m.id}"
-          else
-          if old_m
-            if not old_m.locations.member? [source, m.source_info]
-              yield "Message at #{m.source_info} is an updated of an old message. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
+          elsif action == :add
+            if old_m
+              if not old_m.locations.member? [source, m.source_info]
+                yield "Message at #{m.source_info} is an updated of an old message. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
+              else
+                yield "Skipping already-imported message at #{m.source_info}"
+              end
             else
-              yield "Skipping already-imported message at #{m.source_info}"
+              yield "Found new message at #{m.source_info} with labels #{m.labels.to_a * ','}"
+              loaded_labels.merge m.labels
+              num += 1
+              from_and_subj << [m.from && m.from.longname, m.subj]
+              if (m.labels & [:inbox, :spam, :deleted, :killed]) == Set.new([:inbox])
+                from_and_subj_inbox << [m.from && m.from.longname, m.subj]
+                numi += 1
+              end
             end
-          else
-            yield "Found new message at #{m.source_info} with labels #{m.labels.to_a * ','}"
-            loaded_labels.merge m.labels
-            num += 1
-            from_and_subj << [m.from && m.from.longname, m.subj]
-            if (m.labels & [:inbox, :spam, :deleted, :killed]) == Set.new([:inbox])
-              from_and_subj_inbox << [m.from && m.from.longname, m.subj]
-              numi += 1
-            end
-          end
+          else fail
           end
         end
         yield "Found #{num} messages, #{numi} to inbox." unless num == 0
