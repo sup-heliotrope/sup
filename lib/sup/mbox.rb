@@ -127,7 +127,7 @@ class MBox < Source
     while offset and offset < end_offset
       yield :add,
         :info => offset,
-        :labels => (labels + [:unread]),
+        :labels => (labels + [:inbox, :unread]),
         :progress => 0.0
       offset = next_offset offset
     end

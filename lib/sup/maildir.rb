@@ -103,7 +103,7 @@ class Maildir < Source
       added.each do |id|
         yield :add,
           :info => File.join(d,id),
-          :labels => @labels + maildir_labels(id),
+          :labels => @labels + maildir_labels(id) + [:inbox],
           :progress => 0.0
       end
 
