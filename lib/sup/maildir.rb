@@ -94,8 +94,8 @@ class Maildir < Source
       next if prev_mtime >= mtime
       @mtimes[d] = mtime
 
-      old_ids = benchmark(:index) { Enumerator.new(Index.instance, :each_source_info, self.id, "#{d}/").to_a }
-      new_ids = benchmark(:glob) { Dir.glob("#{subdir}/*").map { |x| File.basename x }.sort }
+      old_ids = benchmark(:maildir_read_index) { Enumerator.new(Index.instance, :each_source_info, self.id, "#{d}/").to_a }
+      new_ids = benchmark(:maildir_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.basename x }.sort }
       added = new_ids - old_ids
       deleted = old_ids - new_ids
       debug "#{added.size} added, #{deleted.size} deleted"
