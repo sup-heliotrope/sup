@@ -149,7 +149,12 @@ class MBox < Source
   ## TODO optimize this by iterating over allterms list backwards or
   ## storing source_info negated
   def last_indexed_message
-    Enumerator.new(Index, :each_source_info, self.id).map(&:to_i).max
+    max = nil
+    Index.each_source_info(self.id) do |x|
+      x = x.to_i
+      max = x if !max || x > max
+    end
+    max
   end
 
   ## offset of first new message or nil
