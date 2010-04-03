@@ -89,6 +89,7 @@ class Maildir < Source
   def poll
     @mtimes.each do |d,prev_mtime|
       subdir = File.join @dir, d
+      debug "polling maildir #{subdir}"
       raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
       mtime = File.mtime subdir
       next if prev_mtime >= mtime
@@ -98,6 +99,7 @@ class Maildir < Source
       new_ids = benchmark(:maildir_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.basename x }.sort }
       added = new_ids - old_ids
       deleted = old_ids - new_ids
+      debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
       debug "#{added.size} added, #{deleted.size} deleted"
 
       added.each do |id|
