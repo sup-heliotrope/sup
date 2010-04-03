@@ -22,7 +22,7 @@ class Index
   include InteractiveLock
 
   STEM_LANGUAGE = "english"
-  INDEX_VERSION = '2'
+  INDEX_VERSION = '3'
 
   ## dates are converted to integers for xapian, and are used for document ids,
   ## so we must ensure they're reasonably valid. this typically only affect
@@ -105,8 +105,8 @@ EOS
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
       db_version = @xapian.get_metadata 'version'
       db_version = '0' if db_version.empty?
-      if db_version == '1'
-        info "Upgrading index format 1 to 2"
+      if db_version == '1' || db_version == '2'
+        info "Upgrading index format #{db_version} to #{INDEX_VERSION}"
         @xapian.set_metadata 'version', INDEX_VERSION
       elsif db_version != INDEX_VERSION
         fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please downgrade to your previous version and dump your labels before upgrading to this version (then run sup-sync --restore)."
@@ -194,11 +194,15 @@ EOS
     entry = synchronize { get_entry id }
     return unless entry
 
-    source = SourceManager[entry[:source_id]]
-    raise "invalid source #{entry[:source_id]}" unless source
+    locations = entry[:locations].map do |source_id,source_info|
+      source = SourceManager[source_id]
+      raise "invalid source #{source_id}" unless source
+      [source, source_info]
+    end
 
-    m = Message.new :source => source, :source_info => entry[:source_info],
-                    :labels => entry[:labels], :snippet => entry[:snippet]
+    m = Message.new :locations => locations,
+                    :labels => entry[:labels],
+                    :snippet => entry[:snippet]
 
     mk_person = lambda { |x| Person.new(*x.reverse!) }
     entry[:from] = mk_person[entry[:from]]
@@ -454,6 +458,7 @@ EOS
     'id' => 'Q',
     'thread' => 'H',
     'ref' => 'R',
+    'location' => 'J',
   }
 
   PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
@@ -515,7 +520,7 @@ EOS
 
   def get_entry id
     return unless doc = find_doc(id)
-    Marshal.load doc.data
+    doc.entry
   end
 
   def thread_killed? thread_id
@@ -548,6 +553,7 @@ EOS
     pos_terms.concat(labels.map { |l| mkterm(:label,l) })
     pos_terms << opts[:qobj] if opts[:qobj]
     pos_terms << mkterm(:source_id, opts[:source_id]) if opts[:source_id]
+    pos_terms << mkterm(:location, *opts[:location]) if opts[:location]
 
     if opts[:participants]
       participant_terms = opts[:participants].map { |p| [:from,:to].map { |d| mkterm(:email, d, (Redwood::Person === p) ? p.email : p) } }.flatten
@@ -576,8 +582,7 @@ EOS
 
     entry = {
       :message_id => m.id,
-      :source_id => m.source.id,
-      :source_info => m.source_info,
+      :locations => m.locations.map { |source,source_info| [source.id, source_info] },
       :date => truncate_date(m.date),
       :snippet => snippet,
       :labels => m.labels.to_a,
@@ -596,6 +601,7 @@ EOS
       index_message_static m, doc, entry
     end
 
+    index_message_locations doc, entry, old_entry
     index_message_threading doc, entry, old_entry
     index_message_labels doc, entry[:labels], (do_index_static ? [] : old_entry[:labels])
     doc.entry = entry
@@ -638,7 +644,6 @@ EOS
     doc.add_term mkterm(:date, m.date) if m.date
     doc.add_term mkterm(:type, 'mail')
     doc.add_term mkterm(:msgid, m.id)
-    doc.add_term mkterm(:source_id, m.source.id)
     m.attachments.each do |a|
       a =~ /\.(\w+)$/ or next
       doc.add_term mkterm(:attachment_extension, $1)
@@ -653,6 +658,13 @@ EOS
 
     doc.add_value MSGID_VALUENO, m.id
     doc.add_value DATE_VALUENO, date_value
+  end
+
+  def index_message_locations doc, entry, old_entry
+    old_entry[:locations].map { |x| x[0] }.uniq.each { |x| doc.remove_term mkterm(:source_id, x) } if old_entry
+    entry[:locations].map { |x| x[0] }.uniq.each { |x| doc.add_term mkterm(:source_id, x) }
+    old_entry[:locations].each { |x| (doc.remove_term mkterm(:location, *x) rescue nil) } if old_entry
+    entry[:locations].each { |x| doc.add_term mkterm(:location, *x) }
   end
 
   def index_message_labels doc, new_labels, old_labels
@@ -717,6 +729,8 @@ EOS
       end + args[1].to_s.downcase
     when :source_id
       PREFIX['source_id'] + args[0].to_s.downcase
+    when :location
+      PREFIX['location'] + [args[0]].pack('n') + args[1].to_s
     when :attachment_extension
       PREFIX['attachment_extension'] + args[0].to_s.downcase
     when :msgid, :ref, :thread
@@ -731,7 +745,13 @@ end
 
 class Xapian::Document
   def entry
-    Marshal.load data
+    entry = Marshal.load data
+    if entry[:source_id]
+      entry[:locations] = [[entry[:source_id], entry[:source_info]]]
+      entry.delete :source_id
+      entry.delete :source_info
+    end
+    entry
   end
 
   def entry=(x)

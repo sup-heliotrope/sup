@@ -153,7 +153,7 @@ begin
         ## skip this message if we're operating only on changed messages, the
         ## message is in the index, and it's unchanged from what the source is
         ## reporting.
-        next if old_m && old_m.source.id == m.source.id && old_m.source_info == m.source_info
+        next if old_m && old_m.locations.member?([m.source, m.source_info])
       when :restored
         ## skip if we're operating on restored messages, and this one
         ## ain't (or we wouldn't be making a change)
@@ -203,6 +203,8 @@ begin
           :add_message
         end
       end
+
+      m.locations = old_m.locations + m.locations if old_m
 
       ## now, actually do the operation
       case dothis
