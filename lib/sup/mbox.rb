@@ -50,10 +50,6 @@ class MBox < Source
     header = nil
     @mutex.synchronize do
       @f.seek offset
-      l = @f.gets
-      unless MBox::is_break_line? l
-        raise OutOfSyncSourceError, "mismatch in mbox file offset #{offset.inspect}: #{l.inspect}." 
-      end
       header = parse_raw_email_header @f
     end
     header
@@ -66,8 +62,9 @@ class MBox < Source
         ## don't use RMail::Mailbox::MBoxReader because it doesn't properly ignore
         ## "From" at the start of a message body line.
         string = ""
-        l = @f.gets
-        string << l until @f.eof? || MBox::is_break_line?(l = @f.gets)
+        until @f.eof? || MBox::is_break_line?(l = @f.gets)
+          string << l
+        end
         RMail::Parser.read string
       rescue RMail::Parser::Error => e
         raise FatalSourceError, "error parsing mbox file: #{e.message}"
@@ -110,7 +107,6 @@ class MBox < Source
   def each_raw_message_line offset
     @mutex.synchronize do
       @f.seek offset
-      yield @f.gets
       until @f.eof? || MBox::is_break_line?(l = @f.gets)
         yield l
       end
