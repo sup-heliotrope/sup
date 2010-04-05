@@ -146,8 +146,9 @@ private
   end
 
   def with_file_for id
+    fn = File.join(@dir, id)
     begin
-      File.open(File.join(@dir, id), 'rb') { |f| yield f }
+      File.open(fn, 'rb') { |f| yield f }
     rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
     end
