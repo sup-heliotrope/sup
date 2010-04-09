@@ -194,7 +194,7 @@ private
 
   def run_gpg args, opts={}
     args = HookManager.run("gpg-args", { :args => args }) || args
-    cmd = "#{@cmd} #{args}"
+    cmd = "LC_MESSAGES=C #{@cmd} #{args}"
     if opts[:interactive] && BufferManager.instantiated?
       output_fn = Tempfile.new "redwood.output"
       output_fn.close
