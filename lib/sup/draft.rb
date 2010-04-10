@@ -11,7 +11,7 @@ class DraftManager
 
   def self.source_name; "sup://drafts"; end
   def self.source_id; 9999; end
-  def new_source; @source = Recoverable.new DraftLoader.new; end
+  def new_source; @source = DraftLoader.new; end
 
   def write_draft
     offset = @source.gen_offset

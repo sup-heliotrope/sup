@@ -19,7 +19,7 @@ class SentManager
   end
 
   def default_source
-    @source = Recoverable.new SentLoader.new
+    @source = SentLoader.new
     @source_uri = @source.uri
     @source
   end

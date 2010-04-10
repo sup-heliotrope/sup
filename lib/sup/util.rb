@@ -594,40 +594,6 @@ module Singleton
   end
 end
 
-## wraps an object. if it throws an exception, keeps a copy.
-class Recoverable
-  def initialize o
-    @o = o
-    @error = nil
-    @mutex = Mutex.new
-  end
-
-  attr_accessor :error
-
-  def clear_error!; @error = nil; end
-  def has_errors?; !@error.nil?; end
-
-  def method_missing m, *a, &b; __pass m, *a, &b end
-
-  def id; __pass :id; end
-  def to_s; __pass :to_s; end
-  def to_yaml x; __pass :to_yaml, x; end
-  def is_a? c; @o.is_a? c; end
-
-  def respond_to?(m, include_private=false)
-    @o.respond_to?(m, include_private)
-  end
-
-  def __pass m, *a, &b
-    begin
-      @o.send(m, *a, &b)
-    rescue Exception => e
-      @error ||= e
-      raise
-    end
-  end
-end
-
 ## acts like a hash with an initialization block, but saves any
 ## newly-created value even upon lookup.
 ##

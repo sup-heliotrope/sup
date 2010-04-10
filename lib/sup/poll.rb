@@ -103,10 +103,9 @@ EOS
     @mutex.synchronize do
       @poll_sources.each do |source|
         begin
-          yield "Loading from #{source}... " unless source.has_errors?
+          yield "Loading from #{source}... "
         rescue SourceError => e
           warn "problem getting messages from #{source}: #{e.message}"
-          Redwood::report_broken_sources :force_to_top => true
           next
         end
 
@@ -117,7 +116,7 @@ EOS
             yield "Deleting #{m.id}"
           elsif action == :add
             if old_m
-              if not old_m.locations.member? [source, m.source_info]
+              if not old_m.locations.member? m.location
                 yield "Message at #{m.source_info} is an updated of an old message. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
               else
                 yield "Skipping already-imported message at #{m.source_info}"
@@ -153,14 +152,7 @@ EOS
   ## from the index after being yielded.
   def poll_from source, opts={}
     begin
-      return if source.has_errors?
-
       source.poll do |sym, args|
-        if source.has_errors?
-          warn "error loading messages from #{source}: #{source.error.message}"
-          return
-        end
-
         case sym
         when :add
           m = Message.build_from_source source, args[:info]
@@ -177,16 +169,15 @@ EOS
           UpdateManager.relay self, :added, m
         when :delete
           Index.each_message :location => [source.id, args[:info]] do |m|
-            m.locations.delete [source,args[:info]]
+            m.locations.delete Location.new(source, args[:info])
             yield :delete, m, [source,args[:info]] if block_given?
             Index.sync_message m, false
-            UpdateManager.relay self, :deleted, m
+            #UpdateManager.relay self, :deleted, m
           end
         end
       end
     rescue SourceError => e
       warn "problem getting messages from #{source}: #{e.message}"
-      Redwood::report_broken_sources :force_to_top => true
     end
   end
 

@@ -138,6 +138,10 @@ class Maildir < Source
   def mark_seen id; maildir_mark_file id, "S" unless seen? id; end
   def mark_trashed id; maildir_mark_file id, "T" unless trashed? id; end
 
+  def valid? id
+    File.exists? File.join(@dir, id)
+  end
+
 private
 
   def new_maildir_basefn

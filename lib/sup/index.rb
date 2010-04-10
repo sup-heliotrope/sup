@@ -197,7 +197,7 @@ EOS
     locations = entry[:locations].map do |source_id,source_info|
       source = SourceManager[source_id]
       raise "invalid source #{source_id}" unless source
-      [source, source_info]
+      Location.new source, source_info
     end
 
     m = Message.new :locations => locations,
@@ -603,7 +603,7 @@ EOS
 
     entry = {
       :message_id => m.id,
-      :locations => m.locations.map { |source,source_info| [source.id, source_info] },
+      :locations => m.locations.map { |x| [x.source.id, x.info] },
       :date => truncate_date(m.date),
       :snippet => snippet,
       :labels => m.labels.to_a,

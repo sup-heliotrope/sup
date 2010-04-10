@@ -88,6 +88,10 @@ class Source
     unimplemented
   end
 
+  def valid? info
+    true
+  end
+
   ## utility method to read a raw email header from an IO stream and turn it
   ## into a hash of key-value pairs. minor special semantics for certain headers.
   ##
@@ -188,7 +192,7 @@ class SourceManager
   def unusual_sources; sources.find_all { |s| !s.usual? }; end
 
   def load_sources fn=Redwood::SOURCE_FN
-    source_array = (Redwood::load_yaml_obj(fn) || []).map { |o| Recoverable.new o }
+    source_array = Redwood::load_yaml_obj(fn) || []
     @source_mutex.synchronize do
       @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
       @sources_dirty = false
