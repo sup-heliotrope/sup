@@ -2,6 +2,7 @@
 require 'rubygems'
 require 'trollop'
 require 'sup'
+require 'sup/client'
 require 'pp'
 require 'yaml'
 include Redwood
@@ -10,7 +11,7 @@ SUB_COMMANDS = %w(query count label add)
 global_opts = Trollop::options do
   #version = "sup-cmd (sup #{Redwood::VERSION})"
   banner <<EOS
-Interact with a Sup index.
+Connect to a running sup-server.
 
 Usage:
   sup-cmd [global options] command [options]
@@ -20,6 +21,8 @@ Usage:
   Global options:
 EOS
 
+  opt :host, "server address", :type => :string, :default => 'localhost', :short => 'o'
+  opt :port, "server port", :type => :int, :default => 4300
   opt :verbose
 
   stop_on SUB_COMMANDS
@@ -50,61 +53,79 @@ else
   Trollop::die "unrecognized command #{cmd.inspect}"
 end
 
-def get_query
-  text = ARGV.first or fail "query argument required"
-  Redwood::Index.parse_query text
-end
-
-Redwood.start
-Index.init
-Index.lock_interactively or exit
-begin
-  if(s = Redwood::SourceManager.source_for SentManager.source_uri)
-    SentManager.source = s
-  else
-    Redwood::SourceManager.add_source SentManager.default_source
+class SupCmd < Redwood::Client
+  def initialize cmd, args, opts
+    @cmd = cmd
+    @opts = opts
+    @args = args
+    super()
   end
 
-  Index.load
-  c = Redwood::Connection.new
+  def get_query
+    @args.first or fail "query argument required"
+  end
 
-case cmd
-when "query"
-  c.query get_query, cmd_opts[:offset], cmd_opts[:limit], cmd_opts[:raw] do |result|
-    puts YAML.dump(result['summary'])
-    puts YAML.dump(result['raw']) if cmd_opts[:raw]
-  end
-when "count"
-  puts c.count(get_query)
-when "label"
-  c.label get_query, cmd_opts[:remove_labels].split(','), cmd_opts[:add_labels].split(',')
-when "add"
-  ARGF.binmode
-  labels = cmd_opts[:labels].split(',')
-  get_message = lambda do
-    return ARGF.gets(nil) unless cmd_opts[:mbox]
-    str = ""
-    l = ARGF.gets
-    str << l until ARGF.closed? || ARGF.eof? || MBox::is_break_line?(l = ARGF.gets)
-    str.empty? ? nil : str
-  end
-  i_s = i = 0
-  t = Time.now
-  while raw = get_message[]
-    i += 1
-    t_d = Time.now - t
-    if t_d >= 5
-      i_d = i - i_s
-      puts "indexed #{i} messages (#{i_d/t_d} m/s)" if global_opts[:verbose]
+  def connection_established
+    case @cmd
+    when "query"
+      query get_query, @opts[:offset], @opts[:limit], @opts[:raw] do |result|
+        if result
+          puts YAML.dump(result['summary'])
+          puts YAML.dump(result['raw']) if @opts[:raw]
+        else
+          close_connection
+        end
+      end
+    when "count"
+      count(get_query) do |x|
+        puts x
+        close_connection
+      end
+    when "label"
+      label get_query, @opts[:remove_labels].split(','), @opts[:add_labels].split(',') do
+        close_connection
+      end
+    when "add"
+      ARGF.binmode
+      labels = @opts[:labels].split(',')
+      get_message = lambda do
+        return ARGF.gets(nil) unless @opts[:mbox]
+        str = ""
+        l = ARGF.gets
+        str << l until ARGF.closed? || ARGF.eof? || MBox::is_break_line?(l = ARGF.gets)
+        str.empty? ? nil : str
+      end
+      i_s = i = 0
       t = Time.now
-      i_s = i
+      while raw = get_message[]
+        i += 1
+        t_d = Time.now - t
+        if t_d >= 5
+          i_d = i - i_s
+          puts "indexed #{i} messages (#{i_d/t_d} m/s)" if global_opts[:verbose]
+          t = Time.now
+          i_s = i
+        end
+        add raw, labels do
+          close_connection
+        end
+      end
+    else
+      fail "#{@cmd} command unimplemented"
+      close_connection
     end
-    c.add raw, labels
   end
-else
-  fail "#{cmd} command unimplemented"
+
+  def unbind
+    EM.stop
+  end
 end
 
-ensure
-  Index.unlock
+
+EM.run do
+  EM.connect global_opts[:host], global_opts[:port],
+             SupCmd, cmd, ARGV, cmd_opts.merge(global_opts)
 end
+
+exit 0
+
