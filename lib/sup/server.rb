@@ -1,7 +1,41 @@
-module Redwood
+require 'sup/protocol'
 
-## Hacky implementation of the sup-server API using existing Sup code
-class Connection
+class Redwood::Server < EM::P::RedwoodServer
+  def receive_message type, tag, params
+    if respond_to? :"request_#{type}"
+      send :"request_#{type}", tag, params
+    else
+      fail "bad request type #{type}"
+    end
+  end
+
+  def request_query tag, a
+    q = Redwood::Index.parse_query a['query']
+    query q, a['offset'], a['limit'], a['raw'] do |r|
+      send_message 'message', tag, r
+    end
+    send_message 'done', tag
+  end
+
+  def request_count tag, a
+    q = Redwood::Index.parse_query a['query']
+    c = count q
+    send_message 'count', tag, 'count' => c
+  end
+
+  def request_label tag, a
+    q = Redwood::Index.parse_query a['query']
+    label q, a['add'], a['remove']
+    send_message 'done', tag
+  end
+
+  def request_add tag, a
+    add a['raw'], a['labels']
+    send_message 'done', tag
+  end
+
+private
+
   def result_from_message m, raw
     mkperson = lambda { |p| { :email => p.email, :name => p.name } }
     {
@@ -58,6 +92,4 @@ class Connection
     Index.update_message_state m2
     nil
   end
-end
-
 end
