@@ -559,6 +559,13 @@ EOS
     end
   end
 
+  def ask_for_account domain, question
+    default = AccountManager.default_account.email
+    completions = AccountManager.user_emails
+    answer = BufferManager.ask_many_emails_with_completions domain, question, completions, default
+    AccountManager.account_for Person.from_address(answer).email if answer
+  end
+
   ## for simplicitly, we always place the question at the very bottom of the
   ## screen
   def ask domain, question, default=nil, &block
