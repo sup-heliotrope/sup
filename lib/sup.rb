@@ -293,6 +293,7 @@ include Redwood::LogsStuff
 
 ## determine encoding and character set
   $encoding = Locale.current.charset
+  $encoding = "UTF-8" if $encoding == "utf8"
   if $encoding
     debug "using character set encoding #{$encoding.inspect}"
   else
