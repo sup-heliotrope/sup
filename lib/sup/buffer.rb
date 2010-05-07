@@ -130,15 +130,13 @@ class Buffer
     s ||= ""
     maxl = @width - x # maximum display width width
     stringl = maxl    # string "length"
+
+    # fill up the line with blanks to overwrite old screen contents
+    @w.mvaddstr y, x, " " * maxl unless opts[:no_fill]
+
     ## the next horribleness is thanks to ruby's lack of widechar support
     stringl += 1 while stringl < s.length && s[0 ... stringl].display_length < maxl
     @w.mvaddstr y, x, s[0 ... stringl]
-    unless opts[:no_fill]
-      l = s.display_length
-      unless l >= maxl
-        @w.mvaddstr(y, x + l, " " * (maxl - l))
-      end
-    end
   end
 
   def clear
