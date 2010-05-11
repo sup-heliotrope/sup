@@ -382,6 +382,8 @@ protected
     if @crypto_selector && @crypto_selector.val != :none
       from_email = Person.from_address(@header["From"]).email
       to_email = [@header["To"], @header["Cc"], @header["Bcc"]].flatten.compact.map { |p| Person.from_address(p).email }
+      m.header["Content-Transfer-Encoding"] = 'base64'
+      m.body = [m.body].pack('m')
 
       m = CryptoManager.send @crypto_selector.val, from_email, to_email, m
     end
@@ -401,7 +403,7 @@ protected
     m.header["Date"] = date.rfc2822
     m.header["Message-Id"] = @message_id
     m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
-    m.header["Content-Transfer-Encoding"] = '8bit'
+    m.header["Content-Transfer-Encoding"] ||= '8bit'
     m
   end
 
