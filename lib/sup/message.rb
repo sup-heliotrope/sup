@@ -26,7 +26,13 @@ class Message
 
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
   BLOCK_QUOTE_PATTERN = /^-----\s*Original Message\s*----+$/
-  SIG_PATTERN = /(^-- ?$)|(^\s*----------+\s*$)|(^\s*_________+\s*$)|(^\s*--~--~-)|(^\s*--\+\+\*\*==)/
+  SIG_PATTERN = /(^(- )*-- ?$)|(^\s*----------+\s*$)|(^\s*_________+\s*$)|(^\s*--~--~-)|(^\s*--\+\+\*\*==)/
+
+  GPG_SIGNED_START = "-----BEGIN PGP SIGNED MESSAGE-----"
+  GPG_SIGNED_END = "-----END PGP SIGNED MESSAGE-----"
+  GPG_START = "-----BEGIN PGP MESSAGE-----"
+  GPG_END = "-----END PGP MESSAGE-----"
+  GPG_SIG_END = "-----BEGIN PGP SIGNATURE-----"
 
   MAX_SIG_DISTANCE = 15 # lines from the end
   DEFAULT_SUBJECT = ""
@@ -522,8 +528,46 @@ private
         ## if there's no charset, use the current encoding as the charset.
         ## this ensures that the body is normalized to avoid non-displayable
         ## characters
-        body = Iconv.easy_decode($encoding, m.charset || $encoding, m.decode) if m.body
-        text_to_chunks((body || "").normalize_whitespace.split("\n"), encrypted)
+        if m.body
+          body = Iconv.easy_decode($encoding, m.charset || $encoding, m.decode)
+        else
+          body = ""
+        end
+
+        ## Check for inline-PGP
+        chunks = inline_gpg_to_chunks body.split("\n")
+        return chunks if chunks
+
+        text_to_chunks(body.normalize_whitespace.split("\n"), encrypted)
+      end
+    end
+  end
+
+  ## looks for gpg signed (but not encrypted) inline  messages inside the
+  ## message body (there is no extra header for inline GPG) or for encrypted
+  ## (and possible signed) inline GPG messages
+  def inline_gpg_to_chunks lines
+    gpg = lines.between(GPG_SIGNED_START, GPG_SIGNED_END)
+    if !gpg.empty?
+      msg = RMail::Message.new
+      msg.body = gpg.join("\n")
+
+      sig = lines.between(GPG_SIGNED_START, GPG_SIG_END)
+      payload = RMail::Message.new
+      payload.body = sig[1, sig.size-2].join("\n")
+      return [CryptoManager.verify(nil, msg, false), message_to_chunks(payload)].flatten.compact
+    end
+
+    gpg = lines.between(GPG_START, GPG_END)
+    if !gpg.empty?
+      msg = RMail::Message.new
+      msg.body = gpg.join("\n")
+      notice, sig, decryptedm = CryptoManager.decrypt msg, true
+      if decryptedm # managed to decrypt
+        children = message_to_chunks(decryptedm, true)
+        return [notice, sig].compact + children
+      else
+        return [notice]
       end
     end
   end
