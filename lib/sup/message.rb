@@ -554,7 +554,7 @@ private
 
       sig = lines.between(GPG_SIGNED_START, GPG_SIG_END)
       payload = RMail::Message.new
-      payload.body = sig[1, sig.count-2].join("\n")
+      payload.body = sig[1, sig.size-2].join("\n")
       return [CryptoManager.verify(nil, msg, false), message_to_chunks(payload)].flatten.compact
     end
 
