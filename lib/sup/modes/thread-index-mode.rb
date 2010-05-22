@@ -231,7 +231,7 @@ EOS
     old_cursor_thread = cursor_thread
     @mutex.synchronize do
       ## let's see you do THIS in python
-      @threads = @ts.threads.select { |t| !@hidden_threads[t] }.sort_by { |t| [t.date, t.first.id] }.reverse
+      @threads = @ts.threads.select { |t| !@hidden_threads[t] }.select(&:first).sort_by { |t| [t.date, t.first.id] }.reverse
       @size_widgets = @threads.map { |t| size_widget_for_thread t }
       @size_widget_width = @size_widgets.max_of { |w| w.display_length }
       @date_widgets = @threads.map { |t| date_widget_for_thread t }

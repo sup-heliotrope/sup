@@ -19,29 +19,24 @@ class SentManager
   end
 
   def default_source
-    @source = Recoverable.new SentLoader.new
+    @source = SentLoader.new
     @source_uri = @source.uri
     @source
   end
 
   def write_sent_message date, from_email, &block
     @source.store_message date, from_email, &block
-
-    PollManager.each_message_from(@source) do |m|
-      m.remove_label :unread
-      m.add_label :sent
-      PollManager.add_new_message m
-    end
+    PollManager.poll_from @source
   end
 end
 
-class SentLoader < MBox::Loader
-  yaml_properties :cur_offset
+class SentLoader < MBox
+  yaml_properties
 
-  def initialize cur_offset=0
+  def initialize
     @filename = Redwood::SENT_FN
     File.open(@filename, "w") { } unless File.exists? @filename
-    super "mbox://" + @filename, cur_offset, true, true
+    super "mbox://" + @filename, true, true
   end
 
   def file_path; @filename end
@@ -51,6 +46,8 @@ class SentLoader < MBox::Loader
 
   def id; 9998; end
   def labels; [:inbox, :sent]; end
+  def default_labels; []; end
+  def read?; true; end
 end
 
 end

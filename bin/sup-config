@@ -57,7 +57,7 @@ def add_source
       return if fn.nil? || fn.empty?
 
       $last_fn = fn
-      [Redwood::MBox::Loader.suggest_labels_for(fn),
+      [Redwood::MBox.suggest_labels_for(fn),
        { :scheme => "mbox", :path => fn }]
     when :maildir
       $last_fn ||= ENV["MAIL"]

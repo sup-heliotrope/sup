@@ -9,9 +9,6 @@ module Redwood
 ## i would like, for example, to be able to add in a ruby-talk
 ## specific module that would detect and link to /ruby-talk:\d+/
 ## sequences in the text of an email. (how sweet would that be?)
-##
-## this class catches all source exceptions. if the underlying source
-## throws an error, it is caught and handled.
 
 class Message
   SNIPPET_LEN = 80
@@ -177,7 +174,7 @@ class Message
 
   attr_reader :snippet
   def is_list_message?; !@list_address.nil?; end
-  def is_draft?; source.is_a? DraftLoader; end
+  def is_draft?; @labels.member? :draft; end
   def draft_filename
     raise "not a draft" unless is_draft?
     source.fn_for_offset source_info
@@ -231,87 +228,59 @@ class Message
     @chunks
   end
 
+  def location
+    @locations.find { |x| x.valid? } || raise(OutOfSyncSourceError.new)
+  end
+
   def source
-    fail if @locations.empty?
-    @locations.last[0]
+    location.source
   end
 
   def source_info
-    fail if @locations.empty?
-    @locations.last[1]
+    location.info
   end
 
   ## this is called when the message body needs to actually be loaded.
   def load_from_source!
     @chunks ||=
-      if source.respond_to?(:has_errors?) && source.has_errors?
-        [Chunk::Text.new(error_message(source.error.message).split("\n"))]
-      else
-        begin
-          ## we need to re-read the header because it contains information
-          ## that we don't store in the index. actually i think it's just
-          ## the mailing list address (if any), so this is kinda overkill.
-          ## i could just store that in the index, but i think there might
-          ## be other things like that in the future, and i'd rather not
-          ## bloat the index.
-          ## actually, it's also the differentiation between to/cc/bcc,
-          ## so i will keep this.
-          rmsg = source.load_message(source_info)
-          parse_header rmsg.header
-          message_to_chunks rmsg
-        rescue SourceError, SocketError => e
-          warn "problem getting messages from #{source}: #{e.message}"
-          ## we need force_to_top here otherwise this window will cover
-          ## up the error message one
-          source.error ||= e
-          Redwood::report_broken_sources :force_to_top => true
-          [Chunk::Text.new(error_message(e.message).split("\n"))]
-        end
+      begin
+        ## we need to re-read the header because it contains information
+        ## that we don't store in the index. actually i think it's just
+        ## the mailing list address (if any), so this is kinda overkill.
+        ## i could just store that in the index, but i think there might
+        ## be other things like that in the future, and i'd rather not
+        ## bloat the index.
+        ## actually, it's also the differentiation between to/cc/bcc,
+        ## so i will keep this.
+        rmsg = location.parsed_message
+        parse_header rmsg.header
+        message_to_chunks rmsg
+      rescue SourceError, SocketError => e
+        warn "problem reading message #{id}"
+        [Chunk::Text.new(error_message.split("\n"))]
       end
   end
 
-  def error_message msg
+  def error_message
     <<EOS
 #@snippet...
 
 ***********************************************************************
- An error occurred while loading this message. It is possible that
- the source has changed, or (in the case of remote sources) is down.
- You can check the log for errors, though hopefully an error window
- should have popped up at some point.
-
- The message location was:
- #{source}##{source_info}
+ An error occurred while loading this message.
 ***********************************************************************
-
-The error message was:
-  #{msg}
 EOS
   end
 
-  ## wrap any source methods that might throw sourceerrors
-  def with_source_errors_handled
-    begin
-      yield
-    rescue SourceError => e
-      warn "problem getting messages from #{source}: #{e.message}"
-      source.error ||= e
-      Redwood::report_broken_sources :force_to_top => true
-      error_message e.message
-    end
-  end
-
   def raw_header
-    with_source_errors_handled { source.raw_header source_info }
+    location.raw_header
   end
 
   def raw_message
-    with_source_errors_handled { source.raw_message source_info }
+    location.raw_message
   end
 
-  ## much faster than raw_message
   def each_raw_message_line &b
-    with_source_errors_handled { source.each_raw_message_line(source_info, &b) }
+    location.each_raw_message_line &b
   end
 
   ## returns all the content from a message that will be indexed
@@ -353,7 +322,7 @@ EOS
   end
 
   def self.build_from_source source, source_info
-    m = Message.new :locations => [[source, source_info]]
+    m = Message.new :locations => [Location.new(source, source_info)]
     m.load_from_source!
     m
   end
@@ -652,6 +621,45 @@ private
       chunks << Chunk::Signature.new(chunk_lines) unless chunk_lines.empty?
     end
     chunks
+  end
+end
+
+class Location
+  attr_reader :source
+  attr_reader :info
+
+  def initialize source, info
+    @source = source
+    @info = info
+  end
+
+  def raw_header
+    source.raw_header info
+  end
+
+  def raw_message
+    source.raw_message info
+  end
+
+  ## much faster than raw_message
+  def each_raw_message_line &b
+    source.each_raw_message_line info, &b
+  end
+
+  def parsed_message
+    source.load_message info
+  end
+
+  def valid?
+    source.valid? info
+  end
+
+  def == o
+    o.source.id == source.id and o.info == info
+  end
+
+  def hash
+    [source.id, info].hash
   end
 end
 

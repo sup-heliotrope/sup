@@ -197,7 +197,7 @@ EOS
     locations = entry[:locations].map do |source_id,source_info|
       source = SourceManager[source_id]
       raise "invalid source #{source_id}" unless source
-      [source, source_info]
+      Location.new source, source_info
     end
 
     m = Message.new :locations => locations,
@@ -263,6 +263,26 @@ EOS
   ## was synced from
   def source_for_id id
     synchronize { get_entry(id)[:source_id] }
+  end
+
+  ## Yields each tearm in the index that starts with prefix
+  def each_prefixed_term prefix
+    term = @xapian._dangerous_allterms_begin prefix
+    lastTerm = @xapian._dangerous_allterms_end prefix
+    until term.equals lastTerm
+      yield term.term
+      term.next
+    end
+    nil
+  end
+
+  ## Yields (in lexicographical order) the source infos of all locations from
+  ## the given source with the given source_info prefix
+  def each_source_info source_id, prefix='', &b
+    prefix = mkterm :location, source_id, prefix
+    each_prefixed_term prefix do |x|
+      yield x[prefix.length..-1]
+    end
   end
 
   class ParseError < StandardError; end
@@ -583,7 +603,7 @@ EOS
 
     entry = {
       :message_id => m.id,
-      :locations => m.locations.map { |source,source_info| [source.id, source_info] },
+      :locations => m.locations.map { |x| [x.source.id, x.info] },
       :date => truncate_date(m.date),
       :snippet => snippet,
       :labels => m.labels.to_a,

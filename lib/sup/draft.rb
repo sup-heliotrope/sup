@@ -11,20 +11,13 @@ class DraftManager
 
   def self.source_name; "sup://drafts"; end
   def self.source_id; 9999; end
-  def new_source; @source = Recoverable.new DraftLoader.new; end
+  def new_source; @source = DraftLoader.new; end
 
   def write_draft
     offset = @source.gen_offset
     fn = @source.fn_for_offset offset
     File.open(fn, "w") { |f| yield f }
-
-    my_message = nil
-    PollManager.each_message_from(@source) do |m|
-      PollManager.add_new_message m
-      my_message = m
-    end
-
-    my_message
+    PollManager.poll_from @source
   end
 
   def discard m
@@ -37,31 +30,35 @@ end
 
 class DraftLoader < Source
   attr_accessor :dir
-  yaml_properties :cur_offset
+  yaml_properties
 
-  def initialize cur_offset=0
+  def initialize
     dir = Redwood::DRAFT_DIR
     Dir.mkdir dir unless File.exists? dir
-    super DraftManager.source_name, cur_offset, true, false
+    super DraftManager.source_name, true, false
     @dir = dir
+    @cur_offset = 0
   end
 
   def id; DraftManager.source_id; end
   def to_s; DraftManager.source_name; end
   def uri; DraftManager.source_name; end
 
-  def each
+  def poll
     ids = get_ids
     ids.each do |id|
-      if id >= cur_offset
-        self.cur_offset = id + 1
-        yield [id, [:draft, :inbox]]
+      if id >= @cur_offset
+        @cur_offset = id + 1
+        yield :add,
+          :info => id,
+          :labels => [:draft, :inbox],
+          :progress => 0.0
       end
     end
   end
 
   def gen_offset
-    i = cur_offset
+    i = 0
     while File.exists? fn_for_offset(i)
       i += 1
     end

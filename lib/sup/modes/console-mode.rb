@@ -8,7 +8,7 @@ class Console
   end
 
   def query(query)
-    Enumerator.new(Index, :each_message, Index.parse_query(query))
+    Enumerator.new(Index.instance, :each_message, Index.parse_query(query))
   end
 
   def add_labels(query, *labels)
@@ -25,6 +25,9 @@ class Console
   def set_loglevel(level); Redwood::Logger.level = level; end
 
   def special_methods; methods - Object.methods end
+
+  def puts x; @mode << "#{x.to_s.rstrip}\n" end
+  def p x; puts x.inspect end
 
   ## files that won't cause problems when reloaded
   ## TODO expand this list / convert to blacklist
