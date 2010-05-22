@@ -86,6 +86,7 @@ global_keymap = Keymap.new do |k|
   k.add :nothing, "Do nothing", :ctrl_g
   k.add :recall_draft, "Edit most recent draft message", 'R'
   k.add :show_inbox, "Show the Inbox buffer", 'I'
+  k.add :clear_hooks, "Clear all hooks", 'H'
   k.add :show_console, "Show the Console buffer", '~'
 
   ## Submap for less often used keybindings
@@ -330,6 +331,8 @@ begin
       end
     when :show_inbox
       BufferManager.raise_to_front ibuf
+    when :clear_hooks
+      HookManager.clear
     when :show_console
       b, new = bm.spawn_unless_exists("Console", :system => true) { ConsoleMode.new }
       b.mode.run

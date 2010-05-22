@@ -254,6 +254,7 @@ else
     :editor => ENV["EDITOR"] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
     :thread_by_subject => false,
     :edit_signature => false,
+    :ask_for_from => false,
     :ask_for_to => true,
     :ask_for_cc => true,
     :ask_for_bcc => false,
@@ -292,6 +293,7 @@ include Redwood::LogsStuff
 
 ## determine encoding and character set
   $encoding = Locale.current.charset
+  $encoding = "UTF-8" if $encoding == "utf8"
   if $encoding
     debug "using character set encoding #{$encoding.inspect}"
   else
@@ -350,7 +352,6 @@ require "sup/sent"
 require "sup/search"
 require "sup/modes/search-list-mode"
 require "sup/idle"
-require "sup/connection"
 
 $:.each do |base|
   d = File.join base, "sup/share/modes/"

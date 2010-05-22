@@ -130,15 +130,13 @@ class Buffer
     s ||= ""
     maxl = @width - x # maximum display width width
     stringl = maxl    # string "length"
+
+    # fill up the line with blanks to overwrite old screen contents
+    @w.mvaddstr y, x, " " * maxl unless opts[:no_fill]
+
     ## the next horribleness is thanks to ruby's lack of widechar support
     stringl += 1 while stringl < s.length && s[0 ... stringl].display_length < maxl
     @w.mvaddstr y, x, s[0 ... stringl]
-    unless opts[:no_fill]
-      l = s.display_length
-      unless l >= maxl
-        @w.mvaddstr(y, x + l, " " * (maxl - l))
-      end
-    end
   end
 
   def clear
@@ -557,6 +555,13 @@ EOS
     if answer
       answer.split_on_commas.map { |x| ContactManager.contact_for(x) || Person.from_address(x) }
     end
+  end
+
+  def ask_for_account domain, question
+    default = AccountManager.default_account.email
+    completions = AccountManager.user_emails
+    answer = BufferManager.ask_many_emails_with_completions domain, question, completions, default
+    AccountManager.account_for Person.from_address(answer).email if answer
   end
 
   ## for simplicitly, we always place the question at the very bottom of the
