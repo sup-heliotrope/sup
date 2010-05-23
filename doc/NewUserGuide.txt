@@ -146,7 +146,8 @@ press '\' (backslash---forward slash is used for in-buffer search,
 following console conventions). Now type in your query (again, Ctrl-G to
 cancel at any point.) You can just type in arbitrary text, which will be
 matched on a per-word basis against the bodies of all email in the
-index, or you can make use of the full Ferret query syntax:
+index, or you can make use of the full Xapian query syntax
+(http://xapian.org/docs/queryparser.html):
 
 - Phrasal queries using double-quotes, e.g.: "three contiguous words"
 - Queries against a particular field using <field name>:<query>,
@@ -161,7 +162,7 @@ You can combine those all together. For example:
 
      label:ruby-talk subject:\[ANN\] -rails on:today
 
-Play around with the search, and see the Ferret documentation for
+Play around with the search, and see the Xapian documentation for
 details on more sophisticated queries (date ranges, "within n words",
 etc.)
 

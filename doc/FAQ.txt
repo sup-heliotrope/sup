@@ -63,11 +63,11 @@ A: Run:
      sup-sync [<source>+] --restored --restore <dumpfile>
    where <dumpfile> was created as above.
 
-Q: Ferret crashed and I can't read my index. Luckily I made a state
+Q: Xapian crashed and I can't read my index. Luckily I made a state
    dump. What should I do?
 Q: How do I rebuild the index completely?
 A: Run:
-     rm -rf ~/.sup/ferret    # omg wtf
+     rm -rf ~/.sup/xapian    # omg wtf
      sup-sync --all-sources --all --restore <dumpfile>
    Voila! A brand new index.
 
