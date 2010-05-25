@@ -22,7 +22,7 @@ class Index
   include InteractiveLock
 
   STEM_LANGUAGE = "english"
-  INDEX_VERSION = '3'
+  INDEX_VERSION = '4'
 
   ## dates are converted to integers for xapian, and are used for document ids,
   ## so we must ensure they're reasonably valid. this typically only affect
@@ -105,7 +105,7 @@ EOS
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
       db_version = @xapian.get_metadata 'version'
       db_version = '0' if db_version.empty?
-      if db_version == '1' || db_version == '2'
+      if false
         info "Upgrading index format #{db_version} to #{INDEX_VERSION}"
         @xapian.set_metadata 'version', INDEX_VERSION
       elsif db_version != INDEX_VERSION
@@ -766,13 +766,7 @@ end
 
 class Xapian::Document
   def entry
-    entry = Marshal.load data
-    if entry[:source_id]
-      entry[:locations] = [[entry[:source_id], entry[:source_info]]]
-      entry.delete :source_id
-      entry.delete :source_info
-    end
-    entry
+    Marshal.load data
   end
 
   def entry=(x)
