@@ -1,17 +1,21 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
+require 'xapian'
 require 'trollop'
-require "sup"; Redwood::check_library_version_against "git"
+
+BASE_DIR = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
 
 $opts = Trollop::options do
-  version "sup-dump (sup #{Redwood::VERSION})"
+  version "sup-dump"
   banner <<EOS
 Dumps all message state from the sup index to standard out. You can
 later use sup-sync --restored --restore <filename> to recover the index.
 
-This tool is primarily useful in the event that a Ferret upgrade breaks
-the index format. This happened, for example, at Ferret version 0.11.
+This tool is primarily useful in the event that a Sup upgrade breaks index
+format compatibility.
+
+This sup-dump supports index versions 0 through 4.
 
 Usage:
   sup-dump > <filename>
@@ -19,10 +23,16 @@ Usage:
 EOS
 end
 
-index = Redwood::Index.init
-Redwood::SourceManager.init
-index.load
+xapian = Xapian::Database.new File.join(BASE_DIR, 'xapian')
+db_version = xapian.get_metadata 'version'
+db_version = '0' if db_version.empty?
 
-index.each_message :load_spam => true, :load_deleted => true, :load_killed => true do |m|
-  puts "#{m.id} (#{m.labels.to_a.sort_by { |l| l.to_s } * ' '})"
+case db_version
+when '0', '1', '2', '3', '4'
+  xapian.postlist('Kmail').each do |x|
+    entry = Marshal.load(xapian.document(x.docid).data)
+    puts "#{entry[:message_id]} (#{entry[:labels].sort_by { |l| l.to_s } * ' '})"
+  end
+else
+  abort "unknown index version #{db_version.inspect}"
 end
