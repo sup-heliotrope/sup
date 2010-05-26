@@ -109,11 +109,12 @@ EOS
         info "Upgrading index format #{db_version} to #{INDEX_VERSION}"
         @xapian.set_metadata 'version', INDEX_VERSION
       elsif db_version != INDEX_VERSION
-        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please downgrade to your previous version and dump your labels before upgrading to this version (then run sup-sync --restore)."
+        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{SUP_BASE}/xapian out of the way, and run sup-sync --restore."
       end
     else
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_CREATE)
       @xapian.set_metadata 'version', INDEX_VERSION
+      @xapian.set_metadata 'rescue-version', '0'
     end
     @enquire = Xapian::Enquire.new @xapian
     @enquire.weighting_scheme = Xapian::BoolWeight.new

@@ -15,8 +15,6 @@ later use sup-sync --restored --restore <filename> to recover the index.
 This tool is primarily useful in the event that a Sup upgrade breaks index
 format compatibility.
 
-This sup-dump supports index versions 0 through 4.
-
 Usage:
   sup-dump > <filename>
   sup-dump | bzip2 > <filename> # even better
@@ -24,15 +22,15 @@ EOS
 end
 
 xapian = Xapian::Database.new File.join(BASE_DIR, 'xapian')
-db_version = xapian.get_metadata 'version'
-db_version = '0' if db_version.empty?
+version = xapian.get_metadata 'rescue-version'
+version = '0' if version.empty?
 
-case db_version
-when '0', '1', '2', '3', '4'
+case version
+when '0'
   xapian.postlist('Kmail').each do |x|
     entry = Marshal.load(xapian.document(x.docid).data)
     puts "#{entry[:message_id]} (#{entry[:labels].sort_by { |l| l.to_s } * ' '})"
   end
 else
-  abort "unknown index version #{db_version.inspect}"
+  abort "this sup-dump version doesn't understand your index"
 end
