@@ -114,6 +114,7 @@ EOS
     else
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_CREATE)
       @xapian.set_metadata 'version', INDEX_VERSION
+      @xapian.set_metadata 'rescue-version', '0'
     end
     @enquire = Xapian::Enquire.new @xapian
     @enquire.weighting_scheme = Xapian::BoolWeight.new
