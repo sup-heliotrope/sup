@@ -158,6 +158,7 @@ EOS
           m = Message.build_from_source source, args[:info]
           old_m = Index.build_message m.id
           m.labels += args[:labels]
+          m.labels.delete :inbox  if source.archived?
           m.labels.delete :unread if source.read?
           m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
           m.labels.each { |l| LabelManager << l }
