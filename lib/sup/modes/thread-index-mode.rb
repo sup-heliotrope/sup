@@ -885,7 +885,7 @@ protected
     [ 
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
       [:date_color, date_widget_text],
-      (starred ? [:starred_color, "*"] : [:none, " "]),
+      [:starred_color, (starred ? "*" : " ")],
     ] +
       from +
       [
