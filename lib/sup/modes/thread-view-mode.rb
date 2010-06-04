@@ -3,7 +3,7 @@ module Redwood
 class ThreadViewMode < LineCursorMode
   ## this holds all info we need to lay out a message
   class MessageLayout
-    attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color, :star_color, :orig_new
+    attr_accessor :top, :bot, :prev, :next, :depth, :width, :state, :color, :star_color, :orig_new, :toggled_state
   end
 
   class ChunkLayout
@@ -54,7 +54,9 @@ EOS
     k.add :edit_labels, "Edit or add labels for a thread", 'l'
     k.add :expand_all_quotes, "Expand/collapse all quotes in a message", 'o'
     k.add :jump_to_next_open, "Jump to next open message", 'n'
+    k.add :jump_to_next_and_open, "Jump to next message and open", "\C-n"
     k.add :jump_to_prev_open, "Jump to previous open message", 'p'
+    k.add :jump_to_prev_and_open, "Jump to previous message and open", "\C-p"
     k.add :align_current_message, "Align current message in buffer", 'z'
     k.add :toggle_starred, "Star or unstar message", '*'
     k.add :toggle_new, "Toggle unread/read status of message", 'N'
@@ -129,6 +131,7 @@ EOS
       next unless m
       earliest ||= m
       @layout[m].state = initial_state_for m
+      @layout[m].toggled_state = false
       @layout[m].color = altcolor ? :alternate_patina_color : :message_patina_color
       @layout[m].star_color = altcolor ? :alternate_starred_patina_color : :starred_patina_color
       @layout[m].orig_new = m.has_label? :read
@@ -440,6 +443,29 @@ EOS
     end
   end
 
+  def jump_to_next_and_open
+    return continue_search_in_buffer if in_search? # err.. don't know why im doing this
+
+    m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
+    return unless m
+
+    if @layout[m].toggled_state == true
+      @layout[m].state = :closed
+      @layout[m].toggled_state = false
+      update
+    end
+
+    nextm = @layout[m].next
+    if @layout[nextm].state == :closed
+      @layout[nextm].state = :open
+      @layout[nextm].toggled_state = true
+    end
+
+    jump_to_message nextm if nextm
+
+    update if @layout[nextm].toggled_state
+  end
+
   def jump_to_next_open force_alignment=nil
     return continue_search_in_buffer if in_search? # hack: allow 'n' to apply to both operations
     m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
@@ -454,6 +480,26 @@ EOS
   def align_current_message
     m = @message_lines[curpos] or return
     jump_to_message m, true
+  end
+
+  def jump_to_prev_and_open force_alignment=nil
+    m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] }
+    return unless m
+
+    if @layout[m].toggled_state == true
+      @layout[m].state = :closed
+      @layout[m].toggled_state = false
+      update
+    end
+
+    nextm = @layout[m].prev
+    if @layout[nextm].state == :closed
+      @layout[nextm].state = :open
+      @layout[nextm].toggled_state = true
+    end
+
+    jump_to_message nextm if nextm
+    update if @layout[nextm].toggled_state
   end
 
   def jump_to_prev_open
