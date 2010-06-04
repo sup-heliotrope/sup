@@ -21,7 +21,7 @@ class ComposeMode < EditMessageMode
   end
 
   def self.spawn_nicely opts={}
-    from = opts[:from] || (BufferManager.ask_for_account(:account, "From: ") or return if $config[:ask_for_from])
+    from = opts[:from] || (BufferManager.ask_for_account(:account, "From (default #{AccountManager.default_account.email}): ") or return if $config[:ask_for_from])
     to = opts[:to] || (BufferManager.ask_for_contacts(:people, "To: ", [opts[:to_default]]) or return if ($config[:ask_for_to] != false))
     cc = opts[:cc] || (BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc])
     bcc = opts[:bcc] || (BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc])

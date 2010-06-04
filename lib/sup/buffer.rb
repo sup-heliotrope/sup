@@ -558,9 +558,9 @@ EOS
   end
 
   def ask_for_account domain, question
-    default = AccountManager.default_account.email
     completions = AccountManager.user_emails
-    answer = BufferManager.ask_many_emails_with_completions domain, question, completions, default
+    answer = BufferManager.ask_many_emails_with_completions domain, question, completions, ""
+    answer = AccountManager.default_account.email if answer == ""
     AccountManager.account_for Person.from_address(answer).email if answer
   end
 
