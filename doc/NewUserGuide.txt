@@ -20,13 +20,13 @@ message labels), and all information necessary for searching and for
 threading messages. Sup only knows about messages in its index.
 
 We can add messages to the index by telling Sup about the "source"
-where the messages reside. Sources are things like IMAP folders, mbox
-folders, and maildir directories. Sup doesn't duplicate the actual
-message content in the index; it only stores whatever information is
-necessary for searching, threading and labelling. So when you search
-for messages or view your inbox, Sup talks only to the index (stored
-locally on disk). When you view a thread, Sup requests the full
-content of all the messages from the source.
+where the messages reside. Sources are things like mbox folders, and
+maildir directories. Sup doesn't duplicate the actual message content
+in the index; it only stores whatever information is necessary for
+searching, threading and labelling. So when you search for messages or
+view your inbox, Sup talks only to the index (stored locally on
+disk). When you view a thread, Sup requests the full content of all
+the messages from the source.
 
 The easiest way to set up all your sources is to run `sup-config`.
 This will interactively walk you through some basic configuration,
@@ -146,7 +146,8 @@ press '\' (backslash---forward slash is used for in-buffer search,
 following console conventions). Now type in your query (again, Ctrl-G to
 cancel at any point.) You can just type in arbitrary text, which will be
 matched on a per-word basis against the bodies of all email in the
-index, or you can make use of the full Ferret query syntax:
+index, or you can make use of the full Xapian query syntax
+(http://xapian.org/docs/queryparser.html):
 
 - Phrasal queries using double-quotes, e.g.: "three contiguous words"
 - Queries against a particular field using <field name>:<query>,
@@ -161,7 +162,7 @@ You can combine those all together. For example:
 
      label:ruby-talk subject:\[ANN\] -rails on:today
 
-Play around with the search, and see the Ferret documentation for
+Play around with the search, and see the Xapian documentation for
 details on more sophisticated queries (date ranges, "within n words",
 etc.)
 
@@ -206,9 +207,6 @@ Instead of using sup-config to add a new source, you can manually run
 
 - mbox://path/to/a/filename, for an mbox file on disk.
 - maildir://path/to/a/filename, for a maildir directory on disk.
-- imap://imap.server/folder for an unsecure IMAP folder.
-- imaps://secure.imap.server/folder for a secure IMAP folder.
-- mbox+ssh://remote.machine/path/to/a/filename for a remote mbox file.
 
 Before you add the source, you need make three decisions. The first is
 whether you want Sup to regularly poll this source for new messages.
@@ -226,9 +224,6 @@ lists that you don't want polluting your inbox.
 
 The final decision is whether you want any labels automatically
 applied to messages from this source. You can use `--labels` to do this.
-
-If Sup requires account information, e.g. for IMAP servers and remote
-mbox files, `sup-add` will ask for it.
 
 Now that you've added the source, let's import all the current
 messages from it, by running sup-sync with the source URI. You can
