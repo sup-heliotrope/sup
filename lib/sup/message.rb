@@ -525,18 +525,23 @@ private
 
       ## otherwise, it's body text
       else
-        ## if there's no charset, use the current encoding as the charset.
-        ## this ensures that the body is normalized to avoid non-displayable
-        ## characters
+        ## Decode the body, charset conversion will follow either in
+        ## inline_gpg_to_chunks (for inline GPG signed messages) or
+        ## a few lines below (messages without inline GPG)
+        body = m.body ? m.decode : ""
+
+        ## Check for inline-PGP
+        chunks = inline_gpg_to_chunks body, $encoding, (m.charset || $encoding)
+        return chunks if chunks
+
         if m.body
+          ## if there's no charset, use the current encoding as the charset.
+          ## this ensures that the body is normalized to avoid non-displayable
+          ## characters
           body = Iconv.easy_decode($encoding, m.charset || $encoding, m.decode)
         else
           body = ""
         end
-
-        ## Check for inline-PGP
-        chunks = inline_gpg_to_chunks body.split("\n")
-        return chunks if chunks
 
         text_to_chunks(body.normalize_whitespace.split("\n"), encrypted)
       end
@@ -546,13 +551,15 @@ private
   ## looks for gpg signed (but not encrypted) inline  messages inside the
   ## message body (there is no extra header for inline GPG) or for encrypted
   ## (and possible signed) inline GPG messages
-  def inline_gpg_to_chunks lines
+  def inline_gpg_to_chunks body, encoding_to, encoding_from
+    lines = body.split("\n")
     gpg = lines.between(GPG_SIGNED_START, GPG_SIGNED_END)
     if !gpg.empty?
       msg = RMail::Message.new
       msg.body = gpg.join("\n")
 
-      sig = lines.between(GPG_SIGNED_START, GPG_SIG_END)
+      body = Iconv.easy_decode(encoding_to, encoding_from, body)
+      sig = body.split("\n").between(GPG_SIGNED_START, GPG_SIG_END)
       payload = RMail::Message.new
       payload.body = sig[1, sig.size-2].join("\n")
       return [CryptoManager.verify(nil, msg, false), message_to_chunks(payload)].flatten.compact
