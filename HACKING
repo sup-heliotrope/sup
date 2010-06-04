@@ -8,8 +8,8 @@ Invoke it like this:
 You'll have to install all gems mentioned in the Rakefile (look for the line
 setting p.extra_deps). If you're on a Debian or Debian-based system (e.g.
 Ubuntu), you'll have to make sure you have a complete Ruby installation,
-especially libssl-ruby. You will need libruby-devel, gcc, and make installed
-to build certain gems like Ferret. Gem install does not do a good job of
+especially libssl-ruby. You will need libruby-devel, gcc, and rake installed
+to build certain gems like Xapian. Gem install does not do a good job of
 detecting when these things are missing and the build fails.
 
 Rubygems also is particularly aggressive about picking up libraries from

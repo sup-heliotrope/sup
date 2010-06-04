@@ -63,7 +63,8 @@ class Source
   ##
   ## dirty? means cur_offset has changed, so the source info needs to
   ## be re-saved to sources.yaml.
-  bool_reader :usual, :archived, :dirty
+  bool_reader :dirty
+  bool_accessor :usual, :archived
   attr_reader :uri, :cur_offset
   attr_accessor :id
 

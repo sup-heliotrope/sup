@@ -302,7 +302,7 @@ class String
   end
 
   ## takes a list of words, and returns an array of symbols.  typically used in
-  ## Sup for translating Ferret's representation of a list of labels (a string)
+  ## Sup for translating Xapian's representation of a list of labels (a string)
   ## to an array of label symbols.
   ##
   ## split_on will be passed to String#split, so you can leave this nil for space.

@@ -63,18 +63,18 @@ A: Run:
      sup-sync [<source>+] --restored --restore <dumpfile>
    where <dumpfile> was created as above.
 
-Q: Ferret crashed and I can't read my index. Luckily I made a state
+Q: Xapian crashed and I can't read my index. Luckily I made a state
    dump. What should I do?
 Q: How do I rebuild the index completely?
 A: Run:
-     rm -rf ~/.sup/ferret    # omg wtf
+     rm -rf ~/.sup/xapian    # omg wtf
      sup-sync --all-sources --all --restore <dumpfile>
    Voila! A brand new index.
 
 Q: I want to move messages from one source to another. (E.g., my
-   primary inbox is an IMAP server with a quota, and I want to move
-   some of those messages to local mbox files.) How do I do that while
-   preserving message state?
+   primary inbox is an mbox file, and I want to move some of those
+   messages to a Maildir.) How do I do that while preserving message
+   state?
 A: Move the messages from the source to the target using whatever tool
    you'd like. Mutt's a good one. :) Then run:
      sup-sync --changed <source1> <source2>
@@ -105,13 +105,7 @@ S: The current solution is to directly modify RubyMail. Change line 159 of
 P: I see this error:
      /usr/local/lib/ruby/1.8/yaml.rb:133:in `transfer': allocator undefined for Bignum (TypeError)
 S: You need to upgrade to Ruby 1.8.5. YAML in earlier versions can't
-   parse BigNums, but Sup relies on that for Maildir and IMAP.
-
-P: I see this error:
-     /usr/lib/ruby/1.8/net/imap.rb:204: uninitialized constant Net::IMAP::SSL (NameError)
-S: You need to install a package called libssl-ruby or something similar.
-   Or, don't use imaps:// sources. Ruby's IMAP library otherwise fails in
-   this completely uninformative manner.
+   parse BigNums, but Sup relies on that for Maildir.
 
 P: When I run Sup remotely and view an HTML attachment, an existing
    Firefox on the *local* machine is redirected to the attachment
