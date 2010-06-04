@@ -59,7 +59,7 @@ class Source
   ## Examples for you to look at: mbox/loader.rb, imap.rb, and
   ## maildir.rb.
 
-  bool_reader :usual, :archived
+  bool_accessor :usual, :archived
   attr_reader :uri
   attr_accessor :id
 
