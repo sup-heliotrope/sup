@@ -1,6 +1,8 @@
 require 'sup/protocol'
 
-class Redwood::Server < EM::P::RedwoodServer
+module Redwood
+
+class Server < EM::P::RedwoodServer
   def receive_message type, tag, params
     if respond_to? :"request_#{type}"
       send :"request_#{type}", tag, params
@@ -107,4 +109,6 @@ private
       yield result_from_message(m, raw)
     end
   end
+end
+
 end
