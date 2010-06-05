@@ -65,6 +65,22 @@ class Redwood::Client < EM::P::RedwoodClient
                  'labels' => labels
   end
 
+  def thread msg_id, raw, &b
+    tag = mktag do |type,tag,args|
+      if type == 'message'
+        b.call args
+      else
+        fail unless type == 'done'
+        b.call nil
+        rmtag tag
+      end
+    end
+
+    send_message 'thread', tag,
+                 'message_id' => msg_id,
+                 'raw' => raw
+  end
+
   def receive_message type, tag, args
     cb = @cbs[tag] or fail "invalid tag #{tag.inspect}"
     cb[type, tag, args]
