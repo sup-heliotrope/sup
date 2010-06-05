@@ -34,6 +34,13 @@ class Redwood::Server < EM::P::RedwoodServer
     send_message 'done', tag
   end
 
+  def request_thread tag, a
+    thread a['message_id'], a['raw'] do |r|
+      send_message 'message', tag, r
+    end
+    send_message 'done', tag
+  end
+
 private
 
   def result_from_message m, raw
@@ -88,5 +95,13 @@ private
       m.labels = labels
     end
     nil
+  end
+
+  def thread msg_id, raw
+    msg = Index.build_message msg_id
+    Index.each_message_in_thread_for msg do |id, builder|
+      m = builder.call
+      yield result_from_message(m, raw)
+    end
   end
 end
