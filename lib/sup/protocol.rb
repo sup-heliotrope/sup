@@ -31,7 +31,6 @@ class EM::P::Redwood < EM::Connection
   end
 
   def connection_established
-    puts "client connection established"
   end
 
   def send_version encodings, extensions
