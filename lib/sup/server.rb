@@ -7,7 +7,7 @@ class Server < EM::P::RedwoodServer
     if respond_to? :"request_#{type}"
       send :"request_#{type}", tag, params
     else
-      fail "bad request type #{type}"
+      send_message 'error', tag, 'description' => "invalid request type #{type.inspect}"
     end
   end
 
