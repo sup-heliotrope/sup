@@ -64,7 +64,9 @@ class TestServer < Test::Unit::TestCase
     EM.spawn_reactor_thread
     @path = Dir.mktmpdir
     socket_path = File.join(@path, 'socket')
-    @server = EM.start_server socket_path, Redwood::Server
+    Redwood::Index.init File.join(@path, 'index')
+    @server = EM.start_server socket_path,
+              Redwood::Server, Redwood::Index.instance
     @client = EM.connect socket_path, QueueingClient
     @client.wait_until_ready
   end
@@ -72,6 +74,7 @@ class TestServer < Test::Unit::TestCase
   def teardown
     FileUtils.rm_r @path if passed?
     puts "not cleaning up #{@path}" unless passed?
+    Redwood::Index.deinstantiate!
     EM.kill_reactor_thread
   end
 

@@ -3,6 +3,11 @@ require 'sup/protocol'
 module Redwood
 
 class Server < EM::P::RedwoodServer
+  def initialize index
+    super
+    @index = index
+  end
+
   def receive_message type, tag, params
     if respond_to? :"request_#{type}"
       send :"request_#{type}", tag, params
@@ -12,7 +17,7 @@ class Server < EM::P::RedwoodServer
   end
 
   def request_query tag, a
-    q = Redwood::Index.parse_query a['query']
+    q = @index.parse_query a['query']
     query q, a['offset'], a['limit'], a['raw'] do |r|
       send_message 'message', tag, r
     end
@@ -20,13 +25,13 @@ class Server < EM::P::RedwoodServer
   end
 
   def request_count tag, a
-    q = Redwood::Index.parse_query a['query']
+    q = @index.parse_query a['query']
     c = count q
     send_message 'count', tag, 'count' => c
   end
 
   def request_label tag, a
-    q = Redwood::Index.parse_query a['query']
+    q = @index.parse_query a['query']
     label q, a['add'], a['remove']
     send_message 'done', tag
   end
@@ -66,7 +71,7 @@ private
 
   def query query, offset, limit, raw
     c = 0
-    Index.each_message query do |m|
+    @index.each_message query do |m|
       next if c < offset
       break if c >= offset + limit if limit
       yield result_from_message(m, raw)
@@ -76,14 +81,14 @@ private
   end
 
   def count query
-    Index.num_results_for query
+    @index.num_results_for query
   end
 
   def label query, remove_labels, add_labels
-    Index.each_message query do |m|
+    @index.each_message query do |m|
       remove_labels.each { |l| m.remove_label l }
       add_labels.each { |l| m.add_label l }
-      Index.update_message_state m
+      @index.update_message_state m
     end
     nil
   end
@@ -98,13 +103,13 @@ private
       m2 = m
     end
     m2.labels = Set.new(labels.map(&:to_sym))
-    Index.update_message_state m2
+    @index.update_message_state m2
     nil
   end
 
   def thread msg_id, raw
-    msg = Index.build_message msg_id
-    Index.each_message_in_thread_for msg do |id, builder|
+    msg = @index.build_message msg_id
+    @index.each_message_in_thread_for msg do |id, builder|
       m = builder.call
       yield result_from_message(m, raw)
     end
