@@ -40,7 +40,7 @@ class QueueingClient < EM::P::RedwoodClient
   end
 
   def receive_message type, tag, params
-    @q << [type, params]
+    @q << [type, tag, params]
   end
 
   def connection_established
@@ -85,14 +85,20 @@ class TestServer < Test::Unit::TestCase
   end
 
   def test_invalid_request
-    @client.write 'foo', {}
-    check @client.read, 'error'
+    @client.write 'foo', '1'
+    check @client.read, 'error', '1'
   end
 
-  def check resp, type, args={}
+  def test_query
+    @client.write 'query', '1', 'query' => 'type:mail'
+    check @client.read, 'done', '1'
+  end
+
+  def check resp, type, tag, args={}
     assert_equal type.to_s, resp[0]
+    assert_equal tag.to_s, resp[1]
     args.each do |k,v|
-      assert_equal v, resp[1][k.to_s]
+      assert_equal v, resp[2][k.to_s]
     end
   end
 end
