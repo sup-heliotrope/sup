@@ -428,8 +428,21 @@ private
 
       chunks
     elsif m.header.content_type && m.header.content_type.downcase == "message/rfc822"
+      encoding = m.header["Content-Transfer-Encoding"]
       if m.body
-        payload = RMail::Parser.read(m.body)
+        body =
+        case encoding
+        when "base64"
+          m.body.unpack("m")[0]
+        when "quoted-printable"
+          m.body.unpack("M")[0]
+        when "7bit", "8bit", nil
+          m.body
+        else
+          raise EncodingUnsupportedError, encoding.inspect
+        end
+        body = body.normalize_whitespace
+        payload = RMail::Parser.read(body)
         from = payload.header.from.first ? payload.header.from.first.format : ""
         to = payload.header.to.map { |p| p.format }.join(", ")
         cc = payload.header.cc.map { |p| p.format }.join(", ")
