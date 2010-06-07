@@ -120,7 +120,15 @@ module Redwood
     o
   end
 
+  def managers
+    %w(HookManager SentManager ContactManager LabelManager AccountManager
+    DraftManager UpdateManager PollManager CryptoManager UndoManager
+    SourceManager SearchManager IdleManager).map { |x| Redwood.const_get x.to_sym }
+  end
+
   def start
+    managers.each { |x| fail "#{x} already instantiated" if x.instantiated? }
+
     FileUtils.mkdir_p Redwood::BASE_DIR
     $config = load_config Redwood::CONFIG_FN
     @log_io = File.open(Redwood::LOG_FN, 'a')
@@ -131,21 +139,19 @@ module Redwood
     Redwood::LabelManager.init Redwood::LABEL_FN
     Redwood::AccountManager.init $config[:accounts]
     Redwood::DraftManager.init Redwood::DRAFT_DIR
-    Redwood::UpdateManager.init
-    Redwood::PollManager.init
-    Redwood::CryptoManager.init
-    Redwood::UndoManager.init
-    Redwood::SourceManager.init
     Redwood::SearchManager.init Redwood::SEARCH_FN
-    Redwood::IdleManager.init
+
+    managers.each { |x| x.init unless x.instantiated? }
   end
 
   def finish
     Redwood::LabelManager.save if Redwood::LabelManager.instantiated?
     Redwood::ContactManager.save if Redwood::ContactManager.instantiated?
-    Redwood::BufferManager.deinstantiate! if Redwood::BufferManager.instantiated?
     Redwood::SearchManager.save if Redwood::SearchManager.instantiated?
     Redwood::Logger.remove_sink @log_io
+
+    managers.each { |x| x.deinstantiate! if x.instantiated? }
+
     @log_io.close
     @log_io = nil
     $config = nil
@@ -287,7 +293,7 @@ EOS
 
   module_function :save_yaml_obj, :load_yaml_obj, :start, :finish,
                   :report_broken_sources, :check_library_version_against,
-                  :load_config
+                  :load_config, :managers
 end
 
 require "sup/util"
