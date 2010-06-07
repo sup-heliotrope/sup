@@ -14,21 +14,22 @@ require 'sup/server'
 Thread.abort_on_exception = true
 
 module EM
+  # Run the reactor in a new thread. This is useful for using EventMachine
+  # alongside synchronous code. It is recommended to use EM.error_handler to
+  # detect when an exception terminates the reactor thread.
   def self.spawn_reactor_thread
-    fail if EM.reactor_running?
+    fail "reactor already started" if EM.reactor_running?
     q = ::Queue.new
     Thread.new { EM.run { q << nil } }
     q.pop
-    fail unless EM.reactor_running?
-    fail if EM.reactor_thread?
   end
 
+  # Stop the reactor and wait for it to finish. This is the counterpart to #spawn_reactor_thread.
   def self.kill_reactor_thread
-    fail unless EM.reactor_running?
-    fail if EM.reactor_thread?
+    fail "reactor is not running" unless EM.reactor_running?
+    fail "current thread is running the reactor" if EM.reactor_thread?
     EM.stop
     EM.reactor_thread.join
-    fail if EM.reactor_running?
   end
 end
 
