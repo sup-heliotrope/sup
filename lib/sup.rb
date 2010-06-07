@@ -122,6 +122,8 @@ module Redwood
 
   def start
     $config = load_config
+    @log_io = File.open(Redwood::LOG_FN, 'a')
+    Redwood::Logger.add_sink @log_io
     Redwood::SentManager.init $config[:sent_source] || 'sup://sent'
     Redwood::ContactManager.init Redwood::CONTACT_FN
     Redwood::LabelManager.init Redwood::LABEL_FN
@@ -141,6 +143,9 @@ module Redwood
     Redwood::ContactManager.save if Redwood::ContactManager.instantiated?
     Redwood::BufferManager.deinstantiate! if Redwood::BufferManager.instantiated?
     Redwood::SearchManager.save if Redwood::SearchManager.instantiated?
+    Redwood::Logger.remove_sink @log_io
+    @log_io.close
+    @log_io = nil
     $config = nil
   end
 
@@ -295,7 +300,6 @@ Redwood::HookManager.init Redwood::HOOK_DIR
 ## everything we need to get logging working
 require "sup/logger"
 Redwood::Logger.init.add_sink $stderr
-Redwood::Logger.add_sink File.open(Redwood::LOG_FN, 'a')
 include Redwood::LogsStuff
 
 ## determine encoding and character set
