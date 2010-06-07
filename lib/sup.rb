@@ -121,7 +121,8 @@ module Redwood
   end
 
   def start
-    $config = load_config
+    FileUtils.mkdir_p Redwood::BASE_DIR
+    $config = load_config Redwood::CONFIG_FN
     @log_io = File.open(Redwood::LOG_FN, 'a')
     Redwood::Logger.add_sink @log_io
     Redwood::SentManager.init $config[:sent_source] || 'sup://sent'
@@ -229,10 +230,10 @@ EOS
   end
 
   ## set up default configuration file
-  def load_config
-    if File.exists? Redwood::CONFIG_FN
-      config = Redwood::load_yaml_obj Redwood::CONFIG_FN
-      abort "#{Redwood::CONFIG_FN} is not a valid configuration file (it's a #{config.class}, not a hash)" unless config.is_a?(Hash)
+  def load_config filename
+    if File.exists? filename
+      config = Redwood::load_yaml_obj filename
+      abort "#{filename} is not a valid configuration file (it's a #{config.class}, not a hash)" unless config.is_a?(Hash)
       config
     else
       require 'etc'
@@ -275,8 +276,7 @@ EOS
         :slip_rows => 0
       }
       begin
-        FileUtils.mkdir_p Redwood::BASE_DIR
-        Redwood::save_yaml_obj config, Redwood::CONFIG_FN
+        Redwood::save_yaml_obj config, filename
       rescue StandardError => e
         $stderr.puts "warning: #{e.message}"
       end
