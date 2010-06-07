@@ -125,6 +125,7 @@ module Redwood
     $config = load_config Redwood::CONFIG_FN
     @log_io = File.open(Redwood::LOG_FN, 'a')
     Redwood::Logger.add_sink @log_io
+    Redwood::HookManager.init Redwood::HOOK_DIR
     Redwood::SentManager.init $config[:sent_source] || 'sup://sent'
     Redwood::ContactManager.init Redwood::CONTACT_FN
     Redwood::LabelManager.init Redwood::LABEL_FN
@@ -291,11 +292,6 @@ end
 
 require "sup/util"
 require "sup/hook"
-
-## we have to initialize this guy first, because other classes must
-## reference it in order to register hooks, and they do that at parse
-## time.
-Redwood::HookManager.init Redwood::HOOK_DIR
 
 ## everything we need to get logging working
 require "sup/logger"

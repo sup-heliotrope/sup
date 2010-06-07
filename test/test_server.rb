@@ -65,6 +65,7 @@ class TestServer < Test::Unit::TestCase
     EM.spawn_reactor_thread
     @path = Dir.mktmpdir
     socket_path = File.join(@path, 'socket')
+    Redwood::HookManager.init File.join(@path, 'hooks')
     Redwood::SourceManager.init
     Redwood::SourceManager.load_sources File.join(@path, 'sources.yaml')
     Redwood::Index.init @path
@@ -79,7 +80,7 @@ class TestServer < Test::Unit::TestCase
   def teardown
     FileUtils.rm_r @path if passed?
     puts "not cleaning up #{@path}" unless passed?
-    %w(Index SearchManager SourceManager).each do |x|
+    %w(Index SearchManager SourceManager HookManager).each do |x|
       Redwood.const_get(x.to_sym).deinstantiate!
     end
     EM.kill_reactor_thread

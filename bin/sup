@@ -58,6 +58,7 @@ No return value.
 EOS
 
 if $opts[:list_hooks]
+  Redwood.start
   Redwood::HookManager.print_hooks
   exit
 end
@@ -95,8 +96,6 @@ global_keymap = Keymap.new do |k|
     kk.add :run_keybindings_hook, "Rerun keybindings hook", 'k'
   end
 end
-  
-Redwood::Keymap.run_hook global_keymap
 
 ## the following magic enables wide characters when used with a ruby
 ## ncurses.so that's been compiled against libncursesw. (note the w.) why
@@ -173,6 +172,7 @@ begin
   end
 
   HookManager.run "startup"
+  Redwood::Keymap.run_hook global_keymap
 
   debug "starting curses"
   Redwood::Logger.remove_sink $stderr
