@@ -28,9 +28,8 @@ num_inbox_total_unread: the total number of unread messages in the inbox
                         only those messages appearing in the inbox
 EOS
 
-  DELAY = $config[:poll_interval] || 300
-
   def initialize
+    @delay = $config[:poll_interval] || 300
     @mutex = Mutex.new
     @thread = nil
     @last_poll = nil
@@ -83,8 +82,8 @@ EOS
   def start
     @thread = Redwood::reporting_thread("periodic poll") do
       while true
-        sleep DELAY / 2
-        poll if @last_poll.nil? || (Time.now - @last_poll) >= DELAY
+        sleep @delay / 2
+        poll if @last_poll.nil? || (Time.now - @last_poll) >= @delay
       end
     end
   end
