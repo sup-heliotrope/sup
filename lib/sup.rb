@@ -305,14 +305,14 @@ Redwood::Logger.init.add_sink $stderr
 include Redwood::LogsStuff
 
 ## determine encoding and character set
-  $encoding = Locale.current.charset
-  $encoding = "UTF-8" if $encoding == "utf8"
-  if $encoding
-    debug "using character set encoding #{$encoding.inspect}"
-  else
-    warn "can't find character set by using locale, defaulting to utf-8"
-    $encoding = "UTF-8"
-  end
+$encoding = Locale.current.charset
+$encoding = "UTF-8" if $encoding == "utf8"
+if $encoding
+  debug "using character set encoding #{$encoding.inspect}"
+else
+  warn "can't find character set by using locale, defaulting to utf-8"
+  $encoding = "UTF-8"
+end
 
 require "sup/buffer"
 require "sup/keymap"
