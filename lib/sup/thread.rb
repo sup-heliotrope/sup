@@ -146,6 +146,11 @@ class Thread
   def to_s
     "<thread containing: #{@containers.join ', '}>"
   end
+
+  def sort_key
+    m = latest_message
+    m ? [-m.date.to_i, m.id] : [-Time.now.to_i, ""]
+  end
 end
 
 ## recursive structure used internally to represent message trees as
