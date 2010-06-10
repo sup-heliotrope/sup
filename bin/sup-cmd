@@ -23,7 +23,11 @@ EOS
 
   opt :host, "server address", :type => :string, :default => 'localhost', :short => 'o'
   opt :port, "server port", :type => :int, :default => 4300
+  opt :socket, "unix domain socket path", :type => :string, :default => nil
   opt :verbose
+
+  conflicts :host, :socket
+  conflicts :port, :socket
 
   stop_on SUB_COMMANDS
 end
@@ -123,8 +127,11 @@ end
 
 
 EM.run do
-  EM.connect global_opts[:host], global_opts[:port],
-             SupCmd, cmd, ARGV, cmd_opts.merge(global_opts)
+  if global_opts[:socket]
+    EM.connect global_opts[:socket], SupCmd, cmd, ARGV, cmd_opts.merge(global_opts)
+  else
+    EM.connect global_opts[:host], global_opts[:port], SupCmd, cmd, ARGV, cmd_opts.merge(global_opts)
+  end
 end
 
 exit 0

@@ -580,7 +580,7 @@ module Singleton
       @instance.send meth, *a, &b
     end
     def init *args
-      raise "there can be only one! (instance)" if defined? @instance
+      raise "there can be only one! (instance)" if instantiated?
       @instance = new(*args)
     end
   end

@@ -7,9 +7,12 @@ class EM::P::Redwood < EM::Connection
   VERSION = 1
   ENCODINGS = %w(marshal json)
 
+  attr_reader :debug
+
   def initialize *args
     @state = :negotiating
     @version_buf = ""
+    @debug = false
     super
   end
 
@@ -26,12 +29,15 @@ class EM::P::Redwood < EM::Connection
         receive_data x
       end
     else
-      @filter.decode(data).each { |msg| receive_message *msg }
+      @filter.decode(data).each do |msg|
+        puts "#{self.class.name} received: #{msg.inspect}" if @debug
+        validate_message *msg
+        receive_message *msg
+      end
     end
   end
 
   def connection_established
-    puts "client connection established"
   end
 
   def send_version encodings, extensions
@@ -41,6 +47,8 @@ class EM::P::Redwood < EM::Connection
 
   def send_message type, tag, params={}
     fail "attempted to send message during negotiation" unless @state == :established
+    puts "#{self.class.name} sent: #{[type, tag, params].inspect}" if @debug
+    validate_message type, tag, params
     send_data @filter.encode([type,tag,params])
   end
 
@@ -48,11 +56,17 @@ class EM::P::Redwood < EM::Connection
     fail "unimplemented"
   end
 
-  def receive_message type, params
+  def receive_message type, tag, params
     fail "unimplemented"
   end
 
 private
+
+  def validate_message type, tag, params
+    fail unless type.is_a? String or type.is_a? Symbol
+    fail unless tag.is_a? String or tag.is_a? Integer
+    fail unless params.is_a? Hash
+  end
 
   def parse_version l
     l =~ /^Redwood\s+(\d+)\s+([\w,]+)\s+([\w,]+)$/ or fail "unexpected banner #{l.inspect}"

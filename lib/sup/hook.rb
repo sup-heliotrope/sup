@@ -61,10 +61,15 @@ class HookManager
 
   include Singleton
 
+  @descs = {}
+
+  class << self
+    attr_reader :descs
+  end
+
   def initialize dir
     @dir = dir
     @hooks = {}
-    @descs = {}
     @contexts = {}
     @tags = {}
 
@@ -90,17 +95,17 @@ class HookManager
     result
   end
 
-  def register name, desc
+  def self.register name, desc
     @descs[name] = desc
   end
 
   def print_hooks f=$stdout
 puts <<EOS
-Have #{@descs.size} registered hooks:
+Have #{HookManager.descs.size} registered hooks:
 
 EOS
 
-    @descs.sort.each do |name, desc|
+    HookManager.descs.sort.each do |name, desc|
       f.puts <<EOS
 #{name}
 #{"-" * name.length}

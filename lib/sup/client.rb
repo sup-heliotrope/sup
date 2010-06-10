@@ -1,6 +1,8 @@
 require 'sup/protocol'
 
-class Redwood::Client < EM::P::RedwoodClient
+module Redwood
+
+class Client < EM::P::RedwoodClient
   def initialize *a
     @next_tag = 1
     @cbs = {}
@@ -85,4 +87,6 @@ class Redwood::Client < EM::P::RedwoodClient
     cb = @cbs[tag] or fail "invalid tag #{tag.inspect}"
     cb[type, tag, args]
   end
+end
+
 end
