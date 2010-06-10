@@ -85,6 +85,7 @@ class Thread
   end
 
   def first; each { |m, *o| return m if m }; nil; end
+  def has_message?; any? { |m, *o| m.is_a? Message }; end
   def dirty?; any? { |m, *o| m && m.dirty? }; end
   def date; map { |m, *o| m.date if m }.compact.max; end
   def snippet
