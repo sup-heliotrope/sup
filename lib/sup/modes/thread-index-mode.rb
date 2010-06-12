@@ -124,6 +124,9 @@ EOS
       ## the first draw_screen is needed before topline and botline
       ## are set, and the second to show the cursor having moved
 
+      t.remove_label :unread
+      Index.save_thread t
+
       update_text_for_line curpos
       UpdateManager.relay self, :read, t.first
       when_done.call if when_done
