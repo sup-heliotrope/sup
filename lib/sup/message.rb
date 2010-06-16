@@ -674,7 +674,9 @@ private
         @snippet ||= ""
         @snippet += " " unless @snippet.empty?
         @snippet += line.gsub(/^\s+/, "").gsub(/[\r\n]/, "").gsub(/\s+/, " ")
+        oldlen = @snippet.length
         @snippet = @snippet[0 ... SNIPPET_LEN].chomp
+        @snippet += "..." if @snippet.length < oldlen
         @dirty = true unless encrypted && $config[:discard_snippets_from_encrypted_messages]
         @snippet_contains_encrypted_content = true if encrypted
       end

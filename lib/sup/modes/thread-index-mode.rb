@@ -876,8 +876,6 @@ protected
         :index_old_color
       end
 
-    snippet = t.snippet + (t.snippet.empty? ? "" : "...")
-
     size_padding = @size_widget_width - size_widget.display_length
     size_widget_text = sprintf "%#{size_padding}s%s", "", size_widget
 
@@ -898,7 +896,7 @@ protected
       (t.labels - @hidden_labels).map { |label| [:label_color, "#{label} "] } +
       [
       [subj_color, t.subj + (t.subj.empty? ? "" : " ")],
-      [:snippet_color, snippet],
+      [:snippet_color, t.snippet],
     ]
   end
 
