@@ -32,7 +32,8 @@ class Message
   GPG_SIGNED_END = "-----END PGP SIGNED MESSAGE-----"
   GPG_START = "-----BEGIN PGP MESSAGE-----"
   GPG_END = "-----END PGP MESSAGE-----"
-  GPG_SIG_END = "-----BEGIN PGP SIGNATURE-----"
+  GPG_SIG_START = "-----BEGIN PGP SIGNATURE-----"
+  GPG_SIG_END = "-----END PGP SIGNATURE-----"
 
   MAX_SIG_DISTANCE = 15 # lines from the end
   DEFAULT_SUBJECT = ""
@@ -572,23 +573,40 @@ private
       msg.body = gpg.join("\n")
 
       body = Iconv.easy_decode(encoding_to, encoding_from, body)
-      sig = body.split("\n").between(GPG_SIGNED_START, GPG_SIG_END)
+      lines = body.split("\n")
+      sig = lines.between(GPG_SIGNED_START, GPG_SIG_START)
+      startidx = lines.index(GPG_SIGNED_START)
+      endidx = lines.index(GPG_SIG_END)
+      before = startidx != 0 ? lines[0 .. startidx-1] : []
+      after = endidx ? lines[endidx+1 .. lines.size] : []
+
       payload = RMail::Message.new
       payload.body = sig[1, sig.size-2].join("\n")
-      return [CryptoManager.verify(nil, msg, false), message_to_chunks(payload)].flatten.compact
+      return [text_to_chunks(before, false),
+              CryptoManager.verify(nil, msg, false),
+              message_to_chunks(payload),
+              text_to_chunks(after, false)].flatten.compact
     end
 
     gpg = lines.between(GPG_START, GPG_END)
     if !gpg.empty?
       msg = RMail::Message.new
       msg.body = gpg.join("\n")
+
+      startidx = lines.index(GPG_START)
+      before = startidx != 0 ? lines[0 .. startidx-1] : []
+      after = lines[lines.index(GPG_END)+1 .. lines.size]
+
       notice, sig, decryptedm = CryptoManager.decrypt msg, true
-      if decryptedm # managed to decrypt
+      chunks = if decryptedm # managed to decrypt
         children = message_to_chunks(decryptedm, true)
-        return [notice, sig].compact + children
+        [notice, sig].compact + children
       else
-        return [notice]
+        [notice]
       end
+      return [text_to_chunks(before, false),
+              chunks,
+              text_to_chunks(after, false)].flatten.compact
     end
   end
 
