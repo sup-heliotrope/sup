@@ -255,6 +255,10 @@ EOS
   end
 
   ## Yield each message matching query
+  ## The ignore_neg_terms parameter is used to display result even if
+  ## it contains "forbidden" labels such as :deleted, it is used in
+  ## Poll#poll_from when we need to get the location of a message that
+  ## may contain these labels
   def each_message query={}, ignore_neg_terms = true, &b
     each_id query, ignore_neg_terms do |id|
       yield build_message(id)
