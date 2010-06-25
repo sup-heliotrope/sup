@@ -204,7 +204,7 @@ EOS
     t = thread_containing(m) or return
     l = @lines[t] or return
     @ts_mutex.synchronize do
-      @ts.remove_message m
+      @ts.delete_message m
       @ts.add_message m
     end
     Index.save_thread t
