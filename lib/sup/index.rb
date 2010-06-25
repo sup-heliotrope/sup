@@ -241,11 +241,11 @@ EOS
 
   ## Yield each message-id matching query
   EACH_ID_PAGE = 100
-  def each_id query={}
+  def each_id query={}, ignore_neg_terms = true
     offset = 0
     page = EACH_ID_PAGE
 
-    xapian_query = build_xapian_query query
+    xapian_query = build_xapian_query query, ignore_neg_terms
     while true
       ids = run_query_ids xapian_query, offset, (offset+page)
       ids.each { |id| yield id }
@@ -255,8 +255,8 @@ EOS
   end
 
   ## Yield each message matching query
-  def each_message query={}, &b
-    each_id query do |id|
+  def each_message query={}, ignore_neg_terms = true, &b
+    each_id query, ignore_neg_terms do |id|
       yield build_message(id)
     end
   end
@@ -301,9 +301,9 @@ EOS
   ## Yields (in lexicographical order) the source infos of all locations from
   ## the given source with the given source_info prefix
   def each_source_info source_id, prefix='', &b
-    prefix = mkterm :location, source_id, prefix
-    each_prefixed_term prefix do |x|
-      yield x[prefix.length..-1]
+    p = mkterm :location, source_id, prefix
+    each_prefixed_term p do |x|
+      yield prefix + x[p.length..-1]
     end
   end
 
@@ -593,7 +593,7 @@ EOS
   end
 
   Q = Xapian::Query
-  def build_xapian_query opts
+  def build_xapian_query opts, ignore_neg_terms = true
     labels = ([opts[:label]] + (opts[:labels] || [])).compact
     neglabels = [:spam, :deleted, :killed].reject { |l| (labels.include? l) || opts.member?("load_#{l}".intern) }
     pos_terms, neg_terms = [], []
@@ -609,7 +609,7 @@ EOS
       pos_terms << Q.new(Q::OP_OR, participant_terms)
     end
 
-    neg_terms.concat(neglabels.map { |l| mkterm(:label,l) })
+    neg_terms.concat(neglabels.map { |l| mkterm(:label,l) }) if ignore_neg_terms
 
     pos_query = Q.new(Q::OP_AND, pos_terms)
     neg_query = Q.new(Q::OP_OR, neg_terms)

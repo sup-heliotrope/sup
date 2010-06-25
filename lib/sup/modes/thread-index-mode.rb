@@ -200,6 +200,26 @@ EOS
     BufferManager.draw_screen
   end
 
+  def handle_updated_update sender, m
+    t = thread_containing(m) or return
+    l = @lines[t] or return
+    @ts_mutex.synchronize do
+      @ts.remove_message m
+      @ts.add_message m
+    end
+    Index.save_thread t
+    update_text_for_line l
+  end
+
+  def handle_location_deleted_update sender, m
+    t = thread_containing(m)
+    delete_thread t if t and t.first.id == m.id
+    @ts_mutex.synchronize do
+      @ts.delete_message m if t
+    end
+    update
+  end
+
   def handle_single_message_deleted_update sender, m
     @ts_mutex.synchronize do
       return unless @ts.contains? m
@@ -754,6 +774,16 @@ protected
     @tags.drop_all_tags
     initialize_threads
     update
+  end
+
+  def delete_thread t
+    @mutex.synchronize do
+      i = @threads.index(t) or return
+      @threads.delete_at i
+      @size_widgets.delete_at i
+      @date_widgets.delete_at i
+      @tags.drop_tag_for t
+    end
   end
 
   def hide_thread t

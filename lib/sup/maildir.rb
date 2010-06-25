@@ -20,7 +20,7 @@ class Maildir < Source
     @dir = uri.path
     @labels = Set.new(labels || [])
     @mutex = Mutex.new
-    @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
+    @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
   end
 
   def file_path; @dir end
@@ -87,33 +87,61 @@ class Maildir < Source
 
   ## XXX use less memory
   def poll
-    @mtimes.each do |d,prev_mtime|
+    added = []
+    deleted = []
+    updated = []
+    @ctimes.each do |d,prev_ctime|
       subdir = File.join @dir, d
       debug "polling maildir #{subdir}"
       raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
-      mtime = File.mtime subdir
-      next if prev_mtime >= mtime
-      @mtimes[d] = mtime
+      ctime = File.ctime subdir
+      next if prev_ctime >= ctime
+      @ctimes[d] = ctime
 
       old_ids = benchmark(:maildir_read_index) { Enumerator.new(Index.instance, :each_source_info, self.id, "#{d}/").to_a }
-      new_ids = benchmark(:maildir_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.basename x }.sort }
-      added = new_ids - old_ids
-      deleted = old_ids - new_ids
+      new_ids = benchmark(:maildir_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(d,File.basename(x)) }.sort }
+      added += new_ids - old_ids
+      deleted += old_ids - new_ids
       debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
-      debug "#{added.size} added, #{deleted.size} deleted"
+    end
 
-      added.each_with_index do |id,i|
-        yield :add,
-          :info => File.join(d,id),
-          :labels => @labels + maildir_labels(id) + [:inbox],
-          :progress => i.to_f/(added.size+deleted.size)
+    ## find updated mails by checking if an id is in both added and
+    ## deleted arrays, meaning that its flags changed or that it has
+    ## been moved, these ids need to be removed from added and deleted
+    add_to_delete = del_to_delete = []
+    added.each do |id_add|
+      deleted.each do |id_del|
+        if maildir_data(id_add)[0] == maildir_data(id_del)[0]
+          updated.push [ id_del, id_add ]
+          add_to_delete.push id_add
+          del_to_delete.push id_del
+        end
       end
+    end
+    added -= add_to_delete
+    deleted -= del_to_delete
+    debug "#{added.size} added, #{deleted.size} deleted, #{updated.size} updated"
 
-      deleted.each_with_index do |id,i|
-        yield :delete,
-          :info => File.join(d,id),
-          :progress => (i.to_f+added.size)/(added.size+deleted.size)
-      end
+    added.each_with_index do |id,i|
+      yield :add,
+      :info => File.join(d,id),
+      :labels => @labels + maildir_labels(id) + [:inbox],
+      :progress => i.to_f/(added.size+deleted.size)
+    end
+
+    deleted.each_with_index do |id,i|
+      yield :delete,
+      :info => File.join(d,id),
+      :progress => (i.to_f+added.size)/(added.size+deleted.size)
+    end
+
+    # TODO: Fix this
+    updated.each do |id|
+      yield :update,
+         :old_info => id[0],
+         :new_info => id[1],
+         :labels => @labels + maildir_labels(id[1]),
+         :progress => 0.0
     end
     nil
   end
@@ -159,6 +187,7 @@ private
   end
 
   def maildir_data id
+    id = File.basename id
     id =~ %r{^([^:]+):([12]),([DFPRST]*)$}
     [($1 || id), ($2 || "2"), ($3 || "")]
   end

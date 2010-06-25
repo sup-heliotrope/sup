@@ -46,15 +46,23 @@ EOS
     HookManager.run "before-poll"
 
     BufferManager.flash "Polling for new messages..."
-    num, numi, from_and_subj, from_and_subj_inbox, loaded_labels = @mode.poll
+    flash_msg = ""
+    num, numi, numu, numd, from_and_subj, from_and_subj_inbox, loaded_labels = @mode.poll
     clear_running_totals if @should_clear_running_totals
     @running_totals[:num] += num
     @running_totals[:numi] += numi
+    @running_totals[:numu] += numu
+    @running_totals[:numd] += numd
     @running_totals[:loaded_labels] += loaded_labels || []
-    if @running_totals[:num] > 0
-      BufferManager.flash "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox. Labels: #{@running_totals[:loaded_labels].map{|l| l.to_s}.join(', ')}"
-    else
+
+    flash_msg += "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox, labels: #{@running_totals[:loaded_labels].map{|l| l.to_s}.join(', ')}. " if @running_totals[:num] > 0
+    flash_msg += "Updated #{@running_totals[:numu].pluralize 'message'}. " if @running_totals[:numu] > 0
+    flash_msg += "Deleted #{@running_totals[:numd].pluralize 'message'}." if @running_totals[:numd] > 0
+
+    if flash_msg == ""
       BufferManager.flash "No new messages."
+    else
+      BufferManager.flash flash_msg
     end
 
     HookManager.run "after-poll", :num => num, :num_inbox => numi, :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox, :num_inbox_total_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] }
@@ -94,7 +102,7 @@ EOS
   end
 
   def do_poll
-    total_num = total_numi = 0
+    total_num = total_numi = total_numu = total_numd = 0
     from_and_subj = []
     from_and_subj_inbox = []
     loaded_labels = Set.new
@@ -108,11 +116,14 @@ EOS
           next
         end
 
-        num = 0
-        numi = 0
+        msg = ""
+        num = numi = numu = numd = 0
         poll_from source do |action,m,old_m,progress|
           if action == :delete
             yield "Deleting #{m.id}"
+            numd += 1
+          elsif action == :update
+            numu += 1
           elsif action == :add
             if old_m
               new_locations = (m.locations - old_m.locations)
@@ -134,9 +145,14 @@ EOS
           else fail
           end
         end
-        yield "Found #{num} messages, #{numi} to inbox." unless num == 0
+        msg += "Found #{num} messages, #{numi} to inbox. " unless num == 0
+        msg += "Updated #{numu} messages. " unless numu == 0
+        msg += "Deleted #{numd} messages." unless numd == 0
+        yield msg unless msg == ""
         total_num += num
         total_numi += numi
+        total_numu += numu
+        total_numd += numd
       end
 
       loaded_labels = loaded_labels - LabelManager::HIDDEN_RESERVED_LABELS - [:inbox, :killed]
@@ -144,7 +160,7 @@ EOS
       @last_poll = Time.now
       @polling = false
     end
-    [total_num, total_numi, from_and_subj, from_and_subj_inbox, loaded_labels]
+    [total_num, total_numi, total_numu, total_numd, from_and_subj, from_and_subj_inbox, loaded_labels]
   end
 
   ## like Source#poll, but yields successive Message objects, which have their
@@ -177,9 +193,29 @@ EOS
         when :delete
           Index.each_message :location => [source.id, args[:info]] do |m|
             m.locations.delete Location.new(source, args[:info])
+<<<<<<< HEAD
             yield :delete, m, [source,args[:info]], args[:progress] if block_given?
+=======
+>>>>>>> Synchronize remote modifications from a Maildir source to sup
             Index.sync_message m, false
-            #UpdateManager.relay self, :deleted, m
+            if m.locations.size == 0
+              yield :delete, m, [source,args[:info]] if block_given?
+              Index.delete m.id
+              UpdateManager.relay self, :location_deleted, m
+            end
+          end
+        when :update
+          Index.each_message({:location => [source.id, args[:old_info]]}, false) do |m|
+            m.locations.delete Location.new(source, args[:old_info])
+            m.locations.push Location.new(source, args[:new_info])
+            ## Update labels that might have been modified remotely
+            [:unread, :starred, :deleted].each do |l|
+              m.labels.delete l
+            end
+            m.labels += args[:labels]
+            yield :update, m
+            Index.sync_message m, true
+            UpdateManager.relay self, :updated, m
           end
         end
       end
@@ -192,7 +228,7 @@ EOS
 
   def handle_idle_update sender, idle_since; @should_clear_running_totals = false; end
   def handle_unidle_update sender, idle_since; @should_clear_running_totals = true; clear_running_totals; end
-  def clear_running_totals; @running_totals = {:num => 0, :numi => 0, :loaded_labels => Set.new}; end
+  def clear_running_totals; @running_totals = {:num => 0, :numi => 0, :numu => 0, :numd => 0, :loaded_labels => Set.new}; end
 end
 
 end
