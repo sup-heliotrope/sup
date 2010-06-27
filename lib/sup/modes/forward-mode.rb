@@ -7,9 +7,10 @@ class ForwardMode < EditMessageMode
       "From" => AccountManager.default_account.full_address,
     }
 
+    @m = opts[:message]
     header["Subject"] =
-      if opts[:message]
-        "Fwd: " + opts[:message].subj
+      if @m
+        "Fwd: " + @m.subj
       elsif opts[:attachments]
         "Fwd: " + opts[:attachments].keys.join(", ")
       end
@@ -19,8 +20,8 @@ class ForwardMode < EditMessageMode
     header["Bcc"] = opts[:bcc].map { |p| p.full_address }.join(", ") if opts[:bcc]
 
     body =
-      if opts[:message]
-        forward_body_lines(opts[:message])
+      if @m
+        forward_body_lines @m
       elsif opts[:attachments]
         ["Note: #{opts[:attachments].size.pluralize 'attachment'}."]
       end
@@ -67,6 +68,12 @@ protected
     ["--- Begin forwarded message from #{m.from.mediumname} ---"] +
       m.quotable_header_lines + [""] + m.quotable_body_lines +
       ["--- End forwarded message ---"]
+  end
+
+  def send_message
+    return unless super # super returns true if the mail has been sent
+    @m.add_label :forwarded
+    Index.save_message @m
   end
 end
 

@@ -217,6 +217,12 @@ protected
       update
     end
   end
+
+  def send_message
+    return unless super # super returns true if the mail has been sent
+    @m.add_label :replied
+    Index.save_message @m
+  end
 end
 
 end

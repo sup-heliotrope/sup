@@ -71,6 +71,21 @@ class Maildir < Source
     with_file_for(id) { |f| RMail::Parser.read f }
   end
 
+  def sync_back id, labels
+    flags = ""
+
+    ## Flags must be stored in ASCII order according to Maildir
+    ## documentation
+    flags += "D" if labels.member? :draft
+    flags += "F" if labels.member? :starred
+    flags += "P" if labels.member? :forwarded
+    flags += "R" if labels.member? :replied
+    flags += "S" unless labels.member? :unread
+    flags += "T" if labels.member? :deleted
+
+    maildir_mark_file id, flags
+  end
+
   def raw_header id
     ret = ""
     with_file_for(id) do |f|
@@ -149,7 +164,10 @@ class Maildir < Source
   def maildir_labels id
     (seen?(id) ? [] : [:unread]) +
       (trashed?(id) ?  [:deleted] : []) +
-      (flagged?(id) ? [:starred] : [])
+      (flagged?(id) ? [:starred] : []) +
+      (passed?(id) ? [:forwarded] : []) +
+      (replied?(id) ? [:replied] : []) +
+      (draft?(id) ? [:draft] : [])
   end
 
   def draft? id; maildir_data(id)[2].include? "D"; end
@@ -158,13 +176,6 @@ class Maildir < Source
   def replied? id; maildir_data(id)[2].include? "R"; end
   def seen? id; maildir_data(id)[2].include? "S"; end
   def trashed? id; maildir_data(id)[2].include? "T"; end
-
-  def mark_draft id; maildir_mark_file id, "D" unless draft? id; end
-  def mark_flagged id; maildir_mark_file id, "F" unless flagged? id; end
-  def mark_passed id; maildir_mark_file id, "P" unless passed? id; end
-  def mark_replied id; maildir_mark_file id, "R" unless replied? id; end
-  def mark_seen id; maildir_mark_file id, "S" unless seen? id; end
-  def mark_trashed id; maildir_mark_file id, "T" unless trashed? id; end
 
   def valid? id
     File.exists? File.join(@dir, id)
@@ -192,21 +203,24 @@ private
     [($1 || id), ($2 || "2"), ($3 || "")]
   end
 
-  ## not thread-safe on msg
-  def maildir_mark_file msg, flag
-    orig_path = @ids_to_fns[msg]
-    orig_base, orig_fn = File.split(orig_path)
-    new_base = orig_base.slice(0..-4) + 'cur'
-    tmp_base = orig_base.slice(0..-4) + 'tmp'
-    md_base, md_ver, md_flags = maildir_data msg
-    md_flags += flag; md_flags = md_flags.split(//).sort.join.squeeze
-    new_path = File.join new_base, "#{md_base}:#{md_ver},#{md_flags}"
-    tmp_path = File.join tmp_base, "#{md_base}:#{md_ver},#{md_flags}"
-    File.link orig_path, tmp_path
-    File.unlink orig_path
-    File.link tmp_path, new_path
-    File.unlink tmp_path
-    @ids_to_fns[msg] = new_path
+  def maildir_mark_file orig_path, flags
+    @mutex.synchronize do
+      new_base = (flags.include?("S")) ? "cur" : "new"
+      md_base, md_ver, md_flags = maildir_data orig_path
+      return orig_path if md_flags == flags
+
+      new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
+      orig_path = File.join @dir, orig_path
+      new_path  = File.join @dir, new_loc
+      tmp_path  = File.join @dir, "tmp", "#{md_base}:#{md_ver},#{flags}"
+
+      File.link orig_path, tmp_path
+      File.unlink orig_path
+      File.link tmp_path, new_path
+      File.unlink tmp_path
+
+      new_loc
+    end
   end
 end
 

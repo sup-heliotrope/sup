@@ -285,6 +285,10 @@ EOS
     location.each_raw_message_line &b
   end
 
+  def sync_back
+    location.sync_back @labels
+  end
+
   ## returns all the content from a message that will be indexed
   def indexable_content
     load_from_source!
@@ -694,6 +698,11 @@ class Location
 
   def raw_message
     source.raw_message info
+  end
+
+  def sync_back labels
+    new_info = source.sync_back(@info, labels) if source.respond_to? :sync_back
+    @info = new_info if new_info
   end
 
   ## much faster than raw_message

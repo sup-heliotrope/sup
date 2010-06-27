@@ -209,9 +209,7 @@ EOS
             m.locations.delete Location.new(source, args[:old_info])
             m.locations.push Location.new(source, args[:new_info])
             ## Update labels that might have been modified remotely
-            [:unread, :starred, :deleted].each do |l|
-              m.labels.delete l
-            end
+            m.labels -= [:draft, :starred, :forwarded, :replied, :unread, :deleted]
             m.labels += args[:labels]
             yield :update, m
             Index.sync_message m, true

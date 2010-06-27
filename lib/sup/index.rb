@@ -452,14 +452,19 @@ EOS
     query
   end
 
+  def save_message m
+    return unless m.dirty?
+    if @sync_worker
+      @sync_queue << m
+    else
+      update_message_state m
+    end
+    m.clear_dirty
+  end
+
   def save_thread t
     t.each_dirty_message do |m|
-      if @sync_worker
-        @sync_queue << m
-      else
-        update_message_state m
-      end
-      m.clear_dirty
+      save_message m
     end
   end
 
@@ -626,6 +631,8 @@ EOS
   end
 
   def sync_message m, overwrite
+    m.sync_back if $config[:sync_back_to_maildir] and m.source.is_a? Maildir
+
     doc = synchronize { find_doc(m.id) }
     existed = doc != nil
     doc ||= Xapian::Document.new
