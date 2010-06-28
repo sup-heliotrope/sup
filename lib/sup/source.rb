@@ -87,6 +87,10 @@ class Source
   ## leaks (esp. file descriptors).
   def go_idle; end
 
+  ## Returns an array containing all the labels that are natively
+  ## supported by this source
+  def supported_labels?; [] end
+
   ## Yields values of the form [Symbol, Hash]
   ## add: info, labels, progress
   ## delete: info, progress

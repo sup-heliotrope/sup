@@ -55,10 +55,10 @@ EOS
     @running_totals[:numd] += numd
     @running_totals[:loaded_labels] += loaded_labels || []
 
-    flash_msg += "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox, labels: #{@running_totals[:loaded_labels].map{|l| l.to_s}.join(', ')}. " if @running_totals[:num] > 0
+    flash_msg += "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox. " if @running_totals[:num] > 0
     flash_msg += "Updated #{@running_totals[:numu].pluralize 'message'}. " if @running_totals[:numu] > 0
-    flash_msg += "Deleted #{@running_totals[:numd].pluralize 'message'}." if @running_totals[:numd] > 0
-
+    flash_msg += "Deleted #{@running_totals[:numd].pluralize 'message'}. " if @running_totals[:numd] > 0
+    flash_msg += "Labels: #{@running_totals[:loaded_labels].map{|l| l.to_s}.join(', ')}." if @running_totals[:loaded_labels].size > 0
     if flash_msg == ""
       BufferManager.flash "No new messages."
     else
@@ -121,8 +121,11 @@ EOS
         poll_from source do |action,m,old_m,progress|
           if action == :delete
             yield "Deleting #{m.id}"
+            loaded_labels.merge m.labels
             numd += 1
           elsif action == :update
+            yield "Message at #{m.source_info} is an update of an old message. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
+            loaded_labels.merge m.labels
             numu += 1
           elsif action == :add
             if old_m
@@ -193,25 +196,22 @@ EOS
         when :delete
           Index.each_message :location => [source.id, args[:info]] do |m|
             m.locations.delete Location.new(source, args[:info])
-<<<<<<< HEAD
-            yield :delete, m, [source,args[:info]], args[:progress] if block_given?
-=======
->>>>>>> Synchronize remote modifications from a Maildir source to sup
             Index.sync_message m, false
             if m.locations.size == 0
-              yield :delete, m, [source,args[:info]] if block_given?
+              yield :delete, m, [source,args[:info]], args[:progress] if block_given?
               Index.delete m.id
               UpdateManager.relay self, :location_deleted, m
             end
           end
         when :update
           Index.each_message({:location => [source.id, args[:old_info]]}, false) do |m|
+            old_m = Index.build_message m.id
             m.locations.delete Location.new(source, args[:old_info])
             m.locations.push Location.new(source, args[:new_info])
             ## Update labels that might have been modified remotely
-            m.labels -= [:draft, :starred, :forwarded, :replied, :unread, :deleted]
+            m.labels -= source.supported_labels?
             m.labels += args[:labels]
-            yield :update, m
+            yield :update, m, old_m if block_given?
             Index.sync_message m, true
             UpdateManager.relay self, :updated, m
           end

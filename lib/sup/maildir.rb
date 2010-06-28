@@ -27,6 +27,10 @@ class Maildir < Source
   def self.suggest_labels_for path; [] end
   def is_source_for? uri; super || (uri == @expanded_uri); end
 
+  def supported_labels?
+    [:draft, :starred, :forwarded, :replied, :unread, :deleted]
+  end
+
   def store_message date, from_email, &block
     stored = false
     new_fn = new_maildir_basefn + ':2,S'
