@@ -453,7 +453,6 @@ EOS
   end
 
   def save_message m
-    return unless m.dirty?
     if @sync_worker
       @sync_queue << m
     else

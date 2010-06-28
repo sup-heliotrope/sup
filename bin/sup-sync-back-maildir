@@ -1,0 +1,78 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'trollop'
+require "sup"; Redwood::check_library_version_against "git"
+
+opts = Trollop::options do
+  version "sup-sync-back-maildir (sup #{Redwood::VERSION})"
+  banner <<EOS
+Synchronize from Sup Maildir sources to disk.
+
+Usage:
+  sup-sync-back-maildir [options] <source>*
+
+where <source>* is zero or more source URIs. If no sources are given,
+sync back all usual sources.
+
+Options include:
+EOS
+  opt :no_confirm, "Don't ask confirmation before synchronizing", :default => false, :short => "n"
+  opt :list_sources, "List your Maildir sources and exit", :default => false, :short => "l"
+end
+
+def die msg
+  $stderr.puts "Error: #{msg}"
+  exit(-1)
+end
+
+Redwood::start
+index = Redwood::Index.init
+index.lock_interactively or exit
+index.load
+
+## Force sync_back_to_maildir option otherwise nothing will happen
+$config[:sync_back_to_maildir] = true
+
+begin
+  sources = []
+  sources = ARGV.map do |uri|
+    s = Redwood::SourceManager.source_for(uri) or die "unknown source: #{uri}. Did you add it with sup-add first?"
+    s.is_a?(Redwood::Maildir) or die "#{uri} is not an mbox source."
+    s
+  end unless opts[:list_sources]
+
+  if sources.empty? or opts[:list_sources] == true
+    sources = Redwood::SourceManager.usual_sources.select { |s| s.is_a? Redwood::Maildir }
+  end
+
+  if opts[:list_sources] == true
+    sources.each do |s|
+      puts "id: #{s.id}, uri: #{s.uri}"
+    end
+  else
+    sources.each do |s|
+      if opts[:no_confirm] == false
+        print "Are you sure to synchronize '#{s.uri}'? (y/N) "
+        next unless STDIN.gets.chomp.downcase == 'y'
+      end
+
+      infos = Enumerator.new(index, :each_source_info, s.id).to_a
+      counter = 0
+      infos.each do |info|
+        print "\rSynchronizing '#{s.uri}'... #{((counter += 1)/infos.size.to_f*100).to_i}%"
+        index.each_message({:location => [s.id, info]}, false) do |m|
+          index.save_message m
+        end
+      end
+      print "\n"
+    end
+  end
+rescue Exception => e
+  File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
+  raise
+ensure
+  index.save_index
+  Redwood::finish
+  index.unlock
+end
