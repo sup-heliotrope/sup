@@ -259,7 +259,7 @@ class Message
           rmsg = source.load_message(source_info)
           parse_header rmsg.header
           message_to_chunks rmsg
-        rescue SourceError, SocketError => e
+        rescue SourceError, SocketError, RMail::EncodingUnsupportedError => e
           warn "problem getting messages from #{source}: #{e.message}"
           ## we need force_to_top here otherwise this window will cover
           ## up the error message one
