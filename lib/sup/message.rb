@@ -470,7 +470,7 @@ private
         when "7bit", "8bit", nil
           m.body
         else
-          raise EncodingUnsupportedError, encoding.inspect
+          raise RMail::EncodingUnsupportedError, encoding.inspect
         end
         body = body.normalize_whitespace
         payload = RMail::Parser.read(body)
