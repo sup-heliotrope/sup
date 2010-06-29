@@ -19,9 +19,16 @@ Usage:
 EOS
 end
 
+$config = Redwood::load_config Redwood::CONFIG_FN
 index = Redwood::Index.init
 Redwood::SourceManager.init
 index.load
+Redwood::SentManager.init $config[:sent_source] || 'sup://sent'
+if(s = Redwood::SourceManager.source_for Redwood::SentManager.source_uri)
+  Redwood::SentManager.source = s
+else
+  Redwood::SourceManager.add_source Redwood::SentManager.default_source
+end
 
 index.each_message :load_spam => true, :load_deleted => true, :load_killed => true do |m|
   puts "#{m.id} (#{m.labels.to_a.sort_by { |l| l.to_s } * ' '})"
