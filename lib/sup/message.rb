@@ -78,14 +78,15 @@ class Message
   def parse_header encoded_header
     header = SavingHash.new { |k| decode_header_field encoded_header[k] }
 
-    @id = if header["message-id"]
+    @id = ''
+    if header["message-id"]
       mid = header["message-id"] =~ /<(.+?)>/ ? $1 : header["message-id"]
-      sanitize_message_id mid
-    else
-      id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
-      from = header["from"]
+      @id = sanitize_message_id mid
+    end
+    if (not @id.include? '@') || @id.length < 6
+      @id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
+      #from = header["from"]
       #debug "faking non-existent message-id for message from #{from}: #{id}"
-      id
     end
 
     @from = Person.from_address(if header["from"]
