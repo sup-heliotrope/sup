@@ -194,7 +194,7 @@ EOS
             UpdateManager.relay self, :added, m
           end
         when :delete
-          Index.each_message :location => [source.id, args[:info]] do |m|
+          Index.each_message({:location => [source.id, args[:info]]}, false) do |m|
             m.locations.delete Location.new(source, args[:info])
             Index.sync_message m, false
             if m.locations.size == 0
