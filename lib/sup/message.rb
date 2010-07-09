@@ -286,12 +286,10 @@ EOS
   end
 
   def sync_back
-    begin
-      location.sync_back @labels if $config[:sync_back_to_maildir] and source.is_a? Maildir
-      true
-    rescue SourceError => e
-      warn "cannot sync back #{id}, locations have been removed from the disk"
-      false
+    @locations.each do |l|
+      if l.valid?
+        l.sync_back @labels and $config[:sync_back_to_maildir] and l.source.is_a? Maildir
+      end
     end
   end
 
