@@ -630,7 +630,9 @@ EOS
   end
 
   def sync_message m, overwrite
-    m.sync_back if $config[:sync_back_to_maildir] and m.source.is_a? Maildir
+    ## TODO: we should not save the message if the sync_back failed
+    ## since it would overwrite the location field
+    m.sync_back
 
     doc = synchronize { find_doc(m.id) }
     existed = doc != nil

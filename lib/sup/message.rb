@@ -286,7 +286,13 @@ EOS
   end
 
   def sync_back
-    location.sync_back @labels
+    begin
+      location.sync_back @labels if $config[:sync_back_to_maildir] and source.is_a? Maildir
+      true
+    rescue SourceError => e
+      warn "cannot sync back #{id}, locations have been removed from the disk"
+      false
+    end
   end
 
   ## returns all the content from a message that will be indexed
