@@ -288,7 +288,7 @@ EOS
   def sync_back
     @locations.each do |l|
       if l.valid?
-        l.sync_back @labels and $config[:sync_back_to_maildir] and l.source.is_a? Maildir
+        l.sync_back @labels if $config[:sync_back_to_maildir] and l.source.is_a? Maildir
       end
     end
   end
