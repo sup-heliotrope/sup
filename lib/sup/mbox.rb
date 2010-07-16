@@ -93,7 +93,7 @@ class MBox < Source
     need_blank = File.exists?(@filename) && !File.zero?(@filename)
     File.open(@filename, "ab") do |f|
       f.puts if need_blank
-      f.puts "From #{from_email} #{date.rfc2822}"
+      f.puts "From #{from_email} #{date.asctime}"
       yield f
     end
   end

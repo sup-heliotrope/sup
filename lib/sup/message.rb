@@ -29,7 +29,8 @@ class Message
   GPG_SIGNED_END = "-----END PGP SIGNED MESSAGE-----"
   GPG_START = "-----BEGIN PGP MESSAGE-----"
   GPG_END = "-----END PGP MESSAGE-----"
-  GPG_SIG_END = "-----BEGIN PGP SIGNATURE-----"
+  GPG_SIG_START = "-----BEGIN PGP SIGNATURE-----"
+  GPG_SIG_END = "-----END PGP SIGNATURE-----"
 
   MAX_SIG_DISTANCE = 15 # lines from the end
   DEFAULT_SUBJECT = ""
@@ -74,14 +75,15 @@ class Message
   def parse_header encoded_header
     header = SavingHash.new { |k| decode_header_field encoded_header[k] }
 
-    @id = if header["message-id"]
+    @id = ''
+    if header["message-id"]
       mid = header["message-id"] =~ /<(.+?)>/ ? $1 : header["message-id"]
-      sanitize_message_id mid
-    else
-      id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
-      from = header["from"]
+      @id = sanitize_message_id mid
+    end
+    if (not @id.include? '@') || @id.length < 6
+      @id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
+      #from = header["from"]
       #debug "faking non-existent message-id for message from #{from}: #{id}"
-      id
     end
 
     @from = Person.from_address(if header["from"]
@@ -255,7 +257,7 @@ class Message
         rmsg = location.parsed_message
         parse_header rmsg.header
         message_to_chunks rmsg
-      rescue SourceError, SocketError => e
+      rescue SourceError, SocketError, RMail::EncodingUnsupportedError => e
         warn "problem reading message #{id}"
         [Chunk::Text.new(error_message.split("\n"))]
       end
@@ -439,7 +441,7 @@ private
         when "7bit", "8bit", nil
           m.body
         else
-          raise EncodingUnsupportedError, encoding.inspect
+          raise RMail::EncodingUnsupportedError, encoding.inspect
         end
         body = body.normalize_whitespace
         payload = RMail::Parser.read(body)
@@ -541,23 +543,40 @@ private
       msg.body = gpg.join("\n")
 
       body = Iconv.easy_decode(encoding_to, encoding_from, body)
-      sig = body.split("\n").between(GPG_SIGNED_START, GPG_SIG_END)
+      lines = body.split("\n")
+      sig = lines.between(GPG_SIGNED_START, GPG_SIG_START)
+      startidx = lines.index(GPG_SIGNED_START)
+      endidx = lines.index(GPG_SIG_END)
+      before = startidx != 0 ? lines[0 .. startidx-1] : []
+      after = endidx ? lines[endidx+1 .. lines.size] : []
+
       payload = RMail::Message.new
       payload.body = sig[1, sig.size-2].join("\n")
-      return [CryptoManager.verify(nil, msg, false), message_to_chunks(payload)].flatten.compact
+      return [text_to_chunks(before, false),
+              CryptoManager.verify(nil, msg, false),
+              message_to_chunks(payload),
+              text_to_chunks(after, false)].flatten.compact
     end
 
     gpg = lines.between(GPG_START, GPG_END)
     if !gpg.empty?
       msg = RMail::Message.new
       msg.body = gpg.join("\n")
+
+      startidx = lines.index(GPG_START)
+      before = startidx != 0 ? lines[0 .. startidx-1] : []
+      after = lines[lines.index(GPG_END)+1 .. lines.size]
+
       notice, sig, decryptedm = CryptoManager.decrypt msg, true
-      if decryptedm # managed to decrypt
+      chunks = if decryptedm # managed to decrypt
         children = message_to_chunks(decryptedm, true)
-        return [notice, sig].compact + children
+        [notice, sig].compact + children
       else
-        return [notice]
+        [notice]
       end
+      return [text_to_chunks(before, false),
+              chunks,
+              text_to_chunks(after, false)].flatten.compact
     end
   end
 
@@ -625,7 +644,9 @@ private
         @snippet ||= ""
         @snippet += " " unless @snippet.empty?
         @snippet += line.gsub(/^\s+/, "").gsub(/[\r\n]/, "").gsub(/\s+/, " ")
+        oldlen = @snippet.length
         @snippet = @snippet[0 ... SNIPPET_LEN].chomp
+        @snippet += "..." if @snippet.length < oldlen
         @dirty = true unless encrypted && $config[:discard_snippets_from_encrypted_messages]
         @snippet_contains_encrypted_content = true if encrypted
       end
