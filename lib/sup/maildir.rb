@@ -3,20 +3,14 @@ require 'uri'
 
 module Redwood
 
-## Maildir doesn't provide an ordered unique id, which is what Sup
-## requires to be really useful. So we must maintain, in memory, a
-## mapping between Sup "ids" (timestamps, essentially) and the
-## pathnames on disk.
-
 class Maildir < Source
   include SerializeLabelsNicely
-  SCAN_INTERVAL = 30 # seconds
   MYHOSTNAME = Socket.gethostname
 
   ## remind me never to use inheritance again.
-  yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels, :mtimes
-  def initialize uri, last_date=nil, usual=true, archived=false, id=nil, labels=[], mtimes={}
-    super uri, last_date, usual, archived, id
+  yaml_properties :uri, :usual, :archived, :id, :labels
+  def initialize uri, usual=true, archived=false, id=nil, labels=[]
+    super uri, usual, archived, id
     uri = URI(Source.expand_filesystem_uri(uri))
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
@@ -25,27 +19,13 @@ class Maildir < Source
 
     @dir = uri.path
     @labels = Set.new(labels || [])
-    @ids = []
-    @ids_to_fns = {}
-    @last_scan = nil
     @mutex = Mutex.new
-    #the mtime from the subdirs in the maildir with the unix epoch as default.
-    #these are used to determine whether scanning the directory for new mail
-    #is a worthwhile effort
-    @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }.merge(mtimes || {})
-    @dir_ids = { 'cur' => [], 'new' => [] }
+    @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
   end
 
   def file_path; @dir end
   def self.suggest_labels_for path; [] end
   def is_source_for? uri; super || (URI(Source.expand_filesystem_uri(uri)) == URI(self.uri)); end
-
-  def check
-    scan_mailbox
-    return unless start_offset
-
-    start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
-  end
 
   def store_message date, from_email, &block
     stored = false
@@ -76,7 +56,6 @@ class Maildir < Source
   end
 
   def each_raw_message_line id
-    scan_mailbox
     with_file_for(id) do |f|
       until f.eof?
         yield f.gets
@@ -85,17 +64,14 @@ class Maildir < Source
   end
 
   def load_header id
-    scan_mailbox
     with_file_for(id) { |f| parse_raw_email_header f }
   end
 
   def load_message id
-    scan_mailbox
     with_file_for(id) { |f| RMail::Parser.read f }
   end
 
   def raw_header id
-    scan_mailbox
     ret = ""
     with_file_for(id) do |f|
       until f.eof? || (l = f.gets) =~ /^$/
@@ -106,98 +82,67 @@ class Maildir < Source
   end
 
   def raw_message id
-    scan_mailbox
     with_file_for(id) { |f| f.read }
   end
 
-  def scan_mailbox opts={}
-    return unless @ids.empty? || opts[:rescan]
-    return if @last_scan && (Time.now - @last_scan) < SCAN_INTERVAL
+  ## XXX use less memory
+  def poll
+    @mtimes.each do |d,prev_mtime|
+      subdir = File.join @dir, d
+      debug "polling maildir #{subdir}"
+      raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
+      mtime = File.mtime subdir
+      next if prev_mtime >= mtime
+      @mtimes[d] = mtime
 
-    initial_poll = @ids.empty?
+      old_ids = benchmark(:maildir_read_index) { Enumerator.new(Index.instance, :each_source_info, self.id, "#{d}/").to_a }
+      new_ids = benchmark(:maildir_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.basename x }.sort }
+      added = new_ids - old_ids
+      deleted = old_ids - new_ids
+      debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
+      debug "#{added.size} added, #{deleted.size} deleted"
 
-    debug "scanning maildir #@dir..."
-    begin
-      @mtimes.each_key do |d|
-	subdir = File.join(@dir, d)
-	raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
-
-	mtime = File.mtime subdir
-
-	#only scan the dir if the mtime is more recent (or we haven't polled
-	#since startup)
-	if @mtimes[d] < mtime || initial_poll
-	  @mtimes[d] = mtime
-	  @dir_ids[d] = []
-	  Dir[File.join(subdir, '*')].map do |fn|
-	    id = make_id fn
-	    @dir_ids[d] << id
-	    @ids_to_fns[id] = fn
-	  end
-	else
-	  debug "no poll on #{d}.  mtime on indicates no new messages."
-	end
+      added.each do |id|
+        yield :add,
+          :info => File.join(d,id),
+          :labels => @labels + maildir_labels(id) + [:inbox],
+          :progress => 0.0
       end
-      @ids = @dir_ids.values.flatten.uniq.sort!
-    rescue SystemCallError, IOError => e
-      raise FatalSourceError, "Problem scanning Maildir directories: #{e.message}."
+
+      deleted.each do |id|
+        yield :delete,
+          :info => File.join(d,id),
+          :progress => 0.0
+      end
     end
-    
-    debug "done scanning maildir"
-    @last_scan = Time.now
-  end
-  synchronized :scan_mailbox
-
-  def each
-    scan_mailbox
-    return unless start_offset
-
-    start = @ids.index(cur_offset || start_offset) or raise OutOfSyncSourceError, "Unknown message id #{cur_offset || start_offset}." # couldn't find the most recent email
-
-    start.upto(@ids.length - 1) do |i|         
-      id = @ids[i]
-      self.cur_offset = id
-      yield id, @labels + (seen?(id) ? [] : [:unread]) + (trashed?(id) ? [:deleted] : []) + (flagged?(id) ? [:starred] : [])
-    end
+    nil
   end
 
-  def start_offset
-    scan_mailbox
-    @ids.first
+  def maildir_labels id
+    (seen?(id) ? [] : [:unread]) +
+      (trashed?(id) ?  [:deleted] : []) +
+      (flagged?(id) ? [:starred] : [])
   end
 
-  def end_offset
-    scan_mailbox :rescan => true
-    @ids.last + 1
+  def draft? id; maildir_data(id)[2].include? "D"; end
+  def flagged? id; maildir_data(id)[2].include? "F"; end
+  def passed? id; maildir_data(id)[2].include? "P"; end
+  def replied? id; maildir_data(id)[2].include? "R"; end
+  def seen? id; maildir_data(id)[2].include? "S"; end
+  def trashed? id; maildir_data(id)[2].include? "T"; end
+
+  def mark_draft id; maildir_mark_file id, "D" unless draft? id; end
+  def mark_flagged id; maildir_mark_file id, "F" unless flagged? id; end
+  def mark_passed id; maildir_mark_file id, "P" unless passed? id; end
+  def mark_replied id; maildir_mark_file id, "R" unless replied? id; end
+  def mark_seen id; maildir_mark_file id, "S" unless seen? id; end
+  def mark_trashed id; maildir_mark_file id, "T" unless trashed? id; end
+
+  def valid? id
+    File.exists? File.join(@dir, id)
   end
-
-  def pct_done; 100.0 * (@ids.index(cur_offset) || 0).to_f / (@ids.length - 1).to_f; end
-
-  def draft? msg; maildir_data(msg)[2].include? "D"; end
-  def flagged? msg; maildir_data(msg)[2].include? "F"; end
-  def passed? msg; maildir_data(msg)[2].include? "P"; end
-  def replied? msg; maildir_data(msg)[2].include? "R"; end
-  def seen? msg; maildir_data(msg)[2].include? "S"; end
-  def trashed? msg; maildir_data(msg)[2].include? "T"; end
-
-  def mark_draft msg; maildir_mark_file msg, "D" unless draft? msg; end
-  def mark_flagged msg; maildir_mark_file msg, "F" unless flagged? msg; end
-  def mark_passed msg; maildir_mark_file msg, "P" unless passed? msg; end
-  def mark_replied msg; maildir_mark_file msg, "R" unless replied? msg; end
-  def mark_seen msg; maildir_mark_file msg, "S" unless seen? msg; end
-  def mark_trashed msg; maildir_mark_file msg, "T" unless trashed? msg; end
-
-  def filename_for_id id; @ids_to_fns[id] end
 
 private
-
-  def make_id fn
-    #doing this means 1 syscall instead of 2 (File.mtime, File.size).
-    #makes a noticeable difference on nfs.
-    stat = File.stat(fn)
-    # use 7 digits for the size. why 7? seems nice.
-    sprintf("%d%07d", stat.mtime, stat.size % 10000000).to_i
-  end
 
   def new_maildir_basefn
     Kernel::srand()
@@ -205,7 +150,7 @@ private
   end
 
   def with_file_for id
-    fn = @ids_to_fns[id] or raise OutOfSyncSourceError, "No such id: #{id.inspect}."
+    fn = File.join(@dir, id)
     begin
       File.open(fn, 'rb') { |f| yield f }
     rescue SystemCallError, IOError => e
@@ -213,10 +158,9 @@ private
     end
   end
 
-  def maildir_data msg
-    fn = File.basename @ids_to_fns[msg]
-    fn =~ %r{^([^:]+):([12]),([DFPRST]*)$}
-    [($1 || fn), ($2 || "2"), ($3 || "")]
+  def maildir_data id
+    id =~ %r{^([^:]+):([12]),([DFPRST]*)$}
+    [($1 || id), ($2 || "2"), ($3 || "")]
   end
 
   ## not thread-safe on msg

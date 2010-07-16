@@ -22,7 +22,7 @@ class Index
   include InteractiveLock
 
   STEM_LANGUAGE = "english"
-  INDEX_VERSION = '3'
+  INDEX_VERSION = '4'
 
   ## dates are converted to integers for xapian, and are used for document ids,
   ## so we must ensure they're reasonably valid. this typically only affect
@@ -105,15 +105,16 @@ EOS
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
       db_version = @xapian.get_metadata 'version'
       db_version = '0' if db_version.empty?
-      if db_version == '1' || db_version == '2'
+      if false
         info "Upgrading index format #{db_version} to #{INDEX_VERSION}"
         @xapian.set_metadata 'version', INDEX_VERSION
       elsif db_version != INDEX_VERSION
-        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please downgrade to your previous version and dump your labels before upgrading to this version (then run sup-sync --restore)."
+        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{path} out of the way, and run sup-sync --restore."
       end
     else
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_CREATE)
       @xapian.set_metadata 'version', INDEX_VERSION
+      @xapian.set_metadata 'rescue-version', '0'
     end
     @enquire = Xapian::Enquire.new @xapian
     @enquire.weighting_scheme = Xapian::BoolWeight.new
@@ -197,7 +198,7 @@ EOS
     locations = entry[:locations].map do |source_id,source_info|
       source = SourceManager[source_id]
       raise "invalid source #{source_id}" unless source
-      [source, source_info]
+      Location.new source, source_info
     end
 
     m = Message.new :locations => locations,
@@ -263,6 +264,26 @@ EOS
   ## was synced from
   def source_for_id id
     synchronize { get_entry(id)[:source_id] }
+  end
+
+  ## Yields each tearm in the index that starts with prefix
+  def each_prefixed_term prefix
+    term = @xapian._dangerous_allterms_begin prefix
+    lastTerm = @xapian._dangerous_allterms_end prefix
+    until term.equals lastTerm
+      yield term.term
+      term.next
+    end
+    nil
+  end
+
+  ## Yields (in lexicographical order) the source infos of all locations from
+  ## the given source with the given source_info prefix
+  def each_source_info source_id, prefix='', &b
+    prefix = mkterm :location, source_id, prefix
+    each_prefixed_term prefix do |x|
+      yield x[prefix.length..-1]
+    end
   end
 
   class ParseError < StandardError; end
@@ -583,7 +604,7 @@ EOS
 
     entry = {
       :message_id => m.id,
-      :locations => m.locations.map { |source,source_info| [source.id, source_info] },
+      :locations => m.locations.map { |x| [x.source.id, x.info] },
       :date => truncate_date(m.date),
       :snippet => snippet,
       :labels => m.labels.to_a,
@@ -746,13 +767,7 @@ end
 
 class Xapian::Document
   def entry
-    entry = Marshal.load data
-    if entry[:source_id]
-      entry[:locations] = [[entry[:source_id], entry[:source_info]]]
-      entry.delete :source_id
-      entry.delete :source_info
-    end
-    entry
+    Marshal.load data
   end
 
   def entry=(x)

@@ -8,12 +8,12 @@ class MBox < Source
   BREAK_RE = /^From \S+ (.+)$/
 
   include SerializeLabelsNicely
-  yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
+  yaml_properties :uri, :usual, :archived, :id, :labels
 
   attr_reader :labels
 
   ## uri_or_fp is horrific. need to refactor.
-  def initialize uri_or_fp, start_offset=nil, usual=true, archived=false, id=nil, labels=nil
+  def initialize uri_or_fp, usual=true, archived=false, id=nil, labels=nil
     @mutex = Mutex.new
     @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
 
@@ -30,8 +30,7 @@ class MBox < Source
       @path = uri_or_fp.path
     end
 
-    start_offset ||= 0
-    super uri_or_fp, start_offset, usual, archived, id
+    super uri_or_fp, usual, archived, id
   end
 
   def file_path; @path end
@@ -47,23 +46,10 @@ class MBox < Source
     end
   end
 
-  def check
-    if (cur_offset ||= start_offset) > end_offset
-      raise OutOfSyncSourceError, "mbox file is smaller than last recorded message offset. Messages have probably been deleted by another client."
-    end
-  end
-
-  def start_offset; 0; end
-  def end_offset; File.size @f; end
-
   def load_header offset
     header = nil
     @mutex.synchronize do
       @f.seek offset
-      l = @f.gets
-      unless MBox::is_break_line? l
-        raise OutOfSyncSourceError, "mismatch in mbox file offset #{offset.inspect}: #{l.inspect}." 
-      end
       header = parse_raw_email_header @f
     end
     header
@@ -76,24 +62,13 @@ class MBox < Source
         ## don't use RMail::Mailbox::MBoxReader because it doesn't properly ignore
         ## "From" at the start of a message body line.
         string = ""
-        l = @f.gets
-        string << l until @f.eof? || MBox::is_break_line?(l = @f.gets)
+        until @f.eof? || MBox::is_break_line?(l = @f.gets)
+          string << l
+        end
         RMail::Parser.read string
       rescue RMail::Parser::Error => e
         raise FatalSourceError, "error parsing mbox file: #{e.message}"
       end
-    end
-  end
-
-  ## scan forward until we're at the valid start of a message
-  def correct_offset!
-    @mutex.synchronize do
-      @f.seek cur_offset
-      string = ""
-      until @f.eof? || MBox::is_break_line?(l = @f.gets)
-        string << l
-      end
-      self.cur_offset += string.length
     end
   end
 
@@ -132,48 +107,50 @@ class MBox < Source
   def each_raw_message_line offset
     @mutex.synchronize do
       @f.seek offset
-      yield @f.gets
       until @f.eof? || MBox::is_break_line?(l = @f.gets)
         yield l
       end
     end
   end
 
-  def next
-    returned_offset = nil
-    next_offset = cur_offset
+  def pct_done
+    0.0
+  end
 
-    begin
-      @mutex.synchronize do
-        @f.seek cur_offset
+  def default_labels
+    [:inbox, :unread]
+  end
 
-        ## cur_offset could be at one of two places here:
-
-        ## 1. before a \n and a mbox separator, if it was previously at
-        ##    EOF and a new message was added; or,
-        ## 2. at the beginning of an mbox separator (in all other
-        ##    cases).
-
-        l = @f.gets or return nil
-        if l =~ /^\s*$/ # case 1
-          returned_offset = @f.tell
-          @f.gets # now we're at a BREAK_RE, so skip past it
-        else # case 2
-          returned_offset = cur_offset
-          ## we've already skipped past the BREAK_RE, so just go
-        end
-
-        while(line = @f.gets)
-          break if MBox::is_break_line? line
-          next_offset = @f.tell
-        end
-      end
-    rescue SystemCallError, IOError => e
-      raise FatalSourceError, "Error reading #{@f.path}: #{e.message}"
+  def poll
+    offset = first_new_message
+    end_offset = File.size @f
+    while offset and offset < end_offset
+      yield :add,
+        :info => offset,
+        :labels => (labels + default_labels),
+        :progress => 0.0
+      offset = next_offset offset
     end
+  end
 
-    self.cur_offset = next_offset
-    [returned_offset, (labels + [:unread])]
+  def next_offset offset
+    @mutex.synchronize do
+      @f.seek offset
+      nil while line = @f.gets and not MBox::is_break_line? line
+      offset = @f.tell
+      offset != File.size(@f) ? offset : nil
+    end
+  end
+
+  ## TODO optimize this by iterating over allterms list backwards or
+  ## storing source_info negated
+  def last_indexed_message
+    benchmark(:mbox_read_index) { Enumerator.new(Index.instance, :each_source_info, self.id).map(&:to_i).max }
+  end
+
+  ## offset of first new message or nil
+  def first_new_message
+    next_offset(last_indexed_message || 0)
   end
 
   def self.is_break_line? l
@@ -190,7 +167,7 @@ class MBox < Source
   end
 
   class Loader < self
-    yaml_properties :uri, :cur_offset, :usual, :archived, :id, :labels
+    yaml_properties :uri, :usual, :archived, :id, :labels
   end
 end
 end

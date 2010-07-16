@@ -97,13 +97,10 @@ private
     SentManager.source.store_message Time.now, "test@example.com" do |io|
       io.write raw
     end
-    m2 = nil
-    PollManager.each_message_from(SentManager.source) do |m|
-      PollManager.add_new_message m
-      m2 = m
+    PollManager.poll_from SentManager.source do |sym,m,old_m|
+      next unless sym == :add
+      m.labels = labels
     end
-    m2.labels = Set.new(labels.map(&:to_sym))
-    @index.update_message_state m2
     nil
   end
 
