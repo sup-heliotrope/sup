@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'xapian'
 require 'trollop'
+require 'set'
 
 BASE_DIR = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
 
@@ -28,8 +29,12 @@ version = '0' if version.empty?
 case version
 when '0'
   xapian.postlist('Kmail').each do |x|
-    entry = Marshal.load(xapian.document(x.docid).data)
-    puts "#{entry[:message_id]} (#{entry[:labels].sort_by { |l| l.to_s } * ' '})"
+    begin
+      entry = Marshal.load(xapian.document(x.docid).data)
+      puts "#{entry[:message_id]} (#{entry[:labels].sort_by { |l| l.to_s } * ' '})"
+    rescue
+      $stderr.puts "failed to dump document #{x.docid}"
+    end
   end
 else
   abort "this sup-dump version doesn't understand your index"
