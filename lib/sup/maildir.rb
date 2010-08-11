@@ -1,4 +1,5 @@
 require 'uri'
+require 'set'
 
 module Redwood
 
@@ -76,17 +77,7 @@ class Maildir < Source
   end
 
   def sync_back id, labels
-    flags = ""
-
-    ## Flags must be stored in ASCII order according to Maildir
-    ## documentation
-    flags += "D" if labels.member? :draft
-    flags += "F" if labels.member? :starred
-    flags += "P" if labels.member? :forwarded
-    flags += "R" if labels.member? :replied
-    flags += "S" unless labels.member? :unread
-    flags += "T" if labels.member? :deleted
-
+    flags = maildir_reconcile_flags id, labels
     maildir_mark_file id, flags
   end
 
@@ -203,14 +194,32 @@ private
 
   def maildir_data id
     id = File.basename id
-    id =~ %r{^([^:]+):([12]),([DFPRST]*)$}
+    # Flags we recognize are DFPRST
+    id =~ %r{^([^:]+):([12]),([A-Za-z]*)$}
     [($1 || id), ($2 || "2"), ($3 || "")]
+  end
+
+  def maildir_reconcile_flags id, labels
+      new_flags = Set.new( maildir_data(id)[2].each_char )
+    
+      # Set flags based on labels for the six flags we recognize 
+      if labels.member? :draft then new_flags.add?( "D" ) else new_flags.delete?( "D" ) end 
+      if labels.member? :starred then new_flags.add?( "F" ) else new_flags.delete?( "F" ) end 
+      if labels.member? :forwarded then new_flags.add?( "P" ) else new_flags.delete?( "P" ) end 
+      if labels.member? :replied then new_flags.add?( "R" ) else new_flags.delete?( "R" ) end 
+      if not labels.member? :unread then new_flags.add?( "S" ) else new_flags.delete?( "S" ) end 
+      if labels.member? :deleted then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end 
+
+      ## Flags must be stored in ASCII order according to Maildir
+      ## documentation
+      new_flags.to_a.sort.join
   end
 
   def maildir_mark_file orig_path, flags
     @mutex.synchronize do
       new_base = (flags.include?("S")) ? "cur" : "new"
       md_base, md_ver, md_flags = maildir_data orig_path
+
       return orig_path if md_flags == flags
 
       new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
