@@ -841,6 +841,19 @@ private
     p.longname + (ContactManager.is_aliased_contact?(p) ? " (#{ContactManager.alias_for p})" : "")
   end
 
+  def maybe_wrap_text lines
+    if @wrap
+      config_width = $config[:wrap_width]
+      if config_width and config_width != 0
+        width = [config_width, buffer.content_width].min
+      else
+        width = buffer.content_width
+      end
+      lines = lines.map { |l| l.chomp.wrap width }.flatten
+    end
+    return lines
+  end
+
   ## todo: check arguments on this overly complex function
   def chunk_to_lines chunk, state, start, depth, parent=nil, color=nil, star_color=nil
     prefix = " " * INDENT_SPACES * depth
@@ -856,23 +869,15 @@ private
     else
       raise "Bad chunk: #{chunk.inspect}" unless chunk.respond_to?(:inlineable?) ## debugging
       if chunk.inlineable?
-        lines = chunk.lines
-        if @wrap
-          config_width = $config[:wrap_width]
-          if config_width and config_width != 0
-            width = [config_width, buffer.content_width].min
-          else
-            width = buffer.content_width
-          end
-          lines = lines.map { |l| l.chomp.wrap width }.flatten
-        end
+        lines = maybe_wrap_text(chunk.lines)
         lines.map { |line| [[chunk.color, "#{prefix}#{line}"]] }
       elsif chunk.expandable?
         case state
         when :closed
           [[[chunk.patina_color, "#{prefix}+ #{chunk.patina_text}"]]]
         when :open
-          [[[chunk.patina_color, "#{prefix}- #{chunk.patina_text}"]]] + chunk.lines.map { |line| [[chunk.color, "#{prefix}#{line}"]] }
+          lines = maybe_wrap_text(chunk.lines)
+          [[[chunk.patina_color, "#{prefix}- #{chunk.patina_text}"]]] + lines.map { |line| [[chunk.color, "#{prefix}#{line}"]] }
         end
       else
         [[[chunk.patina_color, "#{prefix}x #{chunk.patina_text}"]]]
