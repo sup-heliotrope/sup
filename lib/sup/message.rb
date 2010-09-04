@@ -559,7 +559,8 @@ private
     end
 
     gpg = lines.between(GPG_START, GPG_END)
-    if !gpg.empty?
+    # between does not check if GPG_END actually exists
+    if !gpg.empty? && !lines.index(GPG_END).nil?
       msg = RMail::Message.new
       msg.body = gpg.join("\n")
 
