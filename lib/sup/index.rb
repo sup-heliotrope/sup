@@ -410,8 +410,8 @@ EOS
     qp.stemming_strategy = Xapian::QueryParser::STEM_SOME
     qp.default_op = Xapian::Query::OP_AND
     qp.add_valuerangeprocessor(Xapian::NumberValueRangeProcessor.new(DATE_VALUENO, 'date:', true))
-    NORMAL_PREFIX.each { |k,vs| vs.each { |v| qp.add_prefix k, v } }
-    BOOLEAN_PREFIX.each { |k,vs| vs.each { |v| qp.add_boolean_prefix k, v } }
+    NORMAL_PREFIX.each { |k,info| info[:prefix].each { |v| qp.add_prefix k, v } }
+    BOOLEAN_PREFIX.each { |k,info| info[:prefix].each { |v| qp.add_boolean_prefix k, v, info[:exclusive] } }
 
     begin
       xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD)
@@ -462,31 +462,31 @@ EOS
 
   # Stemmed
   NORMAL_PREFIX = {
-    'subject' => 'S',
-    'body' => 'B',
-    'from_name' => 'FN',
-    'to_name' => 'TN',
-    'name' => %w(FN TN),
-    'attachment' => 'A',
-    'email_text' => 'E',
-    '' => %w(S B FN TN A E),
+    'subject' => {:prefix => 'S', :exclusive => false},
+    'body' => {:prefix => 'B', :exclusive => false},
+    'from_name' => {:prefix => 'FN', :exclusive => false},
+    'to_name' => {:prefix => 'TN', :exclusive => false},
+    'name' => {:prefix => %w(FN TN), :exclusive => false},
+    'attachment' => {:prefix => 'A', :exclusive => false},
+    'email_text' => {:prefix => 'E', :exclusive => false},
+    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
   }
 
   # Unstemmed
   BOOLEAN_PREFIX = {
-    'type' => 'K',
-    'from_email' => 'FE',
-    'to_email' => 'TE',
-    'email' => %w(FE TE),
-    'date' => 'D',
-    'label' => 'L',
-    'source_id' => 'I',
-    'attachment_extension' => 'O',
-    'msgid' => 'Q',
-    'id' => 'Q',
-    'thread' => 'H',
-    'ref' => 'R',
-    'location' => 'J',
+    'type' => {:prefix => 'K', :exclusive => true},
+    'from_email' => {:prefix => 'FE', :exclusive => false},
+    'to_email' => {:prefix => 'TE', :exclusive => false},
+    'email' => {:prefix => %w(FE TE), :exclusive => false},
+    'date' => {:prefix => 'D', :exclusive => true},
+    'label' => {:prefix => 'L', :exclusive => false},
+    'source_id' => {:prefix => 'I', :exclusive => true},
+    'attachment_extension' => {:prefix => 'O', :exclusive => false},
+    'msgid' => {:prefix => 'Q', :exclusive => true},
+    'id' => {:prefix => 'Q', :exclusive => true},
+    'thread' => {:prefix => 'H', :exclusive => false},
+    'ref' => {:prefix => 'R', :exclusive => false},
+    'location' => {:prefix => 'J', :exclusive => false},
   }
 
   PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
@@ -652,8 +652,8 @@ EOS
     # Person names are indexed with several prefixes
     person_termer = lambda do |d|
       lambda do |p|
-        doc.index_text p.name, PREFIX["#{d}_name"] if p.name
-        doc.index_text p.email, PREFIX['email_text']
+        doc.index_text p.name, PREFIX["#{d}_name"][:prefix] if p.name
+        doc.index_text p.email, PREFIX['email_text'][:prefix]
         doc.add_term mkterm(:email, d, p.email)
       end
     end
@@ -664,9 +664,9 @@ EOS
     # Full text search content
     subject_text = m.indexable_subject
     body_text = m.indexable_body
-    doc.index_text subject_text, PREFIX['subject']
-    doc.index_text body_text, PREFIX['body']
-    m.attachments.each { |a| doc.index_text a, PREFIX['attachment'] }
+    doc.index_text subject_text, PREFIX['subject'][:prefix]
+    doc.index_text body_text, PREFIX['body'][:prefix]
+    m.attachments.each { |a| doc.index_text a, PREFIX['attachment'][:prefix] }
 
     # Miscellaneous terms
     doc.add_term mkterm(:date, m.date) if m.date
@@ -744,25 +744,25 @@ EOS
   def mkterm type, *args
     case type
     when :label
-      PREFIX['label'] + args[0].to_s.downcase
+      PREFIX['label'][:prefix] + args[0].to_s.downcase
     when :type
-      PREFIX['type'] + args[0].to_s.downcase
+      PREFIX['type'][:prefix] + args[0].to_s.downcase
     when :date
-      PREFIX['date'] + args[0].getutc.strftime("%Y%m%d%H%M%S")
+      PREFIX['date'][:prefix] + args[0].getutc.strftime("%Y%m%d%H%M%S")
     when :email
       case args[0]
-      when :from then PREFIX['from_email']
-      when :to then PREFIX['to_email']
+      when :from then PREFIX['from_email'][:prefix]
+      when :to then PREFIX['to_email'][:prefix]
       else raise "Invalid email term type #{args[0]}"
       end + args[1].to_s.downcase
     when :source_id
-      PREFIX['source_id'] + args[0].to_s.downcase
+      PREFIX['source_id'][:prefix] + args[0].to_s.downcase
     when :location
-      PREFIX['location'] + [args[0]].pack('n') + args[1].to_s
+      PREFIX['location'][:prefix] + [args[0]].pack('n') + args[1].to_s
     when :attachment_extension
-      PREFIX['attachment_extension'] + args[0].to_s.downcase
+      PREFIX['attachment_extension'][:prefix] + args[0].to_s.downcase
     when :msgid, :ref, :thread
-      PREFIX[type.to_s] + args[0][0...(MAX_TERM_LENGTH-1)]
+      PREFIX[type.to_s][:prefix] + args[0][0...(MAX_TERM_LENGTH-1)]
     else
       raise "Invalid term type #{type}"
     end
