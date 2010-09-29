@@ -331,6 +331,12 @@ EOS
       end
     end
 
+    ## labels are stored lower-case in the index
+    subs = subs.gsub(/\blabel:(\S+)\b/) do
+      label = $1
+      "label:#{label.downcase}"
+    end
+
     ## if we see a label:deleted or a label:spam term anywhere in the query
     ## string, we set the extra load_spam or load_deleted options to true.
     ## bizarre? well, because the query allows arbitrary parenthesized boolean
