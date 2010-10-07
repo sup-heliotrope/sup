@@ -792,8 +792,8 @@ protected
     authors = t.map do |m, *o|
       next unless m && m.from
       new[m.from] ||= m.has_label?(:unread)
-      next if seen[m.from]
-      seen[m.from] = true
+      next if seen[m.from.mediumname]
+      seen[m.from.mediumname] = true
       m.from
     end.compact
 
