@@ -45,14 +45,14 @@ EOS
 
     sig_fn = Tempfile.new "redwood.signature"; sig_fn.close
 
-    message = run_gpg "--output #{sig_fn.path} --yes --armor --detach-sign --textmode --local-user '#{from}' #{payload_fn.path}", :interactive => true
+    message = run_gpg "--output #{sig_fn.path} --yes --armor --detach-sign --textmode --digest-algo sha256 --local-user '#{from}' #{payload_fn.path}", :interactive => true
     unless $?.success?
       info "Error while running gpg: #{message}"
       raise Error, "GPG command failed. See log for details."
     end
 
     envelope = RMail::Message.new
-    envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature; micalg=pgp-sha1'
+    envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature; micalg=pgp-sha256'
 
     envelope.add_part payload
     signature = RMail::Message.make_attachment IO.read(sig_fn.path), "application/pgp-signature", nil, "signature.asc"
@@ -144,7 +144,7 @@ EOS
     output_fn = Tempfile.new "redwood.output"
     output_fn.close
 
-    message = run_gpg "--output #{output_fn.path} --skip-verify --yes --decrypt #{payload_fn.path}", :interactive => true
+    message = run_gpg "--output #{output_fn.path} --multifile --skip-verify --yes --decrypt #{payload_fn.path}", :interactive => true
 
     unless $?.success?
       info "Error while running gpg: #{message}"

@@ -66,6 +66,7 @@ protected
     return if @curpos == p
     @curpos = p.clamp @cursor_top, lines
     buffer.mark_dirty
+    set_status
   end
 
   ## override search behavior to be cursor-based. this is a stupid

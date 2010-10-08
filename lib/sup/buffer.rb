@@ -453,6 +453,7 @@ EOS
 
   def ask_with_completions domain, question, completions, default=nil
     ask domain, question, default do |s|
+      s.force_encoding 'UTF-8' if s.methods.include?(:encoding)
       completions.select { |x| x =~ /^#{Regexp::escape s}/i }.map { |x| [x, x] }
     end
   end
@@ -469,6 +470,8 @@ EOS
           raise "william screwed up completion: #{partial.inspect}"
         end
 
+      prefix.force_encoding 'UTF-8' if prefix.methods.include?(:encoding)
+      target.force_encoding 'UTF-8' if target.methods.include?(:encoding)
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.map { |x| [prefix + x, x] }
     end
   end
@@ -477,6 +480,7 @@ EOS
     ask domain, question, default do |partial|
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ""
+      target.force_encoding 'UTF-8' if target.methods.include?(:encoding)
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
     end
