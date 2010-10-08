@@ -144,7 +144,7 @@ EOS
     output_fn = Tempfile.new "redwood.output"
     output_fn.close
 
-    message = run_gpg "--output #{output_fn.path} --multifile --skip-verify --yes --decrypt #{payload_fn.path}", :interactive => true
+    message = run_gpg "--output #{output_fn.path} --skip-verify --yes --decrypt #{payload_fn.path}", :interactive => true
 
     unless $?.success?
       info "Error while running gpg: #{message}"
