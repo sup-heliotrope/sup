@@ -90,8 +90,8 @@ class MBox < Source
   end
 
   def store_message date, from_email, &block
-    need_blank = File.exists?(@filename) && !File.zero?(@filename)
-    File.open(@filename, "ab") do |f|
+    need_blank = File.exists?(@path) && !File.zero?(@path)
+    File.open(@path, "ab") do |f|
       f.puts if need_blank
       f.puts "From #{from_email} #{date.asctime}"
       yield f
