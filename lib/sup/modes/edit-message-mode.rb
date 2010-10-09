@@ -58,6 +58,18 @@ Return value:
      none
 EOS
 
+  HookManager.register "sendmail", <<EOS
+Sends the given mail. If this hook doesn't exist, the sendmail command
+configured for the account is used.
+The message will be saved after this hook is run, so any modification to it
+will be recorded.
+Variables:
+    message: RMail::Message instance of the mail to send
+    account: Account instance matching the From address
+Return value:
+     True if mail has been sent successfully, false otherwise.
+EOS
+
   attr_reader :status
   attr_accessor :body, :header
   bool_reader :edited
@@ -341,8 +353,17 @@ protected
     begin
       date = Time.now
       m = build_message date
-      IO.popen(acct.sendmail, "w") { |p| p.puts m }
-      raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
+
+      if HookManager.enabled? "sendmail"
+    if not HookManager.run "sendmail", :message => m, :account => acct
+          warn "Sendmail hook was not successful"
+          return false
+    end
+      else
+        IO.popen(acct.sendmail, "w") { |p| p.puts m }
+        raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
+      end
+
       SentManager.write_sent_message(date, from_email) { |f| f.puts sanitize_body(m.to_s) }
       BufferManager.kill_buffer buffer
       BufferManager.flash "Message sent!"
