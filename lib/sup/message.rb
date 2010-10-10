@@ -475,10 +475,12 @@ private
       end
     else
       filename =
-        ## first, paw through the headers looking for a filename
-        if m.header["Content-Disposition"] && m.header["Content-Disposition"] =~ /filename="?(.*?[^\\])("|;|$)/
+        ## first, paw through the headers looking for a filename.
+        ## RFC 2183 (Content-Disposition) specifies that disposition-parms are
+        ## separated by ";". So, we match everything up to " and ; (if present).
+        if m.header["Content-Disposition"] && m.header["Content-Disposition"] =~ /filename="?(.*?[^\\])("|;|\z)/m
           $1
-        elsif m.header["Content-Type"] && m.header["Content-Type"] =~ /name="?(.*?[^\\])("|;|$)/i
+        elsif m.header["Content-Type"] && m.header["Content-Type"] =~ /name="?(.*?[^\\])("|;|\z)/im
           $1
 
         ## haven't found one, but it's a non-text message. fake
