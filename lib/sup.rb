@@ -261,7 +261,8 @@ EOS
             :email => email,
             :alternates => [],
             :sendmail => "/usr/sbin/sendmail -oem -ti",
-            :signature => File.join(ENV["HOME"], ".signature")
+            :signature => File.join(ENV["HOME"], ".signature"),
+            :gpgkey => ""
           }
         },
         :editor => ENV["EDITOR"] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",

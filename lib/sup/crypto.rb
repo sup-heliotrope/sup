@@ -45,7 +45,8 @@ EOS
 
     sig_fn = Tempfile.new "redwood.signature"; sig_fn.close
 
-    message = run_gpg "--output #{sig_fn.path} --yes --armor --detach-sign --textmode --digest-algo sha256 --local-user '#{from}' #{payload_fn.path}", :interactive => true
+    sign_user_opts = gen_sign_user_opts from
+    message = run_gpg "--output #{sig_fn.path} --yes --armor --detach-sign --textmode --digest-algo sha256 #{sign_user_opts} #{payload_fn.path}", :interactive => true
     unless $?.success?
       info "Error while running gpg: #{message}"
       raise Error, "GPG command failed. See log for details."
@@ -68,7 +69,8 @@ EOS
     encrypted_fn = Tempfile.new "redwood.encrypted"; encrypted_fn.close
 
     recipient_opts = (to + [ from ] ).map { |r| "--recipient '<#{r}>'" }.join(" ")
-    sign_opts = sign ? "--sign --local-user '#{from}'" : ""
+    sign_opts = ""
+    sign_opts = "--sign --digest-algo sha256 " + gen_sign_user_opts(from) if sign
     message = run_gpg "--output #{encrypted_fn.path} --yes --armor --encrypt --textmode #{sign_opts} #{recipient_opts} #{payload_fn.path}", :interactive => true
     unless $?.success?
       info "Error while running gpg: #{message}"
@@ -206,6 +208,23 @@ private
   ## PGP/GPG messages should be
   def format_payload payload
     payload.to_s.gsub(/(^|[^\r])\n/, "\\1\r\n").gsub(/^MIME-Version: .*\r\n/, "")
+  end
+
+  # logic is:
+  # if    gpgkey set for this account, then use that
+  # elsif only one account,            then leave blank so gpg default will be user
+  # else                                    set --local-user from_email_address
+  def gen_sign_user_opts from
+    account = AccountManager.account_for from
+    if !account.gpgkey.nil?
+      opts = "--local-user '#{account.gpgkey}'"
+    elsif AccountManager.user_emails.length == 1
+      # only one account
+      opts = ""
+    else
+      opts = "--local-user '#{from}'" 
+    end
+    opts
   end
 
   def run_gpg args, opts={}

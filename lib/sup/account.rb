@@ -1,7 +1,7 @@
 module Redwood
 
 class Account < Person
-  attr_accessor :sendmail, :signature
+  attr_accessor :sendmail, :signature, :gpgkey
 
   def initialize h
     raise ArgumentError, "no name for account" unless h[:name]
@@ -9,6 +9,7 @@ class Account < Person
     super h[:name], h[:email]
     @sendmail = h[:sendmail]
     @signature = h[:signature]
+    @gpgkey = h[:gpgkey]
   end
 
   # Default sendmail command for bouncing mail,
@@ -46,7 +47,7 @@ class AccountManager
   def add_account hash, default=false
     raise ArgumentError, "no email specified for account" unless hash[:email]
     unless default
-      [:name, :sendmail, :signature].each { |k| hash[k] ||= @default_account.send(k) }
+      [:name, :sendmail, :signature, :gpgkey].each { |k| hash[k] ||= @default_account.send(k) }
     end
     hash[:alternates] ||= []
 
