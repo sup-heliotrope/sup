@@ -403,8 +403,11 @@ protected
     if @crypto_selector && @crypto_selector.val != :none
       from_email = Person.from_address(@header["From"]).email
       to_email = [@header["To"], @header["Cc"], @header["Bcc"]].flatten.compact.map { |p| Person.from_address(p).email }
-      m.header["Content-Transfer-Encoding"] = 'base64'
-      m.body = [m.body].pack('m')
+      if m.multipart?
+        m.each_part {|p| p = transfer_encode p}
+      else
+        m = transfer_encode m
+      end
 
       m = CryptoManager.send @crypto_selector.val, from_email, to_email, m
     end
@@ -519,6 +522,25 @@ private
     else
       []
     end
+  end
+
+  def transfer_encode msg_part
+    ## return the message unchanged if it's already encoded
+    if (msg_part.header["Content-Transfer-Encoding"] == "base64" ||
+        msg_part.header["Content-Transfer-Encoding"] == "quoted-printable")
+      return msg_part
+    end
+
+    ## encode to quoted-printable for all text/* MIME types,
+    ## use base64 otherwise
+    if msg_part.header["Content-Type"] =~ /text\/.*/
+      msg_part.header["Content-Transfer-Encoding"] = 'quoted-printable'
+      msg_part.body = [msg_part.body].pack('M')
+    else
+      msg_part.header["Content-Transfer-Encoding"] = 'base64'
+      msg_part.body = [msg_part.body].pack('m')
+    end
+    msg_part
   end
 end
 
