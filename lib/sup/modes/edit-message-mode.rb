@@ -1,7 +1,6 @@
 require 'tempfile'
 require 'socket' # just for gethostname!
 require 'pathname'
-require 'rmail'
 
 module Redwood
 
@@ -428,6 +427,7 @@ protected
     m.header["Message-Id"] = @message_id
     m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
     m.header["Content-Transfer-Encoding"] ||= '8bit'
+    m.header["MIME-Version"] = "1.0" if m.multipart?
     m
   end
 

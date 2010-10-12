@@ -5,6 +5,7 @@ require 'thread'
 require 'fileutils'
 require 'gettext'
 require 'curses'
+require 'rmail'
 begin
   require 'fastthread'
 rescue LoadError

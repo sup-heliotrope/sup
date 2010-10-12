@@ -98,6 +98,19 @@ module RMail
       a
     end
   end
+
+  class Serialize
+    ## Don't add MIME-Version headers on serialization. Sup sometimes want's to serialize
+    ## message parts where these headers are not needed and messing with the message on
+    ## serialization breaks gpg signatures. The commented section shows the original RMail
+    ## code.
+    def calculate_boundaries(message)
+      calculate_boundaries_low(message, [])
+      # unless message.header['MIME-Version']
+      #   message.header['MIME-Version'] = "1.0"
+      # end
+    end
+  end
 end
 
 class Range

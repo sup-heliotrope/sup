@@ -1,4 +1,3 @@
-require 'rmail'
 require 'uri'
 
 module Redwood
