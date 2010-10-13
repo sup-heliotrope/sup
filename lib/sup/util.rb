@@ -98,6 +98,19 @@ module RMail
       a
     end
   end
+
+  class Serialize
+    ## Don't add MIME-Version headers on serialization. Sup sometimes want's to serialize
+    ## message parts where these headers are not needed and messing with the message on
+    ## serialization breaks gpg signatures. The commented section shows the original RMail
+    ## code.
+    def calculate_boundaries(message)
+      calculate_boundaries_low(message, [])
+      # unless message.header['MIME-Version']
+      #   message.header['MIME-Version'] = "1.0"
+      # end
+    end
+  end
 end
 
 class Range
@@ -224,7 +237,7 @@ class String
   ## a very complicated regex found on teh internets to split on
   ## commas, unless they occurr within double quotes.
   def split_on_commas
-    split(/,\s*(?=(?:[^"]*"[^"]*")*(?![^"]*"))/)
+    normalize_whitespace().split(/,\s*(?=(?:[^"]*"[^"]*")*(?![^"]*"))/)
   end
 
   ## ok, here we do it the hard way. got to have a remainder for purposes of
