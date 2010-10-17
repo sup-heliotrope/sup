@@ -108,6 +108,9 @@ EOS
       else
         Chunk::CryptoNotice.new :invalid, $1, output_lines
       end
+    elsif output_lines.length == 0 && rc == 0
+      # the message wasn't signed
+      Chunk::CryptoNotice.new :valid, "Encrypted message wasn't signed", output_lines
     else
       unknown_status output_lines
     end
