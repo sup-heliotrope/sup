@@ -139,7 +139,7 @@ EOS
   def decrypt payload, armor=false # a RubyMail::Message object
     return unknown_status(cant_find_binary) unless @cmd
 
-    payload_fn = Tempfile.new "redwood.payload"
+    payload_fn = Tempfile.new(["redwood.payload", ".asc"])
     payload_fn.write payload.to_s
     payload_fn.close
 
