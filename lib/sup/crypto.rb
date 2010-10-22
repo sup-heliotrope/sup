@@ -88,7 +88,7 @@ EOS
     control.body = "Version: 1\n"
 
     envelope = RMail::Message.new
-    envelope.header["Content-Type"] = 'multipart/encrypted; protocol="application/pgp-encrypted"'
+    envelope.header["Content-Type"] = 'multipart/encrypted; protocol=application/pgp-encrypted'
 
     envelope.add_part control
     envelope.add_part encrypted_payload
