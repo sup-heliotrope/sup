@@ -454,7 +454,7 @@ EOS
   def ask_with_completions domain, question, completions, default=nil
     ask domain, question, default do |s|
       s.force_encoding 'UTF-8' if s.methods.include?(:encoding)
-      completions.select { |x| x =~ /^#{Regexp::escape s}/i }.map { |x| [x, x] }
+      completions.select { |x| x =~ /^#{Regexp::escape s}/iu }.map { |x| [x, x] }
     end
   end
 
