@@ -247,19 +247,27 @@ private
   end
 
   def sig_output_lines signature
+    # It appears that the signature.to_s call can lead to a EOFError if
+    # the key is not found. So start by looking for the key.
+    ctx = GPGME::Ctx.new
+    begin
+      from_key = ctx.get_key(signature.fingerprint)
+      first_sig = signature.to_s.sub(/from [0-9A-F]{16} /, 'from "') + '"'
+    rescue EOFError => error
+      first_sig = "No public key available for #{signature.fingerprint}"
+    end
+
     time_line = "Signature made " + signature.timestamp.strftime("%a %d %b %Y %H:%M:%S %Z") +
                 " using key ID " + signature.fingerprint[-8..-1]
-    first_sig = signature.to_s.sub(/from [0-9A-F]{16} /, 'from "') + '"'
     output_lines = [time_line, first_sig]
 
-    ctx = GPGME::Ctx.new
-    if from_key = ctx.get_key(signature.fingerprint)
+    if from_key 
       if from_key.uids.length > 1
         aka_list = from_key.uids[1..-1]
         aka_list.each { |aka| output_lines << '                aka "' + aka.uid + '"' }
       end
     end
-    output_lines
+    output_lines.flatten!
   end
 
   # logic is:
