@@ -481,7 +481,10 @@ EOS
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ""
       target.force_encoding 'UTF-8' if target.methods.include?(:encoding)
+
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
+      prefix.force_encoding 'UTF-8' if prefix.methods.include?(:encoding)
+
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
     end
   end
