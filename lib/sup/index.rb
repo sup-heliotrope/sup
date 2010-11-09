@@ -49,6 +49,7 @@ EOS
 
   def initialize dir=BASE_DIR
     @dir = dir
+    FileUtils.mkdir_p @dir
     @lock = Lockfile.new lockfile, :retries => 0, :max_age => nil
     @sync_worker = nil
     @sync_queue = Queue.new
