@@ -100,7 +100,7 @@ class Buffer
 
   def redraw status
     if @dirty
-      draw status 
+      draw status
     else
       draw_status status
     end
@@ -226,7 +226,7 @@ EOS
 
   def focus_on buf
     return unless @buffers.member? buf
-    return if buf == @focus_buf 
+    return if buf == @focus_buf
     @focus_buf.blur if @focus_buf
     @focus_buf = buf
     @focus_buf.focus
@@ -352,7 +352,7 @@ EOS
   ## creates a new buffer. returns two things: the buffer, and a boolean
   ## indicating whether it's a new buffer or not.
   def spawn_unless_exists title, opts={}
-    new = 
+    new =
       if @name_map.member? title
         raise_to_front @name_map[title] unless opts[:hidden]
         false
@@ -460,7 +460,7 @@ EOS
 
   def ask_many_with_completions domain, question, completions, default=nil
     ask domain, question, default do |partial|
-      prefix, target = 
+      prefix, target =
         case partial
         when /^\s*$/
           ["", ""]
@@ -481,7 +481,10 @@ EOS
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ""
       target.force_encoding 'UTF-8' if target.methods.include?(:encoding)
+
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
+      prefix.force_encoding 'UTF-8' if prefix.methods.include?(:encoding)
+
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
     end
   end
@@ -595,7 +598,7 @@ EOS
 
       if tf.new_completions?
         kill_buffer completion_buf if completion_buf
-        
+
         shorts = tf.completions.map { |full, short| short }
         prefix_len = shorts.shared_prefix.length
 
@@ -612,7 +615,7 @@ EOS
 
       Ncurses.sync { Ncurses.refresh }
     end
-    
+
     kill_buffer completion_buf if completion_buf
 
     @dirty = true
@@ -693,12 +696,12 @@ EOS
 
   def minibuf_lines
     @minibuf_mutex.synchronize do
-      [(@flash ? 1 : 0) + 
+      [(@flash ? 1 : 0) +
        (@asking ? 1 : 0) +
        @minibuf_stack.compact.size, 1].max
     end
   end
-  
+
   def draw_minibuf opts={}
     m = nil
     @minibuf_mutex.synchronize do
@@ -800,7 +803,7 @@ private
 
     statusbar_text = HookManager.run("status-bar-text", opts) || default_status_bar(buf)
     term_title_text = HookManager.run("terminal-title-text", opts) || default_terminal_title(buf)
-    
+
     [statusbar_text, term_title_text]
   end
 

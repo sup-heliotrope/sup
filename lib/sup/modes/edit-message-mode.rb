@@ -518,7 +518,7 @@ private
              AccountManager.default_account).signature
 
     if sigfn && File.exists?(sigfn)
-      ["", "--"] + File.readlines(sigfn).map { |l| l.chomp }
+      ["", "-- "] + File.readlines(sigfn).map { |l| l.chomp }
     else
       []
     end

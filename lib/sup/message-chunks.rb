@@ -165,7 +165,7 @@ EOS
     end
 
     def write_to_disk
-      file = Tempfile.new(["sup", @filename || "sup-attachment"])
+      file = Tempfile.new(["sup", @filename.gsub("/", "_") || "sup-attachment"])
       file.print @raw_content
       file.close
       file.path
