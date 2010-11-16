@@ -28,6 +28,17 @@ options: a dictionary of values to be passed to GPGME
 Return value: a dictionary to be passed to GPGME
 EOS
 
+  HookManager.register "sig-output", <<EOS
+Runs when the signature output is being generated, allowing you to
+add extra information to your signatures if you want.
+  
+Variables:
+signature: the signature object (class is GPGME::Signature)
+from_key: the key that generated the signature (class is GPGME::Key)
+
+Return value: an array of lines of output
+EOS
+
   def initialize
     @mutex = Mutex.new
 
@@ -274,6 +285,10 @@ private
         output_lines << "WARNING: This key is not certified with a trusted signature!"
         output_lines << "There is no indication that the signature belongs to the owner"
       end
+
+      # finally, run the hook
+      output_lines << HookManager.run("sig-output",
+                               {:signature => signature, :from_key => from_key})
     end
     output_lines
   end
