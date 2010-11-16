@@ -242,8 +242,7 @@ private
 
   # remove the hex key_id and info in ()
   def simplify_sig_line sig_line
-    sig_line = sig_line.sub(/from [0-9A-F]{16} /, "from ")
-    sig_line.sub(/\(.+\) </, "<")
+    sig_line.sub(/from [0-9A-F]{16} /, "from ")
   end
 
   def sig_output_lines signature
@@ -253,21 +252,43 @@ private
     begin
       from_key = ctx.get_key(signature.fingerprint)
       first_sig = signature.to_s.sub(/from [0-9A-F]{16} /, 'from "') + '"'
-    rescue EOFError => error
+    rescue EOFError 
+      from_key = nil
       first_sig = "No public key available for #{signature.fingerprint}"
     end
 
     time_line = "Signature made " + signature.timestamp.strftime("%a %d %b %Y %H:%M:%S %Z") +
-                " using key ID " + signature.fingerprint[-8..-1]
+                " using " + key_type(from_key, signature.fingerprint) + 
+                "key ID " + signature.fingerprint[-8..-1]
     output_lines = [time_line, first_sig]
 
     if from_key 
+      # first list all the uids
       if from_key.uids.length > 1
         aka_list = from_key.uids[1..-1]
         aka_list.each { |aka| output_lines << '                aka "' + aka.uid + '"' }
       end
+
+      # now we want to look at the trust of that key
+      if signature.validity != GPGME::GPGME_VALIDITY_FULL && signature.validity != GPGME::GPGME_VALIDITY_MARGINAL
+        output_lines << "WARNING: This key is not certified with a trusted signature!"
+        output_lines << "There is no indication that the signature belongs to the owner"
+      end
     end
-    output_lines.flatten!
+    output_lines
+  end
+
+  def key_type key, fpr
+    return "" if key.nil?
+    subkey = key.subkeys.find {|subkey| subkey.fpr == fpr || subkey.keyid == fpr }
+    return "" if subkey.nil?
+
+    case subkey.pubkey_algo
+    when GPGME::PK_RSA then "RSA "
+    when GPGME::PK_DSA then "DSA "
+    when GPGME::PK_ELG then "ElGamel "
+    when GPGME::PK_ELG_E then "ElGamel "
+    end
   end
 
   # logic is:
