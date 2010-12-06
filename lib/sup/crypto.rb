@@ -121,11 +121,15 @@ EOS
   def verified_ok? verify_result
     valid = true
     unknown = false
-    output_lines = []
+    all_output_lines = []
+    all_trusted = true
 
     verify_result.signatures.each do |signature|
-      output_lines.push(sig_output_lines(signature))
-      output_lines.flatten!
+      output_lines, trusted = sig_output_lines signature
+      all_output_lines << output_lines
+      all_output_lines.flatten!
+      all_trusted &&= trusted
+
       err_code = GPGME::gpgme_err_code(signature.status)
       if err_code == GPGME::GPG_ERR_BAD_SIGNATURE
         valid = false 
@@ -135,14 +139,18 @@ EOS
       end
     end
 
-    if output_lines.length == 0
-      Chunk::CryptoNotice.new :valid, "Encrypted message wasn't signed", output_lines
+    if all_output_lines.length == 0
+      Chunk::CryptoNotice.new :valid, "Encrypted message wasn't signed", all_output_lines
     elsif valid
-      Chunk::CryptoNotice.new(:valid, simplify_sig_line(verify_result.signatures[0].to_s), output_lines)
+      if all_trusted
+        Chunk::CryptoNotice.new(:valid, simplify_sig_line(verify_result.signatures[0].to_s), all_output_lines)
+      else
+        Chunk::CryptoNotice.new(:valid_untrusted, simplify_sig_line(verify_result.signatures[0].to_s), all_output_lines)
+      end
     elsif !unknown
-      Chunk::CryptoNotice.new(:invalid, simplify_sig_line(verify_result.signatures[0].to_s), output_lines)
+      Chunk::CryptoNotice.new(:invalid, simplify_sig_line(verify_result.signatures[0].to_s), all_output_lines)
     else
-      unknown_status output_lines
+      unknown_status all_output_lines
     end
   end
 
@@ -273,6 +281,7 @@ private
                 "key ID " + signature.fingerprint[-8..-1]
     output_lines = [time_line, first_sig]
 
+    trusted = false
     if from_key 
       # first list all the uids
       if from_key.uids.length > 1
@@ -284,13 +293,15 @@ private
       if signature.validity != GPGME::GPGME_VALIDITY_FULL && signature.validity != GPGME::GPGME_VALIDITY_MARGINAL
         output_lines << "WARNING: This key is not certified with a trusted signature!"
         output_lines << "There is no indication that the signature belongs to the owner"
+      else
+        trusted = true
       end
 
       # finally, run the hook
       output_lines << HookManager.run("sig-output",
                                {:signature => signature, :from_key => from_key})
     end
-    output_lines
+    return output_lines, trusted
   end
 
   def key_type key, fpr
