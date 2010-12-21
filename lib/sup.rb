@@ -256,6 +256,7 @@ try this instead:
 You can also try `gem uninstall sup` and removing all Sup rubygems.
 
 EOS
+#' duh!
       abort
     end
   end
@@ -330,6 +331,7 @@ end
 
 require "sup/util"
 require "sup/hook"
+require "sup/time"
 
 ## everything we need to get logging working
 require "sup/logger"
