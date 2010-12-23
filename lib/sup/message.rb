@@ -590,9 +590,20 @@ private
     state = :text # one of :text, :quote, or :sig
     chunks = []
     chunk_lines = []
+    nextline_index = -1
 
     lines.each_with_index do |line, i|
-      nextline = lines[(i + 1) ... lines.length].find { |l| l !~ /^\s*$/ } # skip blank lines
+      if i >= nextline_index
+        # look for next nonblank line only when needed to avoid O(n²)
+        # behavior on sequences of blank lines
+        if nextline_index = lines[(i+1)..-1].index { |l| l !~ /^\s*$/ } # skip blank lines
+          nextline_index += i + 1
+          nextline = lines[nextline_index]
+        else
+          nextline_index = lines.length
+          nextline = nil
+        end
+      end
 
       case state
       when :text
