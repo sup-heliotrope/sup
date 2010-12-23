@@ -40,6 +40,7 @@ class Colormap
     :missing_message => { :fg => "black", :bg => "red" },
     :attachment => { :fg => "cyan", :bg => "default" },
     :cryptosig_valid => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
+    :cryptosig_valid_untrusted => { :fg => "yellow", :bg => "blue", :attrs => ["bold"] },
     :cryptosig_unknown => { :fg => "cyan", :bg => "default" },
     :cryptosig_invalid => { :fg => "yellow", :bg => "red", :attrs => ["bold"] },
     :generic_notice_patina => { :fg => "cyan", :bg => "default" },

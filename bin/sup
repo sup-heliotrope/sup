@@ -10,6 +10,13 @@ rescue LoadError
   no_ncursesw = true
 end
 
+no_gpgme = false
+begin
+  require 'gpgme'
+rescue LoadError
+  no_gpgme = true
+end
+
 require 'fileutils'
 require 'trollop'
 require "sup"; Redwood::check_library_version_against "git"
@@ -21,6 +28,10 @@ end
 
 if no_ncursesw
   info "No 'ncursesw' gem detected. Install it for wide character support."
+end
+
+if no_gpgme
+  info "No 'gpgme' gem detected. Install it for email encryption, decryption and signatures."
 end
 
 $opts = Trollop::options do
