@@ -14,7 +14,7 @@ class SentManager
 
   def source= s
     raise FatalSourceError.new("Configured sent_source [#{s.uri}] can't store mail.  Correct your configuration.") unless s.respond_to? :store_message
-    @souce_uri = s.uri
+    @source_uri = s.uri
     @source = s
   end
 
