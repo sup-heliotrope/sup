@@ -212,7 +212,8 @@ class String
   ## the utf8 regex and count those. otherwise, use the byte length.
   def display_length
     if RUBY_VERSION < '1.9.1' && ($encoding == "UTF-8" || $encoding == "utf8")
-      scan(/./u).size
+      # scan hack is somewhat slow, worth trying to cache
+      @display_length ||= scan(/./u).size
     else
       size
     end

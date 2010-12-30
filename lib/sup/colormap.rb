@@ -219,6 +219,8 @@ class Colormap
     Colormap.new unless @@instance
     @@instance.send meth, *a
   end
+  # Performance shortcut
+  def self.color_for *a; @@instance.color_for *a; end
 end
 
 end
