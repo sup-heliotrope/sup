@@ -914,7 +914,7 @@ private
   end
 
   def default_date_widget_for t
-    t.date.to_nice_s
+    t.date.getlocal.to_nice_s
   end
 
   def from_width
