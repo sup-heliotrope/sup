@@ -1,3 +1,12 @@
+Release 0.12:
+
+Deprecated remote sources have been removed.
+
+Maildir support has been improved to gracefully handle messages that
+move or disappear. The "out of sync" errors should no longer occur.
+
+Inline GPG is now supported.
+
 Release 0.11:
 
 The deprecated Ferret index has been removed.
