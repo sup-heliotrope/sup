@@ -101,17 +101,17 @@ class Maildir < Source
       debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
       debug "#{added.size} added, #{deleted.size} deleted"
 
-      added.each do |id|
+      added.each_with_index do |id,i|
         yield :add,
           :info => File.join(d,id),
           :labels => @labels + maildir_labels(id) + [:inbox],
-          :progress => 0.0
+          :progress => i.to_f/(added.size+deleted.size)
       end
 
-      deleted.each do |id|
+      deleted.each_with_index do |id,i|
         yield :delete,
           :info => File.join(d,id),
-          :progress => 0.0
+          :progress => (i.to_f+added.size)/(added.size+deleted.size)
       end
     end
     nil
