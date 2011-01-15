@@ -112,22 +112,19 @@ class MBox < Source
     end
   end
 
-  def pct_done
-    0.0
-  end
-
   def default_labels
     [:inbox, :unread]
   end
 
   def poll
-    offset = first_new_message
+    first_offset = first_new_message
+		offset = first_offset
     end_offset = File.size @f
     while offset and offset < end_offset
       yield :add,
         :info => offset,
         :labels => (labels + default_labels),
-        :progress => 0.0
+        :progress => (offset - first_offset).to_f/end_offset
       offset = next_offset offset
     end
   end

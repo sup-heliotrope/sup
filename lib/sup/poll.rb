@@ -110,7 +110,7 @@ EOS
 
         num = 0
         numi = 0
-        poll_from source do |action,m,old_m|
+        poll_from source do |action,m,old_m,progress|
           if action == :delete
             yield "Deleting #{m.id}"
           elsif action == :add
@@ -164,7 +164,7 @@ EOS
           m.labels = old_m.labels + (m.labels - [:unread, :inbox]) if old_m
           m.locations = old_m.locations + m.locations if old_m
           HookManager.run "before-add-message", :message => m
-          yield :add, m, old_m if block_given?
+          yield :add, m, old_m, args[:progress] if block_given?
           Index.sync_message m, true
 
           ## We need to add or unhide the message when it either did not exist
@@ -176,7 +176,7 @@ EOS
         when :delete
           Index.each_message :location => [source.id, args[:info]] do |m|
             m.locations.delete Location.new(source, args[:info])
-            yield :delete, m, [source,args[:info]] if block_given?
+            yield :delete, m, [source,args[:info]], args[:progress] if block_given?
             Index.sync_message m, false
             #UpdateManager.relay self, :deleted, m
           end

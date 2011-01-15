@@ -1,3 +1,12 @@
+== 0.12 / 2011-01-13
+* Remove deprecated IMAP, IMAPS, and mbox+ssh sources
+* Inline GPG support
+* Robust maildir support
+* sup-dump compatibility between Sup versions
+* New hook: sendmail
+* Better Ruby 1.9/UTF8 support
+* As always, many bugfixes and tweaks.
+
 == 0.11 / 2010-03-07
 * Remove deprecated Ferret backend.
 * Add deprecation notices to IMAP, IMAPS, and mbox+ssh sources.

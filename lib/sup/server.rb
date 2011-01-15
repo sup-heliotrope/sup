@@ -97,7 +97,7 @@ private
     SentManager.source.store_message Time.now, "test@example.com" do |io|
       io.write raw
     end
-    PollManager.poll_from SentManager.source do |sym,m,old_m|
+    PollManager.poll_from SentManager.source do |sym,m,old_m,progress|
       next unless sym == :add
       m.labels = labels
     end
