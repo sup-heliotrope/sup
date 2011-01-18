@@ -155,7 +155,7 @@ end
 module SerializeLabelsNicely
   def before_marshal # can return an object
     c = clone
-    c.instance_eval { @labels = @labels.to_a.map { |l| l.to_s } }
+    c.instance_eval { @labels = (@labels.to_a.map { |l| l.to_s }).sort }
     c
   end
 
