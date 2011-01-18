@@ -117,14 +117,15 @@ begin
 
   sources.each do |source|
     puts "Scanning #{source}..."
-    num_added = num_updated = num_scanned = num_restored = 0
+    num_added = num_updated = num_deleted = num_scanned = num_restored = 0
     last_info_time = start_time = Time.now
 
     Redwood::PollManager.poll_from source do |action,m,old_m,progress|
+      num_scanned += 1
       if action == :delete
+        num_deleted += 1
         puts "Deleting #{m.id}"
       elsif action == :add
-        num_scanned += 1
         seen[m.id] = true
 
         ## tweak source labels according to commandline arguments if necessary
@@ -172,20 +173,20 @@ begin
           puts "Changing flags for #{source}##{m.source_info} from #{old_m.labels} to #{m.labels}" if opts[:verbose]
           num_updated += 1
         end
-
-        if Time.now - last_info_time > PROGRESS_UPDATE_INTERVAL
-          last_info_time = Time.now
-          elapsed = last_info_time - start_time
-          pctdone = progress * 100.0
-          remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
-          printf "## read %dm (~%.0f%%) @ %.1fm/s. %s elapsed, ~%s remaining\n", num_scanned, pctdone, num_scanned / elapsed, elapsed.to_time_s, remaining.to_time_s
-        end
       else fail
+      end
+
+      if Time.now - last_info_time > PROGRESS_UPDATE_INTERVAL
+        last_info_time = Time.now
+        elapsed = last_info_time - start_time
+        pctdone = progress * 100.0
+        remaining = (100.0 - pctdone) * (elapsed.to_f / pctdone)
+        printf "## scanned %dm (~%.0f%%) @ %.1fm/s. %s elapsed, ~%s remaining\n", num_scanned, pctdone, num_scanned / elapsed, elapsed.to_time_s, remaining.to_time_s
       end
       next if opts[:dry_run]
     end
 
-    puts "Scanned #{num_scanned}, added #{num_added}, updated #{num_updated} messages from #{source}."
+    puts "Scanned #{num_scanned}, added #{num_added}, updated #{num_updated}, deleted #{num_deleted} messages from #{source}."
     puts "Restored state on #{num_restored} (#{100.0 * num_restored / num_scanned}%) messages." if num_restored > 0
   end
 
