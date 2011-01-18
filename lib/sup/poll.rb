@@ -115,10 +115,11 @@ EOS
             yield "Deleting #{m.id}"
           elsif action == :add
             if old_m
-              if not old_m.locations.member? m.location
-                yield "Message at #{m.source_info} is an updated of an old message. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
+              new_locations = (m.locations - old_m.locations)
+              if not new_locations.empty?
+                yield "Message at #{new_locations[0].info} is an update of an old message. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
               else
-                yield "Skipping already-imported message at #{m.source_info}"
+                yield "Skipping already-imported message at #{m.locations[-1].info}"
               end
             else
               yield "Found new message at #{m.source_info} with labels #{m.labels.to_a * ','}"
