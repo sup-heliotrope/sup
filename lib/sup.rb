@@ -197,8 +197,8 @@ Until this is corrected, messages from these sources cannot be viewed,
 and new messages will not be detected. Luckily, this is easy to correct!
 
 #{desynced_sources.map do |s|
-  "Source: " + s.to_s + 
-   "\n Error: " + s.error.message.wrap(70).join("\n        ") + 
+  "Source: " + s.to_s +
+   "\n Error: " + s.error.message.wrap(70).join("\n        ") +
    "\n   Fix: sup-sync --changed #{s.to_s}"
   end}
 EOM
@@ -248,7 +248,7 @@ EOS
       require 'socket'
       name = Etc.getpwnam(ENV["USER"]).gecos.split(/,/).first rescue nil
       name ||= ENV["USER"]
-      email = ENV["USER"] + "@" + 
+      email = ENV["USER"] + "@" +
         begin
           Socket.gethostbyname(Socket.gethostname).first
         rescue SocketError

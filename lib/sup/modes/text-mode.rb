@@ -40,7 +40,7 @@ class TextMode < ScrollMode
     update_lines
     if buffer
       ensure_mode_validity
-      buffer.mark_dirty 
+      buffer.mark_dirty
     end
   end
 

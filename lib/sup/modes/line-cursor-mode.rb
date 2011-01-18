@@ -78,7 +78,7 @@ protected
   end
 
   def search_start_line; @curpos end
- 
+
   def line_down # overwrite scrollmode
     super
     call_load_more_callbacks([topline + buffer.content_height - lines, 10].max) if topline + buffer.content_height > lines

@@ -35,7 +35,7 @@ class ResumeMode < EditMessageMode
 
   def send_message
     if super
-      DraftManager.discard @m 
+      DraftManager.discard @m
       @safe = true
     end
   end

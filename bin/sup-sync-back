@@ -71,7 +71,7 @@ index.lock_interactively or exit
 
 deleted_fp, spam_fp = nil
 unless opts[:dry_run]
-  deleted_fp = File.open(opts[:move_deleted], "a") if opts[:move_deleted] 
+  deleted_fp = File.open(opts[:move_deleted], "a") if opts[:move_deleted]
   spam_fp = File.open(opts[:move_spam], "a") if opts[:move_spam]
 end
 

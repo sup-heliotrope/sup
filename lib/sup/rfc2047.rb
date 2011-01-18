@@ -5,7 +5,7 @@
 #
 # An implementation of RFC 2047 decoding.
 #
-# This module depends on the iconv library by Nobuyoshi Nakada, which I've 
+# This module depends on the iconv library by Nobuyoshi Nakada, which I've
 # heard may be distributed as a standard part of Ruby 1.8. Many thanks to him
 # for helping with building and using iconv.
 #

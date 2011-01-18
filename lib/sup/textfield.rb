@@ -2,7 +2,7 @@ module Redwood
 
 ## a fully-functional text field supporting completions, expansions,
 ## history--everything!
-## 
+##
 ## writing this fucking sucked. if you thought ncurses was some 1970s
 ## before-people-knew-how-to-program bullshit, wait till you see
 ## ncurses forms.

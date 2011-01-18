@@ -79,7 +79,7 @@ class Thread
         ## special case here: if we're an empty root that's already
         ## been joined by a fake root, don't emit
         yield c.message, d + adj, (par ? par.message : nil) unless
-          fake_root && c.message.nil? && root.nil? && c == fud 
+          fake_root && c.message.nil? && root.nil? && c == fud
       end
     end
   end

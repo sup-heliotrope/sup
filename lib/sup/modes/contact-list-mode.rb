@@ -89,7 +89,7 @@ class ContactListMode < LineCursorMode
   def search
     p = @contacts[curpos] or return
     multi_search [p]
-  end    
+  end
 
   def reload
     @tags.drop_all_tags
@@ -114,7 +114,7 @@ class ContactListMode < LineCursorMode
       @contacts = (@user_contacts + recentc).sort_by { |p| p.sort_by_me }.uniq
     end
   end
-  
+
 protected
 
   def update

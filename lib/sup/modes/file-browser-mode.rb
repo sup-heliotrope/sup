@@ -29,7 +29,7 @@ class FileBrowserMode < LineCursorMode
   def [] i; @text[i]; end
 
 protected
-  
+
   def back
     return if @dirs.size == 1
     @dirs.pop
@@ -75,7 +75,7 @@ protected
   end
 
   def regen_text
-    @files = 
+    @files =
       begin
         cwd.entries.sort_by do |f|
           [f.directory? ? 0 : 1, f.basename.to_s]

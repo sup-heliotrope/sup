@@ -198,7 +198,7 @@ EOS
     def initialize lines
       @lines = lines
     end
-    
+
     def inlineable?; @lines.length == 1 end
     def quotable?; true end
     def expandable?; !inlineable? end

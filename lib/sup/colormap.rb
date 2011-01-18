@@ -65,7 +65,7 @@ class Colormap
     :modified_buffer => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
     :date => { :fg => "white", :bg => "default"},
   }
-  
+
   def initialize
     raise "only one instance can be created" if @@instance
     @@instance = self
@@ -115,7 +115,7 @@ class Colormap
         Curses::COLOR_BLACK
       end
 
-    hbg = 
+    hbg =
       case bg
       when Curses::COLOR_CYAN
         Curses::COLOR_YELLOW

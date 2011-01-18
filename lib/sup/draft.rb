@@ -70,7 +70,7 @@ class DraftLoader < Source
   def load_header offset
     File.open(fn_for_offset(offset)) { |f| parse_raw_email_header f }
   end
-  
+
   def load_message offset
     File.open fn_for_offset(offset) do |f|
       RMail::Mailbox::MBoxReader.new(f).each_message do |input|

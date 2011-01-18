@@ -447,7 +447,7 @@ module Enumerable
   end
 
   def sum; inject(0) { |x, y| x + y }; end
-  
+
   def map_to_hash
     ret = {}
     each { |x| ret[x] = yield(x) }
@@ -543,7 +543,7 @@ class Time
   def to_nice_distance_s from=Time.now
     later_than = (self < from)
     diff = (self.to_i - from.to_i).abs.to_f
-    text = 
+    text =
       [ ["second", 60],
         ["minute", 60],
         ["hour", 24],
@@ -565,7 +565,7 @@ class Time
       text + " ago"
     else
       "in " + text
-    end  
+    end
   end
 
   TO_NICE_S_MAX_LEN = 9 # e.g. "Yest.10am"
@@ -638,7 +638,7 @@ end
 ##   attr_accessor :val
 ##   def initialize; @val = 0 end
 ## end
-## 
+##
 ## h = Hash.new { C.new }
 ## h[:a].val # => 0
 ## h[:a].val = 1

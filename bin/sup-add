@@ -94,7 +94,7 @@ begin
 
     parsed_uri = URI(uri)
 
-    source = 
+    source =
       case parsed_uri.scheme
       when "maildir"
         Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], nil, labels
@@ -103,7 +103,7 @@ begin
       when nil
         Trollop::die "Sources must be specified with an URI"
       else
-        Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"      
+        Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"
       end
     say "Adding #{source}..."
     Redwood::SourceManager.add_source source
