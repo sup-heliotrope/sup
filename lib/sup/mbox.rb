@@ -18,7 +18,8 @@ class MBox < Source
 
     case uri_or_fp
     when String
-      uri = URI(Source.expand_filesystem_uri(uri_or_fp))
+      @expanded_uri = Source.expand_filesystem_uri(uri_or_fp)
+      uri = URI(@expanded_uri)
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
       raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
       raise ArgumentError, "mbox URI must have a path component" unless uri.path
@@ -27,13 +28,14 @@ class MBox < Source
     else
       @f = uri_or_fp
       @path = uri_or_fp.path
+      @expanded_uri = "mbox://#{@path}"
     end
 
     super uri_or_fp, usual, archived, id
   end
 
   def file_path; @path end
-  def is_source_for? uri; super || (self.uri.is_a?(String) && (URI(Source.expand_filesystem_uri(uri)) == URI(Source.expand_filesystem_uri(self.uri)))) end
+  def is_source_for? uri; super || (uri == @expanded_uri) end
 
   def self.suggest_labels_for path
     ## heuristic: use the filename as a label, unless the file

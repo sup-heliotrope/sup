@@ -193,7 +193,11 @@ class SourceManager
     @source_mutex.synchronize { @sources.values }.sort_by { |s| s.id }.partition { |s| !s.archived? }.flatten
   end
 
-  def source_for uri; sources.find { |s| s.is_source_for? uri }; end
+  def source_for uri
+    expanded_uri = Source.expand_filesystem_uri(uri)
+    sources.find { |s| s.is_source_for? expanded_uri }
+  end
+
   def usual_sources; sources.find_all { |s| s.usual? }; end
   def unusual_sources; sources.find_all { |s| !s.usual? }; end
 
