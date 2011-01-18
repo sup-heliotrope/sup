@@ -40,6 +40,7 @@ class Source
   ## - raw_header offset
   ## - raw_message offset
   ## - check (optional)
+  ## - go_idle (optional)
   ## - next (or each, if you prefer): should return a message and an
   ##   array of labels.
   ##
@@ -80,6 +81,11 @@ class Source
   def is_source_for? uri; uri == @uri; end
 
   def read?; false; end
+
+  ## release resources that are easy to reacquire. it is called
+  ## after processing a source (e.g. polling) to prevent resource
+  ## leaks (esp. file descriptors).
+  def go_idle; end
 
   ## Yields values of the form [Symbol, Hash]
   ## add: info, labels, progress

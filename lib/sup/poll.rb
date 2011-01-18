@@ -182,6 +182,8 @@ EOS
           end
         end
       end
+
+      source.go_idle
     rescue SourceError => e
       warn "problem getting messages from #{source}: #{e.message}"
     end
