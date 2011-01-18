@@ -191,7 +191,7 @@ else
   end
 end
 
-Redwood::save_yaml_obj $config, Redwood::CONFIG_FN
+Redwood::save_yaml_obj $config, Redwood::CONFIG_FN, false, true
 
 say "Ok, I've saved you up a nice lil' #{Redwood::CONFIG_FN}."
 

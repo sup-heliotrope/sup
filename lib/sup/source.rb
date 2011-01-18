@@ -212,13 +212,7 @@ class SourceManager
   def save_sources fn=Redwood::SOURCE_FN
     @source_mutex.synchronize do
       if @sources_dirty
-        bakfn = fn + ".bak"
-        if File.exists? fn
-          File.chmod 0600, fn
-          FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(fn) == 0
-        end
-        Redwood::save_yaml_obj sources, fn, true
-        File.chmod 0600, fn
+        Redwood::save_yaml_obj sources, fn, false, true
       end
       @sources_dirty = false
     end
