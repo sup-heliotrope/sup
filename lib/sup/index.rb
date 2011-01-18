@@ -13,6 +13,10 @@ rescue LoadError => e
   $have_chronic = false
 end
 
+if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,1]) < 0
+	fail "Xapian version 1.2.1 or higher required"
+end
+
 module Redwood
 
 # This index implementation uses Xapian for searching and storage. It
