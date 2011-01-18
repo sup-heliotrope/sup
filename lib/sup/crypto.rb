@@ -323,6 +323,7 @@ private
   # else                                    set --local-user from_email_address
   def gen_sign_user_opts from
     account = AccountManager.account_for from
+    account ||= AccountManager.default_account
     if !account.gpgkey.nil?
       opts = {:signers => account.gpgkey}
     elsif AccountManager.user_emails.length == 1
