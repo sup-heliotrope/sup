@@ -48,6 +48,11 @@ EOS
     GPGME.check_version({:protocol => GPGME::PROTOCOL_OpenPGP})
     rescue NameError, GPGME::Error
       @gpgme_present = false
+      return
+    end
+
+    if (bin = `which gpg2`.chomp) =~ /\S/
+      GPGME.set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
     end
   end
 
