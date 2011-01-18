@@ -124,7 +124,7 @@ begin
       num_scanned += 1
       if action == :delete
         num_deleted += 1
-        puts "Deleting #{m.id}"
+        puts "Deleting #{m.id}" if opts[:verbose]
       elsif action == :add
         seen[m.id] = true
 
