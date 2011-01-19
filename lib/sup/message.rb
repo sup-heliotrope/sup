@@ -503,7 +503,7 @@ private
         filename = Rfc2047.decode_to $encoding, filename
         # add this to the attachments list if its not a generated html
         # attachment (should we allow images with generated names?).
-        # Lowercase the filename because searches are easier that way 
+        # Lowercase the filename because searches are easier that way
         @attachments.push filename.downcase unless filename =~ /^sup-attachment-/
         add_label :attachment unless filename =~ /^sup-attachment-/
         content_type = (m.header.content_type || "application/unknown").downcase # sometimes RubyMail gives us nil

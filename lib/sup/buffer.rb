@@ -575,6 +575,7 @@ EOS
   ## screen
   def ask domain, question, default=nil, &block
     raise "impossible!" if @asking
+    raise "Question too long" if Ncurses.cols <= question.length
     @asking = true
 
     @textfields[domain] ||= TextField.new

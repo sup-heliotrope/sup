@@ -199,7 +199,7 @@
 * doc/UserGuide.txt
 
 == 0.0.4 / 2007-01-03
- 
+
 * Bugfixes, primarily for threaded networking.
 
 == 0.0.3 / 2007-01-02

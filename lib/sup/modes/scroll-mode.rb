@@ -187,7 +187,7 @@ protected
       if in_search?
         ## seems like there ought to be a better way of doing this
         array = []
-        s.each do |color, text| 
+        s.each do |color, text|
           if text =~ regex
             array += matching_text_array text, regex, color
           else

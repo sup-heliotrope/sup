@@ -55,7 +55,7 @@ class Person
     end
   end
 
-  ## when sorting addresses, sort by this 
+  ## when sorting addresses, sort by this
   def sort_by_me
     case @name
     when /^(\S+), \S+/

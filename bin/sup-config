@@ -103,7 +103,7 @@ def add_source
     system cmd
     if $?.success?
       say "Great! Added!"
-      break 
+      break
     else
       say "Rats, that failed. You may have to do it manually."
       if axe_yes("Try again?") then next else return end
@@ -191,7 +191,7 @@ else
   end
 end
 
-Redwood::save_yaml_obj $config, Redwood::CONFIG_FN
+Redwood::save_yaml_obj $config, Redwood::CONFIG_FN, false, true
 
 say "Ok, I've saved you up a nice lil' #{Redwood::CONFIG_FN}."
 
@@ -210,7 +210,7 @@ if axe_yes "Run sup-sync to import all messages now?"
     system cmd
     if $?.success?
       say "Great! It worked!"
-      break 
+      break
     else
       say "Rats, that failed. You may have to do it manually."
       if axe_yes("Try again?") then next else break end

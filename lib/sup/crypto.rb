@@ -31,7 +31,7 @@ EOS
   HookManager.register "sig-output", <<EOS
 Runs when the signature output is being generated, allowing you to
 add extra information to your signatures if you want.
-  
+
 Variables:
 signature: the signature object (class is GPGME::Signature)
 from_key: the key that generated the signature (class is GPGME::Key)
@@ -48,6 +48,11 @@ EOS
     GPGME.check_version({:protocol => GPGME::PROTOCOL_OpenPGP})
     rescue NameError, GPGME::Error
       @gpgme_present = false
+      return
+    end
+
+    if (bin = `which gpg2`.chomp) =~ /\S/
+      GPGME.set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
     end
   end
 
@@ -58,7 +63,7 @@ EOS
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     gpg_opts.merge(gen_sign_user_opts(from))
-    gpg_opts = HookManager.run("gpg-options", 
+    gpg_opts = HookManager.run("gpg-options",
                                {:operation => "sign", :options => gpg_opts}) || gpg_opts
 
     begin
@@ -82,10 +87,10 @@ EOS
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     if sign
-      gpg_opts.merge(gen_sign_user_opts(from)) 
+      gpg_opts.merge(gen_sign_user_opts(from))
       gpg_opts.merge({:sign => true})
     end
-    gpg_opts = HookManager.run("gpg-options", 
+    gpg_opts = HookManager.run("gpg-options",
                                {:operation => "encrypt", :options => gpg_opts}) || gpg_opts
     recipients = to + [from]
 
@@ -132,7 +137,7 @@ EOS
 
       err_code = GPGME::gpgme_err_code(signature.status)
       if err_code == GPGME::GPG_ERR_BAD_SIGNATURE
-        valid = false 
+        valid = false
       elsif err_code != GPGME::GPG_ERR_NO_ERROR
         valid = false
         unknown = true
@@ -158,9 +163,9 @@ EOS
     return unknown_status(cant_find_gpgme) unless @gpgme_present
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP}
-    gpg_opts = HookManager.run("gpg-options", 
+    gpg_opts = HookManager.run("gpg-options",
                                {:operation => "verify", :options => gpg_opts}) || gpg_opts
-    ctx = GPGME::Ctx.new(gpg_opts) 
+    ctx = GPGME::Ctx.new(gpg_opts)
     sig_data = GPGME::Data.from_str signature.decode
     if detached
       signed_text_data = GPGME::Data.from_str(format_payload(payload))
@@ -172,7 +177,7 @@ EOS
     begin
       ctx.verify(sig_data, signed_text_data, plain_data)
     rescue GPGME::Error => exc
-      return unknown_status exc.message 
+      return unknown_status exc.message
     end
     self.verified_ok? ctx.verify_result
   end
@@ -182,9 +187,9 @@ EOS
     return unknown_status(cant_find_gpgme) unless @gpgme_present
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP}
-    gpg_opts = HookManager.run("gpg-options", 
+    gpg_opts = HookManager.run("gpg-options",
                                {:operation => "decrypt", :options => gpg_opts}) || gpg_opts
-    ctx = GPGME::Ctx.new(gpg_opts) 
+    ctx = GPGME::Ctx.new(gpg_opts)
     cipher_data = GPGME::Data.from_str(format_payload(payload))
     plain_data = GPGME::Data.empty
     begin
@@ -216,7 +221,7 @@ EOS
       msg.body = output
     else
       # It appears that some clients use Windows new lines - CRLF - but RMail
-      # splits the body and header on "\n\n". So to allow the parse below to 
+      # splits the body and header on "\n\n". So to allow the parse below to
       # succeed, we will convert the newlines to what RMail expects
       output = output.gsub(/\r\n/, "\n")
       # This is gross. This decrypted payload could very well be a multipart
@@ -271,18 +276,18 @@ private
     begin
       from_key = ctx.get_key(signature.fingerprint)
       first_sig = signature.to_s.sub(/from [0-9A-F]{16} /, 'from "') + '"'
-    rescue EOFError 
+    rescue EOFError
       from_key = nil
       first_sig = "No public key available for #{signature.fingerprint}"
     end
 
     time_line = "Signature made " + signature.timestamp.strftime("%a %d %b %Y %H:%M:%S %Z") +
-                " using " + key_type(from_key, signature.fingerprint) + 
+                " using " + key_type(from_key, signature.fingerprint) +
                 "key ID " + signature.fingerprint[-8..-1]
     output_lines = [time_line, first_sig]
 
     trusted = false
-    if from_key 
+    if from_key
       # first list all the uids
       if from_key.uids.length > 1
         aka_list = from_key.uids[1..-1]
@@ -323,6 +328,7 @@ private
   # else                                    set --local-user from_email_address
   def gen_sign_user_opts from
     account = AccountManager.account_for from
+    account ||= AccountManager.default_account
     if !account.gpgkey.nil?
       opts = {:signers => account.gpgkey}
     elsif AccountManager.user_emails.length == 1

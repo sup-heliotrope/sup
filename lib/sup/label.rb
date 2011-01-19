@@ -12,7 +12,7 @@ class LabelManager
 
   def initialize fn
     @fn = fn
-    labels = 
+    labels =
       if File.exists? fn
         IO.readlines(fn).map { |x| x.chomp.intern }
       else

@@ -10,7 +10,8 @@ class Maildir < Source
   yaml_properties :uri, :usual, :archived, :id, :labels
   def initialize uri, usual=true, archived=false, id=nil, labels=[]
     super uri, usual, archived, id
-    uri = URI(Source.expand_filesystem_uri(uri))
+    @expanded_uri = Source.expand_filesystem_uri(uri)
+    uri = URI(@expanded_uri)
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
@@ -24,7 +25,7 @@ class Maildir < Source
 
   def file_path; @dir end
   def self.suggest_labels_for path; [] end
-  def is_source_for? uri; super || (URI(Source.expand_filesystem_uri(uri)) == URI(self.uri)); end
+  def is_source_for? uri; super || (uri == @expanded_uri); end
 
   def store_message date, from_email, &block
     stored = false

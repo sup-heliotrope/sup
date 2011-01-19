@@ -113,7 +113,7 @@ EOS
         t.each_with_index do |(m, *o), i|
           next unless m
           BufferManager.say "#{message} (#{i}/#{num})", sid if t.size > 1
-          m.load_from_source! 
+          m.load_from_source!
         end
       end
       mode = ThreadViewMode.new t, @hidden_labels, self
@@ -161,15 +161,15 @@ EOS
       b.call
     end
   end
-  
+
   def handle_single_message_labeled_update sender, m
-    ## no need to do anything different here; we don't differentiate 
+    ## no need to do anything different here; we don't differentiate
     ## messages from their containing threads
     handle_labeled_update sender, m
   end
 
   def handle_labeled_update sender, m
-    if(t = thread_containing(m)) 
+    if(t = thread_containing(m))
       l = @lines[t] or return
       update_text_for_line l
     elsif is_relevant?(m)
@@ -273,9 +273,9 @@ EOS
         regen_text
       end
     end
-  end  
+  end
 
-  def toggle_starred 
+  def toggle_starred
     t = cursor_thread or return
     undo = actually_toggle_starred t
     UndoManager.register "toggling thread starred status", undo, lambda { Index.save_thread t }
@@ -362,7 +362,7 @@ EOS
     end
   end
 
-  def toggle_archived 
+  def toggle_archived
     t = cursor_thread or return
     undo = actually_toggle_archived t
     UndoManager.register "deleting/undeleting thread #{t.first.id}", undo, lambda { update_text_for_line curpos },
@@ -496,7 +496,7 @@ EOS
     UpdateManager.unregister self
 
     if @load_thread
-      @load_thread.kill 
+      @load_thread.kill
       BufferManager.clear @mbid if @mbid
       sleep 0.1 # TODO: necessary?
       BufferManager.erase_flash
@@ -512,7 +512,7 @@ EOS
     update_text_for_line curpos
     cursor_down
   end
-  
+
   def toggle_tagged_all
     @mutex.synchronize { @threads.each { |t| @tags.toggle_tag_for t } }
     regen_text
@@ -755,7 +755,7 @@ protected
 
   def update_text_for_line l
     return unless l # not sure why this happens, but it does, occasionally
-    
+
     need_update = false
 
     @mutex.synchronize do
@@ -849,7 +849,7 @@ protected
           if last
             name[0 ... (from_width - cur_width)]
           else
-            name[0 ... (from_width - cur_width - 1)] + "," 
+            name[0 ... (from_width - cur_width - 1)] + ","
           end
         end
 
@@ -872,7 +872,7 @@ protected
         :index_new_color
       elsif starred
         :index_starred_color
-      else 
+      else
         :index_old_color
       end
 
@@ -882,7 +882,7 @@ protected
     date_padding = @date_widget_width - date_widget.display_length
     date_widget_text = sprintf "%#{date_padding}s%s", "", date_widget
 
-    [ 
+    [
       [:tagged_color, @tags.tagged?(t) ? ">" : " "],
       [:date_color, date_widget_text],
       [:starred_color, (starred ? "*" : " ")],

@@ -28,11 +28,11 @@ class DummySource < Source
   def load_header offset
     Source.parse_raw_email_header StringIO.new(raw_header(offset))
   end
-  
+
   def load_message offset
     RMail::Parser.read raw_message(offset)
   end
-  
+
   def raw_header offset
     ret = ""
     f = StringIO.new(@messages[offset])
@@ -41,11 +41,11 @@ class DummySource < Source
     end
     ret
   end
-  
+
   def raw_message offset
     @messages[offset]
   end
-  
+
   def each_raw_message_line offset
     ret = ""
     f = StringIO.new(@messages[offset])

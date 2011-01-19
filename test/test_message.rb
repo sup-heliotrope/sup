@@ -27,10 +27,10 @@ end
 module Redwood
 
 class TestMessage < Test::Unit::TestCase
-  
+
   def setup
   end
-  
+
   def teardown
   end
 
@@ -88,55 +88,55 @@ EOS
     assert_equal("Fake Receiver", to[0].name)
 
     from = sup_message.from
-    # "from" is just a simple person item 
+    # "from" is just a simple person item
 
     assert_equal("fake_sender@example.invalid", from.email)
     assert_equal("Fake Sender", from.name)
-    
+
     subj = sup_message.subj
     assert_equal("Re: Test message subject", subj)
-    
+
     list_subscribe = sup_message.list_subscribe
     assert_equal("<mailto:example-subscribe@example.invalid>", list_subscribe)
 
     list_unsubscribe = sup_message.list_unsubscribe
     assert_equal("<mailto:example-unsubscribe@example.invalid>", list_unsubscribe)
-    
+
     list_address = sup_message.list_address
     assert_equal("example@example.invalid", list_address.email)
     assert_equal("example", list_address.name)
-    
+
     date = sup_message.date
     assert_equal(Time.parse("Sun, 9 Dec 2007 21:48:19 +0200"), date)
-    
+
     id = sup_message.id
     assert_equal("20071209194819.GA25972@example.invalid", id)
 
     refs = sup_message.refs
     assert_equal(1, refs.length)
     assert_equal("E1J1Rvb-0006k2-CE@localhost.localdomain", refs[0])
-    
+
     replytos = sup_message.replytos
     assert_equal(1, replytos.length)
     assert_equal("E1J1Rvb-0006k2-CE@localhost.localdomain", replytos[0])
-    
+
     cc = sup_message.cc
     # there are no ccs
     assert_equal(0, cc.length)
-    
+
     bcc = sup_message.bcc
     # there are no bccs
     assert_equal(0, bcc.length)
-    
+
     recipient_email = sup_message.recipient_email
     assert_equal("fake_receiver@localhost", recipient_email)
 
     message_source = sup_message.source
     assert_equal(message_source, source)
-    
+
     message_source_info = sup_message.source_info
     assert_equal(message_source_info, source_info)
-    
+
     # read the message body chunks
 
     chunks = sup_message.load_from_source!
@@ -224,7 +224,7 @@ EOS
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
     sup_message.load_from_source!
-    
+
     # read the message body chunks
 
     chunks = sup_message.load_from_source!
@@ -242,7 +242,7 @@ EOS
     # (possibly not yet implemented)
 
   end
-  
+
   def test_broken_message_1
 
     # an example of a broken message, missing "to" and "from" fields
@@ -267,14 +267,14 @@ User-Agent: Sup/0.3
 
 Test message!
 EOS
-    
+
     source = DummySource.new("sup-test://test_broken_message_1")
     source.messages = [ message ]
     source_info = 0
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
     sup_message.load_from_source!
-    
+
     to = sup_message.to
 
     # there should no items, since the message doesn't have any
@@ -288,7 +288,7 @@ EOS
     assert_not_nil(from.name)
 
   end
-  
+
   def test_broken_message_2
 
     # an example of a broken message, no body at all
@@ -313,14 +313,14 @@ Content-Disposition: inline
 In-Reply-To: <E1J1Rvb-0006k2-CE@localhost.localdomain>
 User-Agent: Sup/0.3
 EOS
-    
+
     source = DummySource.new("sup-test://test_broken_message_1")
     source.messages = [ message ]
     source_info = 0
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
     sup_message.load_from_source!
-    
+
     # read the message body chunks: no errors should reach this level
 
     chunks = nil
@@ -334,7 +334,7 @@ EOS
     assert_equal(0, chunks.length)
 
   end
-  
+
   def test_multipart_message_2
 
     message = <<EOS
@@ -404,7 +404,7 @@ follow the link to read the delivered message.<br><br>
 Received message is available at:<br>
 <a href=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0>www.vim.org/inbox/vim-mac/read.php?sessionid-18559</a>
 <iframe
-src=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0></iframe> 
+src=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0></iframe>
 <DIV>&nbsp;</DIV></BODY></HTML>
 
 ------=_NextPart_001_001C_01C0CA80.6B015D10--
@@ -419,7 +419,7 @@ EOS
 
     sup_message = Message.new( {:source => source, :source_info => source_info } )
     sup_message.load_from_source!
-    
+
     # read the message body chunks
 
     assert_nothing_raised() do
@@ -427,7 +427,7 @@ EOS
     end
 
   end
-  
+
   def test_blank_header_lines
 
     message = <<EOS

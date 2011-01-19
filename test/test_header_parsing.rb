@@ -117,7 +117,7 @@ From sea to shining sea
 
 From bob@bob.com I get only spam.
 
-From bob@bob.com   
+From bob@bob.com
 
 From bob@bob.com
 

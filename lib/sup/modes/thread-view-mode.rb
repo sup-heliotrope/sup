@@ -268,7 +268,7 @@ EOS
     mode = PersonSearchResultsMode.new [p]
     BufferManager.spawn "Search for #{p.name}", mode
     mode.load_threads :num => mode.buffer.content_height
-  end    
+  end
 
   def compose
     p = @person_lines[curpos]
@@ -277,7 +277,7 @@ EOS
     else
       ComposeMode.spawn_nicely
     end
-  end    
+  end
 
   def edit_labels
     old_labels = @thread.labels
@@ -507,7 +507,7 @@ EOS
     return unless m
     ## jump to the top of the current message if we're in the body;
     ## otherwise, to the previous message
-    
+
     top = @layout[m].top
     if curpos == top
       while(prevm = @layout[m].prev)
@@ -722,7 +722,7 @@ private
 
       ## build the patina
       text = chunk_to_lines m, l.state, @text.length, depth, parent, l.color, l.star_color
-      
+
       l.top = @text.length
       l.bot = @text.length + text.length # updated below
       l.prev = prevm
@@ -739,7 +739,7 @@ private
       end
 
       @text += text
-      prevm = m 
+      prevm = m
       if l.state != :closed
         m.chunks.each do |c|
           cl = @chunk_layout[c]
@@ -782,13 +782,13 @@ private
     when :open
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
-        [color, 
+        [color,
             "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
 
     when :closed
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
-        [color, 
+        [color,
         "#{m.from ? m.from.mediumname : '?'}, #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})  #{m.snippet}"]]]
 
     when :detailed
@@ -823,7 +823,7 @@ private
       end
 
       HookManager.run "detailed-headers", :message => m, :headers => headers
-      
+
       from_line + (addressee_lines + headers.map { |k, v| "   #{k}: #{v}" }).map { |l| [[color, prefix + "  " + l]] }
     end
   end
@@ -831,7 +831,7 @@ private
   def format_person_list prefix, people
     ptext = people.map { |p| format_person p }
     pad = " " * prefix.display_length
-    [prefix + ptext.first + (ptext.length > 1 ? "," : "")] + 
+    [prefix + ptext.first + (ptext.length > 1 ? "," : "")] +
       ptext[1 .. -1].map_with_index do |e, i|
         pad + e + (i == ptext.length - 1 ? "" : ",")
       end

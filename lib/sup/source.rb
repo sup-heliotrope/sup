@@ -40,6 +40,7 @@ class Source
   ## - raw_header offset
   ## - raw_message offset
   ## - check (optional)
+  ## - go_idle (optional)
   ## - next (or each, if you prefer): should return a message and an
   ##   array of labels.
   ##
@@ -80,6 +81,11 @@ class Source
   def is_source_for? uri; uri == @uri; end
 
   def read?; false; end
+
+  ## release resources that are easy to reacquire. it is called
+  ## after processing a source (e.g. polling) to prevent resource
+  ## leaks (esp. file descriptors).
+  def go_idle; end
 
   ## Yields values of the form [Symbol, Hash]
   ## add: info, labels, progress
@@ -149,7 +155,7 @@ end
 module SerializeLabelsNicely
   def before_marshal # can return an object
     c = clone
-    c.instance_eval { @labels = @labels.to_a.map { |l| l.to_s } }
+    c.instance_eval { @labels = (@labels.to_a.map { |l| l.to_s }).sort }
     c
   end
 
@@ -187,7 +193,11 @@ class SourceManager
     @source_mutex.synchronize { @sources.values }.sort_by { |s| s.id }.partition { |s| !s.archived? }.flatten
   end
 
-  def source_for uri; sources.find { |s| s.is_source_for? uri }; end
+  def source_for uri
+    expanded_uri = Source.expand_filesystem_uri(uri)
+    sources.find { |s| s.is_source_for? expanded_uri }
+  end
+
   def usual_sources; sources.find_all { |s| s.usual? }; end
   def unusual_sources; sources.find_all { |s| !s.usual? }; end
 
@@ -202,13 +212,7 @@ class SourceManager
   def save_sources fn=Redwood::SOURCE_FN
     @source_mutex.synchronize do
       if @sources_dirty
-        bakfn = fn + ".bak"
-        if File.exists? fn
-          File.chmod 0600, fn
-          FileUtils.mv fn, bakfn, :force => true unless File.exists?(bakfn) && File.size(fn) == 0
-        end
-        Redwood::save_yaml_obj sources, fn, true
-        File.chmod 0600, fn
+        Redwood::save_yaml_obj sources, fn, false, true
       end
       @sources_dirty = false
     end

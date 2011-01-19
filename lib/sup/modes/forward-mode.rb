@@ -7,7 +7,7 @@ class ForwardMode < EditMessageMode
       "From" => AccountManager.default_account.full_address,
     }
 
-    header["Subject"] = 
+    header["Subject"] =
       if opts[:message]
         "Fwd: " + opts[:message].subj
       elsif opts[:attachments]
@@ -20,7 +20,7 @@ class ForwardMode < EditMessageMode
 
     body =
       if opts[:message]
-        forward_body_lines(opts[:message]) 
+        forward_body_lines(opts[:message])
       elsif opts[:attachments]
         ["Note: #{opts[:attachments].size.pluralize 'attachment'}."]
       end
@@ -32,7 +32,7 @@ class ForwardMode < EditMessageMode
     to = opts[:to] || (BufferManager.ask_for_contacts(:people, "To: ") or return if ($config[:ask_for_to] != false))
     cc = opts[:cc] || (BufferManager.ask_for_contacts(:people, "Cc: ") or return if $config[:ask_for_cc])
     bcc = opts[:bcc] || (BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc])
-    
+
     attachment_hash = {}
     attachments = opts[:attachments] || []
 
@@ -64,7 +64,7 @@ class ForwardMode < EditMessageMode
 protected
 
   def forward_body_lines m
-    ["--- Begin forwarded message from #{m.from.mediumname} ---"] + 
+    ["--- Begin forwarded message from #{m.from.mediumname} ---"] +
       m.quotable_header_lines + [""] + m.quotable_body_lines +
       ["--- End forwarded message ---"]
   end

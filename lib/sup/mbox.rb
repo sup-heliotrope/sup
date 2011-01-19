@@ -18,22 +18,24 @@ class MBox < Source
 
     case uri_or_fp
     when String
-      uri = URI(Source.expand_filesystem_uri(uri_or_fp))
+      @expanded_uri = Source.expand_filesystem_uri(uri_or_fp)
+      uri = URI(@expanded_uri)
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
       raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
       raise ArgumentError, "mbox URI must have a path component" unless uri.path
-      @f = File.open uri.path, 'rb'
+      @f = nil
       @path = uri.path
     else
       @f = uri_or_fp
       @path = uri_or_fp.path
+      @expanded_uri = "mbox://#{@path}"
     end
 
     super uri_or_fp, usual, archived, id
   end
 
   def file_path; @path end
-  def is_source_for? uri; super || (self.uri.is_a?(String) && (URI(Source.expand_filesystem_uri(uri)) == URI(Source.expand_filesystem_uri(self.uri)))) end
+  def is_source_for? uri; super || (uri == @expanded_uri) end
 
   def self.suggest_labels_for path
     ## heuristic: use the filename as a label, unless the file
@@ -45,9 +47,23 @@ class MBox < Source
     end
   end
 
+  def ensure_open
+    @f = File.open @path, 'rb' if @f.nil?
+  end
+  private :ensure_open
+
+  def go_idle
+    @mutex.synchronize do
+      return if @f.nil? or @path.nil?
+      @f.close
+      @f = nil
+    end
+  end
+
   def load_header offset
     header = nil
     @mutex.synchronize do
+      ensure_open
       @f.seek offset
       header = parse_raw_email_header @f
     end
@@ -56,6 +72,7 @@ class MBox < Source
 
   def load_message offset
     @mutex.synchronize do
+      ensure_open
       @f.seek offset
       begin
         ## don't use RMail::Mailbox::MBoxReader because it doesn't properly ignore
@@ -74,6 +91,7 @@ class MBox < Source
   def raw_header offset
     ret = ""
     @mutex.synchronize do
+      ensure_open
       @f.seek offset
       until @f.eof? || (l = @f.gets) =~ /^\r*$/
         ret << l
@@ -105,6 +123,7 @@ class MBox < Source
   ## sup-sync-back has to do it.
   def each_raw_message_line offset
     @mutex.synchronize do
+      ensure_open
       @f.seek offset
       until @f.eof? || MBox::is_break_line?(l = @f.gets)
         yield l
@@ -118,7 +137,7 @@ class MBox < Source
 
   def poll
     first_offset = first_new_message
-		offset = first_offset
+    offset = first_offset
     end_offset = File.size @f
     while offset and offset < end_offset
       yield :add,
@@ -131,6 +150,7 @@ class MBox < Source
 
   def next_offset offset
     @mutex.synchronize do
+      ensure_open
       @f.seek offset
       nil while line = @f.gets and not MBox::is_break_line? line
       offset = @f.tell

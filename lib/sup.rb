@@ -86,7 +86,7 @@ module Redwood
   module_function :reporting_thread, :record_exception, :exceptions
 
 ## one-stop shop for yamliciousness
-  def save_yaml_obj o, fn, safe=false
+  def save_yaml_obj o, fn, safe=false, backup=false
     o = if o.is_a?(Array)
       o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
     elsif o.respond_to? :before_marshal
@@ -95,13 +95,36 @@ module Redwood
       o
     end
 
-    if safe
+    mode = if File.exists? fn
+      File.stat(fn).mode
+    else
+      0600
+    end
+
+    if backup
+      backup_fn = fn + '.bak'
+      unless File.exists?(backup_fn) && File.size(fn) == 0
+        File.open(backup_fn, "w", mode) do |f|
+          File.open(fn, "r") { |old_f| FileUtils.copy_stream old_f, f }
+          f.fsync
+        end
+      end
+      File.open(fn, "w") do |f|
+        f.puts o.to_yaml
+        f.fsync
+      end
+    elsif safe
       safe_fn = "#{File.dirname fn}/safe_#{File.basename fn}"
-      mode = File.stat(fn).mode if File.exists? fn
-      File.open(safe_fn, "w", mode) { |f| f.puts o.to_yaml }
+      File.open(safe_fn, "w", mode) do |f|
+        f.puts o.to_yaml
+        f.fsync
+      end
       FileUtils.mv safe_fn, fn
     else
-      File.open(fn, "w") { |f| f.puts o.to_yaml }
+      File.open(fn, "w", mode) do |f|
+        f.puts o.to_yaml
+        f.fsync
+      end
     end
   end
 
@@ -197,8 +220,8 @@ Until this is corrected, messages from these sources cannot be viewed,
 and new messages will not be detected. Luckily, this is easy to correct!
 
 #{desynced_sources.map do |s|
-  "Source: " + s.to_s + 
-   "\n Error: " + s.error.message.wrap(70).join("\n        ") + 
+  "Source: " + s.to_s +
+   "\n Error: " + s.error.message.wrap(70).join("\n        ") +
    "\n   Fix: sup-sync --changed #{s.to_s}"
   end}
 EOM
@@ -248,7 +271,7 @@ EOS
       require 'socket'
       name = Etc.getpwnam(ENV["USER"]).gecos.split(/,/).first rescue nil
       name ||= ENV["USER"]
-      email = ENV["USER"] + "@" + 
+      email = ENV["USER"] + "@" +
         begin
           Socket.gethostbyname(Socket.gethostname).first
         rescue SocketError
@@ -286,7 +309,7 @@ EOS
         :col_jump => 2
       }
       begin
-        Redwood::save_yaml_obj config, filename
+        Redwood::save_yaml_obj config, filename, false, true
       rescue StandardError => e
         $stderr.puts "warning: #{e.message}"
       end

@@ -93,7 +93,7 @@ EOS
     ## to. if it's a list message, then the list address is. otherwise,
     ## the cc contains a recipient.
     useful_recipient = !(cc.empty? || @m.is_list_message?)
-    
+
     @headers = {}
     @headers[:recipient] = {
       "To" => cc.map { |p| p.full_address },
