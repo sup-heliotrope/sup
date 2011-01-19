@@ -12,8 +12,6 @@ class ScrollMode < Mode
 
   attr_reader :status, :topline, :botline, :leftcol
 
-  COL_JUMP = 2
-
   register_keymap do |k|
     k.add :line_down, "Down one line", :down, 'j', 'J', "\C-e"
     k.add :line_up, "Up one line", :up, 'k', 'K', "\C-y"
@@ -98,19 +96,23 @@ class ScrollMode < Mode
   def search_start_line; @topline end
   def search_goto_line line; jump_to_line line end
 
+  def col_jump
+    $config[:col_jump] || 2
+  end
+
   def col_left
     return unless @leftcol > 0
-    @leftcol -= COL_JUMP
+    @leftcol -= col_jump
     buffer.mark_dirty
   end
 
   def col_right
-    @leftcol += COL_JUMP
+    @leftcol += col_jump
     buffer.mark_dirty
   end
 
   def jump_to_col col
-    col = col - (col % COL_JUMP)
+    col = col - (col % col_jump)
     buffer.mark_dirty unless @leftcol == col
     @leftcol = col
   end

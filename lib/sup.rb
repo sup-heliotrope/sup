@@ -282,7 +282,8 @@ EOS
         :sent_source => "sup://sent",
         :poll_interval => 300,
         :wrap_width => 0,
-        :slip_rows => 0
+        :slip_rows => 0,
+        :col_jump => 2
       }
       begin
         Redwood::save_yaml_obj config, filename
