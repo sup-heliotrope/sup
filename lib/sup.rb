@@ -103,7 +103,7 @@ module Redwood
 
     if backup
       backup_fn = fn + '.bak'
-      unless File.exists?(backup_fn) && File.size(fn) == 0
+      if File.exists?(fn) && File.size(fn) > 0
         File.open(backup_fn, "w", mode) do |f|
           File.open(fn, "r") { |old_f| FileUtils.copy_stream old_f, f }
           f.fsync
