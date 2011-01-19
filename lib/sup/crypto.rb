@@ -43,13 +43,19 @@ EOS
     @mutex = Mutex.new
 
     # test if the gpgme gem is available
-    @gpgme_present = true
-    begin
-    GPGME.check_version({:protocol => GPGME::PROTOCOL_OpenPGP})
-    rescue NameError, GPGME::Error
-      @gpgme_present = false
-      return
-    end
+    @gpgme_present =
+      begin
+        begin
+          GPGME.check_version({:protocol => GPGME::PROTOCOL_OpenPGP})
+          true
+        rescue GPGME::Error
+          false
+        end
+      rescue NameError
+        false
+      end
+
+    return unless @gpgme_present
 
     if (bin = `which gpg2`.chomp) =~ /\S/
       GPGME.set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
