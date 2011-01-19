@@ -1,3 +1,8 @@
+begin
+  require 'gpgme'
+rescue LoadError
+end
+
 module Redwood
 
 class CryptoManager
@@ -11,76 +16,90 @@ class CryptoManager
     [:encrypt, "Encrypt only"]
   )
 
-  HookManager.register "gpg-args", <<EOS
-Runs before gpg is executed, allowing you to modify the arguments (most
+  HookManager.register "gpg-options", <<EOS
+Runs before gpg is called, allowing you to modify the options (most
 likely you would want to add something to certain commands, like
---trust-model always to signing/encrypting a message, but who knows).
+{:always_trust => true} to encrypting a message, but who knows).
 
 Variables:
-args: arguments for running GPG
+operation: what operation will be done ("sign", "encrypt", "decrypt" or "verify")
+options: a dictionary of values to be passed to GPGME
 
-Return value: the arguments for running GPG
+Return value: a dictionary to be passed to GPGME
+EOS
+
+  HookManager.register "sig-output", <<EOS
+Runs when the signature output is being generated, allowing you to
+add extra information to your signatures if you want.
+  
+Variables:
+signature: the signature object (class is GPGME::Signature)
+from_key: the key that generated the signature (class is GPGME::Key)
+
+Return value: an array of lines of output
 EOS
 
   def initialize
     @mutex = Mutex.new
 
-    bin = `which gpg`.chomp
-    @cmd = case bin
-    when /\S/
-      debug "crypto: detected gpg binary in #{bin}"
-      "#{bin} --quiet --batch --no-verbose --logger-fd 1 --use-agent"
-    else
-      debug "crypto: no gpg binary detected"
-      nil
+    # test if the gpgme gem is available
+    @gpgme_present = true
+    begin
+    GPGME.check_version({:protocol => GPGME::PROTOCOL_OpenPGP})
+    rescue NameError, GPGME::Error
+      @gpgme_present = false
     end
   end
 
-  def have_crypto?; !@cmd.nil? end
+  def have_crypto?; @gpgme_present end
 
   def sign from, to, payload
-    payload_fn = Tempfile.new "redwood.payload"
-    payload_fn.write format_payload(payload)
-    payload_fn.close
+    return unknown_status(cant_find_gpgme) unless @gpgme_present
 
-    sig_fn = Tempfile.new "redwood.signature"; sig_fn.close
+    gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
+    gpg_opts.merge(gen_sign_user_opts(from))
+    gpg_opts = HookManager.run("gpg-options", 
+                               {:operation => "sign", :options => gpg_opts}) || gpg_opts
 
-    sign_user_opts = gen_sign_user_opts from
-    message = run_gpg "--output #{sig_fn.path} --yes --armor --detach-sign --textmode --digest-algo sha256 #{sign_user_opts} #{payload_fn.path}", :interactive => true
-    unless $?.success?
-      info "Error while running gpg: #{message}"
+    begin
+      sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
+    rescue GPGME::Error => exc
+      info "Error while running gpg: #{exc.message}"
       raise Error, "GPG command failed. See log for details."
     end
 
     envelope = RMail::Message.new
-    envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature; micalg=pgp-sha256'
+    envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature'
 
     envelope.add_part payload
-    signature = RMail::Message.make_attachment IO.read(sig_fn.path), "application/pgp-signature", nil, "signature.asc"
+    signature = RMail::Message.make_attachment sig, "application/pgp-signature", nil, "signature.asc"
     envelope.add_part signature
     envelope
   end
 
   def encrypt from, to, payload, sign=false
-    payload_fn = Tempfile.new "redwood.payload"
-    payload_fn.write format_payload(payload)
-    payload_fn.close
+    return unknown_status(cant_find_gpgme) unless @gpgme_present
 
-    encrypted_fn = Tempfile.new "redwood.encrypted"; encrypted_fn.close
+    gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
+    if sign
+      gpg_opts.merge(gen_sign_user_opts(from)) 
+      gpg_opts.merge({:sign => true})
+    end
+    gpg_opts = HookManager.run("gpg-options", 
+                               {:operation => "encrypt", :options => gpg_opts}) || gpg_opts
+    recipients = to + [from]
 
-    recipient_opts = (to + [ from ] ).map { |r| "--recipient '<#{r}>'" }.join(" ")
-    sign_opts = ""
-    sign_opts = "--sign --digest-algo sha256 " + gen_sign_user_opts(from) if sign
-    message = run_gpg "--output #{encrypted_fn.path} --yes --armor --encrypt --textmode #{sign_opts} #{recipient_opts} #{payload_fn.path}", :interactive => true
-    unless $?.success?
-      info "Error while running gpg: #{message}"
+    begin
+      cipher = GPGME.encrypt(recipients, format_payload(payload), gpg_opts)
+    rescue GPGME::Error => exc
+      info "Error while running gpg: #{exc.message}"
       raise Error, "GPG command failed. See log for details."
     end
 
     encrypted_payload = RMail::Message.new
     encrypted_payload.header["Content-Type"] = "application/octet-stream"
     encrypted_payload.header["Content-Disposition"] = 'inline; filename="msg.asc"'
-    encrypted_payload.body = IO.read(encrypted_fn.path)
+    encrypted_payload.body = cipher
 
     control = RMail::Message.new
     control.header["Content-Type"] = "application/pgp-encrypted"
@@ -99,70 +118,93 @@ EOS
     encrypt from, to, payload, true
   end
 
-  def verified_ok? output, rc
-    output_lines = output.split(/\n/)
+  def verified_ok? verify_result
+    valid = true
+    unknown = false
+    all_output_lines = []
+    all_trusted = true
 
-    if output =~ /^gpg: (.* signature from .*$)/
-      if rc == 0
-        Chunk::CryptoNotice.new :valid, $1, output_lines
-      else
-        Chunk::CryptoNotice.new :invalid, $1, output_lines
+    verify_result.signatures.each do |signature|
+      output_lines, trusted = sig_output_lines signature
+      all_output_lines << output_lines
+      all_output_lines.flatten!
+      all_trusted &&= trusted
+
+      err_code = GPGME::gpgme_err_code(signature.status)
+      if err_code == GPGME::GPG_ERR_BAD_SIGNATURE
+        valid = false 
+      elsif err_code != GPGME::GPG_ERR_NO_ERROR
+        valid = false
+        unknown = true
       end
-    elsif output_lines.length == 0 && rc == 0
-      # the message wasn't signed
-      Chunk::CryptoNotice.new :valid, "Encrypted message wasn't signed", output_lines
+    end
+
+    if all_output_lines.length == 0
+      Chunk::CryptoNotice.new :valid, "Encrypted message wasn't signed", all_output_lines
+    elsif valid
+      if all_trusted
+        Chunk::CryptoNotice.new(:valid, simplify_sig_line(verify_result.signatures[0].to_s), all_output_lines)
+      else
+        Chunk::CryptoNotice.new(:valid_untrusted, simplify_sig_line(verify_result.signatures[0].to_s), all_output_lines)
+      end
+    elsif !unknown
+      Chunk::CryptoNotice.new(:invalid, simplify_sig_line(verify_result.signatures[0].to_s), all_output_lines)
     else
-      unknown_status output_lines
+      unknown_status all_output_lines
     end
   end
 
   def verify payload, signature, detached=true # both RubyMail::Message objects
-    return unknown_status(cant_find_binary) unless @cmd
+    return unknown_status(cant_find_gpgme) unless @gpgme_present
 
+    gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP}
+    gpg_opts = HookManager.run("gpg-options", 
+                               {:operation => "verify", :options => gpg_opts}) || gpg_opts
+    ctx = GPGME::Ctx.new(gpg_opts) 
+    sig_data = GPGME::Data.from_str signature.decode
     if detached
-      payload_fn = Tempfile.new "redwood.payload"
-      payload_fn.write format_payload(payload)
-      payload_fn.close
-    end
-
-    signature_fn = Tempfile.new "redwood.signature"
-    signature_fn.write signature.decode
-    signature_fn.close
-
-    if detached
-      output = run_gpg "--verify #{signature_fn.path} #{payload_fn.path}"
+      signed_text_data = GPGME::Data.from_str(format_payload(payload))
+      plain_data = nil
     else
-      output = run_gpg "--verify #{signature_fn.path}"
+      signed_text_data = nil
+      plain_data = GPGME::Data.empty
     end
-
-    self.verified_ok? output, $?
+    begin
+      ctx.verify(sig_data, signed_text_data, plain_data)
+    rescue GPGME::Error => exc
+      return unknown_status exc.message 
+    end
+    self.verified_ok? ctx.verify_result
   end
 
   ## returns decrypted_message, status, desc, lines
   def decrypt payload, armor=false # a RubyMail::Message object
-    return unknown_status(cant_find_binary) unless @cmd
+    return unknown_status(cant_find_gpgme) unless @gpgme_present
 
-    payload_fn = Tempfile.new(["redwood.payload", ".asc"])
-    payload_fn.write payload.to_s
-    payload_fn.close
-
-    output_fn = Tempfile.new "redwood.output"
-    output_fn.close
-
-    message = run_gpg "--output #{output_fn.path} --skip-verify --yes --decrypt #{payload_fn.path}", :interactive => true
-
-    unless $?.success?
-      info "Error while running gpg: #{message}"
-      return Chunk::CryptoNotice.new(:invalid, "This message could not be decrypted", message.split("\n"))
+    gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP}
+    gpg_opts = HookManager.run("gpg-options", 
+                               {:operation => "decrypt", :options => gpg_opts}) || gpg_opts
+    ctx = GPGME::Ctx.new(gpg_opts) 
+    cipher_data = GPGME::Data.from_str(format_payload(payload))
+    plain_data = GPGME::Data.empty
+    begin
+      ctx.decrypt_verify(cipher_data, plain_data)
+    rescue GPGME::Error => exc
+      info "Error while running gpg: #{exc.message}"
+      return Chunk::CryptoNotice.new(:invalid, "This message could not be decrypted", exc.message)
     end
-
-    output = IO.read output_fn.path
+    sig = self.verified_ok? ctx.verify_result
+    plain_data.seek(0, IO::SEEK_SET)
+    output = plain_data.read
     output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
 
+    ## TODO: test to see if it is still necessary to do a 2nd run if verify
+    ## fails.
+    #
     ## check for a valid signature in an extra run because gpg aborts if the
     ## signature cannot be verified (but it is still able to decrypt)
-    sigoutput = run_gpg "#{payload_fn.path}"
-    sig = self.verified_ok? sigoutput, $?
+    #sigoutput = run_gpg "#{payload_fn.path}"
+    #sig = self.old_verified_ok? sigoutput, $?
 
     if armor
       msg = RMail::Message.new
@@ -207,14 +249,72 @@ private
     Chunk::CryptoNotice.new :unknown, "Unable to determine validity of cryptographic signature", lines
   end
 
-  def cant_find_binary
-    ["Can't find gpg binary in path."]
+  def cant_find_gpgme
+    ["Can't find gpgme gem."]
   end
 
   ## here's where we munge rmail output into the format that signed/encrypted
   ## PGP/GPG messages should be
   def format_payload payload
     payload.to_s.gsub(/(^|[^\r])\n/, "\\1\r\n")
+  end
+
+  # remove the hex key_id and info in ()
+  def simplify_sig_line sig_line
+    sig_line.sub(/from [0-9A-F]{16} /, "from ")
+  end
+
+  def sig_output_lines signature
+    # It appears that the signature.to_s call can lead to a EOFError if
+    # the key is not found. So start by looking for the key.
+    ctx = GPGME::Ctx.new
+    begin
+      from_key = ctx.get_key(signature.fingerprint)
+      first_sig = signature.to_s.sub(/from [0-9A-F]{16} /, 'from "') + '"'
+    rescue EOFError 
+      from_key = nil
+      first_sig = "No public key available for #{signature.fingerprint}"
+    end
+
+    time_line = "Signature made " + signature.timestamp.strftime("%a %d %b %Y %H:%M:%S %Z") +
+                " using " + key_type(from_key, signature.fingerprint) + 
+                "key ID " + signature.fingerprint[-8..-1]
+    output_lines = [time_line, first_sig]
+
+    trusted = false
+    if from_key 
+      # first list all the uids
+      if from_key.uids.length > 1
+        aka_list = from_key.uids[1..-1]
+        aka_list.each { |aka| output_lines << '                aka "' + aka.uid + '"' }
+      end
+
+      # now we want to look at the trust of that key
+      if signature.validity != GPGME::GPGME_VALIDITY_FULL && signature.validity != GPGME::GPGME_VALIDITY_MARGINAL
+        output_lines << "WARNING: This key is not certified with a trusted signature!"
+        output_lines << "There is no indication that the signature belongs to the owner"
+      else
+        trusted = true
+      end
+
+      # finally, run the hook
+      output_lines << HookManager.run("sig-output",
+                               {:signature => signature, :from_key => from_key})
+    end
+    return output_lines, trusted
+  end
+
+  def key_type key, fpr
+    return "" if key.nil?
+    subkey = key.subkeys.find {|subkey| subkey.fpr == fpr || subkey.keyid == fpr }
+    return "" if subkey.nil?
+
+    case subkey.pubkey_algo
+    when GPGME::PK_RSA then "RSA "
+    when GPGME::PK_DSA then "DSA "
+    when GPGME::PK_ELG then "ElGamel "
+    when GPGME::PK_ELG_E then "ElGamel "
+    end
   end
 
   # logic is:
@@ -224,30 +324,14 @@ private
   def gen_sign_user_opts from
     account = AccountManager.account_for from
     if !account.gpgkey.nil?
-      opts = "--local-user '#{account.gpgkey}'"
+      opts = {:signers => account.gpgkey}
     elsif AccountManager.user_emails.length == 1
       # only one account
-      opts = ""
+      opts = {}
     else
-      opts = "--local-user '#{from}'" 
+      opts = {:signers => from}
     end
     opts
-  end
-
-  def run_gpg args, opts={}
-    args = HookManager.run("gpg-args", { :args => args }) || args
-    cmd = "LC_MESSAGES=C #{@cmd} #{args}"
-    if opts[:interactive] && BufferManager.instantiated?
-      output_fn = Tempfile.new "redwood.output"
-      output_fn.close
-      cmd += " > #{output_fn.path} 2> /dev/null"
-      debug "crypto: running: #{cmd}"
-      BufferManager.shell_out cmd
-      IO.read(output_fn.path) rescue "can't read output"
-    else
-      debug "crypto: running: #{cmd}"
-      `#{cmd} 2> /dev/null`
-    end
   end
 end
 end

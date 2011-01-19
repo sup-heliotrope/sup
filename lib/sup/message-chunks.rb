@@ -272,6 +272,7 @@ EOS
     def patina_color
       case status
       when :valid then :cryptosig_valid_color
+      when :valid_untrusted then :cryptosig_valid_untrusted_color
       when :invalid then :cryptosig_invalid_color
       else :cryptosig_unknown_color
       end
