@@ -119,14 +119,16 @@ class Maildir < Source
     ## deleted arrays, meaning that its flags changed or that it has
     ## been moved, these ids need to be removed from added and deleted
     add_to_delete = del_to_delete = []
+    map = Hash.new { |hash, key| hash[key] = [] }
+    deleted.each do |id_del|
+        map[maildir_data(id_del)[0]].push id_del
+    end
     added.each do |id_add|
-      deleted.each do |id_del|
-        if maildir_data(id_add)[0] == maildir_data(id_del)[0]
+        map[maildir_data(id_add)[0]].each do |id_del|
           updated.push [ id_del, id_add ]
           add_to_delete.push id_add
           del_to_delete.push id_del
         end
-      end
     end
     added -= add_to_delete
     deleted -= del_to_delete
