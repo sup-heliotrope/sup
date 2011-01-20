@@ -260,6 +260,21 @@ EOS
     end
   end
 
+  # wrap all future changes inside a transaction so they're done atomically
+  def begin_transaction
+    synchronize { @xapian.begin_transaction }
+  end
+
+  # complete the transaction and write all previous changes to disk
+  def commit_transaction
+    synchronize { @xapian.commit_transaction }
+  end
+
+  # abort the transaction and revert all changes made since begin_transaction
+  def cancel_transaction
+    synchronize { @xapian.cancel_transaction }
+  end
+
   ## xapian-compact takes too long, so this is a no-op
   ## until we think of something better
   def optimize
