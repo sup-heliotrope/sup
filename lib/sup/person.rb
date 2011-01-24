@@ -9,6 +9,7 @@ class Person
     @name = if name
       name = name.strip.gsub(/\s+/, " ")
       name =~ /^(['"]\s*)(.*?)(\s*["'])$/ ? $2 : name
+      name.gsub('\\\\', '\\')
     end
 
     @email = email.strip.gsub(/\s+/, " ").downcase
