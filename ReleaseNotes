@@ -1,3 +1,11 @@
+Release 0.12.1:
+
+This release changes the gem dependency on ncurses to ncursesw, which
+allows the gem to install cleanly on Ruby 1.9.
+
+The new sup-import-dump program applies labels to an existing index,
+which could be done with sup-sync before 0.12.
+
 Release 0.12:
 
 Deprecated remote sources have been removed.

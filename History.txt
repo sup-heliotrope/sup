@@ -1,3 +1,7 @@
+== 0.12.1 / 2011-01-23
+* Depend on ncursesw rather than ncurses (Ruby 1.9 compatibility)
+* Add sup-import-dump
+
 == 0.12 / 2011-01-13
 * Remove deprecated IMAP, IMAPS, and mbox+ssh sources
 * Inline GPG support
