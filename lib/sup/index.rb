@@ -210,7 +210,9 @@ EOS
                     :labels => entry[:labels],
                     :snippet => entry[:snippet]
 
-    mk_person = lambda { |x| Person.new(*x.reverse!) }
+    # Try to find person from contacts before falling back to
+    # generating it from the address.
+    mk_person = lambda { |x| Person.from_name_and_email(*x.reverse!) }
     entry[:from] = mk_person[entry[:from]]
     entry[:to].map!(&mk_person)
     entry[:cc].map!(&mk_person)
@@ -235,7 +237,7 @@ EOS
       m = b.call
       ([m.from]+m.to+m.cc+m.bcc).compact.each { |p| contacts << [p.name, p.email] }
     end
-    contacts.to_a.compact.map { |n,e| Person.new n, e }[0...num]
+    contacts.to_a.compact[0...num].map { |n,e| Person.from_name_and_email n, e }
   end
 
   ## Yield each message-id matching query

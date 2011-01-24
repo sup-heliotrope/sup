@@ -12,14 +12,13 @@ class ContactManager
 
     @p2a = {} # person to alias
     @a2p = {} # alias to person
+    @e2p = {} # email to person
 
     if File.exists? fn
       IO.foreach(fn) do |l|
         l =~ /^([^:]*): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
         aalias, addr = $1, $2
-        p = Person.from_address addr
-        @p2a[p] = aalias
-        @a2p[aalias] = p unless aalias.nil? || aalias.empty?
+        update_alias Person.from_address(addr), aalias
       end
     end
   end
@@ -30,9 +29,13 @@ class ContactManager
   def update_alias person, aalias=nil
     if(old_aalias = @p2a[person]) # remove old alias
       @a2p.delete old_aalias
+      @e2p.delete old_aalias.email
     end
     @p2a[person] = aalias
-    @a2p[aalias] = person unless aalias.nil? || aalias.empty?
+    unless aalias.nil? || aalias.empty?
+      @a2p[aalias] = person
+      @e2p[person.email] = person
+    end
   end
 
   ## this may not actually be called anywhere, since we still keep contacts
@@ -40,11 +43,13 @@ class ContactManager
   def drop_contact person
     aalias = @p2a[person]
     @p2a.delete person
+    @e2p.delete person.email
     @a2p.delete aalias if aalias
   end
 
   def contact_for aalias; @a2p[aalias] end
   def alias_for person; @p2a[person] end
+  def person_for email; @e2p[email] end
   def is_aliased_contact? person; !@p2a[person].nil? end
 
   def save
