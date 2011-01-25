@@ -176,6 +176,10 @@ class Colormap
     color
   end
 
+  def sym_is_defined sym
+      return sym if @entries.member? sym
+  end
+
   ## Try to use the user defined colors, in case of an error fall back
   ## to the default ones.
   def populate_colormap
