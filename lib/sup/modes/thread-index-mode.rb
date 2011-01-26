@@ -872,6 +872,8 @@ protected
         :index_new_color
       elsif starred
         :index_starred_color
+      elsif Colormap.sym_is_defined(:index_subject_color)
+        :index_subject_color
       else
         :index_old_color
       end
@@ -889,11 +891,13 @@ protected
     ] +
       from +
       [
-      [subj_color, size_widget_text],
+      [:size_widget_color, size_widget_text],
       [:to_me_color, t.labels.member?(:attachment) ? "@" : " "],
       [:to_me_color, dp ? ">" : (p ? '+' : " ")],
     ] +
-      (t.labels - @hidden_labels).map { |label| [:label_color, "#{label} "] } +
+      (t.labels - @hidden_labels).map {
+            |label| [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]
+      } +
       [
       [subj_color, t.subj + (t.subj.empty? ? "" : " ")],
       [:snippet_color, t.snippet],

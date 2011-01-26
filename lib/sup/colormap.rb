@@ -64,6 +64,7 @@ class Colormap
     :regular_buf => { :fg => "white", :bg => "default" },
     :modified_buffer => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
     :date => { :fg => "white", :bg => "default"},
+    :size_widget => { :fg => "white", :bg => "default"},
   }
 
   def initialize
@@ -174,6 +175,10 @@ class Colormap
     @entries[sym][3] = color # fill the cache
     (@users[cp] ||= []) << sym # record entry as a user of that color pair
     color
+  end
+
+  def sym_is_defined sym
+      return sym if @entries.member? sym
   end
 
   ## Try to use the user defined colors, in case of an error fall back
