@@ -307,6 +307,7 @@ private
       if signature.validity != GPGME::GPGME_VALIDITY_FULL && signature.validity != GPGME::GPGME_VALIDITY_MARGINAL
         output_lines << "WARNING: This key is not certified with a trusted signature!"
         output_lines << "There is no indication that the signature belongs to the owner"
+        output_lines << "Full fingerprint is: " + (0..9).map {|i| signature.fpr[(i*2),2]}.join(":")
       else
         trusted = true
       end
