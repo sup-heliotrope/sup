@@ -79,6 +79,13 @@ EOS
       raise Error, "GPG command failed. See log for details."
     end
 
+    # if the key (or gpg-agent) is not available GPGME does not complain 
+    # but just returns a zero length string. Let's catch that
+    if sig.length == 0
+      info "GPG failed to generate signature: check that gpg-agent is running and your key is available."
+      raise Error, "GPG command failed. See log for details."
+    end
+
     envelope = RMail::Message.new
     envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature'
 
@@ -104,6 +111,13 @@ EOS
       cipher = GPGME.encrypt(recipients, format_payload(payload), gpg_opts)
     rescue GPGME::Error => exc
       info "Error while running gpg: #{exc.message}"
+      raise Error, "GPG command failed. See log for details."
+    end
+
+    # if the key (or gpg-agent) is not available GPGME does not complain 
+    # but just returns a zero length string. Let's catch that
+    if cipher.length == 0
+      info "GPG failed to generate cipher text: check that gpg-agent is running and your key is available."
       raise Error, "GPG command failed. See log for details."
     end
 
