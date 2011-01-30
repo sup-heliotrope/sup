@@ -68,8 +68,8 @@ EOS
     return unknown_status(cant_find_gpgme) unless @gpgme_present
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
-    gpg_opts.merge(gen_sign_user_opts(from))
-    gpg_opts = HookManager.run("gpg-options",
+    gpg_opts.merge!(gen_sign_user_opts(from))
+    gpg_opts = HookManager.run("gpg-options", 
                                {:operation => "sign", :options => gpg_opts}) || gpg_opts
 
     begin
@@ -93,8 +93,8 @@ EOS
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     if sign
-      gpg_opts.merge(gen_sign_user_opts(from))
-      gpg_opts.merge({:sign => true})
+      gpg_opts.merge!(gen_sign_user_opts(from)) 
+      gpg_opts.merge!({:sign => true})
     end
     gpg_opts = HookManager.run("gpg-options",
                                {:operation => "encrypt", :options => gpg_opts}) || gpg_opts
