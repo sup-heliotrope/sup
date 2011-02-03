@@ -164,16 +164,18 @@ EOS
       end
     end
 
+    summary_line = simplify_sig_line(verify_result.signatures[0].to_s, all_trusted)
+
     if all_output_lines.length == 0
       Chunk::CryptoNotice.new :valid, "Encrypted message wasn't signed", all_output_lines
     elsif valid
       if all_trusted
-        Chunk::CryptoNotice.new(:valid, simplify_sig_line(verify_result.signatures[0].to_s), all_output_lines)
+        Chunk::CryptoNotice.new(:valid, summary_line, all_output_lines)
       else
-        Chunk::CryptoNotice.new(:valid_untrusted, simplify_sig_line(verify_result.signatures[0].to_s), all_output_lines)
+        Chunk::CryptoNotice.new(:valid_untrusted, summary_line, all_output_lines)
       end
     elsif !unknown
-      Chunk::CryptoNotice.new(:invalid, simplify_sig_line(verify_result.signatures[0].to_s), all_output_lines)
+      Chunk::CryptoNotice.new(:invalid, summary_line, all_output_lines)
     else
       unknown_status all_output_lines
     end
@@ -285,8 +287,12 @@ private
   end
 
   # remove the hex key_id and info in ()
-  def simplify_sig_line sig_line
-    sig_line.sub(/from [0-9A-F]{16} /, "from ")
+  def simplify_sig_line sig_line, trusted
+    sig_line.sub!(/from [0-9A-F]{16} /, "from ")
+    if !trusted
+      sig_line.sub!(/Good signature/, "Good (untrusted) signature")
+    end
+    sig_line
   end
 
   def sig_output_lines signature
@@ -318,7 +324,7 @@ private
       if signature.validity != GPGME::GPGME_VALIDITY_FULL && signature.validity != GPGME::GPGME_VALIDITY_MARGINAL
         output_lines << "WARNING: This key is not certified with a trusted signature!"
         output_lines << "There is no indication that the signature belongs to the owner"
-        output_lines << "Full fingerprint is: " + (0..9).map {|i| signature.fpr[(i*2),2]}.join(":")
+        output_lines << "Full fingerprint is: " + (0..9).map {|i| signature.fpr[(i*4),4]}.join(":")
       else
         trusted = true
       end
