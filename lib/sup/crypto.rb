@@ -164,7 +164,9 @@ EOS
       end
     end
 
-    summary_line = simplify_sig_line(verify_result.signatures[0].to_s, all_trusted)
+    if valid || !unknown
+      summary_line = simplify_sig_line(verify_result.signatures[0].to_s, all_trusted)
+    end
 
     if all_output_lines.length == 0
       Chunk::CryptoNotice.new :valid, "Encrypted message wasn't signed", all_output_lines
