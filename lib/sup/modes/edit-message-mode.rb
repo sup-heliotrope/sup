@@ -179,6 +179,7 @@ EOS
     header, @body = parse_file @file.path
     @header = header - NON_EDITABLE_HEADERS
     handle_new_text @header, @body
+    rerun_crypto_selector_hook
     update
 
     @edited
@@ -214,6 +215,12 @@ EOS
   end
 
 protected
+
+  def rerun_crypto_selector_hook
+    if @crypto_selector && !@crypto_selector.changed_by_user
+      HookManager.run "crypto-mode", :header => @header, :body => @body, :crypto_selector => @crypto_selector
+    end
+  end
 
   def mime_encode string
     string = [string].pack('M') # basic quoted-printable

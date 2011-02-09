@@ -165,6 +165,7 @@ protected
     if @headers[@type_selector.val] != self.header
       self.header = @headers[@type_selector.val]
       self.body = @bodies[@type_selector.val] unless @edited
+      rerun_crypto_selector_hook
       update
     end
   end
@@ -174,6 +175,7 @@ protected
     if @headers[@type_selector.val] != self.header
       self.header = @headers[@type_selector.val]
       self.body = @bodies[@type_selector.val] unless @edited
+      rerun_crypto_selector_hook
       update
     end
   end
