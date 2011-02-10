@@ -71,7 +71,7 @@ EOS
       # if it doesn't then check if gpg agent is present
       gpg_opts = HookManager.run("gpg-options", 
                                {:operation => "sign", :options => {}}) || {}
-      if gpg_opts[:passphrase_callback.nil?
+      if gpg_opts[:passphrase_callback].nil?
         if ENV['GPG_AGENT_INFO'].nil?
           @not_working_reason = ["Environment variable 'GPG_AGENT_INFO' not set, is gpg-agent running?",
                              "If gpg-agent is running, try $ export `cat ~/.gpg-agent-info`"]
