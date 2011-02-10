@@ -42,6 +42,8 @@ EOS
   def initialize
     @mutex = Mutex.new
 
+    @not_working_reason = nil
+
     # test if the gpgme gem is available
     @gpgme_present =
       begin
@@ -55,7 +57,28 @@ EOS
         false
       end
 
-    return unless @gpgme_present
+    unless @gpgme_present
+      @not_working_reason = 'gpgme gem not present' 
+      return
+    end
+
+    # check gpg agent stuff
+    if ENV['GPG_AGENT_INFO'].nil?
+      @not_working_reason = "Environment variable 'GPG_AGENT_INFO' not set"
+      return
+    end
+
+    gpg_agent_socket_file = ENV['GPG_AGENT_INFO'].split(':')[0]
+    unless file.exist?(gpg_agent_socket_file)
+      @not_working_reason = "gpg-agent socket file #{gpg_agent_socket_file} does not exist"
+      return
+    end
+
+    s = File.stat(gpg_agent_socket_file)
+    unless s.socket?
+      @not_working_reason = "gpg-agent socket file #{gpg_agent_socket_file} is not a socket"
+      return
+    end
 
     if (bin = `which gpg2`.chomp) =~ /\S/
       GPGME.set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
@@ -65,7 +88,7 @@ EOS
   def have_crypto?; @gpgme_present end
 
   def sign from, to, payload
-    return unknown_status(cant_find_gpgme) unless @gpgme_present
+    return unknown_status([@not_working_reason]) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     gpg_opts.merge!(gen_sign_user_opts(from))
@@ -96,7 +119,7 @@ EOS
   end
 
   def encrypt from, to, payload, sign=false
-    return unknown_status(cant_find_gpgme) unless @gpgme_present
+    return unknown_status([@not_working_reason]) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     if sign
@@ -184,7 +207,7 @@ EOS
   end
 
   def verify payload, signature, detached=true # both RubyMail::Message objects
-    return unknown_status(cant_find_gpgme) unless @gpgme_present
+    return unknown_status([@not_working_reason]) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP}
     gpg_opts = HookManager.run("gpg-options",
@@ -208,7 +231,7 @@ EOS
 
   ## returns decrypted_message, status, desc, lines
   def decrypt payload, armor=false # a RubyMail::Message object
-    return unknown_status(cant_find_gpgme) unless @gpgme_present
+    return unknown_status([@not_working_reason]) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP}
     gpg_opts = HookManager.run("gpg-options",
@@ -276,10 +299,6 @@ private
 
   def unknown_status lines=[]
     Chunk::CryptoNotice.new :unknown, "Unable to determine validity of cryptographic signature", lines
-  end
-
-  def cant_find_gpgme
-    ["Can't find gpgme gem."]
   end
 
   ## here's where we munge rmail output into the format that signed/encrypted
