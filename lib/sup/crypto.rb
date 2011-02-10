@@ -58,37 +58,45 @@ EOS
       end
 
     unless @gpgme_present
-      @not_working_reason = 'gpgme gem not present' 
+      @not_working_reason = ['gpgme gem not present', 
+        'Install the gpgme gem in order to use signed and encrypted emails']
       return
     end
 
-    # check gpg agent stuff
-    if ENV['GPG_AGENT_INFO'].nil?
-      @not_working_reason = "Environment variable 'GPG_AGENT_INFO' not set"
-      return
-    end
-
-    gpg_agent_socket_file = ENV['GPG_AGENT_INFO'].split(':')[0]
-    unless File.exist?(gpg_agent_socket_file)
-      @not_working_reason = "gpg-agent socket file #{gpg_agent_socket_file} does not exist"
-      return
-    end
-
-    s = File.stat(gpg_agent_socket_file)
-    unless s.socket?
-      @not_working_reason = "gpg-agent socket file #{gpg_agent_socket_file} is not a socket"
-      return
-    end
-
+    # if gpg2 is available, it will start gpg-agent if required
     if (bin = `which gpg2`.chomp) =~ /\S/
       GPGME.set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
+    else
+      # check if the gpg-options hook uses the passphrase_callback
+      # if it doesn't then check if gpg agent is present
+      gpg_opts = HookManager.run("gpg-options", 
+                               {:operation => "sign", :options => {}}) || {}
+      if gpg_opts[:passphrase_callback.nil?
+        if ENV['GPG_AGENT_INFO'].nil?
+          @not_working_reason = ["Environment variable 'GPG_AGENT_INFO' not set, is gpg-agent running?",
+                             "If gpg-agent is running, try $ export `cat ~/.gpg-agent-info`"]
+          return
+        end
+
+        gpg_agent_socket_file = ENV['GPG_AGENT_INFO'].split(':')[0]
+        unless File.exist?(gpg_agent_socket_file)
+          @not_working_reason = ["gpg-agent socket file #{gpg_agent_socket_file} does not exist"]
+          return
+        end
+
+        s = File.stat(gpg_agent_socket_file)
+        unless s.socket?
+          @not_working_reason = ["gpg-agent socket file #{gpg_agent_socket_file} is not a socket"]
+          return
+        end
+      end
     end
   end
 
   def have_crypto?; @not_working_reason.nil? end
 
   def sign from, to, payload
-    return unknown_status([@not_working_reason]) unless @not_working_reason.nil?
+    return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     gpg_opts.merge!(gen_sign_user_opts(from))
@@ -119,7 +127,7 @@ EOS
   end
 
   def encrypt from, to, payload, sign=false
-    return unknown_status([@not_working_reason]) unless @not_working_reason.nil?
+    return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     if sign
@@ -207,7 +215,7 @@ EOS
   end
 
   def verify payload, signature, detached=true # both RubyMail::Message objects
-    return unknown_status([@not_working_reason]) unless @not_working_reason.nil?
+    return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP}
     gpg_opts = HookManager.run("gpg-options",
@@ -231,7 +239,7 @@ EOS
 
   ## returns decrypted_message, status, desc, lines
   def decrypt payload, armor=false # a RubyMail::Message object
-    return unknown_status([@not_working_reason]) unless @not_working_reason.nil?
+    return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP}
     gpg_opts = HookManager.run("gpg-options",
