@@ -69,7 +69,7 @@ EOS
     end
 
     gpg_agent_socket_file = ENV['GPG_AGENT_INFO'].split(':')[0]
-    unless file.exist?(gpg_agent_socket_file)
+    unless File.exist?(gpg_agent_socket_file)
       @not_working_reason = "gpg-agent socket file #{gpg_agent_socket_file} does not exist"
       return
     end
@@ -85,7 +85,7 @@ EOS
     end
   end
 
-  def have_crypto?; @gpgme_present end
+  def have_crypto?; @not_working_reason.nil? end
 
   def sign from, to, payload
     return unknown_status([@not_working_reason]) unless @not_working_reason.nil?
