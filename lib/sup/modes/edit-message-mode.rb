@@ -486,6 +486,7 @@ protected
       if contacts
         text = contacts.map { |s| s.full_address }.join(", ")
         @header[field] = parse_header field, text
+        rerun_crypto_selector_hook
         update
       end
     end
