@@ -1,6 +1,7 @@
 require 'tempfile'
 require 'socket' # just for gethostname!
 require 'pathname'
+require 'thread'
 
 module Redwood
 
@@ -80,7 +81,7 @@ EOS
     k.add :edit_cc, "Edit Cc:", 'c'
     k.add :edit_subject, "Edit Subject", 's'
     k.add :edit_message, "Edit message", :enter
-    k.add :edit_message_async, "Edit message asynchronously", 'X'
+    k.add :edit_message_async, "Edit message asynchronously", 'E'
     k.add :save_as_draft, "Save as draft", 'P'
     k.add :attach_file, "Attach a file", 'a'
     k.add :delete_attachment, "Delete an attachment", 'd'
@@ -193,15 +194,20 @@ EOS
     @file.close
 
     @mtime = File.mtime @file.path
-    
+
     # put up buffer saying you can now edit the message in another
     # terminal or app, and continue to use sup in the meantime.
-    # When you are done, navigate back to this buffer and press
-    # X to resume
-    mode = EditMessageAsync.new @file.path, condition_var
-    BufferManager.spawn "Waiting for message \"#{m.subj}\" to be finished", mode
+    @async_mode = EditMessageAsyncMode.new self, @file.path
+    BufferManager.spawn "Waiting for message \"#{@header["Subject"]}\" to be finished", @async_mode
 
     # hide ourselves, and wait for signal to resume from async mode ...
+    buffer.hidden = true
+  end
+
+  def edit_message_async_resume
+    buffer.hidden = false
+    @async_mode = nil
+    BufferManager.focus_on buffer
 
     @edited = true if File.mtime(@file.path) > @mtime
 
@@ -216,6 +222,9 @@ EOS
   end
 
   def killable?
+    if !@async_mode.nil?
+      return false if @async_mode.killable?
+    end
     !edited? || BufferManager.ask_yes_or_no("Discard message?")
   end
 
