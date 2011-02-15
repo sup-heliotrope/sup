@@ -198,21 +198,11 @@ EOS
     # terminal or app, and continue to use sup in the meantime.
     # When you are done, navigate back to this buffer and press
     # X to resume
-    mode = EditMessageAsync.new m, type_arg
+    mode = EditMessageAsync.new @file.path, condition_var
     BufferManager.spawn "Waiting for message \"#{m.subj}\" to be finished", mode
 
-    # now do we kill our own mode? how?
+    # hide ourselves, and wait for signal to resume from async mode ...
 
-    # We need a edit_message_async_resume method, but maybe that 
-    # should be in another mode?? The below code should run in it
- 
-    # first make sure any external editor has exited
-    File.open(@file.path, 'r') { |f|
-      while !f.flock(File::LOCK_EX|File::LOCK_NB)
-        # ask user to check that any editor of that file has exited
-        # press enter when ready to continue
-      end
-    }
     @edited = true if File.mtime(@file.path) > @mtime
 
     return @edited unless @edited
