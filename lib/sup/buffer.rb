@@ -73,7 +73,7 @@ class InputSequenceAborted < StandardError; end
 class Buffer
   attr_reader :mode, :x, :y, :width, :height, :title, :atime
   bool_reader :dirty, :system
-  bool_accessor :force_to_top
+  bool_accessor :force_to_top, :hidden
 
   def initialize window, mode, width, height, opts={}
     @w = window
@@ -82,6 +82,7 @@ class Buffer
     @focus = false
     @title = opts[:title] || ""
     @force_to_top = opts[:force_to_top] || false
+    @hidden = opts[:hidden] || false
     @x, @y, @width, @height = 0, 0, width, height
     @atime = Time.at 0
     @system = opts[:system] || false
@@ -265,7 +266,7 @@ EOS
   end
 
   def rollable_buffers
-    @buffers.select { |b| !b.system? || @buffers.last == b }
+    @buffers.select { |b| !b.system? || !b.hidden? || @buffers.last == b }
   end
 
   def handle_input c
