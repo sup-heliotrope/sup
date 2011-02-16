@@ -197,28 +197,29 @@ EOS
 
     # put up buffer saying you can now edit the message in another
     # terminal or app, and continue to use sup in the meantime.
-    @async_mode = EditMessageAsyncMode.new self, @file.path
-    BufferManager.spawn "Waiting for message \"#{@header["Subject"]}\" to be finished", @async_mode
+    subject = @header["Subject"] || ""
+    @async_mode = EditMessageAsyncMode.new self, @file.path, subject
+    BufferManager.spawn "Waiting for message \"#{subject}\" to be finished", @async_mode
 
     # hide ourselves, and wait for signal to resume from async mode ...
     buffer.hidden = true
+    debug "Edit mode buffer is now hidden"
   end
 
   def edit_message_async_resume
     buffer.hidden = false
+    debug "Edit mode buffer is now unhidden"
     @async_mode = nil
     BufferManager.focus_on buffer
 
     @edited = true if File.mtime(@file.path) > @mtime
-
-    return @edited unless @edited
 
     header, @body = parse_file @file.path
     @header = header - NON_EDITABLE_HEADERS
     handle_new_text @header, @body
     update
 
-    @edited
+    true
   end
 
   def killable?

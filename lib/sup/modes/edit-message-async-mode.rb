@@ -8,11 +8,11 @@ class EditMessageAsyncMode < LineCursorMode
     k.add :edit_finished, "Finished editing message", 'E'
   end
 
-  def initialize parent_edit_mode, file_path
+  def initialize parent_edit_mode, file_path, msg_subject
     @parent_edit_mode = parent_edit_mode
     @file_path = file_path
     
-    @text = ["Your message is saved in a file:", "", @file_path, "", 
+    @text = ["", "Your message with subject:",  msg_subject, "is saved in a file:", "", @file_path, "", 
              "You can edit your message in the editor of your choice and continue to",
              "use sup while you edit your message.", "",
              "When you have finished editing, select this buffer and press 'E'.",]
@@ -41,18 +41,26 @@ protected
       return false
     end
 
+    debug "Async mode exiting - file is not being edited"
     @parent_edit_mode.edit_message_async_resume
     BufferManager.kill_buffer buffer
+    true
   end
 
   def file_being_edited?
+    debug "Checking if file is being edited"
     begin
       File.open(@file_path, 'r') { |f|
-        return true if !f.flock(File::LOCK_EX|File::LOCK_NB)
+         if !f.flock(File::LOCK_EX|File::LOCK_NB)
+           debug "could not get exclusive lock on file"
+           return true
+         end
       }
-    rescue
+    rescue => e
+      debug "Some exception occured when opening file, #{e.class}: #{e.to_s}"
       return true
     end
+    debug "File is not being edited"
     false
   end
 
