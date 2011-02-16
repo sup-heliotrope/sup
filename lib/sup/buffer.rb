@@ -266,7 +266,7 @@ EOS
   end
 
   def rollable_buffers
-    @buffers.select { |b| !b.system? || !b.hidden? || @buffers.last == b }
+    @buffers.select { |b| !(b.system? || b.hidden?) || @buffers.last == b }
   end
 
   def handle_input c
