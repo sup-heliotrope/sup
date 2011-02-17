@@ -106,8 +106,7 @@ EOS
     begin
       sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
     rescue GPGME::Error => exc
-      info "Error while running gpg: #{exc.message}"
-      raise Error, "GPG command failed. See log for details."
+      raise Error, gpgme_exc_msg(exc.message)
     end
 
     # if the key (or gpg-agent) is not available GPGME does not complain 
@@ -141,8 +140,7 @@ EOS
     begin
       cipher = GPGME.encrypt(recipients, format_payload(payload), gpg_opts)
     rescue GPGME::Error => exc
-      info "Error while running gpg: #{exc.message}"
-      raise Error, "GPG command failed. See log for details."
+      raise Error, gpgme_exc_msg(exc.message)
     end
 
     # if the key (or gpg-agent) is not available GPGME does not complain 
@@ -232,7 +230,7 @@ EOS
     begin
       ctx.verify(sig_data, signed_text_data, plain_data)
     rescue GPGME::Error => exc
-      return unknown_status exc.message 
+      return unknown_status [gpgme_exc_msg(exc.message)]
     end
     self.verified_ok? ctx.verify_result
   end
@@ -250,8 +248,7 @@ EOS
     begin
       ctx.decrypt_verify(cipher_data, plain_data)
     rescue GPGME::Error => exc
-      info "Error while running gpg: #{exc.message}"
-      return Chunk::CryptoNotice.new(:invalid, "This message could not be decrypted", exc.message)
+      return Chunk::CryptoNotice.new(:invalid, "This message could not be decrypted", gpgme_exc_msg(exc.message))
     end
     sig = self.verified_ok? ctx.verify_result
     plain_data.seek(0, IO::SEEK_SET)
@@ -307,6 +304,12 @@ private
 
   def unknown_status lines=[]
     Chunk::CryptoNotice.new :unknown, "Unable to determine validity of cryptographic signature", lines
+  end
+
+  def gpgme_exc_msg msg
+    err_msg = "Exception in GPGME call: #{msg}"
+    info err_msg
+    err_msg
   end
 
   ## here's where we munge rmail output into the format that signed/encrypted
