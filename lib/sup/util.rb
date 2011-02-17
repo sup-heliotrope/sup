@@ -111,6 +111,31 @@ module RMail
       # end
     end
   end
+
+  class Header
+    ## Be more cautious about invalid content-type headers
+    ## the original RMail code calls
+    ## value.strip.split(/\s*;\s*/)[0].downcase
+    ## without checking if split returned an element
+
+    # This returns the full content type of this message converted to
+    # lower case.
+    #
+    # If there is no content type header, returns the passed block is
+    # executed and its return value is returned.  If no block is passed,
+    # the value of the +default+ argument is returned.
+    def content_type(default = nil)
+      if value = self['content-type'] and ct = value.strip.split(/\s*;\s*/)[0]
+        return ct.downcase
+      else
+        if block_given?
+          yield
+        else
+          default
+        end
+      end
+    end
+  end
 end
 
 class Range
