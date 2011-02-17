@@ -341,7 +341,13 @@ private
     ctx = GPGME::Ctx.new
     begin
       from_key = ctx.get_key(signature.fingerprint)
-      first_sig = signature.to_s.sub(/from [0-9A-F]{16} /, 'from "') + '"'
+      if GPGME::gpgme_err_code(signature.status) == GPGME::GPG_ERR_GENERAL
+        first_sig = "General error on signature verification for #{signature.fingerprint}"
+      elsif signature.to_s
+        first_sig = signature.to_s.sub(/from [0-9A-F]{16} /, 'from "') + '"'
+      else
+        first_sig = "Unknown error or empty signature"
+      end
     rescue EOFError 
       from_key = nil
       first_sig = "No public key available for #{signature.fingerprint}"
