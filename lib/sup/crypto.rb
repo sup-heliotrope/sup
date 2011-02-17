@@ -232,7 +232,11 @@ EOS
     rescue GPGME::Error => exc
       return unknown_status [gpgme_exc_msg(exc.message)]
     end
-    self.verified_ok? ctx.verify_result
+    begin
+      self.verified_ok? ctx.verify_result
+    rescue ArgumentError => exc
+      return unknown_status [gpgme_exc_msg(exc.message)]
+    end
   end
 
   ## returns decrypted_message, status, desc, lines
@@ -250,7 +254,11 @@ EOS
     rescue GPGME::Error => exc
       return Chunk::CryptoNotice.new(:invalid, "This message could not be decrypted", gpgme_exc_msg(exc.message))
     end
-    sig = self.verified_ok? ctx.verify_result
+    begin
+      sig = self.verified_ok? ctx.verify_result
+    rescue ArgumentError => exc
+      sig = unknown_status [gpgme_exc_msg(exc.message)]
+    end
     plain_data.seek(0, IO::SEEK_SET)
     output = plain_data.read
     output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
