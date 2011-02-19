@@ -134,14 +134,14 @@ class Maildir < Source
 
     added.each_with_index do |id,i|
       yield :add,
-      :info => File.join(d,id),
+      :info => id,
       :labels => @labels + maildir_labels(id) + [:inbox],
       :progress => i.to_f/(added.size+deleted.size)
     end
 
     deleted.each_with_index do |id,i|
       yield :delete,
-      :info => File.join(d,id),
+      :info => id,
       :progress => (i.to_f+added.size)/(added.size+deleted.size)
     end
 
