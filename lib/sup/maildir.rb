@@ -131,27 +131,27 @@ class Maildir < Source
     added -= add_to_delete
     deleted -= del_to_delete
     debug "#{added.size} added, #{deleted.size} deleted, #{updated.size} updated"
+    total_size = added.size+deleted.size+updated.size
 
     added.each_with_index do |id,i|
       yield :add,
       :info => id,
       :labels => @labels + maildir_labels(id) + [:inbox],
-      :progress => i.to_f/(added.size+deleted.size)
+      :progress => i.to_f/total_size
     end
 
     deleted.each_with_index do |id,i|
       yield :delete,
       :info => id,
-      :progress => (i.to_f+added.size)/(added.size+deleted.size)
+      :progress => (i.to_f+added.size)/total_size
     end
 
-    # TODO: Fix this
-    updated.each do |id|
+    updated.each_with_index do |id,i|
       yield :update,
-         :old_info => id[0],
-         :new_info => id[1],
-         :labels => @labels + maildir_labels(id[1]),
-         :progress => 0.0
+      :old_info => id[0],
+      :new_info => id[1],
+      :labels => @labels + maildir_labels(id[1]),
+      :progress => (i.to_f+added.size+deleted.size)/total_size
     end
     nil
   end
