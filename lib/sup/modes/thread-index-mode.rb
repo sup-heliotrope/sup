@@ -893,7 +893,7 @@ protected
       [:to_me_color, t.labels.member?(:attachment) ? "@" : " "],
       [:to_me_color, dp ? ">" : (p ? '+' : " ")],
     ] +
-      (t.labels - @hidden_labels).map { |label| [:label_color, "#{label} "] } +
+      (t.labels - @hidden_labels).sort_by {|x| x.to_s}.map { |label| [:label_color, "#{label} "] } +
       [
       [subj_color, t.subj + (t.subj.empty? ? "" : " ")],
       [:snippet_color, t.snippet],
