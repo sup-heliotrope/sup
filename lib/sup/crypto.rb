@@ -114,7 +114,6 @@ EOS
     if sig.length == 0
       raise Error, gpgme_exc_msg("GPG failed to generate signature: check that gpg-agent is running and your key is available.")
     end
-    end
 
     envelope = RMail::Message.new
     envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature'
