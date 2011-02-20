@@ -31,8 +31,9 @@ class EditMessageAsyncMode < LineCursorMode
 
   def killable?
     if file_being_edited?
-      BufferManager.flash "Please check that #{@file_path} is not open in any editor and try again."
-      return false
+      if !BufferManager.ask_yes_or_no("It appears that #{@file_path} is still being edited. Are you sure?")
+        return false
+      end
     end
 
     @parent_edit_mode.edit_message_async_resume true
@@ -47,8 +48,9 @@ protected
 
   def edit_finished
     if file_being_edited?
-      BufferManager.flash "Please check that #{@file_path} is not open in any editor and try again."
-      return false
+      if !BufferManager.ask_yes_or_no("It appears that #{@file_path} is still being edited. Are you sure?")
+        return false
+      end
     end
 
     @parent_edit_mode.edit_message_async_resume
