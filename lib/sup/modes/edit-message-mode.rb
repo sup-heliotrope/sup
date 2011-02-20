@@ -187,7 +187,7 @@ EOS
   end
 
   def edit_message_async
-    @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
+    @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
     @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
     @file.puts @body.join("\n")
@@ -203,14 +203,12 @@ EOS
 
     # hide ourselves, and wait for signal to resume from async mode ...
     buffer.hidden = true
-    debug "Edit mode buffer is now hidden"
   end
 
-  def edit_message_async_resume
+  def edit_message_async_resume being_killed=false
     buffer.hidden = false
-    debug "Edit mode buffer is now unhidden"
     @async_mode = nil
-    BufferManager.raise_to_front buffer
+    BufferManager.raise_to_front buffer if !being_killed
 
     @edited = true if File.mtime(@file.path) > @mtime
 
@@ -224,7 +222,14 @@ EOS
 
   def killable?
     if !@async_mode.nil?
-      return false if @async_mode.killable?
+      return false if !@async_mode.killable?
+      if File.mtime(@file.path) > @mtime
+        @edited = true
+        header, @body = parse_file @file.path
+        @header = header - NON_EDITABLE_HEADERS
+        handle_new_text @header, @body
+        update
+      end
     end
     !edited? || BufferManager.ask_yes_or_no("Discard message?")
   end
