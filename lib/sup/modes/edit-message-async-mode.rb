@@ -6,11 +6,14 @@ class EditMessageAsyncMode < LineCursorMode
 
   register_keymap do |k|
     k.add :edit_finished, "Finished editing message", 'E'
+#    k.add :path_to_clipboard, "Copy file path to the clipboard", :enter
+#    k.add :open_file, "Open file in default GUI editor", 'O'
   end
 
   def initialize parent_edit_mode, file_path, msg_subject
     @parent_edit_mode = parent_edit_mode
     @file_path = file_path
+    @orig_mtime = File.mtime @file_path
     
     @text = ["", "Your message with subject:",  msg_subject, "is saved in a file:", "", @file_path, "", 
              "You can edit your message in the editor of your choice and continue to",
@@ -26,11 +29,11 @@ class EditMessageAsyncMode < LineCursorMode
   end
 
   def killable?
-    !file_being_edited?
+    !file_being_edited? && !file_has_been_edited?
   end
 
   def unsaved?
-    !file_being_edited?
+    !file_being_edited? && !file_has_been_edited?
   end
 
 protected
@@ -49,24 +52,22 @@ protected
 
   def file_being_edited?
     debug "Checking if file is being edited"
-    begin
-      File.open(@file_path, 'r') { |f|
-         if !f.flock(File::LOCK_EX|File::LOCK_NB)
-           debug "could not get exclusive lock on file"
-           return true
-         end
-      }
-    rescue => e
-      debug "Some exception occured when opening file, #{e.class}: #{e.to_s}"
-      return true
-    end
-    debug "File is not being edited"
+    # check for common editor lock files
+    vim_lock_file = File.join(File.dirname(@file_path), '.'+File.basename(@file_path)+'.swp')
+    emacs_lock_file = File.join(File.dirname(@file_path), '.#'+File.basename(@file_path))
+
+    return true if File.exist? vim_lock_file
+    return true if File.exist? emacs_lock_file
+
     false
   end
 
-  # nothing useful to do, so make it a no-op until we think of something better
+  def file_has_been_edited?
+    File.mtime(@file_path) > @orig_mtime
+  end
+
+  # to stop select doing anything
   def select
-    nil
   end
 end
 
