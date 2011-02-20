@@ -542,7 +542,7 @@ EOS
 
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
-    user_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", modifyl, @hidden_labels
+    user_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", modifyl.sort_by {|x| x.to_s}, @hidden_labels
     return unless user_labels
 
     thread.labels = Set.new(keepl) + user_labels
