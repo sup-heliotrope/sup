@@ -210,7 +210,7 @@ EOS
     buffer.hidden = false
     debug "Edit mode buffer is now unhidden"
     @async_mode = nil
-    BufferManager.focus_on buffer
+    BufferManager.raise_to_front buffer
 
     @edited = true if File.mtime(@file.path) > @mtime
 
