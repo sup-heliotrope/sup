@@ -131,7 +131,8 @@ EOS
             if old_m
               new_locations = (m.locations - old_m.locations)
               if not new_locations.empty?
-                yield "Message at #{new_locations[0].info} is an update of an old message. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
+                yield "Message at #{new_locations[0].info} has changed its source location. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
+                numu += 1
               else
                 yield "Skipping already-imported message at #{m.locations[-1].info}"
               end
@@ -190,7 +191,9 @@ EOS
           ## We need to add or unhide the message when it either did not exist
           ## before at all or when it was updated. We do *not* add/unhide when
           ## the same message was found at a different location
-          if !old_m or not old_m.locations.member? m.location
+          if old_m
+            UpdateManager.relay self, :updated, m
+          elsif !old_m or not old_m.locations.member? m.location
             UpdateManager.relay self, :added, m
           end
         when :delete
