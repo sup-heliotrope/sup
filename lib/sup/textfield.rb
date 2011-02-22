@@ -120,6 +120,9 @@ class TextField
         nop
         Ncurses::Form::REQ_BEG_FIELD
       when ?\C-w.ord
+        while action = remove_extra_space
+          Ncurses::Form.form_driver @form, action
+        end
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_PREV_CHAR
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_WORD
       when Ncurses::KEY_UP, Ncurses::KEY_DOWN
@@ -164,6 +167,40 @@ private
       v
     else # trailing spaces
       v + (" " * (x - @question.length - v.length))
+    end
+  end
+
+  def remove_extra_space
+    return nil unless @field
+
+    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_VALIDATION
+    x = Ncurses.curx
+    v = @field.field_buffer(0).gsub(/^\s+|\s+$/, "")
+    v_index = x - @question.length
+
+    # at start of line
+    if v_index < 1
+      nil
+    ## cursor <= end of text
+    elsif v_index < v.length
+      # is the character before the cursor a space?
+      if v[v_index-1] == ?\s
+        # if there is a non-space char under cursor then go back
+        if v[v_index] != ?\s
+          Ncurses::Form::REQ_PREV_CHAR
+        # otherwise delete the space
+        else
+          Ncurses::Form::REQ_DEL_PREV
+        end
+      else
+        nil
+      end
+    elsif v_index == v.length
+      # at end of string, with non-space before us
+      nil
+    else
+      # trailing spaces
+      Ncurses::Form::REQ_PREV_CHAR
     end
   end
 
