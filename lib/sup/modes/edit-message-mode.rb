@@ -1,7 +1,6 @@
 require 'tempfile'
 require 'socket' # just for gethostname!
 require 'pathname'
-require 'thread'
 
 module Redwood
 

@@ -1,5 +1,3 @@
-require 'thread'
-
 module Redwood
 
 class EditMessageAsyncMode < LineCursorMode
@@ -13,14 +11,14 @@ class EditMessageAsyncMode < LineCursorMode
     @parent_edit_mode = parent_edit_mode
     @file_path = file_path
     @orig_mtime = File.mtime @file_path
-    
+
     @text = ["ASYNC MESSAGE EDIT",
              "", "Your message with subject:",  msg_subject, "is saved in a file:", "", @file_path, "", 
              "You can edit your message in the editor of your choice and continue to",
              "use sup while you edit your message.", "",
              "Press <Enter> to have the file path copied to the clipboard.", "",
              "When you have finished editing, select this buffer and press 'E'.",]
-    super() 
+    super()
   end
 
   def lines; @text.length end
@@ -77,8 +75,7 @@ protected
     vim_lock_file = File.join(File.dirname(@file_path), '.'+File.basename(@file_path)+'.swp')
     emacs_lock_file = File.join(File.dirname(@file_path), '.#'+File.basename(@file_path))
 
-    return true if File.exist? vim_lock_file
-    return true if File.exist? emacs_lock_file
+    return true if File.exist?(vim_lock_file) || File.exist?(emacs_lock_file)
 
     false
   end
