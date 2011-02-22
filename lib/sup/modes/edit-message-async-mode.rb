@@ -29,7 +29,7 @@ class EditMessageAsyncMode < LineCursorMode
 
   def killable?
     if file_being_edited?
-      if !BufferManager.ask_yes_or_no("It appears that #{@file_path} is still being edited. Are you sure?")
+      if !BufferManager.ask_yes_or_no("It appears the file is still being edited. Are you sure?")
         return false
       end
     end
@@ -46,7 +46,7 @@ protected
 
   def edit_finished
     if file_being_edited?
-      if !BufferManager.ask_yes_or_no("It appears that #{@file_path} is still being edited. Are you sure?")
+      if !BufferManager.ask_yes_or_no("It appears the file is still being edited. Are you sure?")
         return false
       end
     end
