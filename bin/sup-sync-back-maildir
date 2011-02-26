@@ -21,6 +21,9 @@ have an e-mail file like this: foo_bar:2,FRS (flags are favorite,
 replied, seen) and its Xapian entry has labels 'starred', the merge
 operation will add the 'replied' label to the Xapian entry.
 
+If you choose not to merge you will lose information because in the
+previous example the file will be renamed to foo_bar:2,FS.
+
 Running this script is *strongly* recommanded when setting the
 "sync_back_to_maildir" option from false to true.
 
@@ -33,6 +36,7 @@ behavior is to sync back all Maildir sources.
 Options include:
 EOS
   opt :no_confirm, "Don't ask for confirmation before synchronizing", :default => false, :short => "n"
+  opt :no_merge, "Don't merge new supported Maildir flags (R and P)", :default => false, :short => "m"
   opt :list_sources, "List your Maildir sources and exit", :default => false, :short => "l"
 end
 
@@ -80,7 +84,10 @@ begin
       infos.each do |info|
         print "\rSynchronizing '#{s.uri}'... #{((counter += 1)/infos.size.to_f*100).to_i}%"
         index.each_message({:location => [s.id, info]}, false) do |m|
-          m.merge_labels_from_locations [:replied, :forwarded]
+          if opts[:no_merge] == false
+            m.merge_labels_from_locations [:replied, :forwarded]
+          end
+
           index.save_message m
         end
       end
