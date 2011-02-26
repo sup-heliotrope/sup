@@ -80,6 +80,7 @@ EOS
     k.add :edit_cc, "Edit Cc:", 'c'
     k.add :edit_subject, "Edit Subject", 's'
     k.add :edit_message, "Edit message", :enter
+    k.add :edit_message_async, "Edit message asynchronously", 'E'
     k.add :save_as_draft, "Save as draft", 'P'
     k.add :attach_file, "Attach a file", 'a'
     k.add :delete_attachment, "Delete an attachment", 'd'
@@ -185,7 +186,51 @@ EOS
     @edited
   end
 
+  def edit_message_async
+    @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
+    @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
+    @file.puts
+    @file.puts @body.join("\n")
+    @file.close
+
+    @mtime = File.mtime @file.path
+
+    # put up buffer saying you can now edit the message in another
+    # terminal or app, and continue to use sup in the meantime.
+    subject = @header["Subject"] || ""
+    @async_mode = EditMessageAsyncMode.new self, @file.path, subject
+    BufferManager.spawn "Waiting for message \"#{subject}\" to be finished", @async_mode
+
+    # hide ourselves, and wait for signal to resume from async mode ...
+    buffer.hidden = true
+  end
+
+  def edit_message_async_resume being_killed=false
+    buffer.hidden = false
+    @async_mode = nil
+    BufferManager.raise_to_front buffer if !being_killed
+
+    @edited = true if File.mtime(@file.path) > @mtime
+
+    header, @body = parse_file @file.path
+    @header = header - NON_EDITABLE_HEADERS
+    handle_new_text @header, @body
+    update
+
+    true
+  end
+
   def killable?
+    if !@async_mode.nil?
+      return false if !@async_mode.killable?
+      if File.mtime(@file.path) > @mtime
+        @edited = true
+        header, @body = parse_file @file.path
+        @header = header - NON_EDITABLE_HEADERS
+        handle_new_text @header, @body
+        update
+      end
+    end
     !edited? || BufferManager.ask_yes_or_no("Discard message?")
   end
 

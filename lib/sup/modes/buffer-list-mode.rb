@@ -28,7 +28,7 @@ protected
   end
 
   def regen_text
-    @bufs = BufferManager.buffers.reject { |name, buf| buf.mode == self }.sort_by { |name, buf| buf.atime }.reverse
+    @bufs = BufferManager.buffers.reject { |name, buf| buf.mode == self || buf.hidden? }.sort_by { |name, buf| buf.atime }.reverse
     width = @bufs.max_of { |name, buf| buf.mode.name.length }
     @text = @bufs.map do |name, buf|
       base_color = buf.system? ? :system_buf_color : :regular_buf_color
