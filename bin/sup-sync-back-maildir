@@ -45,7 +45,7 @@ def die msg
   exit(-1)
 end
 
-Redwood::start
+Redwood::start true
 index = Redwood::Index.init
 index.lock_interactively or exit
 index.load
@@ -92,6 +92,9 @@ begin
         end
       end
       print "\n"
+
+      ## Write a flag file to tell sup that the synchronization has been performed
+      File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write("OK") }
     end
   end
 rescue Exception => e

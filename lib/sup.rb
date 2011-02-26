@@ -54,6 +54,7 @@ module Redwood
   HOOK_DIR   = File.join(BASE_DIR, "hooks")
   SEARCH_FN  = File.join(BASE_DIR, "searches.txt")
   LOG_FN     = File.join(BASE_DIR, "log")
+  SYNC_OK_FN = File.join(BASE_DIR, "sync-back-ok")
 
   YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
@@ -151,7 +152,7 @@ module Redwood
     SourceManager SearchManager IdleManager).map { |x| Redwood.const_get x.to_sym }
   end
 
-  def start
+  def start bypass_sync_check = false
     managers.each { |x| fail "#{x} already instantiated" if x.instantiated? }
 
     FileUtils.mkdir_p Redwood::BASE_DIR
@@ -167,6 +168,32 @@ module Redwood
     Redwood::SearchManager.init Redwood::SEARCH_FN
 
     managers.each { |x| x.init unless x.instantiated? }
+
+    return if bypass_sync_check
+
+    if $config[:sync_back_to_maildir] and not File.exists? Redwood::SYNC_OK_FN
+      $stderr.puts <<EOS
+WARNING
+-------
+
+It appears that the "sync_back_to_maildir" option has been changed
+from false to true since the last execution of sup.
+
+It is *strongly* recommended that you run "sup-sync-back-maildir"
+before continuing, otherwise you might lose informations in your
+Xapian index.
+
+This script should be executed each time the "sync_back_to_maildir" is
+changed from false to true.
+
+Please run "sup-sync-back-maildir -h" to see why it is useful.
+
+Are you really sure you want to continue? (y/N)
+EOS
+      abort "Aborted" unless STDIN.gets.chomp.downcase == 'y'
+    elsif not $config[:sync_back_to_maildir] and File.exists? Redwood::SYNC_OK_FN
+      File.delete(Redwood::SYNC_OK_FN)
+    end
   end
 
   def finish
