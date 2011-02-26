@@ -7,17 +7,32 @@ require "sup"; Redwood::check_library_version_against "git"
 opts = Trollop::options do
   version "sup-sync-back-maildir (sup #{Redwood::VERSION})"
   banner <<EOS
-Synchronize from Sup Maildir sources to disk.
+Export Xapian entries to Maildir sources on disk.
+
+This script parses the Xapian entries for a given Maildir source and
+renames e-mail files on disk according to the labels stored in the
+index. It will hence export all the changes you made in Sup to your
+Maildirs so it can be propagated to your IMAP server with offlineimap
+for instance.
+
+It also merges some Maildir flags that were not supported by Sup such
+as R (replied) and P (passed, forwarded), for instance suppose you
+have an e-mail file like this: foo_bar:2,FRS (flags are favorite,
+replied, seen) and its Xapian entry has labels 'starred', the merge
+operation will add the 'replied' label to the Xapian entry.
+
+Running this script is *strongly* recommanded when setting the
+"sync_back_to_maildir" option from false to true.
 
 Usage:
   sup-sync-back-maildir [options] <source>*
 
-where <source>* is zero or more source URIs. If no sources are given,
-sync back all usual sources.
+where <source>* is source URIs. If no source is given, the default
+behavior is to sync back all Maildir sources.
 
 Options include:
 EOS
-  opt :no_confirm, "Don't ask confirmation before synchronizing", :default => false, :short => "n"
+  opt :no_confirm, "Don't ask for confirmation before synchronizing", :default => false, :short => "n"
   opt :list_sources, "List your Maildir sources and exit", :default => false, :short => "l"
 end
 
@@ -36,12 +51,15 @@ $config[:sync_back_to_maildir] = true
 
 begin
   sources = []
+
+  ## Try to find out sources given in parameters
   sources = ARGV.map do |uri|
     s = Redwood::SourceManager.source_for(uri) or die "unknown source: #{uri}. Did you add it with sup-add first?"
-    s.is_a?(Redwood::Maildir) or die "#{uri} is not an mbox source."
+    s.is_a?(Redwood::Maildir) or die "#{uri} is not a Maildir source."
     s
   end unless opts[:list_sources]
 
+  ## Otherwise, check all sources in sources.yaml
   if sources.empty? or opts[:list_sources] == true
     sources = Redwood::SourceManager.usual_sources.select { |s| s.is_a? Redwood::Maildir }
   end
@@ -53,7 +71,7 @@ begin
   else
     sources.each do |s|
       if opts[:no_confirm] == false
-        print "Are you sure to synchronize '#{s.uri}'? (Y/n) "
+        print "Are you sure you want to synchronize '#{s.uri}'? (Y/n) "
         next if STDIN.gets.chomp.downcase == 'n'
       end
 
