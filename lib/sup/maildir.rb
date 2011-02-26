@@ -156,6 +156,10 @@ class Maildir < Source
     nil
   end
 
+  def labels? id
+    maildir_labels id
+  end
+
   def maildir_labels id
     (seen?(id) ? [] : [:unread]) +
       (trashed?(id) ?  [:deleted] : []) +

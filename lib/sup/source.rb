@@ -91,6 +91,10 @@ class Source
   ## supported by this source
   def supported_labels?; [] end
 
+  ## Returns an array containing all the labels that are currently in
+  ## the location filename
+  def labels? info; [] end
+
   ## Yields values of the form [Symbol, Hash]
   ## add: info, labels, progress
   ## delete: info, progress

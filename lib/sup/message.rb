@@ -293,6 +293,26 @@ EOS
     end
   end
 
+  def merge_labels_from_locations merge_labels
+    ## Get all labels from all locations
+    location_labels = Set.new([])
+
+    @locations.each do |l|
+      if l.valid?
+        location_labels = location_labels.union(l.labels?)
+      end
+    end
+
+    ## Add to the message labels the intersection between all location
+    ## labels and those we want to merge
+    location_labels = location_labels.intersection(merge_labels.to_set)
+
+    if not location_labels.empty?
+      @labels = @labels.union(location_labels)
+      @dirty = true
+    end
+  end
+
   ## returns all the content from a message that will be indexed
   def indexable_content
     load_from_source!
@@ -720,6 +740,10 @@ class Location
 
   def valid?
     source.valid? info
+  end
+
+  def labels?
+    source.labels? info
   end
 
   def == o

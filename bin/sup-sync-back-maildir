@@ -62,6 +62,7 @@ begin
       infos.each do |info|
         print "\rSynchronizing '#{s.uri}'... #{((counter += 1)/infos.size.to_f*100).to_i}%"
         index.each_message({:location => [s.id, info]}, false) do |m|
+          m.merge_labels_from_locations [:replied, :forwarded]
           index.save_message m
         end
       end
