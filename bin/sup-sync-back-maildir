@@ -24,7 +24,7 @@ operation will add the 'replied' label to the Xapian entry.
 If you choose not to merge you will lose information because in the
 previous example the file will be renamed to foo_bar:2,FS.
 
-Running this script is *strongly* recommanded when setting the
+Running this script is *strongly* recommended when setting the
 "sync_back_to_maildir" option from false to true.
 
 Usage:
