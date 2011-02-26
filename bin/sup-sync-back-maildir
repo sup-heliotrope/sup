@@ -53,8 +53,8 @@ begin
   else
     sources.each do |s|
       if opts[:no_confirm] == false
-        print "Are you sure to synchronize '#{s.uri}'? (y/N) "
-        next unless STDIN.gets.chomp.downcase == 'y'
+        print "Are you sure to synchronize '#{s.uri}'? (Y/n) "
+        next if STDIN.gets.chomp.downcase == 'n'
       end
 
       infos = Enumerator.new(index, :each_source_info, s.id).to_a
