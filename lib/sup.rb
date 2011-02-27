@@ -301,6 +301,7 @@ EOS
         :confirm_top_posting => true,
         :jump_to_open_message => true,
         :discard_snippets_from_encrypted_messages => false,
+        :load_more_threads_when_scrolling => true,
         :default_attachment_save_dir => "",
         :sent_source => "sup://sent",
         :poll_interval => 300,

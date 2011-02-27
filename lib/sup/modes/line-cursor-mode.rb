@@ -177,7 +177,7 @@ private
   end
 
   def call_load_more_callbacks size
-    @load_more_q.push size
+    @load_more_q.push size if $config[:load_more_threads_when_scrolling]
   end
 end
 
