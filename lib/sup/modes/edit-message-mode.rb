@@ -114,6 +114,7 @@ EOS
     @edited = false
     @selectors = []
     @selector_label_width = 0
+    @async_mode = nil
 
     @crypto_selector =
       if CryptoManager.have_crypto?
