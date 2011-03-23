@@ -615,7 +615,7 @@ private
         ## like ":a:a:a:a:a" that occurred in certain emails.
         if line =~ QUOTE_PATTERN || (line =~ /:$/ && line =~ /\w/ && nextline =~ QUOTE_PATTERN)
           newstate = :quote
-        elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE
+        elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE && !lines[(i+1)..-1].index { |l| l =~ /^-- $/ }
           newstate = :sig
         elsif line =~ BLOCK_QUOTE_PATTERN
           newstate = :block_quote
