@@ -691,7 +691,7 @@ private
           newstate = :quote
         elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE && !lines[(i+1)..-1].index { |l| l =~ /^-- $/ }
           newstate = :sig
-        elsif line =~ BLOCK_QUOTE_PATTERN
+        elsif line =~ BLOCK_QUOTE_PATTERN && nextline !~ QUOTE_PATTERN
           newstate = :block_quote
         end
 
