@@ -2,7 +2,23 @@ module Redwood
 
 class EditMessageAsyncMode < LineCursorMode
 
+  HookManager.register "async-edit", <<EOS
+Runs when 'H' is pressed in async edit mode. You can run whatever code
+you want here - though the default case would be launching a text
+editor. Your hook is assumed to not block, so you should use exec() or
+fork() to launch the editor.
+
+Once the hook has returned then sup will be responsive as usual. You will
+still need to press 'E' to exit this buffer and send the message.
+
+Variables:
+file_path: The full path to the file containing the message to be edited.
+
+Return value: None
+EOS
+
   register_keymap do |k|
+    k.add :run_async_hook, "Run the async-edit hook", 'H'
     k.add :edit_finished, "Finished editing message", 'E'
     k.add :path_to_clipboard, "Copy file path to the clipboard", :enter
   end
@@ -68,6 +84,10 @@ protected
     else
       BufferManager.flash "No way to copy text to clipboard - try installing xsel."
     end
+  end
+
+  def run_async_hook
+    HookManager.run("async-edit", {:file_path => @file_path})
   end
 
   def file_being_edited?
