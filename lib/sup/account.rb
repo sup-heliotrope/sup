@@ -80,6 +80,10 @@ class AccountManager
       @regexen.argfind { |re, a| re =~ email && a }
     end
   end
+  def full_address_for email
+    a = account_for email
+    Person.full_address a.name, email
+  end
 end
 
 end

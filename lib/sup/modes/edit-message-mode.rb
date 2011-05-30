@@ -114,6 +114,7 @@ EOS
     @selectors = []
     @selector_label_width = 0
 
+    # only show account selector if there is more than one account
     if $config[:account_selector]
       ## Duplicate e-mail strings to prevent a "can't modify frozen
       ## object" crash triggered by the String::display_length()
@@ -122,10 +123,10 @@ EOS
       AccountManager.user_emails.each { |e| user_emails_copy.push e.dup }
 
       @account_selector =
-        HorizontalSelector.new "Account:", AccountManager.user_accounts + [nil], user_emails_copy + ["Customized"]
+        HorizontalSelector.new "Account:", AccountManager.user_emails + [nil], user_emails_copy + ["Customized"]
 
       if @header["From"] =~ /<?(\S+@(\S+?))>?$/
-        @account_selector.set_to AccountManager.account_for($1)
+        @account_selector.set_to $1
         @account_user = ""
       else
         @account_selector.set_to nil
@@ -294,8 +295,11 @@ protected
 
   def update
     if @account_selector
-      account = @account_selector.val
-      @header["From"] = account && account.full_address || @account_user
+      if @account_selector.val.nil?
+        @header["From"] = @account_user
+      else
+        @header["From"] = AccountManager.full_address_for @account_selector.val
+      end
     end
 
     regen_text
