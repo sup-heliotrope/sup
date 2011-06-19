@@ -43,16 +43,20 @@ class Person
 
   def mediumname; @name || @email; end
 
-  def full_address
-    if @name && @email
-      if @name =~ /[",@]/
-        "#{@name.inspect} <#{@email}>" # escape quotes
+  def Person.full_address name, email
+    if name && email
+      if name =~ /[",@]/
+        "#{name.inspect} <#{email}>" # escape quotes
       else
-        "#{@name} <#{@email}>"
+        "#{name} <#{email}>"
       end
     else
       email
     end
+  end
+
+  def full_address
+    Person.full_address @name, @email
   end
 
   ## when sorting addresses, sort by this

@@ -116,6 +116,28 @@ EOS
     @selector_label_width = 0
     @async_mode = nil
 
+    # only show account selector if there is more than one email address
+    if $config[:account_selector] && AccountManager.user_emails.length > 1
+      ## Duplicate e-mail strings to prevent a "can't modify frozen
+      ## object" crash triggered by the String::display_length()
+      ## method in util.rb
+      user_emails_copy = []
+      AccountManager.user_emails.each { |e| user_emails_copy.push e.dup }
+
+      @account_selector =
+        HorizontalSelector.new "Account:", AccountManager.user_emails + [nil], user_emails_copy + ["Customized"]
+
+      if @header["From"] =~ /<?(\S+@(\S+?))>?$/
+        @account_selector.set_to $1
+        @account_user = ""
+      else
+        @account_selector.set_to nil
+        @account_user = @header["From"]
+      end
+
+      add_selector @account_selector
+    end
+
     @crypto_selector =
       if CryptoManager.have_crypto?
         HorizontalSelector.new "Crypto:", [:none] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.keys, ["None"] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.values
@@ -164,6 +186,8 @@ EOS
   def edit_subject; edit_field "Subject" end
 
   def edit_message
+    old_from = @header["From"] if @account_selector
+
     @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
     @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
@@ -180,6 +204,12 @@ EOS
 
     header, @body = parse_file @file.path
     @header = header - NON_EDITABLE_HEADERS
+
+    if @account_selector and @header["From"] != old_from
+      @account_user = @header["From"]
+      @account_selector.set_to nil
+    end
+
     handle_new_text @header, @body
     rerun_crypto_selector_hook
     update
@@ -295,6 +325,7 @@ protected
     if curpos < @selectors.length
       @selectors[curpos].roll_left
       buffer.mark_dirty
+      update if @account_selector
     else
       col_left
     end
@@ -304,6 +335,7 @@ protected
     if curpos < @selectors.length
       @selectors[curpos].roll_right
       buffer.mark_dirty
+      update if @account_selector
     else
       col_right
     end
@@ -315,6 +347,14 @@ protected
   end
 
   def update
+    if @account_selector
+      if @account_selector.val.nil?
+        @header["From"] = @account_user
+      else
+        @header["From"] = AccountManager.full_address_for @account_selector.val
+      end
+    end
+
     regen_text
     buffer.mark_dirty if buffer
   end
@@ -532,6 +572,12 @@ protected
       if contacts
         text = contacts.map { |s| s.full_address }.join(", ")
         @header[field] = parse_header field, text
+
+        if @account_selector and field == "From"
+          @account_user = @header["From"]
+          @account_selector.set_to nil
+        end
+
         rerun_crypto_selector_hook
         update
       end

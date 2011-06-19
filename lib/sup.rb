@@ -297,6 +297,7 @@ EOS
         :ask_for_cc => true,
         :ask_for_bcc => false,
         :ask_for_subject => true,
+        :account_selector => true,
         :confirm_no_attachments => true,
         :confirm_top_posting => true,
         :jump_to_open_message => true,
