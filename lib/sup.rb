@@ -277,6 +277,7 @@ EOS
       :discard_snippets_from_encrypted_messages => false,
       :default_attachment_save_dir => "",
       :sent_source => "sup://sent",
+      :archive_sent => true,
       :poll_interval => 300,
       :wrap_width => 0,
       :slip_rows => 0,
