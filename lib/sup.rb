@@ -262,10 +262,33 @@ EOS
 
   ## set up default configuration file
   def load_config filename
+    default_config = {
+      :editor => ENV["EDITOR"] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
+      :thread_by_subject => false,
+      :edit_signature => false,
+      :ask_for_from => false,
+      :ask_for_to => true,
+      :ask_for_cc => true,
+      :ask_for_bcc => false,
+      :ask_for_subject => true,
+      :account_selector => true,
+      :confirm_no_attachments => true,
+      :confirm_top_posting => true,
+      :jump_to_open_message => true,
+      :discard_snippets_from_encrypted_messages => false,
+      :load_more_threads_when_scrolling => true,
+      :default_attachment_save_dir => "",
+      :sent_source => "sup://sent",
+      :archive_sent => true,
+      :poll_interval => 300,
+      :wrap_width => 0,
+      :slip_rows => 0,
+      :col_jump => 2
+    }
     if File.exists? filename
       config = Redwood::load_yaml_obj filename
       abort "#{filename} is not a valid configuration file (it's a #{config.class}, not a hash)" unless config.is_a?(Hash)
-      config
+      default_config.merge config
     else
       require 'etc'
       require 'socket'
@@ -289,27 +312,8 @@ EOS
             :gpgkey => ""
           }
         },
-        :editor => ENV["EDITOR"] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
-        :thread_by_subject => false,
-        :edit_signature => false,
-        :ask_for_from => false,
-        :ask_for_to => true,
-        :ask_for_cc => true,
-        :ask_for_bcc => false,
-        :ask_for_subject => true,
-        :account_selector => true,
-        :confirm_no_attachments => true,
-        :confirm_top_posting => true,
-        :jump_to_open_message => true,
-        :discard_snippets_from_encrypted_messages => false,
-        :load_more_threads_when_scrolling => true,
-        :default_attachment_save_dir => "",
-        :sent_source => "sup://sent",
-        :poll_interval => 300,
-        :wrap_width => 0,
-        :slip_rows => 0,
-        :col_jump => 2
       }
+      config.merge! default_config
       begin
         Redwood::save_yaml_obj config, filename, false, true
       rescue StandardError => e
