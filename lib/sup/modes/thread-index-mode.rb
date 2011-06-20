@@ -476,23 +476,35 @@ EOS
 
   ## m-m-m-m-MULTI-KILL
   def multi_kill threads
-    UndoManager.register "killing #{threads.size.pluralize 'thread'}" do
+    UndoManager.register "killing/unkilling #{threads.size.pluralize 'threads'}" do
       threads.each do |t|
-        t.remove_label :killed
-        add_or_unhide t.first
+        if t.toggle_label :killed
+          add_or_unhide t.first
+        else
+          hide_thread t
+        end
+      end.each do |t|
+        UpdateManager.relay self, :labeled, t.first
         Index.save_thread t
       end
       regen_text
     end
 
     threads.each do |t|
-      t.apply_label :killed
-      hide_thread t
+      if t.toggle_label :killed
+        hide_thread t
+      else
+        add_or_unhide t.first
+      end
+    end.each do |t|
+      # send 'labeled'... this might be more specific
+      UpdateManager.relay self, :labeled, t.first
+      Index.save_thread t
     end
 
+    killed, unkilled = threads.partition { |t| t.has_label? :killed }.map(&:size)
+    BufferManager.flash "#{killed.pluralize 'thread'} killed, #{unkilled} unkilled"
     regen_text
-    BufferManager.flash "#{threads.size.pluralize 'thread'} killed."
-    threads.each { |t| Index.save_thread t }
   end
 
   def cleanup
