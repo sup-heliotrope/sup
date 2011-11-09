@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'rubygems'
+require 'syck'
 require 'yaml'
 YAML::ENGINE.yamler = 'psych'
 require 'zlib'
