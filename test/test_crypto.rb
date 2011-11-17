@@ -22,11 +22,13 @@
 require 'tmpdir'
 require 'test/unit'
 require 'rmail/message'
+require 'rmail/parser'
 require 'sup/util'
 require 'sup/hook'
 require 'sup/contact'
 require 'sup/person'
 require 'sup/account'
+require 'sup/message-chunks'
 require 'sup/crypto'
 require 'stringio'
 
@@ -37,13 +39,15 @@ CryptoManager.init
 Dir.mktmpdir('sup-test') do|f|
     HookManager.init f
 end
-am = {:default=> {:name => "bob", :email=>"bob@foo.nowhere"}}
+am = {:default=> {:name => "", :email=>ENV['EMAIL']}}
 AccountManager.init am
-print CryptoManager.have_crypto?
 
 class TestCryptoManager < Test::Unit::TestCase
 
     def setup
+        @from_email = ENV['EMAIL']
+        # Change this or import my public key to make these tests work.
+        @to_email = 'clint@ubuntu.com'
     end
 
     def teardown
@@ -51,22 +55,38 @@ class TestCryptoManager < Test::Unit::TestCase
 
     def test_sign
         if CryptoManager.have_crypto? then
-            signed = CryptoManager.sign "bob@foo.nowhere","alice@bar.anywhere","ABCDEFG"
+            signed = CryptoManager.sign @from_email,@to_email,"ABCDEFG"
             assert_instance_of RMail::Message, signed
         end
     end
 
-
     def test_encrypt
         if CryptoManager.have_crypto? then
-            from_email = Person.from_address("bob@foo.nowhere").email
-            to_email = Person.from_address("alice@bar.anywhere").email
-
-            encrypted = CryptoManager.encrypt from_email, [to_email], "ABCDEFG"
+            encrypted = CryptoManager.encrypt @from_email, [@to_email], "ABCDEFG"
             assert_instance_of RMail::Message, encrypted
         end
     end
 
+    def test_sign_and_encrypt
+        if CryptoManager.have_crypto? then
+            encrypted = CryptoManager.sign_and_encrypt @from_email, [@to_email], "ABCDEFG"
+            assert_instance_of RMail::Message, encrypted
+        end
+    end
+
+    def test_decrypt
+        if CryptoManager.have_crypto? then
+            encrypted = CryptoManager.encrypt @from_email, [@to_email], "ABCDEFG"
+            assert_instance_of RMail::Message, encrypted
+            assert_instance_of String, (encrypted.body[1].body)
+            decrypted = CryptoManager.decrypt encrypted.body[1], true
+            assert_instance_of Array, decrypted
+            assert_instance_of Chunk::CryptoNotice, decrypted[0]
+            assert_instance_of Chunk::CryptoNotice, decrypted[1]
+            assert_instance_of RMail::Message, decrypted[2]
+            assert_equal "ABCDEFG" , decrypted[2].body
+        end
+    end
         
 end
 
