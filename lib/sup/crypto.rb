@@ -136,7 +136,7 @@ EOS
       else
         crypto = GPGME::Crypto.new
         gpg_opts[:mode] = GPGME::SIG_MODE_DETACH
-        crypto.sign(format_payload(payload), gpg_opts)
+        sig = crypto.sign(format_payload(payload), gpg_opts).read
       end
     rescue GPGME::Error => exc
       raise Error, gpgme_exc_msg(exc.message)
@@ -144,7 +144,7 @@ EOS
 
     # if the key (or gpg-agent) is not available GPGME does not complain
     # but just returns a zero length string. Let's catch that
-    if sig.respond_to?('length') && sig.length == 0
+    if sig.length == 0
       raise Error, gpgme_exc_msg("GPG failed to generate signature: check that gpg-agent is running and your key is available.")
     end
 
@@ -183,7 +183,7 @@ EOS
 
     # if the key (or gpg-agent) is not available GPGME does not complain
     # but just returns a zero length string. Let's catch that
-    if cipher.respond_to?('length') && !cipher.length == 0
+    if cipher.length == 0
       raise Error, gpgme_exc_msg("GPG failed to generate cipher text: check that gpg-agent is running and your key is available.")
     end
 
