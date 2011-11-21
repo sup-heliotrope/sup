@@ -30,6 +30,7 @@ task :upload_report do |t|
 end
 
 $:.push "lib"
+require 'psych'
 require 'rubygems'
 require "sup-files"
 require "sup-version"
