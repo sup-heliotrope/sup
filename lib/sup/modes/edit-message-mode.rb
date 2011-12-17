@@ -116,6 +116,7 @@ EOS
     @selector_label_width = 0
     @async_mode = nil
 
+    @account_selector = nil
     # only show account selector if there is more than one email address
     if $config[:account_selector] && AccountManager.user_emails.length > 1
       ## Duplicate e-mail strings to prevent a "can't modify frozen
