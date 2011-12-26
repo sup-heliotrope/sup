@@ -186,14 +186,23 @@ EOS
   def edit_cc; edit_field "Cc" end
   def edit_subject; edit_field "Subject" end
 
-  def edit_message
-    old_from = @header["From"] if @account_selector
-
-    @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
+  def save_message_to_file
+    @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
     @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
     @file.puts @body.join("\n")
     @file.close
+  end
+
+  def edit_message
+    old_from = @header["From"] if @account_selector
+
+    begin
+      save_message_to_file
+    rescue SystemCallError => e
+      BufferManager.flash "Can't save message to file: #{e.message}"
+      return
+    end
 
     editor = $config[:editor] || ENV['EDITOR'] || "/usr/bin/vi"
 
@@ -219,11 +228,12 @@ EOS
   end
 
   def edit_message_async
-    @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
-    @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
-    @file.puts
-    @file.puts @body.join("\n")
-    @file.close
+    begin
+      save_message_to_file
+    rescue SystemCallError => e
+      BufferManager.flash "Can't save message to file: #{e.message}"
+      return
+    end
 
     @mtime = File.mtime @file.path
 
