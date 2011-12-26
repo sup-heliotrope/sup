@@ -112,6 +112,7 @@ EOS
 
     @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{hostname}>"
     @edited = false
+    @sig_edited = false
     @selectors = []
     @selector_label_width = 0
     @async_mode = nil
@@ -187,11 +188,29 @@ EOS
   def edit_subject; edit_field "Subject" end
 
   def save_message_to_file
+    sig = sig_lines.join("\n")
     @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
     @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
     @file.puts @body.join("\n")
+    @file.puts sig if ($config[:edit_signature] and !@sig_edited)
     @file.close
+  end
+
+  def set_sig_edit_flag
+    sig = sig_lines.join("\n")
+    if $config[:edit_signature]
+      pbody = @body.join("\n")
+      blen = pbody.length
+      slen = sig.length
+
+      if blen > slen and pbody[blen-slen..blen] == sig
+        @sig_edited = false
+        @body = pbody[0..blen-slen].split("\n")
+      else
+        @sig_edited = true
+      end
+    end
   end
 
   def edit_message
@@ -214,6 +233,7 @@ EOS
 
     header, @body = parse_file @file.path
     @header = header - NON_EDITABLE_HEADERS
+    set_sig_edit_flag
 
     if @account_selector and @header["From"] != old_from
       @account_user = @header["From"]
@@ -256,6 +276,7 @@ EOS
 
     header, @body = parse_file @file.path
     @header = header - NON_EDITABLE_HEADERS
+    set_sig_edit_flag
     handle_new_text @header, @body
     update
 
@@ -373,7 +394,7 @@ protected
   def regen_text
     header, @header_lines = format_headers(@header - NON_EDITABLE_HEADERS) + [""]
     @text = header + [""] + @body
-    @text += sig_lines unless $config[:edit_signature]
+    @text += sig_lines unless @sig_edited
 
     @attachment_lines_offset = 0
 
@@ -488,7 +509,7 @@ protected
     m = RMail::Message.new
     m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
     m.body = @body.join("\n")
-    m.body += sig_lines.join("\n") unless $config[:edit_signature]
+    m.body += "\n" + sig_lines.join("\n") unless @sig_edited
     ## body must end in a newline or GPG signatures will be WRONG!
     m.body += "\n" unless m.body =~ /\n\Z/
 
