@@ -1,4 +1,6 @@
 begin
+  # gpgme broke its API in 2.0, so make sure we have the old version for now.
+  gem 'gpgme', '=1.0.8'
   require 'gpgme'
 rescue LoadError
 end
