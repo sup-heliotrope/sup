@@ -709,7 +709,7 @@ EOS
     end
 
     Ncurses.mutex.lock unless opts[:sync] == false
-    Ncurses.attrset Colormap.color_for(:none)
+    Ncurses.attrset Colormap.color_for(:text_color)
     adj = @asking ? 2 : 1
     m.each_with_index do |s, i|
       Ncurses.mvaddstr Ncurses.rows - i - adj, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
