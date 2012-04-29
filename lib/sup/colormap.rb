@@ -26,6 +26,7 @@ class Colormap
   @@instance = nil
 
   DEFAULT_COLORS = {
+    :text => { :fg => "white", :bg => "black" },
     :status => { :fg => "white", :bg => "blue", :attrs => ["bold"] },
     :index_old => { :fg => "white", :bg => "default" },
     :index_new => { :fg => "white", :bg => "default", :attrs => ["bold"] },
