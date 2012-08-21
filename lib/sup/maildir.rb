@@ -226,7 +226,7 @@ private
       new_base = (flags.include?("S")) ? "cur" : "new"
       md_base, md_ver, md_flags = maildir_data orig_path
 
-      return orig_path if md_flags == flags
+      return if md_flags == flags
 
       new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
       orig_path = File.join @dir, orig_path

@@ -286,10 +286,11 @@ EOS
   end
 
   def sync_back
-    @locations.each do |l|
-      if l.valid?
-        l.sync_back @labels if $config[:sync_back_to_maildir] and l.source.is_a? Maildir
-      end
+    if @locations.map { |l|
+      l.sync_back @labels if l.valid? and $config[:sync_back_to_maildir] and l.source.is_a? Maildir
+    }.any?
+      Index.sync_message self, true
+      UpdateManager.relay self, :updated, self
     end
   end
 
