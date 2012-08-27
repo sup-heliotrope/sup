@@ -188,6 +188,11 @@ EOS
           yield :add, m, old_m, args[:progress] if block_given?
           Index.sync_message m, true
 
+          if Index.message_joining_killed? m
+            m.labels += [:killed]
+            Index.sync_message m, true
+          end
+
           ## We need to add or unhide the message when it either did not exist
           ## before at all or when it was updated. We do *not* add/unhide when
           ## the same message was found at a different location

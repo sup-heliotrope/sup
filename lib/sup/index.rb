@@ -161,6 +161,32 @@ EOS
     matchset.matches_estimated
   end
 
+  ## check if a message is part of a killed thread
+  ## (warning: duplicates code below)
+  ## NOTE: We can be more efficient if we assume every
+  ## killed message that hasn't been initially added
+  ## to the indexi s this way
+  def message_joining_killed? m
+    return false unless doc = find_doc(m.id)
+    queue = doc.value(THREAD_VALUENO).split(',')
+    seen_threads = Set.new
+    seen_messages = Set.new [m.id]
+    while not queue.empty?
+      thread_id = queue.pop
+      next if seen_threads.member? thread_id
+      return true if thread_killed?(thread_id)
+      seen_threads << thread_id
+      docs = term_docids(mkterm(:thread, thread_id)).map { |x| @xapian.document x }
+      docs.each do |doc|
+        msgid = doc.value MSGID_VALUENO
+        next if seen_messages.member? msgid
+        seen_messages << msgid
+        queue.concat doc.value(THREAD_VALUENO).split(',')
+      end
+    end
+    false
+  end
+
   ## yield all messages in the thread containing 'm' by repeatedly
   ## querying the index. yields pairs of message ids and
   ## message-building lambdas, so that building an unwanted message
