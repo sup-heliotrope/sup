@@ -80,6 +80,16 @@ Return value:
      True if mail has been sent successfully, false otherwise.
 EOS
 
+  HookManager.register "sent-save-to", <<EOS
+Configures where to save sent mail to. If this hook doesn't exist,
+the global sent setting will be used (possibly defaulting to sup://sent)
+Variables:
+    message: RMail::Message instance of the mail to send.
+    account: Account instance matching the From address
+Return value:
+     Source to save mail to, nil to use default
+EOS
+
   attr_reader :status
   attr_accessor :body, :header
   bool_reader :edited
@@ -571,7 +581,8 @@ protected
         raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
       end
 
-      SentManager.write_sent_message(date, from_email) { |f| f.puts sanitize_body(m.to_s) }
+      SentManager.write_sent_message(HookManager.run("sent-save-to", :message => m, :account => acct),
+                                     date, from_email) { |f| f.puts sanitize_body(m.to_s) }
       BufferManager.kill_buffer buffer
       BufferManager.flash "Message sent!"
       true

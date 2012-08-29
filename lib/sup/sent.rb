@@ -24,13 +24,14 @@ class SentManager
     @source
   end
 
-  def write_sent_message date, from_email, &block
+  def write_sent_message src, date, from_email, &block
     ::Thread.new do
       debug "store the sent message (locking sent source..)"
-      @source.synchronize do
-        @source.store_message date, from_email, &block
+      use_src = src || @source
+      use_src.synchronize do
+        use_src.store_message date, from_email, &block
       end
-      PollManager.poll_from @source
+      PollManager.poll_from use_src
     end
   end
 end
