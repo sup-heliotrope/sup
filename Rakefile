@@ -31,8 +31,8 @@ end
 
 $:.push "lib"
 require 'rubygems'
-require "sup-files"
-require "sup-version"
+require_relative "sup-files"
+require_relative "sup-version"
 require 'rake/gempackagetask.rb'
 
 spec = Gem::Specification.new do |s|
