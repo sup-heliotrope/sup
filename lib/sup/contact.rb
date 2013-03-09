@@ -27,7 +27,8 @@ class ContactManager
   def contacts_with_aliases; @a2p.values.uniq end
 
   def update_alias person, aalias=nil
-    if(old_aalias = @p2a[person]) # remove old alias
+    old_aalias = @p2a[person]
+    if(old_aalias != nil and old_aalias != "") # remove old alias
       @a2p.delete old_aalias
       @e2p.delete old_aalias.email
     end

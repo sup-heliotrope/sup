@@ -35,10 +35,12 @@ require "sup-files"
 require "sup-version"
 require 'rake/gempackagetask.rb'
 
+require 'rubygems/package_task'
+
 spec = Gem::Specification.new do |s|
   s.name = %q{sup}
   s.version = SUP_VERSION
-  s.date = Time.now.to_s
+  s.date = Time.now.strftime "%Y-%m-%d"
   s.authors = ["William Morgan"]
   s.email = %q{wmorgan-sup@masanjin.net}
   s.summary = %q{A console-based email client with the best features of GMail, mutt, and emacs. Features full text search, labels, tagged operations, multiple buffers, recent contacts, and more.}
@@ -57,7 +59,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "gettext"
 end
 
-Rake::GemPackageTask.new(spec) do |pkg|
+Gem::PackageTask.new(spec) do |pkg|
     pkg.need_tar = true
 end
 
