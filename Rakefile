@@ -33,7 +33,6 @@ $:.push "lib"
 require 'rubygems'
 require "sup-files"
 require "sup-version"
-require 'rake/gempackagetask.rb'
 
 require 'rubygems/package_task'
 
