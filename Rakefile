@@ -41,6 +41,8 @@ end
 
 require 'rake/gempackagetask.rb'
 
+require 'rubygems/package_task'
+
 spec = Gem::Specification.new do |s|
   s.name = %q{sup}
   s.version = SUP_VERSION
@@ -63,7 +65,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "gettext"
 end
 
-Rake::GemPackageTask.new(spec) do |pkg|
+Gem::PackageTask.new(spec) do |pkg|
     pkg.need_tar = true
 end
 
