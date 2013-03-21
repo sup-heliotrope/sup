@@ -5,6 +5,7 @@ require 'pathname'
 require 'set'
 require 'enumerator'
 require 'benchmark'
+require 'iconv'
 
 ## time for some monkeypatching!
 class Symbol
