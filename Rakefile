@@ -31,14 +31,20 @@ end
 
 $:.push "lib"
 require 'rubygems'
-require "sup-files"
-require "sup-version"
+unless Kernel.respond_to?(:require_relative)
+  require "./sup-files"
+  require "./sup-version"
+else
+  require_relative "sup-files"
+  require_relative "sup-version"
+end
+
 require 'rake/gempackagetask.rb'
 
 spec = Gem::Specification.new do |s|
   s.name = %q{sup}
   s.version = SUP_VERSION
-  s.date = Time.now.to_s
+  s.date = Time.now.strftime "%Y-%m-%d"
   s.authors = ["William Morgan"]
   s.email = %q{wmorgan-sup@masanjin.net}
   s.summary = %q{A console-based email client with the best features of GMail, mutt, and emacs. Features full text search, labels, tagged operations, multiple buffers, recent contacts, and more.}

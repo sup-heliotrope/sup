@@ -1,4 +1,6 @@
 begin
+  # gpgme broke its API in 2.0, so make sure we have the old version for now.
+  gem 'gpgme', '=1.0.8'
   require 'gpgme'
 rescue LoadError
 end
@@ -37,6 +39,20 @@ signature: the signature object (class is GPGME::Signature)
 from_key: the key that generated the signature (class is GPGME::Key)
 
 Return value: an array of lines of output
+EOS
+
+  HookManager.register "gpg-expand-keys", <<EOS
+Runs when the list of encryption recipients is created, allowing you to
+replace a recipient with one or more GPGME recipients. For example, you could
+replace the email address of a mailing list with the key IDs that belong to
+the recipients of that list. This is essentially what GPG groups do, which
+are not supported by GPGME.
+
+Variables:
+recipients: an array of recipients of the current email
+
+Return value: an array of recipients (email address or GPG key ID) to encrypt
+the email for
 EOS
 
   def initialize
@@ -135,7 +151,7 @@ EOS
     gpg_opts = HookManager.run("gpg-options",
                                {:operation => "encrypt", :options => gpg_opts}) || gpg_opts
     recipients = to + [from]
-
+    recipients = HookManager.run("gpg-expand-keys", { :recipients => recipients }) || recipients
     begin
       cipher = GPGME.encrypt(recipients, format_payload(payload), gpg_opts)
     rescue GPGME::Error => exc
