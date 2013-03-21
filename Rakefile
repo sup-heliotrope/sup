@@ -30,6 +30,7 @@ task :upload_report do |t|
 end
 
 $:.push "lib"
+require 'psych'
 require 'rubygems'
 unless Kernel.respond_to?(:require_relative)
   require "./sup-files"
