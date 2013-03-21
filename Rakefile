@@ -53,7 +53,7 @@ spec = Gem::Specification.new do |s|
   s.files = SUP_FILES
   s.executables = SUP_EXECUTABLES
 
-  s.add_dependency "xapian-full", ">= 1.2.1"
+  s.add_dependency "xapian-full-alaveteli", "~> 1.2"
   s.add_dependency "ncursesw"
   s.add_dependency "rmail", ">= 0.17"
   s.add_dependency "highline"
