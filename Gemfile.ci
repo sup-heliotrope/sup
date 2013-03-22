@@ -5,7 +5,7 @@ source :rubygems
 
 # Original runtime deps
 gem "xapian-full-alaveteli", "~> 1.2"
-gem "ncursesw"
+gem "ncurses-ruby", "~> 1.2"
 gem "rmail", ">= 0.17"
 gem "highline"
 gem "trollop", ">= 1.12"
