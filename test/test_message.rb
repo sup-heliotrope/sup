@@ -29,9 +29,13 @@ module Redwood
 class TestMessage < Test::Unit::TestCase
 
   def setup
+    @path = Dir.mktmpdir
+    Redwood::HookManager.init File.join(@path, 'hooks')
   end
 
   def teardown
+    Redwood::HookManager.deinstantiate!
+    FileUtils.rm_r @path
   end
 
   def test_simple_message
@@ -72,7 +76,7 @@ EOS
     source.messages = [ message ]
     source_info = 0
 
-    sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message = Message.build_from_source(source, source_info)
     sup_message.load_from_source!
 
     # see how well parsing the header went
@@ -222,7 +226,7 @@ EOS
     source.messages = [ message ]
     source_info = 0
 
-    sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message = Message.build_from_source(source, source_info)
     sup_message.load_from_source!
 
     # read the message body chunks
@@ -272,7 +276,7 @@ EOS
     source.messages = [ message ]
     source_info = 0
 
-    sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message = Message.build_from_source(source, source_info)
     sup_message.load_from_source!
 
     to = sup_message.to
@@ -318,7 +322,7 @@ EOS
     source.messages = [ message ]
     source_info = 0
 
-    sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message = Message.build_from_source(source, source_info)
     sup_message.load_from_source!
 
     # read the message body chunks: no errors should reach this level
@@ -417,7 +421,7 @@ EOS
     source.messages = [ message ]
     source_info = 0
 
-    sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message = Message.build_from_source(source, source_info)
     sup_message.load_from_source!
 
     # read the message body chunks
@@ -508,7 +512,7 @@ EOS
     source.messages = [ message ]
     source_info = 0
 
-    sup_message = Message.new( {:source => source, :source_info => source_info } )
+    sup_message = Message.build_from_source(source, source_info)
     sup_message.load_from_source!
 
     # See how well parsing the message ID went.
@@ -517,7 +521,7 @@ EOS
 
     # Look at another header field whose first line was blank.
     list_unsubscribe = sup_message.list_unsubscribe
-    assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>, " +
+    assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>,\n \t" +
                  "<mailto:monitor-list-request@widget.com?subject=unsubscribe>",
                  list_unsubscribe)
 
