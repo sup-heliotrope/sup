@@ -29,8 +29,16 @@ task :upload_report do |t|
   sh "rsync -essh -cavz ditz wmorgan@rubyforge.org:/var/www/gforge-projects/sup/"
 end
 
-$:.push "lib"
 require 'rubygems'
+require 'rake/testtask'
+
+Rake::TestTask.new(:test) do |test|
+  test.libs << 'test'
+  test.test_files = FileList.new('test/test_*.rb').exclude(/test\/test_server.rb/)
+  test.verbose = true
+end
+
+$:.push "lib"
 require 'rubygems/package_task'
 
 unless Kernel.respond_to?(:require_relative)

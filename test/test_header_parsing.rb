@@ -7,10 +7,14 @@ require 'stringio'
 include Redwood
 
 class TestMBoxParsing < Test::Unit::TestCase
+
   def setup
+    @path = Dir.mktmpdir
+    @mbox = File.join(@path, 'test_mbox')
   end
 
   def teardown
+    FileUtils.rm_r @path
   end
 
   def test_normal_headers
@@ -106,7 +110,7 @@ EOS
   end
 
   def test_from_line_splitting
-    l = MBox.new StringIO.new(<<EOS)
+    l = MBox.new mbox_for_string(<<EOS)
 From sup-talk-bounces@rubyforge.org Mon Apr 27 12:56:18 2009
 From: Bob <bob@bob.com>
 To: a dear friend
@@ -125,14 +129,14 @@ From bob@bob.com
 
 This is the end of the email.
 EOS
-    offset, labels = l.next
-    assert_equal 0, offset
-    offset, labels = l.next
+    offset = l.next_offset 0
+    assert_equal 61, offset
+    offset = l.next_offset 61
     assert_nil offset
   end
 
   def test_more_from_line_splitting
-    l = MBox.new StringIO.new(<<EOS)
+    l = MBox.new mbox_for_string(<<EOS)
 From sup-talk-bounces@rubyforge.org Mon Apr 27 12:56:18 2009
 From: Bob <bob@bob.com>
 To: a dear friend
@@ -145,13 +149,20 @@ To: a dear friend
 
 Hello again! Would you like to buy my products?
 EOS
-    offset, labels = l.next
+    offset = l.next_offset 0
     assert_not_nil offset
 
-    offset, labels = l.next
+    offset = l.next_offset offset
     assert_not_nil offset
 
-    offset, labels = l.next
+    offset = l.next_offset offset
     assert_nil offset
+  end
+
+  def mbox_for_string content
+    File.open(@mbox, 'w') do |f|
+      f.write content
+    end
+    "mbox://#{@mbox}"
   end
 end
