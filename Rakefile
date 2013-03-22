@@ -31,6 +31,8 @@ end
 
 $:.push "lib"
 require 'rubygems'
+require 'rubygems/package_task'
+
 unless Kernel.respond_to?(:require_relative)
   require "./sup-files"
   require "./sup-version"
@@ -38,8 +40,6 @@ else
   require_relative "sup-files"
   require_relative "sup-version"
 end
-
-require 'rake/gempackagetask.rb'
 
 spec = Gem::Specification.new do |s|
   s.name = %q{sup}
@@ -63,7 +63,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "gettext"
 end
 
-Rake::GemPackageTask.new(spec) do |pkg|
+Gem::PackageTask.new(spec) do |pkg|
     pkg.need_tar = true
 end
 
