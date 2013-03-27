@@ -1,0 +1,19 @@
+# Until we figure out how to install deps in Travis env in a modern, DRY
+# way, just use this.
+
+source :rubygems
+
+# Original runtime deps
+gem "xapian-full-alaveteli", "~> 1.2"
+gem "ncursesw"
+gem "rmail", ">= 0.17"
+gem "highline"
+gem "trollop", ">= 1.12"
+gem "lockfile"
+gem "mime-types", "~> 1"
+gem "gettext"
+
+# required by Travis
+group :development, :test do
+  gem "rake"
+end
