@@ -10,4 +10,4 @@ before_install:
 
 gemfile: Gemfile.ci
 
-script: bundle exec rake gem
+script: bundle exec rake travis

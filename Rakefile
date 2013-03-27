@@ -76,3 +76,4 @@ Gem::PackageTask.new(spec) do |pkg|
 end
 
 task :tarball => ["pkg/sup-#{SUP_VERSION}.tgz"]
+task :travis => [:test, :gem]
