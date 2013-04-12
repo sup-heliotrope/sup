@@ -30,7 +30,7 @@ class ContactManager
     old_aalias = @p2a[person]
     if(old_aalias != nil and old_aalias != "") # remove old alias
       @a2p.delete old_aalias
-      @e2p.delete old_aalias.email
+      @e2p.delete person.email
     end
     @p2a[person] = aalias
     unless aalias.nil? || aalias.empty?
