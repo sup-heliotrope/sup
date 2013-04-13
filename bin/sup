@@ -417,14 +417,14 @@ unless Redwood::exceptions.empty?
   end
   $stderr.puts <<EOS
 ----------------------------------------------------------------
-I'm very sorry. It seems that an error occurred in Sup. Please
-accept my sincere apologies. Please submit the contents of
+We are very sorry. It seems that an error occurred in Sup. Please
+accept our sincere apologies. Please submit the contents of
 #{BASE_DIR}/exception-log.txt and a brief report of the
-circumstances to http://masanjin.net/sup-bugs/ so that I might
-address this problem. Thank you!
+circumstances to https://github.com/sup-heliotrope/sup/issues so that 
+we might address this problem. Thank you!
 
 Sincerely,
-William
+The Sup Developers
 ----------------------------------------------------------------
 EOS
   Redwood::exceptions.each do |e, name|
