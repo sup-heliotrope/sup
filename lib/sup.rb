@@ -1,11 +1,5 @@
 require 'rubygems'
-
-require 'syck'
 require 'yaml'
-if YAML.const_defined? :ENGINE
-  YAML::ENGINE.yamler = 'syck'
-end
-
 require 'zlib'
 require 'thread'
 require 'fileutils'
