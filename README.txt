@@ -114,8 +114,8 @@ Or check the mailing lists:
 
 == LICENSE:
 
-Copyright (c) 2006--2009 William Morgan.
 Copyright (c) 2013       Sup developers.
+Copyright (c) 2006--2009 William Morgan.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
