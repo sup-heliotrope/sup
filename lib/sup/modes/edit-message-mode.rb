@@ -116,6 +116,8 @@ EOS
     @selector_label_width = 0
     @async_mode = nil
 
+    HookManager.run "before-edit", :header => @header, :body => @body
+
     @account_selector = nil
     # only show account selector if there is more than one email address
     if $config[:account_selector] && AccountManager.user_emails.length > 1
@@ -145,7 +147,6 @@ EOS
       end
     add_selector @crypto_selector if @crypto_selector
 
-    HookManager.run "before-edit", :header => @header, :body => @body
     if @crypto_selector
       HookManager.run "crypto-mode", :header => @header, :body => @body, :crypto_selector => @crypto_selector
     end
