@@ -1,6 +1,6 @@
 sup
     originally by William Morgan <wmorgan-sup@masanjin.net>
-    https://github.com/sup-heliotrope/sup/wiki
+    http://supmua.org
 
 == DESCRIPTION:
 
