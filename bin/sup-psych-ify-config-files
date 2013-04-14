@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+unless RUBY_VERSION =~ /^1.9/ then
+  STDERR.puts "This tool is made for MRI 1.9"
+  exit 1
+end
+
+require 'fileutils'
+require 'yaml'
+begin
+  require 'psych'
+  require 'syck'
+rescue LoadError => e
+  STDERR.puts 'sup-psych-ify-config-files: We need to be able to require both psych and syck for this conversion'
+  raise
+end
+
+# From: http://darwinweb.net/articles/convert-syck-to-psych-yaml-format
+def use_syck
+  YAML::ENGINE.yamler = 'syck'
+  raise "Oops! Something went horribly wrong." unless YAML == Syck
+end
+def use_psych
+  YAML::ENGINE.yamler = 'psych'
+  raise "Oops! Something went horribly wrong." unless YAML == Psych
+end
+#
+
+Dir.glob(Dir.home + "/.sup/*yaml").each do |yaml_file|
+  print "Converting #{yaml_file}..."
+  use_syck
+  y = YAML.load(File.read yaml_file)
+  FileUtils.cp yaml_file, "#{yaml_file}.bak"
+  use_psych
+  File.open(yaml_file, 'w'){ |file| file.write(YAML.dump(y)) }
+  puts "Done."
+end
