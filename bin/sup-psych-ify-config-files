@@ -30,7 +30,7 @@ Dir.glob(Dir.home + "/.sup/*yaml").each do |yaml_file|
   print "Converting #{yaml_file}..."
   use_syck
   y = YAML.load(File.read yaml_file)
-  FileUtils.cp yaml_file, "#{yaml_file}.bak"
+  FileUtils.cp yaml_file, "#{yaml_file}.syck_bak"
   use_psych
   File.open(yaml_file, 'w'){ |file| file.write(YAML.dump(y)) }
   puts "Done."
