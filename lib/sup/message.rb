@@ -443,6 +443,8 @@ private
 
   ## takes a RMail::Message, breaks it into Chunk:: classes.
   def message_to_chunks m, encrypted=false, sibling_types=[]
+    puts m.inspect
+    puts m[:Headers].inspect
     if m.multipart?
       chunks =
         case m.header.content_type.downcase
@@ -458,7 +460,7 @@ private
       end
 
       chunks
-    elsif m.header.content_type && m.header.content_type.downcase == "message/rfc822"
+    elsif m[:content_type] && m.fetch_header(:content_type).downcase == "message/rfc822"
       encoding = m.header["Content-Transfer-Encoding"]
       if m.body
         body =

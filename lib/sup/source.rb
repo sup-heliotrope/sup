@@ -65,6 +65,7 @@ class Source
   attr_accessor :id
 
   def initialize uri, usual=true, archived=false, id=nil
+    puts "Initialize source: #{uri}.."
     raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
 
     @uri = uri

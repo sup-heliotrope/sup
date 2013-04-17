@@ -14,6 +14,9 @@ class Maildir < Source
     @expanded_uri = Source.expand_filesystem_uri(uri)
     uri = URI(@expanded_uri)
 
+    puts "Initializing maildir: #{uri}.."
+
+
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
     raise ArgumentError, "maildir URI must have a path component" unless uri.path
@@ -22,6 +25,10 @@ class Maildir < Source
     @labels = Set.new(labels || [])
     @mutex = Mutex.new
     @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
+  end
+
+  def init_with coder
+    initialize coder['uri'], coder['usual'], coder['archived'], coder['id'], coder['labels'] 
   end
 
   def file_path; @dir end
@@ -73,7 +80,7 @@ class Maildir < Source
   end
 
   def load_message id
-    with_file_for(id) { |f| RMail::Parser.read f }
+    with_file_for(id) { |f| Mail.read_from_string f }
   end
 
   def sync_back id, labels

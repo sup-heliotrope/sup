@@ -30,7 +30,7 @@ class Lockfile
   def dump_lock_id lock_id = @lock_id
       "host: %s\npid: %s\nppid: %s\ntime: %s\nuser: %s\npname: %s\n" %
         lock_id.values_at('host','pid','ppid','time','user', 'pname')
-    end
+  end
 
   def lockinfo_on_disk
     h = load_lock_id IO.read(path)
