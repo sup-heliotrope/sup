@@ -18,7 +18,6 @@ class Maildir < Source
 
     puts "Initializing maildir: #{uri}.."
 
-
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
     raise ArgumentError, "maildir URI must have a path component" unless uri.path
