@@ -667,6 +667,8 @@ EOS
     old_entry = !do_index_static && doc.entry
     snippet = do_index_static ? m.snippet : old_entry[:snippet]
 
+    puts m.inspect
+
     entry = {
       :message_id => m.id,
       :locations => m.locations.map { |x| [x.source.id, x.info] },

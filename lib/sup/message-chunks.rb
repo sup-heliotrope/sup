@@ -108,7 +108,7 @@ EOS
                         # mime-decode hook, or if it's plain text
       @raw_content =
         if encoded_content.body
-          encoded_content.decode
+          encoded_content.decoded
         else
           "For some bizarre reason, RubyMail was unable to parse this attachment.\n"
         end
@@ -125,7 +125,7 @@ EOS
 
       @lines = nil
       if text
-        text = text.transcode(encoded_content.charset || $encoding)
+        #text = text.transcode(encoded_content.charset || $encoding)
         @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
         @quotable = true
       end

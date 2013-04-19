@@ -13,11 +13,9 @@ module Mail
 
     # make sure the message has valid message ids for the message, and
     # fetch them
-    '''
     def fetch_message_ids field
       self[field] ? self[field].message_ids || [self[field].message_id] : []
     end
-    '''
   end
 end
 
@@ -37,7 +35,7 @@ class Message
 
   ## some utility methods
   class << self
-    def normalize_subj s; s.gsub(RE_PATTERN, ""); end
+    def normalize_subj s; puts s; s.gsub(RE_PATTERN, ""); end
     def subj_is_reply? s; s =~ RE_PATTERN; end
     def reify_subj s; subj_is_reply?(s) ? s : "Re: " + s; end
   end
@@ -86,79 +84,72 @@ class Message
     #parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
-  def decode_header_field v
-    return unless v
-    return v unless v.is_a? String
-    return unless v.size < MAX_HEADER_VALUE_SIZE # avoid regex blowup on spam
-    Rfc2047.decode_to $encoding, Iconv.easy_decode($encoding, 'ASCII', v)
+  def munge_msgid id
+    Digest::MD5.hexdigest (id) 
   end
 
-  def parse_header encoded_header
-    header = SavingHash.new { |k| decode_header_field encoded_header[k] }
+  def parse_header m
+    # load
+    # @id   sanitized message id
+    # @safe_id
+    # @from
+    # @date
+    # @subj
+    # @to
+    # @cc
+    # @bcc
+    # @refs
+    # @replyto
+    # @list_address
+    # @receipient_email
+    # @source_marked_read
+    # @list_subscribe
+    # @list_unsubscribe
 
-    @id = ''
-    if header["message-id"]
-      mid = header["message-id"] =~ /<(.+?)>/ ? $1 : header["message-id"]
-      @id = sanitize_message_id mid
-    end
-    if (not @id.include? '@') || @id.length < 6
-      @id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
-      #from = header["from"]
-      #debug "faking non-existent message-id for message from #{from}: #{id}"
-    end
-
-    @from = Person.from_address(if header["from"]
-      header["from"]
-    else
-      name = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
-      #debug "faking non-existent sender for message #@id: #{name}"
-      name
-    end)
-
-    @date = case(date = header["date"])
-    when Time
-      date
-    when String
-      begin
-        Time.parse date
-      rescue ArgumentError => e
-        #debug "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
-        Time.now
-      end
-    else
-      #debug "faking non-existent date header for #{@id}"
-      Time.now
+    unless m.message_id
+      m.message_id =  "<#{Time.now.to_i}-defaulted-#{munge_msgid m.header.to_s}@sup-faked>"
     end
 
-    @subj = header["subject"] ? header["subject"].gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
-    @to = Person.from_address_list header["to"]
-    @cc = Person.from_address_list header["cc"]
-    @bcc = Person.from_address_list header["bcc"]
+    @id = m.message_id
+    @safe_id = munge_msgid @id
+
+    @from = Person.from_address m.fetch_header (:from)
+    @sender = begin
+      Person.from_address m.fetch_header (:sender)
+    end
+
+    @date = (m.date || Time.now).to_time
+
+    @to = Person.from_address_list (m.fetch_header (:to))
+    @cc = Person.from_address_list (m.fetch_header (:cc))
+    @bcc = Person.from_address_list (m.fetch_header (:bcc))
+
+    @subj = (m.subject || DEFAULT_SUBJECT)
+    @reply_to = Person.from_address (m.fetch_header (:reply_to))
 
     ## before loading our full header from the source, we can actually
     ## have some extra refs set by the UI. (this happens when the user
     ## joins threads manually). so we will merge the current refs values
     ## in here.
-    refs = (header["references"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
-    @refs = (@refs + refs).uniq
-    @replytos = (header["in-reply-to"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
-
-    @replyto = Person.from_address header["reply-to"]
-    @list_address = if header["list-post"]
-      address = if header["list-post"] =~ /mailto:(.*?)[>\s$]/
-        $1
-      elsif header["list-post"] =~ /@/
-        header["list-post"] # just try the whole fucking thing
-      end
-      address && Person.from_address(address)
-    elsif header["x-mailing-list"]
-      Person.from_address header["x-mailing-list"]
+    begin
+      @refs = m.fetch_message_ids (:references)
+      in_reply_to = m.fetch_message_ids (:in_reply_to)
+    rescue Mail::Field::FieldError => e
+      raise InvalidMessageError, e.message
     end
+    @refs += in_reply_to unless @refs.member?(in_reply_to.first)
+    @refs = @refs.uniq # user may have set some refs manually
+    @safe_refs = @refs.nil? ? [] : @refs.compact.map { |r| munge_msgid (r) }
 
-    @recipient_email = header["envelope-to"] || header["x-original-to"] || header["delivered-to"]
-    @source_marked_read = header["status"] == "RO"
-    @list_subscribe = header["list-subscribe"]
-    @list_unsubscribe = header["list-unsubscribe"]
+    @receipient_email = (m.fetch_header(:envelope_to) || m.fetch_header(:x_original_to) || m.fetch_header(:delivered_to))
+
+    @list_subscribe = m.fetch_header (:list_subscribe)
+    @list_unsubscribe = m.fetch_header (:list_unsubscribe)
+    @list_address = (m.fetch_header(:list_post) || m.fetch_header(:x_mailing_list))
+
+    # TODO: need to figure out this one..
+    #@source_marked_read = m.fetch_header (:status) == "RO"
+    @source_marked_read = false
   end
 
   ## Expected index entry format:
@@ -276,7 +267,11 @@ class Message
         ## actually, it's also the differentiation between to/cc/bcc,
         ## so i will keep this.
         rmsg = location.parsed_message
-        parse_header rmsg.header
+
+        puts rmsg.inspect
+        puts rmsg.from
+
+        parse_header rmsg
         message_to_chunks rmsg
       rescue SourceError, SocketError, RMail::EncodingUnsupportedError => e
         warn "problem reading message #{id}"
@@ -556,7 +551,7 @@ private
         # Lowercase the filename because searches are easier that way
         @attachments.push filename.downcase unless filename =~ /^sup-attachment-/
         add_label :attachment unless filename =~ /^sup-attachment-/
-        content_type = (m.header.content_type || "application/unknown").downcase # sometimes RubyMail gives us nil
+        content_type = (m.content_type || "application/unknown").downcase # sometimes RubyMail gives us nil
         [Chunk::Attachment.new(content_type, filename, m, sibling_types)]
 
       ## otherwise, it's body text
