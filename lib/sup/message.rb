@@ -2,6 +2,25 @@
 
 require 'time'
 
+module Mail
+  class Message
+    # a common interface that matches all the field
+    # IMPORTANT: if not existing, it must return nil
+    def fetch_header field
+      sym = field.to_sym
+      self[sym] ? self[sym].to_s : nil
+    end
+
+    # make sure the message has valid message ids for the message, and
+    # fetch them
+    '''
+    def fetch_message_ids field
+      self[field] ? self[field].message_ids || [self[field].message_id] : []
+    end
+    '''
+  end
+end
+
 module Redwood
 
 ## a Message is what's threaded.
@@ -445,8 +464,6 @@ private
 
   ## takes a RMail::Message, breaks it into Chunk:: classes.
   def message_to_chunks m, encrypted=false, sibling_types=[]
-    puts m.inspect
-    puts m[:Headers].inspect
     if m.multipart?
       chunks =
         case m.header.content_type.downcase
@@ -492,7 +509,7 @@ private
         debug "no body for message/rfc822 enclosure; skipping"
         []
       end
-    elsif m.header.content_type && m.header.content_type.downcase == "application/pgp" && m.body
+    elsif m[:content_type] && m.fetch_header(:content_type).downcase == "application/pgp" && m.body
       ## apparently some versions of Thunderbird generate encryped email that
       ## does not follow RFC3156, e.g. messages with X-Enigmail-Version: 0.95.0
       ## they have no MIME multipart and just set the body content type to
@@ -547,7 +564,7 @@ private
         ## Decode the body, charset conversion will follow either in
         ## inline_gpg_to_chunks (for inline GPG signed messages) or
         ## a few lines below (messages without inline GPG)
-        body = m.body ? m.decode : ""
+        body = m.body ? m.decoded : ""
 
         ## Check for inline-PGP
         chunks = inline_gpg_to_chunks body, $encoding, (m.charset || $encoding)
@@ -557,7 +574,8 @@ private
           ## if there's no charset, use the current encoding as the charset.
           ## this ensures that the body is normalized to avoid non-displayable
           ## characters
-          body = Iconv.easy_decode($encoding, m.charset || $encoding, m.decode)
+          #body = Iconv.easy_decode($encoding, m.charset || $encoding, m.decoded)
+          body = m.body.decoded
         else
           body = ""
         end
