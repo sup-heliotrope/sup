@@ -21,7 +21,7 @@ class LabelManager
     @labels = {}
     @new_labels = {}
     @modified = false
-    labels.each { |t| @labels[t] = true }
+    @labels.each { |t| @labels[t] = true }
   end
 
   def new_label? l; @new_labels.include?(l) end

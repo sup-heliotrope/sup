@@ -39,6 +39,10 @@ class SentLoader < MBox
     super "mbox://" + @filename, true, $config[:archive_sent]
   end
 
+  def init_with coder
+    initialize
+  end
+
   def file_path; @filename end
 
   def to_s; 'sup://sent'; end

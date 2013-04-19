@@ -16,6 +16,8 @@ class MBox < Source
     @mutex = Mutex.new
     @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
 
+    puts "Initializing mbox: #{uri}.."
+
     case uri_or_fp
     when String
       @expanded_uri = Source.expand_filesystem_uri(uri_or_fp)
@@ -32,6 +34,10 @@ class MBox < Source
     end
 
     super uri_or_fp, usual, archived, id
+  end
+
+  def init_with coder
+    initialize coder['uri'], coder['usual'], coder['archived'], coder['id'], coder['labels']
   end
 
   def file_path; @path end
