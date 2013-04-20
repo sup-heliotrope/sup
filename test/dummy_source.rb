@@ -2,7 +2,7 @@
 
 require 'sup'
 require 'stringio'
-require 'rmail'
+require 'mail'
 require 'uri'
 
 module Redwood
@@ -30,7 +30,7 @@ class DummySource < Source
   end
 
   def load_message offset
-    RMail::Parser.read raw_message(offset)
+    Mail.read_from_string raw_message(offset)
   end
 
   def raw_header offset

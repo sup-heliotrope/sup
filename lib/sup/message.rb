@@ -117,10 +117,8 @@ class Message
     @id = m.message_id
     @safe_id = munge_msgid @id
 
-    @from = Person.from_address m.fetch_header (:from)
-    @sender = begin
-      Person.from_address m.fetch_header (:sender)
-    end
+    @from = Person.from_address m.fetch_header(:from)
+    @sender = Person.from_address m.fetch_header(:sender)
 
     @date = (m.date || Time.now).to_time
 
@@ -149,7 +147,7 @@ class Message
 
     @list_subscribe = m.fetch_header (:list_subscribe)
     @list_unsubscribe = m.fetch_header (:list_unsubscribe)
-    @list_address = (m.fetch_header(:list_post) || m.fetch_header(:x_mailing_list))
+    @list_address = Person.from_address(m.fetch_header(:list_post) || m.fetch_header(:x_mailing_list))
 
     @source_marked_read = !location.labels?.member?(:unread)
     @source_starred = location.labels?.member?(:starred) 
