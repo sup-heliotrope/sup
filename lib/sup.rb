@@ -1,8 +1,5 @@
 require 'rubygems'
-require 'syck'
 require 'yaml'
-YAML::ENGINE.yamler = 'syck'
-
 require 'zlib'
 require 'thread'
 require 'fileutils'
