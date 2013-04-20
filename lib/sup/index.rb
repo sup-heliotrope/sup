@@ -541,6 +541,7 @@ EOS
     'id' => {:prefix => 'Q', :exclusive => true},
     'thread' => {:prefix => 'H', :exclusive => false},
     'ref' => {:prefix => 'R', :exclusive => false},
+    'safe_ref' => {:prefix => 'SR', :exclusive => false},
     'location' => {:prefix => 'J', :exclusive => false},
   }
 
@@ -681,6 +682,7 @@ EOS
       :bcc => m.bcc.map { |p| [p.email, p.name] },
       :subject => m.subj,
       :refs => m.refs.to_a,
+      :safe_refs => m.safe_refs.to_a,
       :replytos => m.replytos.to_a,
     }
 

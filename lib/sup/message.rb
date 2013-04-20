@@ -56,11 +56,12 @@ class Message
   DEFAULT_SENDER = "(missing sender)"
   MAX_HEADER_VALUE_SIZE = 4096
 
-  attr_reader :id, :date, :from, :subj, :refs, :replytos, :to,
+  attr_reader :id, :date, :from, :subj, :refs, :safe_refs, :replytos, :to,
               :cc, :bcc, :labels, :attachments, :list_address, :recipient_email, :replyto,
               :list_subscribe, :list_unsubscribe
 
-  bool_reader :dirty, :source_marked_read, :snippet_contains_encrypted_content
+  bool_reader :dirty, :source_marked_read, :snippet_contains_encrypted_content,
+              :source_starred
 
   attr_accessor :locations
 
@@ -80,12 +81,14 @@ class Message
     ## we need to initialize this. see comments in parse_header as to
     ## why.
     @refs = []
+    @safe_refs = []
 
     #parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
+  # this creates a safe_ref from a ref
   def munge_msgid id
-    Digest::MD5.hexdigest (id) 
+    Digest::MD5.hexdigest (id)
   end
 
   def parse_header m
@@ -103,6 +106,7 @@ class Message
     # @list_address
     # @receipient_email
     # @source_marked_read
+    # @source_starred
     # @list_subscribe
     # @list_unsubscribe
 
@@ -139,7 +143,7 @@ class Message
     end
     @refs += in_reply_to unless @refs.member?(in_reply_to.first)
     @refs = @refs.uniq # user may have set some refs manually
-    @safe_refs = @refs.nil? ? [] : @refs.compact.map { |r| munge_msgid (r) }
+    @safe_refs = @refs.nil? ? [] : @refs.compact.map { |r| munge_msgid(r) }
 
     @receipient_email = (m.fetch_header(:envelope_to) || m.fetch_header(:x_original_to) || m.fetch_header(:delivered_to))
 
@@ -147,9 +151,9 @@ class Message
     @list_unsubscribe = m.fetch_header (:list_unsubscribe)
     @list_address = (m.fetch_header(:list_post) || m.fetch_header(:x_mailing_list))
 
-    # TODO: need to figure out this one..
-    #@source_marked_read = m.fetch_header (:status) == "RO"
-    @source_marked_read = false
+    @source_marked_read = !location.labels?.member?(:unread)
+    @source_starred = location.labels?.member?(:starred) 
+    puts "Source marked read #{@source_marked_read}."
   end
 
   ## Expected index entry format:
@@ -167,22 +171,26 @@ class Message
     @cc = entry[:cc]
     @bcc = entry[:bcc]
     @refs = (@refs + entry[:refs]).uniq
+    @safe_refs = (@safe_refs + entry[:safe_refs]).uniq
     @replytos = entry[:replytos]
 
     @replyto = nil
     @list_address = nil
     @recipient_email = nil
     @source_marked_read = false
+    @source_starred = false
     @list_subscribe = nil
     @list_unsubscribe = nil
   end
 
   def add_ref ref
     @refs << ref
+    @safe_refs << munge_msgid(ref)
     @dirty = true
   end
 
   def remove_ref ref
+    @safe_refs.delete munge_msgid (ref)
     @dirty = true if @refs.delete ref
   end
 
@@ -270,6 +278,7 @@ class Message
 
         puts rmsg.inspect
         puts rmsg.from
+        puts location.labels?
 
         parse_header rmsg
         message_to_chunks rmsg
@@ -412,14 +421,14 @@ private
     end
 
     ## this probably will never happen
-    if payload.header.content_type && payload.header.content_type.downcase == "application/pgp-signature"
-      warn "multipart/signed with payload content type #{payload.header.content_type}"
+    if payload.content_type && payload.content_type.downcase == "application/pgp-signature"
+      warn "multipart/signed with payload content type #{payload.content_type}"
       return
     end
 
-    if signature.header.content_type && signature.header.content_type.downcase != "application/pgp-signature"
+    if signature.content_type && signature.content_type.downcase != "application/pgp-signature"
       ## unknown signature type; just ignore.
-      #warn "multipart/signed with signature content type #{signature.header.content_type}"
+      #warn "multipart/signed with signature content type #{signature.content_type}"
       return
     end
 
@@ -438,13 +447,13 @@ private
       return
     end
 
-    if payload.header.content_type && payload.header.content_type.downcase != "application/octet-stream"
-      warn "multipart/encrypted with payload content type #{payload.header.content_type}"
+    if payload.content_type && payload.content_type.downcase != "application/octet-stream"
+      warn "multipart/encrypted with payload content type #{payload.content_type}"
       return
     end
 
-    if control.header.content_type && control.header.content_type.downcase != "application/pgp-encrypted"
-      warn "multipart/encrypted with control content type #{signature.header.content_type}"
+    if control.content_type && control.content_type.downcase != "application/pgp-encrypted"
+      warn "multipart/encrypted with control content type #{signature.content_type}"
       return
     end
 
@@ -461,7 +470,7 @@ private
   def message_to_chunks m, encrypted=false, sibling_types=[]
     if m.multipart?
       chunks =
-        case m.header.content_type.downcase
+        case m.content_type.downcase
         when "multipart/signed"
           multipart_signed_to_chunks m
         when "multipart/encrypted"
@@ -469,7 +478,7 @@ private
         end
 
       unless chunks
-        sibling_types = m.body.map { |p| p.header.content_type }
+        sibling_types = m.body.map { |p| p.content_type }
         chunks = m.body.map { |p| message_to_chunks p, encrypted, sibling_types }.flatten.compact
       end
 

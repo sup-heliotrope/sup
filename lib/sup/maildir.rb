@@ -81,7 +81,9 @@ class Maildir < Source
   end
 
   def load_message id
-    with_file_for(id) { |f| Mail.read_from_string f.read }
+    with_file_for(id) do |f|
+      Mail.read_from_string f.read
+    end
   end
 
   def sync_back id, labels
