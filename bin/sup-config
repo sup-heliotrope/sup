@@ -2,7 +2,6 @@
 
 require 'rubygems'
 require 'highline/import'
-require 'yaml'
 require 'trollop'
 require "sup"
 
