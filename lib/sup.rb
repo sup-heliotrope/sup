@@ -191,6 +191,11 @@ Please run "sup-sync-back-maildir -h" to see why it is useful.
 Are you really sure you want to continue? (y/N)
 EOS
       abort "Aborted" unless STDIN.gets.chomp.downcase == 'y'
+      $stderr.puts <<EOS
+
+Should I complain about this again? (Y/n)
+EOS
+      File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write("SKIPPED") } if STDIN.gets.chomp.downcase == 'n'
     elsif not $config[:sync_back_to_maildir] and File.exists? Redwood::SYNC_OK_FN
       File.delete(Redwood::SYNC_OK_FN)
     end
