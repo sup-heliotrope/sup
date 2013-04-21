@@ -24,7 +24,7 @@ def axe q, default=nil
   else
     ask "#{q}: "
   end
-  ans.empty? ? default : ans
+  ans.empty? ? default : ans.to_s
 end
 
 def axe_yes q, default="n"
