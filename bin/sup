@@ -300,7 +300,10 @@ begin
       b, new = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
       b.mode.load_in_background if new
     when :search
-      query = BufferManager.ask :search, "Search all messages (enter for saved searches): "
+      completions = LabelManager.all_labels.map { |l| "label:#{LabelManager.string_for l}" }
+      completions = completions.each { |l| l.force_encoding 'UTF-8' if l.methods.include?(:encoding) }
+      completions += ["from:", "to:", "after:", "before:", "date:", "limit:", "AND", "OR", "NOT"]
+      query = BufferManager.ask_many_with_completions :search, "Search all messages (enter for saved searches): ", completions
       unless query.nil?
         if query.empty?
           bm.spawn_unless_exists("Saved searches") { SearchListMode.new }
