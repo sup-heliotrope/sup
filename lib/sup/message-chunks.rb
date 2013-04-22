@@ -146,7 +146,7 @@ EOS
     def initial_state; :open end
     def viewable?; @lines.nil? end
     def view_default! path
-      case Config::CONFIG['arch']
+      case RbConfig::CONFIG['arch']
         when /darwin/
           cmd = "open '#{path}'"
         else
