@@ -1,4 +1,5 @@
 require 'tempfile'
+require 'rbconfig'
 
 ## Here we define all the "chunks" that a message is parsed
 ## into. Chunks are used by ThreadViewMode to render a message. Chunks

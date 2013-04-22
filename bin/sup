@@ -117,6 +117,7 @@ end
 ##
 ## BSD users: if libc.so.6 is not found, try installing compat6x.
 require 'dl/import'
+require 'rbconfig'
 module LibC
   extend DL.const_defined?(:Importer) ? DL::Importer : DL::Importable
   setlocale_lib = case RbConfig::CONFIG['arch']
