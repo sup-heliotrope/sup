@@ -117,9 +117,10 @@ end
 ##
 ## BSD users: if libc.so.6 is not found, try installing compat6x.
 require 'dl/import'
+require 'rbconfig'
 module LibC
   extend DL.const_defined?(:Importer) ? DL::Importer : DL::Importable
-  setlocale_lib = case Config::CONFIG['arch']
+  setlocale_lib = case RbConfig::CONFIG['arch']
     when /darwin/; "libc.dylib"
     when /cygwin/; "cygwin1.dll"
     else; "libc.so.6"
@@ -134,7 +135,7 @@ module LibC
   rescue RuntimeError => e
     warn "cannot dlload setlocale(); ncurses wide character support probably broken."
     warn "dlload error was #{e.class}: #{e.message}"
-    if Config::CONFIG['arch'] =~ /bsd/
+    if RbConfig::CONFIG['arch'] =~ /bsd/
       warn "BSD variant detected. You may have to install a compat6x package to acquire libc."
     end
   end
