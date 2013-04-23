@@ -117,9 +117,10 @@ end
 ##
 ## BSD users: if libc.so.6 is not found, try installing compat6x.
 require 'dl/import'
+require 'rbconfig'
 module LibC
   extend DL.const_defined?(:Importer) ? DL::Importer : DL::Importable
-  setlocale_lib = case Config::CONFIG['arch']
+  setlocale_lib = case RbConfig::CONFIG['arch']
     when /darwin/; "libc.dylib"
     when /cygwin/; "cygwin1.dll"
     else; "libc.so.6"
@@ -134,7 +135,7 @@ module LibC
   rescue RuntimeError => e
     warn "cannot dlload setlocale(); ncurses wide character support probably broken."
     warn "dlload error was #{e.class}: #{e.message}"
-    if Config::CONFIG['arch'] =~ /bsd/
+    if RbConfig::CONFIG['arch'] =~ /bsd/
       warn "BSD variant detected. You may have to install a compat6x package to acquire libc."
     end
   end
@@ -300,7 +301,10 @@ begin
       b, new = bm.spawn_unless_exists("Contact List") { ContactListMode.new }
       b.mode.load_in_background if new
     when :search
-      query = BufferManager.ask :search, "Search all messages (enter for saved searches): "
+      completions = LabelManager.all_labels.map { |l| "label:#{LabelManager.string_for l}" }
+      completions = completions.each { |l| l.force_encoding 'UTF-8' if l.methods.include?(:encoding) }
+      completions += ["from:", "to:", "after:", "before:", "date:", "limit:", "AND", "OR", "NOT"]
+      query = BufferManager.ask_many_with_completions :search, "Search all messages (enter for saved searches): ", completions
       unless query.nil?
         if query.empty?
           bm.spawn_unless_exists("Saved searches") { SearchListMode.new }
