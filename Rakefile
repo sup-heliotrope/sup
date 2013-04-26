@@ -54,6 +54,7 @@ spec = Gem::Specification.new do |s|
   s.version = SUP_VERSION
   s.date = Time.now.strftime "%Y-%m-%d"
   s.authors = ["William Morgan"]
+  s.email   = "sup-talk@rubyforge.org"
   s.summary = %q{A console-based email client with the best features of GMail, mutt, and emacs. Features full text search, labels, tagged operations, multiple buffers, recent contacts, and more.}
   s.homepage = %q{https://github.com/sup-heliotrope/sup/wiki}
   s.description = %q{Sup is a console-based email client for people with a lot of email. It supports tagging, very fast full-text search, automatic contact-list management, and more. If you're the type of person who treats email as an extension of your long-term memory, Sup is for you.  Sup makes it easy to: - Handle massive amounts of email.  - Mix email from different sources: mbox files (even across different machines), Maildir directories, POP accounts, and GMail accounts.  - Instantaneously search over your entire email collection. Search over body text, or use a query language to combine search predicates in any way.  - Handle multiple accounts. Replying to email sent to a particular account will use the correct SMTP server, signature, and from address.  - Add custom code to handle certain types of messages or to handle certain types of text within messages.  - Organize email with user-defined labels, automatically track recent contacts, and much more!  The goal of Sup is to become the email client of choice for nerds everywhere.}
