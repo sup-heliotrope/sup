@@ -1,11 +1,7 @@
 require 'etc'
 require 'thread'
 
-begin
-  require 'ncursesw'
-rescue LoadError
-  require 'ncurses'
-end
+require 'ncursesw'
 
 if defined? Ncurses
 module Ncurses
