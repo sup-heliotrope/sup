@@ -1,6 +1,7 @@
 # encoding: UTF-8
 
 require 'tempfile'
+require 'rbconfig'
 
 ## Here we define all the "chunks" that a message is parsed
 ## into. Chunks are used by ThreadViewMode to render a message. Chunks
@@ -148,7 +149,7 @@ EOS
     def initial_state; :open end
     def viewable?; @lines.nil? end
     def view_default! path
-      case Config::CONFIG['arch']
+      case RbConfig::CONFIG['arch']
         when /darwin/
           cmd = "open '#{path}'"
         else
