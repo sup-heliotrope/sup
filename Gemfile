@@ -3,17 +3,4 @@
 
 source :rubygems
 
-# Original runtime deps
-gem "xapian-full-alaveteli", "~> 1.2"
-gem "ncursesw-sup", "~> 1.3", ">= 1.3.1"
-gem "rmail", ">= 0.17"
-gem "highline"
-gem "trollop", ">= 1.12"
-gem "lockfile"
-gem "mime-types", "~> 1"
-gem "gettext"
-
-# required by Travis
-group :development, :test do
-  gem "rake"
-end
+gemspec
