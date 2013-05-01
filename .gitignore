@@ -6,3 +6,7 @@
 pkg/
 # i have accidently added this one one too many times
 sup-exception-log.txt
+
+# bundler stuff
+Gemfile.lock
+.bundle
