@@ -8,13 +8,23 @@ module Mail
     # IMPORTANT: if not existing, it must return nil
     def fetch_header field
       sym = field.to_sym
-      self[sym] ? self[sym].to_s : nil
+      begin
+        self[sym] ? self[sym].to_s : nil
+      rescue
+        info "Error while fetching header field: #{field}."
+        nil
+      end
     end
 
     # make sure the message has valid message ids for the message, and
     # fetch them
     def fetch_message_ids field
-      self[field] ? self[field].message_ids || [self[field].message_id] : []
+      # TODO: don't know if this is correct
+      if self[field].respond_to?(:message_ids)
+        self[field] ? self[field].message_ids || [self[field].message_id] : []
+      else
+        []
+      end
     end
   end
 end
@@ -119,6 +129,7 @@ class Message
     @safe_id = munge_msgid @id
 
     @from = Person.from_address m.fetch_header(:from)
+    @from = Person.from_address "Unknown sender <unkown@unknown>" unless @from
     @sender = Person.from_address m.fetch_header(:sender)
 
     @date = (m.date || Time.now).to_time
@@ -481,7 +492,7 @@ private
           @attachments.push filename.downcase unless filename =~ /^sup-attachment-/
           add_label :attachment unless filename =~ /^sup-attachment-/
 
-          chunks << [Chunk::Attachment.new(type, filename, content, sibling_types)]
+          chunks << Chunk::Attachment.new(type, filename, content, sibling_types)
 
         else
           body = content
@@ -518,7 +529,7 @@ private
   def decode_mime_parts part, preferred_type, level=0
     if part.multipart?
       if mime_type_for(part) =~ /multipart\/alternative/
-        target = part.body.parts.find { |p| mime_type_for(p).index(preferred_type) } || part.body.first
+        target = part.body.parts.find { |p| mime_type_for(p).index(preferred_type) } || part.body.parts.first
         if target # this can be nil
           decode_mime_parts target, preferred_type, level + 1
         else
@@ -571,7 +582,7 @@ private
     return "" unless mime_part.body # sometimes this happens. not sure why.
 
     content_type = mime_part.fetch_header(:content_type) || "text/plain"
-    source_charset = mime_part.charset || "US-ASCII"
+    source_charset = mime_part.charset || "UTF-8"
 
     content = mime_part.decoded
     #converted_content, converted_charset = if(converter = CONVERSIONS[[content_type, preferred_type]])
