@@ -2,13 +2,7 @@
 
 require 'rubygems'
 
-no_ncursesw = false
-begin
-  require 'ncursesw'
-rescue LoadError
-  require 'ncurses'
-  no_ncursesw = true
-end
+require 'ncursesw'
 
 no_gpgme = false
 begin
@@ -26,10 +20,6 @@ require "sup"; Redwood::check_library_version_against "git"
 if ENV['SUP_PROFILE']
   require 'ruby-prof'
   RubyProf.start
-end
-
-if no_ncursesw
-  info "No 'ncursesw' gem detected. Install it for wide character support."
 end
 
 if no_gpgme
