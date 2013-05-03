@@ -14,13 +14,13 @@ SUP_FILES =
 
 module Redwood
   Gemspec = Gem::Specification.new do |s|
-    s.name = %q{sup}
+    s.name = "sup"
     s.version = ENV["REL"] || (::Redwood::VERSION == "git" ? "999" : ::Redwood::VERSION)
     s.date = Time.now.strftime "%Y-%m-%d"
     s.authors = ["William Morgan"]
     s.email   = "sup-talk@rubyforge.org"
     s.summary = "A console-based email client with the best features of GMail, mutt and Emacs"
-    s.homepage = %q{https://github.com/sup-heliotrope/sup/wiki}
+    s.homepage = "https://github.com/sup-heliotrope/sup/wiki"
     s.description = <<-DESC
       Sup is a console-based email client for people with a lot of email.
 
