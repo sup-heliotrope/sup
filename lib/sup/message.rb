@@ -156,6 +156,8 @@ class Message
     @safe_refs += @refs.nil? ? [] : @refs.compact.map { |r| rr = munge_msgid(r); debug "addin ref #{r} -> #{rr}.."; rr }
     @safe_refs = @safe_refs.uniq
 
+    debug "safe refs: #{@safe_refs.inspect}"
+
     @receipient_email = (m.fetch_header(:envelope_to) || m.fetch_header(:x_original_to) || m.fetch_header(:delivered_to))
 
     @list_subscribe = m.fetch_header (:list_subscribe)
@@ -201,9 +203,9 @@ class Message
   end
 
   def add_safe_ref safe_ref
-    debug "safe refs: " +  @safe_refs.inspect
+    debug "add safe refs, p: " +  @safe_refs.inspect
     @safe_refs << safe_ref
-    debug "safe refs: " +  @safe_refs.inspect
+    debug "add safe refs, n: " +  @safe_refs.inspect
     @dirty = true
   end
 

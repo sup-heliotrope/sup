@@ -251,6 +251,7 @@ EOS
   end
 
   def update
+    debug "update screen.."
     old_cursor_thread = cursor_thread
     @mutex.synchronize do
       ## let's see you do THIS in python
@@ -428,7 +429,11 @@ EOS
   end
 
   def multi_join_threads threads
-    @ts.join_threads threads or return
+    if not @ts.join_threads threads
+      debug "join_threads failed for some reason.."
+      update
+      return
+    end
     threads.each { |t| Index.save_thread t }
     @tags.drop_all_tags # otherwise we have tag pointers to invalid threads!
     update

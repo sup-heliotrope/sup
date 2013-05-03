@@ -152,14 +152,14 @@ class Thread
 
   def sort_key
     m = latest_message
-    m ? [-m.date.to_i, m.id] : [-Time.now.to_i, ""]
+    m ? [-m.date.to_i, m.safe_id] : [-Time.now.to_i, ""]
   end
 end
 
 ## recursive structure used internally to represent message trees as
 ## described by reply-to: and references: headers.
 ##
-## the 'id' field is the same as the message id. but the message might
+## the 'id' field is the same as the safe message id. but the message might
 ## be empty, in the case that we represent a message that was referenced
 ## by another message (as an ancestor) but never received.
 class Container
@@ -362,11 +362,13 @@ class ThreadSet
   ## merges two threads together. both must be members of this threadset.
   ## does its best, heuristically, to determine which is the parent.
   def join_threads threads
+    debug "join threads.size: #{threads.size}"
     return if threads.size < 2
 
     containers = threads.map do |t|
       c = @messages.member?(t.first.safe_id) ? @messages[t.first.safe_id] : nil
       raise "not in threadset: #{t.first.safe_id}" unless c && c.message
+      debug "joining: #{c}"
       c
     end
 
@@ -374,11 +376,22 @@ class ThreadSet
     parent = containers.find { |c| !c.is_reply? }
 
     ## no thread was rooted by a non-reply, so make a fake parent
-    parent ||= @messages["joining-ref-" + containers.map { |c| c.safe_id }.join("-")]
+    if not parent
+      debug "creating fake id"
+      fakeid = "joining-ref-" + containers.map { |c| c.id }.join("-")
+      parentfake = @messages[munge_msgid(fakeid)]
+    end
 
     containers.each do |c|
       next if c == parent
-      c.message.add_safe_ref parent.id
+      if not parent
+        parent = parentfake
+        c.message.add_safe_ref parent.id
+        c.message.add_ref fakeid
+      else
+        c.message.add_safe_ref parent.id
+        c.message.add_ref parent.message.id
+      end
       link parent, c
     end
 
@@ -386,7 +399,7 @@ class ThreadSet
   end
 
   def is_relevant? m
-    m.refs.any? { |ref_id| @messages.member? ref_id }
+    m.safe_refs.any? { |ref_id| @messages.member? ref_id }
   end
 
   def delete_message message
@@ -400,10 +413,11 @@ class ThreadSet
     el = @messages[message.safe_id]
     return if el.message # we've seen it before
 
-    debug "adding: #{message.id}, refs #{message.refs.inspect}"
+    debug "adding message to thread: #{message.safe_id}, refs #{message.safe_refs.inspect}"
 
     el.message = message
     oldroot = el.root
+    debug "element: #{el.inspect}"
 
     ## link via references:
     (message.safe_refs + [el.id]).inject(nil) do |prev, ref_id|

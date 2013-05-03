@@ -197,7 +197,7 @@ EOS
   ## is found.
   def each_message_in_thread_for m, opts={}
     # TODO thread by subject
-    puts m.safe_id
+    debug "yield messages for: #{m.safe_id}"
     return unless doc = find_doc(m.safe_id)
     queue = doc.value(THREAD_VALUENO).split(',')
     safe_msgids = [m.safe_id]
@@ -318,7 +318,7 @@ EOS
     synchronize { get_entry(safe_id)[:source_id] }
   end
 
-  ## Yields each tearm in the index that starts with prefix
+  ## Yields each term in the index that starts with prefix
   def each_prefixed_term prefix
     term = @xapian._dangerous_allterms_begin prefix
     lastTerm = @xapian._dangerous_allterms_end prefix
@@ -538,21 +538,18 @@ EOS
     'label' => {:prefix => 'L', :exclusive => false},
     'source_id' => {:prefix => 'I', :exclusive => true},
     'attachment_extension' => {:prefix => 'O', :exclusive => false},
-    'msgid' => {:prefix => 'Q', :exclusive => true},
-    'id' => {:prefix => 'SQ', :exclusive => true},
-    'safe_id' => {:prefix => 'SQ', :exclusive => true},
+    'id' => {:prefix => 'S', :exclusive => true},
+    'safe_id' => {:prefix => 'S', :exclusive => true},
     'thread' => {:prefix => 'H', :exclusive => false},
-    'ref' => {:prefix => 'R', :exclusive => false},
-    'safe_ref' => {:prefix => 'SR', :exclusive => false},
+    'safe_ref' => {:prefix => 'R', :exclusive => false},
     'location' => {:prefix => 'J', :exclusive => false},
   }
 
   PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
 
-  MSGID_VALUENO = 3
+  SAFE_MSGID_VALUENO = 0
   THREAD_VALUENO = 1
   DATE_VALUENO = 2
-  SAFE_MSGID_VALUENO = 0
 
   MAX_TERM_LENGTH = 300
 
@@ -591,6 +588,7 @@ EOS
 
   def find_docid safe_id
     docids = term_docids(mkterm(:safe_id, safe_id))
+    debug "docids.size: #{docids.size}"
     fail unless docids.size <= 1
     docids.first
   end
@@ -664,7 +662,7 @@ EOS
     ## since it would overwrite the location field
     m.sync_back
 
-    doc = synchronize { find_doc(m.id) }
+    doc = synchronize { find_doc(m.safe_id) }
     existed = doc != nil
     doc ||= Xapian::Document.new
     do_index_static = overwrite || !existed
@@ -706,9 +704,9 @@ EOS
         return
       end
       @xapian.replace_document docid, doc
-      puts "Docid: #{docid}"
+      debug "Docid: #{docid}"
       k = @xapian.document docid
-      puts "Stored safe_id: " + k.value(0)
+      debug "Stored safe_id: " + k.value(0)
     end
     
 
@@ -740,7 +738,6 @@ EOS
     # Miscellaneous terms
     doc.add_term mkterm(:date, m.date) if m.date
     doc.add_term mkterm(:type, 'mail')
-    doc.add_term mkterm(:msgid, m.id)
     doc.add_term mkterm(:safe_id, m.safe_id)
     m.attachments.each do |a|
       a =~ /\.(\w+)$/ or next
@@ -754,7 +751,6 @@ EOS
       Xapian.sortable_serialise 0
     end
 
-    doc.add_value MSGID_VALUENO, m.id
     doc.add_value SAFE_MSGID_VALUENO, m.safe_id
     doc.add_value DATE_VALUENO, date_value
   end
@@ -832,10 +828,8 @@ EOS
       PREFIX['location'][:prefix] + [args[0]].pack('n') + args[1].to_s
     when :attachment_extension
       PREFIX['attachment_extension'][:prefix] + args[0].to_s.downcase
-    when :msgid, :ref, :thread, :safe_id, :safe_ref
+    when :thread, :safe_id, :safe_ref
       if not PREFIX.member? type.to_s
-        puts "'#{type}'"
-        puts PREFIX
         raise NotImplementedError
       end
       PREFIX[type.to_s][:prefix] + args[0][0...(MAX_TERM_LENGTH-1)]
