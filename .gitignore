@@ -5,5 +5,4 @@
 *~
 # i use rake package task
 pkg/
-# don't want it
 sup-exception-log.txt
