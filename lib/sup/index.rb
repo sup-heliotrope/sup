@@ -134,11 +134,11 @@ EOS
     @xapian.flush
   end
 
-  def contains_id? id
-    synchronize { find_docid(id) && true }
+  def contains_safe_id? safe_id
+    synchronize { find_docid(safe_id) && true }
   end
 
-  def contains? m; contains_id? m.id end
+  def contains? m; contains_safe_id? m.safe_id end
 
   def size
     synchronize { @xapian.doccount }
@@ -146,12 +146,12 @@ EOS
 
   def empty?; size == 0 end
 
-  ## Yields a message-id and message-building lambda for each
+  ## Yields a safe message-id and message-building lambda for each
   ## message that matches the given query, in descending date order.
   ## You should probably not call this on a block that doesn't break
   ## rather quickly because the results can be very large.
-  def each_id_by_date query={}
-    each_id(query) { |id| yield id, lambda { build_message id } }
+  def each_safe_id_by_date query={}
+    each_safe_id(query) { |safe_id| yield safe_id, lambda { build_message safe_id } }
   end
 
   ## Return the number of matches for query in the index
@@ -167,10 +167,10 @@ EOS
   ## killed message that hasn't been initially added
   ## to the indexi s this way
   def message_joining_killed? m
-    return false unless doc = find_doc(m.id)
+    return false unless doc = find_doc(m.safe_id)
     queue = doc.value(THREAD_VALUENO).split(',')
     seen_threads = Set.new
-    seen_messages = Set.new [m.id]
+    seen_messages = Set.new [m.safe_id]
     while not queue.empty?
       thread_id = queue.pop
       next if seen_threads.member? thread_id
@@ -178,9 +178,9 @@ EOS
       seen_threads << thread_id
       docs = term_docids(mkterm(:thread, thread_id)).map { |x| @xapian.document x }
       docs.each do |doc|
-        msgid = doc.value MSGID_VALUENO
-        next if seen_messages.member? msgid
-        seen_messages << msgid
+        safe_msgid = doc.value SAFE_MSGID_VALUENO
+        next if seen_messages.member? safe_msgid
+        seen_messages << safe_msgid
         queue.concat doc.value(THREAD_VALUENO).split(',')
       end
     end
@@ -188,7 +188,7 @@ EOS
   end
 
   ## yield all messages in the thread containing 'm' by repeatedly
-  ## querying the index. yields pairs of message ids and
+  ## querying the index. yields pairs of safe message ids and
   ## message-building lambdas, so that building an unwanted message
   ## can be skipped in the block if desired.
   ##
@@ -197,11 +197,12 @@ EOS
   ## is found.
   def each_message_in_thread_for m, opts={}
     # TODO thread by subject
-    return unless doc = find_doc(m.id)
+    puts m.safe_id
+    return unless doc = find_doc(m.safe_id)
     queue = doc.value(THREAD_VALUENO).split(',')
-    msgids = [m.id]
+    safe_msgids = [m.safe_id]
     seen_threads = Set.new
-    seen_messages = Set.new [m.id]
+    seen_messages = Set.new [m.safe_id]
     while not queue.empty?
       thread_id = queue.pop
       next if seen_threads.member? thread_id
@@ -209,20 +210,20 @@ EOS
       seen_threads << thread_id
       docs = term_docids(mkterm(:thread, thread_id)).map { |x| @xapian.document x }
       docs.each do |doc|
-        msgid = doc.value MSGID_VALUENO
-        next if seen_messages.member? msgid
-        msgids << msgid
-        seen_messages << msgid
+        safe_msgid = doc.value SAFE_MSGID_VALUENO
+        next if seen_messages.member? safe_msgid
+        safe_msgids << safe_msgid
+        seen_messages << safe_msgid
         queue.concat doc.value(THREAD_VALUENO).split(',')
       end
     end
-    msgids.each { |id| yield id, lambda { build_message id } }
+    safe_msgids.each { |safe_id| yield safe_id, lambda { build_message safe_id } }
     true
   end
 
-  ## Load message with the given message-id from the index
-  def build_message id
-    entry = synchronize { get_entry id }
+  ## Load message with the given safe message-id from the index
+  def build_message safe_id
+    entry = synchronize { get_entry safe_id }
     return unless entry
 
     locations = entry[:locations].map do |source_id,source_info|
@@ -247,9 +248,9 @@ EOS
     m
   end
 
-  ## Delete message with the given message-id from the index
-  def delete id
-    synchronize { @xapian.delete_document mkterm(:msgid, id) }
+  ## Delete message with the given safe message-id from the index
+  def delete safe_id
+    synchronize { @xapian.delete_document mkterm(:safe_msgid, safe_id) }
   end
 
   ## Given an array of email addresses, return an array of Person objects that
@@ -265,17 +266,17 @@ EOS
     contacts.to_a.compact[0...num].map { |n,e| Person.from_name_and_email n, e }
   end
 
-  ## Yield each message-id matching query
+  ## Yield each safe message-id matching query
   EACH_ID_PAGE = 100
-  def each_id query={}, ignore_neg_terms = true
+  def each_safe_id query={}, ignore_neg_terms = true
     offset = 0
     page = EACH_ID_PAGE
 
     xapian_query = build_xapian_query query, ignore_neg_terms
     while true
-      ids = run_query_ids xapian_query, offset, (offset+page)
-      ids.each { |id| yield id }
-      break if ids.size < page
+      safe_ids = run_query_safe_ids xapian_query, offset, (offset+page)
+      safe_ids.each { |safe_id| yield safe_id }
+      break if safe_ids.size < page
       offset += page
     end
   end
@@ -286,8 +287,8 @@ EOS
   ## Poll#poll_from when we need to get the location of a message that
   ## may contain these labels
   def each_message query={}, ignore_neg_terms = true, &b
-    each_id query, ignore_neg_terms do |id|
-      yield build_message(id)
+    each_safe_id query, ignore_neg_terms do |safe_id|
+      yield build_message(safe_id)
     end
   end
 
@@ -311,10 +312,10 @@ EOS
   def optimize
   end
 
-  ## Return the id source of the source the message with the given message-id
-  ## was synced from
-  def source_for_id id
-    synchronize { get_entry(id)[:source_id] }
+  ## Return the id source of the source the message with the given safe 
+  ## message-id was synced from
+  def source_for_safe_id safe_id
+    synchronize { get_entry(safe_id)[:source_id] }
   end
 
   ## Yields each tearm in the index that starts with prefix
@@ -538,7 +539,8 @@ EOS
     'source_id' => {:prefix => 'I', :exclusive => true},
     'attachment_extension' => {:prefix => 'O', :exclusive => false},
     'msgid' => {:prefix => 'Q', :exclusive => true},
-    'id' => {:prefix => 'Q', :exclusive => true},
+    'id' => {:prefix => 'SQ', :exclusive => true},
+    'safe_id' => {:prefix => 'SQ', :exclusive => true},
     'thread' => {:prefix => 'H', :exclusive => false},
     'ref' => {:prefix => 'R', :exclusive => false},
     'safe_ref' => {:prefix => 'SR', :exclusive => false},
@@ -547,11 +549,12 @@ EOS
 
   PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
 
-  MSGID_VALUENO = 0
+  MSGID_VALUENO = 3
   THREAD_VALUENO = 1
   DATE_VALUENO = 2
+  SAFE_MSGID_VALUENO = 0
 
-  MAX_TERM_LENGTH = 245
+  MAX_TERM_LENGTH = 300
 
   # Xapian can very efficiently sort in ascending docid order. Sup always wants
   # to sort by descending date, so this method maps between them. In order to
@@ -586,24 +589,24 @@ EOS
     @xapian.postlist(term).map { |x| x.docid }
   end
 
-  def find_docid id
-    docids = term_docids(mkterm(:msgid,id))
+  def find_docid safe_id
+    docids = term_docids(mkterm(:safe_id, safe_id))
     fail unless docids.size <= 1
     docids.first
   end
 
-  def find_doc id
-    return unless docid = find_docid(id)
+  def find_doc safe_id
+    return unless docid = find_docid(safe_id)
     @xapian.document docid
   end
 
   def get_id docid
     return unless doc = @xapian.document(docid)
-    doc.value MSGID_VALUENO
+    doc.value SAFE_MSGID_VALUENO
   end
 
-  def get_entry id
-    return unless doc = find_doc(id)
+  def get_entry safe_id
+    return unless doc = find_doc(safe_id)
     doc.entry
   end
 
@@ -622,9 +625,9 @@ EOS
     end
   end
 
-  def run_query_ids xapian_query, offset, limit
+  def run_query_safe_ids xapian_query, offset, limit
     matchset = run_query xapian_query, offset, limit
-    matchset.matches.map { |r| r.document.value MSGID_VALUENO }
+    matchset.matches.map { |r| r.document.value SAFE_MSGID_VALUENO }
   end
 
   Q = Xapian::Query
@@ -670,6 +673,7 @@ EOS
 
     entry = {
       :message_id => m.id,
+      :safe_id => m.safe_id,
       :locations => m.locations.map { |x| [x.source.id, x.info] },
       :date => truncate_date(m.date),
       :snippet => snippet,
@@ -698,11 +702,15 @@ EOS
     synchronize do
       unless docid = existed ? doc.docid : assign_docid(m, truncate_date(m.date))
         # Could be triggered by spam
-        warn "docid underflow, dropping #{m.id.inspect}"
+        warn "docid underflow, dropping #{m.safe_id.inspect}"
         return
       end
       @xapian.replace_document docid, doc
+      puts "Docid: #{docid}"
+      k = @xapian.document docid
+      puts "Stored safe_id: " + k.value(0)
     end
+    
 
     m.labels.each { |l| LabelManager << l }
     true
@@ -733,6 +741,7 @@ EOS
     doc.add_term mkterm(:date, m.date) if m.date
     doc.add_term mkterm(:type, 'mail')
     doc.add_term mkterm(:msgid, m.id)
+    doc.add_term mkterm(:safe_id, m.safe_id)
     m.attachments.each do |a|
       a =~ /\.(\w+)$/ or next
       doc.add_term mkterm(:attachment_extension, $1)
@@ -746,6 +755,7 @@ EOS
     end
 
     doc.add_value MSGID_VALUENO, m.id
+    doc.add_value SAFE_MSGID_VALUENO, m.safe_id
     doc.add_value DATE_VALUENO, date_value
   end
 
@@ -774,18 +784,18 @@ EOS
   ## more. XapianIndex#each_message_in_thread_for follows the thread ids when
   ## searching so the user sees a single unified thread.
   def index_message_threading doc, entry, old_entry
-    return if old_entry && (entry[:refs] == old_entry[:refs]) && (entry[:replytos] == old_entry[:replytos])
-    children = term_docids(mkterm(:ref, entry[:message_id])).map { |docid| @xapian.document docid }
-    parent_ids = entry[:refs] + entry[:replytos]
-    parents = parent_ids.map { |id| find_doc id }.compact
+    return if old_entry && (entry[:safe_refs] == old_entry[:safe_refs])
+    children = term_docids(mkterm(:safe_ref, entry[:safe_id])).map { |docid| @xapian.document docid }
+    parent_ids = entry[:safe_refs]
+    parents = parent_ids.map { |safe_id| find_doc safe_id }.compact
     thread_members = SavingHash.new { [] }
     (children + parents).each do |doc2|
       thread_ids = doc2.value(THREAD_VALUENO).split ','
       thread_ids.each { |thread_id| thread_members[thread_id] << doc2 }
     end
-    thread_ids = thread_members.empty? ? [entry[:message_id]] : thread_members.keys
+    thread_ids = thread_members.empty? ? [entry[:safe_id]] : thread_members.keys
     thread_ids.each { |thread_id| doc.add_term mkterm(:thread, thread_id) }
-    parent_ids.each { |ref| doc.add_term mkterm(:ref, ref) }
+    parent_ids.each { |ref| doc.add_term mkterm(:safe_ref, ref) }
     doc.add_value THREAD_VALUENO, (thread_ids * ',')
   end
 
@@ -822,7 +832,12 @@ EOS
       PREFIX['location'][:prefix] + [args[0]].pack('n') + args[1].to_s
     when :attachment_extension
       PREFIX['attachment_extension'][:prefix] + args[0].to_s.downcase
-    when :msgid, :ref, :thread
+    when :msgid, :ref, :thread, :safe_id, :safe_ref
+      if not PREFIX.member? type.to_s
+        puts "'#{type}'"
+        puts PREFIX
+        raise NotImplementedError
+      end
       PREFIX[type.to_s][:prefix] + args[0][0...(MAX_TERM_LENGTH-1)]
     else
       raise "Invalid term type #{type}"

@@ -261,16 +261,16 @@ class ThreadSet
     @index = index
     @num_messages = 0
     ## map from message ids to container objects
-    @messages = SavingHash.new { |id| Container.new id }
+    @messages = SavingHash.new { |safe_id| Container.new safe_id }
     ## map from subject strings or (or root message ids) to thread objects
     @threads = SavingHash.new { Thread.new }
     @thread_by_subj = thread_by_subj
   end
 
-  def thread_for_id mid; @messages.member?(mid) && @messages[mid].root.thread end
-  def contains_id? id; @messages.member?(id) && !@messages[id].empty? end
-  def thread_for m; thread_for_id m.id end
-  def contains? m; contains_id? m.id end
+  def thread_for_id safe_mid; @messages.member?(safe_mid) && @messages[safe_mid].root.thread end
+  def contains_id? safe_id; @messages.member?(safe_id) && !@messages[safe_id].empty? end
+  def thread_for m; thread_for_id m.safe_id end
+  def contains? m; contains_id? m.safe_id end
 
   def threads; @threads.values end
   def size; @threads.size end
@@ -333,7 +333,7 @@ class ThreadSet
 
   ## load in (at most) num number of threads from the index
   def load_n_threads num, opts={}
-    @index.each_id_by_date opts do |mid, builder|
+    @index.each_safe_id_by_date opts do |mid, builder|
       break if size >= num unless num == -1
       next if contains_id? mid
 
@@ -365,8 +365,8 @@ class ThreadSet
     return if threads.size < 2
 
     containers = threads.map do |t|
-      c = @messages.member?(t.first.id) ? @messages[t.first.id] : nil
-      raise "not in threadset: #{t.first.id}" unless c && c.message
+      c = @messages.member?(t.first.safe_id) ? @messages[t.first.safe_id] : nil
+      raise "not in threadset: #{t.first.safe_id}" unless c && c.message
       c
     end
 
@@ -374,11 +374,11 @@ class ThreadSet
     parent = containers.find { |c| !c.is_reply? }
 
     ## no thread was rooted by a non-reply, so make a fake parent
-    parent ||= @messages["joining-ref-" + containers.map { |c| c.id }.join("-")]
+    parent ||= @messages["joining-ref-" + containers.map { |c| c.safe_id }.join("-")]
 
     containers.each do |c|
       next if c == parent
-      c.message.add_ref parent.id
+      c.message.add_safe_ref parent.id
       link parent, c
     end
 
@@ -390,34 +390,35 @@ class ThreadSet
   end
 
   def delete_message message
-    el = @messages[message.id]
+    el = @messages[message.safe_id]
     return unless el.message
     el.message = nil
   end
 
   ## the heart of the threading code
   def add_message message
-    el = @messages[message.id]
+    el = @messages[message.safe_id]
     return if el.message # we've seen it before
 
-    #puts "adding: #{message.id}, refs #{message.refs.inspect}"
+    debug "adding: #{message.id}, refs #{message.refs.inspect}"
 
     el.message = message
     oldroot = el.root
 
     ## link via references:
-    (message.refs + [el.id]).inject(nil) do |prev, ref_id|
+    (message.safe_refs + [el.id]).inject(nil) do |prev, ref_id|
       ref = @messages[ref_id]
       link prev, ref if prev
       ref
     end
 
     ## link via in-reply-to:
-    message.replytos.each do |ref_id|
-      ref = @messages[ref_id]
-      link ref, el, true
-      break # only do the first one
-    end
+    # also added to safe_refs
+    #message.replytos.each do |ref_id|
+      #ref = @messages[ref_id]
+      #link ref, el, true
+      #break # only do the first one
+    #end
 
     root = el.root
     key =
@@ -427,6 +428,7 @@ class ThreadSet
         root.id
       end
 
+    debug "root: #{root.inspect}"
     ## check to see if the subject is still the same (in the case
     ## that we first added a child message with a different
     ## subject)

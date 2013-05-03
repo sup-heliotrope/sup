@@ -19,9 +19,8 @@ module Mail
     # make sure the message has valid message ids for the message, and
     # fetch them
     def fetch_message_ids field
-      # TODO: don't know if this is correct
-      if self[field].respond_to?(:message_ids)
-        self[field] ? self[field].message_ids || [self[field].message_id] : []
+      if self[field]
+        self[field].message_ids
       else
         []
       end
@@ -66,7 +65,7 @@ class Message
   DEFAULT_SENDER = "(missing sender)"
   MAX_HEADER_VALUE_SIZE = 4096
 
-  attr_reader :id, :date, :from, :subj, :refs, :safe_refs, :replytos, :to,
+  attr_reader :id, :safe_id, :date, :from, :subj, :refs, :safe_refs, :replytos, :to,
               :cc, :bcc, :labels, :attachments, :list_address, :recipient_email, :replyto,
               :list_subscribe, :list_unsubscribe
 
@@ -146,14 +145,16 @@ class Message
     ## joins threads manually). so we will merge the current refs values
     ## in here.
     begin
-      @refs = m.fetch_message_ids (:references)
-      @replytos = m.fetch_message_ids (:in_reply_to)
+      @refs += m.fetch_message_ids(:references)
+      @replytos = m.fetch_message_ids(:in_reply_to)
     rescue Mail::Field::FieldError => e
       raise InvalidMessageError, e.message
     end
-    @refs += @replytos unless @refs.member?(@replytos.first)
+    @refs += @replytos # unless @refs.member?(@replytos.first)
     @refs = @refs.uniq # user may have set some refs manually
-    @safe_refs = @refs.nil? ? [] : @refs.compact.map { |r| munge_msgid(r) }
+    debug "refs: " + @refs.inspect
+    @safe_refs += @refs.nil? ? [] : @refs.compact.map { |r| rr = munge_msgid(r); debug "addin ref #{r} -> #{rr}.."; rr }
+    @safe_refs = @safe_refs.uniq
 
     @receipient_email = (m.fetch_header(:envelope_to) || m.fetch_header(:x_original_to) || m.fetch_header(:delivered_to))
 
@@ -173,6 +174,7 @@ class Message
   ## :to, :cc, :bcc => Array of Person
   def load_from_index! entry
     @id = entry[:message_id]
+    @safe_id = entry[:safe_id]
     @from = entry[:from]
     @date = entry[:date]
     @subj = entry[:subject]
@@ -195,6 +197,13 @@ class Message
   def add_ref ref
     @refs << ref
     @safe_refs << munge_msgid(ref)
+    @dirty = true
+  end
+
+  def add_safe_ref safe_ref
+    debug "safe refs: " +  @safe_refs.inspect
+    @safe_refs << safe_ref
+    debug "safe refs: " +  @safe_refs.inspect
     @dirty = true
   end
 
