@@ -1,6 +1,6 @@
 sup
-    by William Morgan <wmorgan-sup@masanjin.net>
-    http://sup.rubyforge.org
+    originally by William Morgan <wmorgan-sup@masanjin.net>
+    http://supmua.org
 
 == DESCRIPTION:
 
@@ -105,10 +105,16 @@ Current limitations which will be fixed:
 
 == PROBLEMS:
 
-See FAQ.txt for some common problems and their solutions.
+Report bugs to the github page:
+  https://github.com/sup-heliotrope/sup/issues
+
+Or check the mailing lists:
+  * http://rubyforge.org/mailman/listinfo/sup-talk
+  * http://rubyforge.org/mailman/listinfo/sup-devel
 
 == LICENSE:
 
+Copyright (c) 2013       Sup developers.
 Copyright (c) 2006--2009 William Morgan.
 
 This program is free software; you can redistribute it and/or
