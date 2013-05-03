@@ -17,7 +17,7 @@ module Redwood
     s.name = "sup"
     s.version = ENV["REL"] || (::Redwood::VERSION == "git" ? "999" : ::Redwood::VERSION)
     s.date = Time.now.strftime "%Y-%m-%d"
-    s.authors = ["William Morgan"]
+    s.authors = ["William Morgan", "Gaute Hope", "Hamish Downer", "Matthieu Rakotojaona"]
     s.email   = "sup-talk@rubyforge.org"
     s.summary = "A console-based email client with the best features of GMail, mutt and Emacs"
     s.homepage = "https://github.com/sup-heliotrope/sup/wiki"
