@@ -9,10 +9,8 @@ end
 
 require 'rubygems/package_task'
 
-load "sup.gemspec"
-
 Gem::PackageTask.new(Redwood::Gemspec) do |pkg|
-    pkg.need_tar = true
+  pkg.need_tar = true
 end
 
 task :travis => [:test, :gem]
