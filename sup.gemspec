@@ -4,7 +4,8 @@ $:.unshift(lib) unless $:.include?(lib)
 require 'sup/version'
 
 # Files
-SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump sup-recover-sources sup-sync sup-sync-back sup-tweak-labels)
+SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump
+  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels)
 SUP_EXTRA_FILES = %w(CONTRIBUTORS README.txt LICENSE History.txt ReleaseNotes)
 SUP_FILES =
   SUP_EXTRA_FILES +
