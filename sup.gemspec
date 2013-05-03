@@ -1,15 +1,21 @@
-unless Kernel.respond_to?(:require_relative)
-  require "./sup-files"
-  require "./sup-version"
-else
-  require_relative "sup-files"
-  require_relative "sup-version"
-end
+lib = File.expand_path("../lib", __FILE__)
+$:.unshift(lib) unless $:.include?(lib)
+
+require 'sup/version'
+
+# Files
+SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump sup-recover-sources sup-sync sup-sync-back sup-tweak-labels)
+SUP_EXTRA_FILES = %w(CONTRIBUTORS README.txt LICENSE History.txt ReleaseNotes)
+SUP_FILES =
+  SUP_EXTRA_FILES +
+  SUP_EXECUTABLES.map { |f| "bin/#{f}" } +
+  Dir["lib/**/*.rb"]
+
 
 module Redwood
   Gemspec = Gem::Specification.new do |s|
     s.name = %q{sup}
-    s.version = SUP_VERSION
+    s.version = ENV["REL"] || (::Redwood::VERSION == "git" ? "999" : ::Redwood::VERSION)
     s.date = Time.now.strftime "%Y-%m-%d"
     s.authors = ["William Morgan"]
     s.email   = "sup-talk@rubyforge.org"
