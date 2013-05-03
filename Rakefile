@@ -15,5 +15,4 @@ Gem::PackageTask.new(Redwood::Gemspec) do |pkg|
     pkg.need_tar = true
 end
 
-task :tarball => ["pkg/sup-#{SUP_VERSION}.tgz"]
 task :travis => [:test, :gem]
