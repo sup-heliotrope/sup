@@ -296,6 +296,7 @@ class ThreadSet
     debug "c.parent: #{c.parent}"
     debug "c.parent.nil?: #{c.parent.nil?}"
     debug "return: #{!c.parent.nil?}"
+    # TODO: Something very wrong here...
     #return unless (c.parent.nil? || overwrite)
     debug "remove container"
     remove_container c

@@ -20,7 +20,11 @@ module Mail
     # fetch them
     def fetch_message_ids field
       if self[field]
-        self[field].message_ids
+        begin
+          self[field].message_ids
+        rescue
+          []
+        end
       else
         []
       end
