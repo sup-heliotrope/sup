@@ -65,7 +65,7 @@ class Message
   DEFAULT_SENDER = "(missing sender)"
   MAX_HEADER_VALUE_SIZE = 4096
 
-  attr_reader :id, :safe_id, :date, :from, :subj, :refs, :safe_refs, :replytos, :to,
+  attr_reader :id, :safe_id, :date, :from, :subj, :refs, :safe_refs, :replytos, :to, :safe_replytos,
               :cc, :bcc, :labels, :attachments, :list_address, :recipient_email, :replyto,
               :list_subscribe, :list_unsubscribe
 
@@ -150,13 +150,19 @@ class Message
     rescue Mail::Field::FieldError => e
       raise InvalidMessageError, e.message
     end
-    @refs += @replytos # unless @refs.member?(@replytos.first)
+    @refs += @replytos unless @refs.member?(@replytos.first)
     @refs = @refs.uniq # user may have set some refs manually
+
     debug "refs: " + @refs.inspect
+    debug "safe refs: #{@safe_refs.inspect}"
+
     @safe_refs += @refs.nil? ? [] : @refs.compact.map { |r| rr = munge_msgid(r); debug "addin ref #{r} -> #{rr}.."; rr }
     @safe_refs = @safe_refs.uniq
 
     debug "safe refs: #{@safe_refs.inspect}"
+
+    @safe_replytos = @replytos.nil? ? [] : @replytos.compact.map { |r| rr = munge_msgid(r); debug "addin replyto #{r} -> #{rr}.."; rr }
+
 
     @receipient_email = (m.fetch_header(:envelope_to) || m.fetch_header(:x_original_to) || m.fetch_header(:delivered_to))
 
@@ -186,6 +192,7 @@ class Message
     @refs = (@refs + entry[:refs]).uniq
     @safe_refs = (@safe_refs + entry[:safe_refs]).uniq
     @replytos = entry[:replytos]
+    @safe_replytos = entry[:safe_replytos]
 
     @replyto = nil
     @list_address = nil
@@ -197,21 +204,17 @@ class Message
   end
 
   def add_ref ref
-    @refs << ref
-    @safe_refs << munge_msgid(ref)
+    debug "message: #{@safe_id}, reffed to: #{ref}"
+    @safe_refs << ref
     @dirty = true
   end
 
-  def add_safe_ref safe_ref
-    debug "add safe refs, p: " +  @safe_refs.inspect
-    @safe_refs << safe_ref
-    debug "add safe refs, n: " +  @safe_refs.inspect
-    @dirty = true
+  def add_unmunged_ref unmunged_ref
+    add_ref munge_msgid(unmunged_ref)
   end
 
   def remove_ref ref
-    @safe_refs.delete munge_msgid (ref)
-    @dirty = true if @refs.delete ref
+    @dirty = true if @safe_refs.delete ref
   end
 
   attr_reader :snippet

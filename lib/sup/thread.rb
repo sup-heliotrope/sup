@@ -291,9 +291,13 @@ class ThreadSet
       return
     end
 
-    #puts "in link for #{p.id} to #{c.id}, perform? #{c.parent.nil?} || #{overwrite}"
+    debug "in link for #{p.id} to #{c.id}, perform? #{c.parent.nil?} || #{overwrite}"
 
-    return unless c.parent.nil? || overwrite
+    debug "c.parent: #{c.parent}"
+    debug "c.parent.nil?: #{c.parent.nil?}"
+    debug "return: #{!c.parent.nil?}"
+    #return unless (c.parent.nil? || overwrite)
+    debug "remove container"
     remove_container c
     p.children << c
     c.parent = p
@@ -372,26 +376,20 @@ class ThreadSet
       c
     end
 
+    debug "containers: #{containers.inspect}"
+
     ## use subject headers heuristically
     parent = containers.find { |c| !c.is_reply? }
 
     ## no thread was rooted by a non-reply, so make a fake parent
-    if not parent
-      debug "creating fake id"
-      fakeid = "joining-ref-" + containers.map { |c| c.id }.join("-")
-      parentfake = @messages[munge_msgid(fakeid)]
-    end
+    parent ||= @messages["joining-ref-" + containers.map { |c| c.id }.join("-")]
+
+    debug "parent: #{parent}"
 
     containers.each do |c|
+      debug "linking: #{c}"
       next if c == parent
-      if not parent
-        parent = parentfake
-        c.message.add_safe_ref parent.id
-        c.message.add_ref fakeid
-      else
-        c.message.add_safe_ref parent.id
-        c.message.add_ref parent.message.id
-      end
+      c.message.add_ref parent.id
       link parent, c
     end
 
@@ -427,12 +425,11 @@ class ThreadSet
     end
 
     ## link via in-reply-to:
-    # also added to safe_refs
-    #message.replytos.each do |ref_id|
-      #ref = @messages[ref_id]
-      #link ref, el, true
-      #break # only do the first one
-    #end
+    message.safe_replytos.each do |ref_id|
+      ref = @messages[ref_id]
+      link ref, el, true
+      break # only do the first one
+    end
 
     root = el.root
     key =
@@ -443,11 +440,13 @@ class ThreadSet
       end
 
     debug "root: #{root.inspect}"
+    debug "key: #{key}"
     ## check to see if the subject is still the same (in the case
     ## that we first added a child message with a different
     ## subject)
     if root.thread
       if @threads.member?(key) && @threads[key] != root.thread
+        debug "delete thread: #{key}"
         @threads.delete key
       end
     else

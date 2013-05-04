@@ -684,6 +684,7 @@ EOS
       :refs => m.refs.to_a,
       :safe_refs => m.safe_refs.to_a,
       :replytos => m.replytos.to_a,
+      :safe_replytos => m.safe_replytos.to_a,
     }
 
     if do_index_static
