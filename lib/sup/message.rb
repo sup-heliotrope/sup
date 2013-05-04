@@ -100,7 +100,7 @@ class Message
   end
 
   # this creates a safe_ref from a ref
-  def munge_msgid id
+  def self.munge_msgid id
     Digest::MD5.hexdigest (id)
   end
 

@@ -91,9 +91,9 @@ EOS
     end
   end
 
-  def load
+  def load failsafe=false
     SourceManager.load_sources
-    load_index
+    load_index failsafe
   end
 
   def save
@@ -103,7 +103,11 @@ EOS
     save_index
   end
 
-  def load_index
+  def get_xapian
+    @xapian
+  end
+
+  def load_index failsafe=false
     path = File.join(@dir, 'xapian')
     if File.exists? path
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
@@ -114,10 +118,10 @@ EOS
         @xapian.set_metadata 'version', INDEX_VERSION
 
       elsif (db_version == '4')
-        fail "This Sup has a new index version v#{INDEX_VERSION}, but you have v#{db_version}. If you have just upgraded Sup there has been a major change in the index format and a migration tool need to be run. Please first back up your existing index using sup-dump and back up #{path}, then run sup-migrate-index to upgrade it."
+        fail "This Sup has a new index version v#{INDEX_VERSION}, but you have v#{db_version}. If you have just upgraded Sup there has been a major change in the index format and a migration tool need to be run. Please first back up your existing index using sup-dump and back up #{path}, then run sup-migrate-index to upgrade it." unless failsafe
 
       elsif db_version != INDEX_VERSION
-        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{path} out of the way, and run sup-sync --restore."
+        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{path} out of the way, and run sup-sync --restore." unless failsafe
       end
     else
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_CREATE)
@@ -169,7 +173,7 @@ EOS
   ## (warning: duplicates code below)
   ## NOTE: We can be more efficient if we assume every
   ## killed message that hasn't been initially added
-  ## to the indexi s this way
+  ## to the index is this way
   def message_joining_killed? m
     return false unless doc = find_doc(m.safe_id)
     queue = doc.value(THREAD_VALUENO).split(',')
