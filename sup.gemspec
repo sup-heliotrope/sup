@@ -5,7 +5,8 @@ require 'sup/version'
 
 # Files
 SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump
-  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels)
+  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels
+  sup-migrate-index)
 SUP_EXTRA_FILES = %w(CONTRIBUTORS README.txt LICENSE History.txt ReleaseNotes)
 SUP_FILES =
   SUP_EXTRA_FILES +
@@ -37,7 +38,7 @@ DESC
 
     s.add_dependency "xapian-full-alaveteli", "~> 1.2"
     s.add_dependency "ncursesw-sup", "~> 1.3", ">= 1.3.1"
-    s.add_dependency "rmail", ">= 0.17"
+    s.add_dependancy "mail", "~> 2.5"
     s.add_dependency "highline"
     s.add_dependency "trollop", ">= 1.12"
     s.add_dependency "lockfile"
