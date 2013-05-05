@@ -496,7 +496,9 @@ private
   ## takes Mail and breaks it into Chunk::s
   def message_to_chunks m, encrypted=false, sibling_types=[]
     if encrypted
-      raise NotImplementedError
+      info "Encrypted message not implemented, skipping."
+      return []
+      #raise NotImplementedError
     end
 
     preferred_type = "text/plain" # TODO: im just gonna assume this is preferred
@@ -505,9 +507,13 @@ private
 
     mime_parts(m, preferred_type).each do |type, filename, id, content|
       if type == "message/rfc822"
-        raise NotImplementedError
+        info "RFC822 messages not implemented, skipping."
+        next
+        #raise NotImplementedError
       elsif type == "application/pgp"
-        raise NotImplementedError
+        info "Encrypted PGP message not implemented, skipping."
+        next
+        #raise NotImplementedError
       else
         ## if there is a filename, we'll treat it as an attachment
         if filename
