@@ -104,6 +104,10 @@ class Message
     Digest::MD5.hexdigest (id)
   end
 
+  def munge_msgid id
+    Message::munge_msgid id
+  end
+
   def parse_header m
     # load
     # @id   sanitized message id
