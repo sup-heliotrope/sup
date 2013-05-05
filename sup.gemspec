@@ -38,7 +38,7 @@ DESC
 
     s.add_dependency "xapian-full-alaveteli", "~> 1.2"
     s.add_dependency "ncursesw-sup", "~> 1.3", ">= 1.3.1"
-    s.add_dependancy "mail", "~> 2.5"
+    s.add_dependency "mail", "~> 2.5"
     s.add_dependency "highline"
     s.add_dependency "trollop", ">= 1.12"
     s.add_dependency "lockfile"
