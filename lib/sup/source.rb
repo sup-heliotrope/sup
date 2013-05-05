@@ -169,7 +169,7 @@ module SerializeLabelsNicely
   end
 
   def after_unmarshal!
-    @labels = Set.new(@labels.map { |s| s.to_sym })
+    @labels = Set.new(@labels.to_a.map { |s| s.to_sym })
   end
 end
 
