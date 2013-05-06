@@ -340,7 +340,19 @@ class String
     ret << s
   end
 
+  # Fix the damn string! make sure it is valid utf-8
+  def fix_encoding
+    encode!('UTF-8', :invalid => :replace, :undef => :replace)
+    unless valid_encoding?
+      encode!('UTF-16', 'UTF-8', :invalid => :replace, :undef => :replace)
+      encode!('UTF-8', 'UTF-16', :invalid => :replace, :undef => :replace)
+    end
+
+    fail "Could not create valid UTF-8 string out of: '#{self.to_s}'." unless valid_encoding?
+  end
+
   def normalize_whitespace
+    fix_encoding
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
 

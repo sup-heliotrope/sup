@@ -82,7 +82,11 @@ class Maildir < Source
 
   def load_message id
     with_file_for(id) do |f|
-      Mail.read_from_string f.read
+      begin
+        Mail.read_from_string f.read
+      rescue
+        raise SourceError
+      end
     end
   end
 

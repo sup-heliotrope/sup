@@ -21,7 +21,7 @@ module Mail
     def fetch_message_ids field
       if self[field]
         begin
-          self[field].message_ids
+          self[field].message_ids || []
         rescue
           []
         end
@@ -311,6 +311,7 @@ class Message
         message_to_chunks rmsg
       rescue SourceError, SocketError, RMail::EncodingUnsupportedError => e
         warn "problem reading message #{id}"
+        puts location.inspect
         [Chunk::Text.new(error_message.split("\n"))]
       end
   end
@@ -380,7 +381,7 @@ EOS
   end
 
   def indexable_body
-    indexable_chunks.map { |c| c.lines }.flatten.compact.join " "
+    indexable_chunks.map { |c| c.lines.each { |l| l.fix_encoding} }.flatten.compact.join " "
   end
 
   def indexable_chunks
@@ -526,8 +527,8 @@ private
           body = content
 
           # check for inline PGP
-          ch = inline_gpg_to_chunks body, $encoding, 'UTF-8'
-          chunks << ch if ch
+          #ch = inline_gpg_to_chunks body, $encoding, 'UTF-8'
+          #chunks << ch if ch
 
           text_to_chunks(body.normalize_whitespace.split("\n"), encrypted).each do |tc|
             chunks << tc
