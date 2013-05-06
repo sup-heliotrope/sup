@@ -266,7 +266,7 @@ EOS
   def load_contacts email_addresses, opts={}
     contacts = Set.new
     num = opts[:num] || 20
-    each_id_by_date :participants => email_addresses do |id,b|
+    each_safe_id_by_date :participants => email_addresses do |id,b|
       break if contacts.size >= num
       m = b.call
       ([m.from]+m.to+m.cc+m.bcc).compact.each { |p| contacts << [p.name, p.email] }
