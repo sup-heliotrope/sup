@@ -33,6 +33,7 @@ module Redwood
       - Ruby-programmable hooks
       - Automatically tracking recent contacts
 DESC
+    s.license = 'GPL-2'
     s.files = SUP_FILES
     s.executables = SUP_EXECUTABLES
 
