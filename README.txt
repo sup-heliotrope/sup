@@ -88,16 +88,14 @@ Current limitations which will be fixed:
 
 == REQUIREMENTS:
 
- - xapian-full >= 1.1.3.2
- - ncurses >= 0.9.1
+ - xapian-full-alaveteli >= 1.2
+ - ncursesw-sup >= 1.3.1
  - rmail >= 0.17
  - highline
- - net-ssh
  - trollop >= 1.12
  - lockfile
  - mime-types
  - gettext
- - fastthread
 
 == INSTALL:
 
