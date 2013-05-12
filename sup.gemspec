@@ -6,7 +6,7 @@ require 'sup/version'
 # Files
 SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump
   sup-recover-sources sup-sync sup-sync-back sup-tweak-labels)
-SUP_EXTRA_FILES = %w(CONTRIBUTORS README.txt LICENSE History.txt ReleaseNotes)
+SUP_EXTRA_FILES = %w(CONTRIBUTORS README.md LICENSE History.txt ReleaseNotes)
 SUP_FILES =
   SUP_EXTRA_FILES +
   SUP_EXECUTABLES.map { |f| "bin/#{f}" } +
@@ -25,12 +25,12 @@ module Redwood
     s.description = <<-DESC
       Sup is a console-based email client for people with a lot of email.
 
-      - Handling mail from multiple mbox and Maildir sources
-      - GMail-like archiving and tagging
-      - Blazing fast full-text search with a rich query language
-      - Multiple accounts - pick the right one when sending mail
-      - Ruby-programmable hooks
-      - Automatically tracking recent contacts
+      * GMail-like thread-centered archiving, tagging and muting
+      * Handling mail from multiple mbox and Maildir sources
+      * Blazing fast full-text search with a rich query language
+      * Multiple accounts - pick the right one when sending mail
+      * Ruby-programmable hooks
+      * Automatically tracking recent contacts
 DESC
     s.license = 'GPL-2'
     s.files = SUP_FILES
