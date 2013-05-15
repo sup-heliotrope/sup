@@ -21,7 +21,7 @@ module Redwood
     s.authors = ["William Morgan", "Gaute Hope", "Hamish Downer", "Matthieu Rakotojaona"]
     s.email   = "sup-talk@rubyforge.org"
     s.summary = "A console-based email client with the best features of GMail, mutt and Emacs"
-    s.homepage = "https://github.com/sup-heliotrope/sup/wiki"
+    s.homepage = "http://supmua.org"
     s.description = <<-DESC
       Sup is a console-based email client for people with a lot of email.
 
