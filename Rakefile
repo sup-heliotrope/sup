@@ -8,6 +8,8 @@ Rake::TestTask.new(:test) do |test|
 end
 
 require 'rubygems/package_task'
+# For those who don't have `rubygems-bundler` installed
+load 'sup.gemspec' unless defined? Redwood::Gemspec
 
 Gem::PackageTask.new(Redwood::Gemspec) do |pkg|
   pkg.need_tar = true
