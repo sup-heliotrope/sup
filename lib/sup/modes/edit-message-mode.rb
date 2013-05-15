@@ -93,7 +93,6 @@ EOS
     @header_lines = []
 
     @body = opts.delete(:body) || []
-    @body += sig_lines if $config[:edit_signature] && !opts.delete(:have_signature)
 
     if opts[:attachments]
       @attachments = opts[:attachments].values
@@ -112,10 +111,14 @@ EOS
 
     @message_id = "<#{Time.now.to_i}-sup-#{rand 10000}@#{hostname}>"
     @edited = false
+    @sig_edited = false
     @selectors = []
     @selector_label_width = 0
     @async_mode = nil
 
+    HookManager.run "before-edit", :header => @header, :body => @body
+
+    @account_selector = nil
     # only show account selector if there is more than one email address
     if $config[:account_selector] && AccountManager.user_emails.length > 1
       ## Duplicate e-mail strings to prevent a "can't modify frozen
@@ -144,7 +147,6 @@ EOS
       end
     add_selector @crypto_selector if @crypto_selector
 
-    HookManager.run "before-edit", :header => @header, :body => @body
     if @crypto_selector
       HookManager.run "crypto-mode", :header => @header, :body => @body, :crypto_selector => @crypto_selector
     end
@@ -185,14 +187,41 @@ EOS
   def edit_cc; edit_field "Cc" end
   def edit_subject; edit_field "Subject" end
 
-  def edit_message
-    old_from = @header["From"] if @account_selector
-
-    @file = Tempfile.new "sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}"
+  def save_message_to_file
+    sig = sig_lines.join("\n")
+    @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
     @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
     @file.puts @body.join("\n")
+    @file.puts sig if ($config[:edit_signature] and !@sig_edited)
     @file.close
+  end
+
+  def set_sig_edit_flag
+    sig = sig_lines.join("\n")
+    if $config[:edit_signature]
+      pbody = @body.join("\n")
+      blen = pbody.length
+      slen = sig.length
+
+      if blen > slen and pbody[blen-slen..blen] == sig
+        @sig_edited = false
+        @body = pbody[0..blen-slen].split("\n")
+      else
+        @sig_edited = true
+      end
+    end
+  end
+
+  def edit_message
+    old_from = @header["From"] if @account_selector
+
+    begin
+      save_message_to_file
+    rescue SystemCallError => e
+      BufferManager.flash "Can't save message to file: #{e.message}"
+      return
+    end
 
     editor = $config[:editor] || ENV['EDITOR'] || "/usr/bin/vi"
 
@@ -204,6 +233,7 @@ EOS
 
     header, @body = parse_file @file.path
     @header = header - NON_EDITABLE_HEADERS
+    set_sig_edit_flag
 
     if @account_selector and @header["From"] != old_from
       @account_user = @header["From"]
@@ -218,11 +248,12 @@ EOS
   end
 
   def edit_message_async
-    @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
-    @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
-    @file.puts
-    @file.puts @body.join("\n")
-    @file.close
+    begin
+      save_message_to_file
+    rescue SystemCallError => e
+      BufferManager.flash "Can't save message to file: #{e.message}"
+      return
+    end
 
     @mtime = File.mtime @file.path
 
@@ -245,6 +276,7 @@ EOS
 
     header, @body = parse_file @file.path
     @header = header - NON_EDITABLE_HEADERS
+    set_sig_edit_flag
     handle_new_text @header, @body
     update
 
@@ -362,7 +394,7 @@ protected
   def regen_text
     header, @header_lines = format_headers(@header - NON_EDITABLE_HEADERS) + [""]
     @text = header + [""] + @body
-    @text += sig_lines unless $config[:edit_signature]
+    @text += sig_lines unless @sig_edited
 
     @attachment_lines_offset = 0
 
@@ -477,7 +509,7 @@ protected
     m = RMail::Message.new
     m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
     m.body = @body.join("\n")
-    m.body += sig_lines.join("\n") unless $config[:edit_signature]
+    m.body += "\n" + sig_lines.join("\n") unless @sig_edited
     ## body must end in a newline or GPG signatures will be WRONG!
     m.body += "\n" unless m.body =~ /\n\Z/
 

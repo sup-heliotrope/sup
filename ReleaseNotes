@@ -1,3 +1,8 @@
+Release 0.13.0:
+
+Collection of bugfixes and stability fixes since 0.12.1. We now depend on our
+own ncursesw-sup fork.
+
 Release 0.12.1:
 
 This release changes the gem dependency on ncurses to ncursesw, which

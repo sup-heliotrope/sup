@@ -1,7 +1,13 @@
 # i use vi
 *.swp
-.ditz-config
 # i use emacs
 *~
-# i use rake package task
+# artifact
 pkg/
+*.gem
+# i have accidently added this one one too many times
+sup-exception-log.txt
+
+# bundler stuff
+Gemfile.lock
+.bundle

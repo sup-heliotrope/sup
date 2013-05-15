@@ -25,7 +25,6 @@ module Redwood
 class Index
   include InteractiveLock
 
-  STEM_LANGUAGE = "english"
   INDEX_VERSION = '4'
 
   ## dates are converted to integers for xapian, and are used for document ids,
@@ -428,7 +427,7 @@ EOS
 
     qp = Xapian::QueryParser.new
     qp.database = @xapian
-    qp.stemmer = Xapian::Stem.new(STEM_LANGUAGE)
+    qp.stemmer = Xapian::Stem.new($config[:stem_language])
     qp.stemming_strategy = Xapian::QueryParser::STEM_SOME
     qp.default_op = Xapian::Query::OP_AND
     qp.add_valuerangeprocessor(Xapian::NumberValueRangeProcessor.new(DATE_VALUENO, 'date:', true))
@@ -804,7 +803,7 @@ class Xapian::Document
 
   def index_text text, prefix, weight=1
     term_generator = Xapian::TermGenerator.new
-    term_generator.stemmer = Xapian::Stem.new(Redwood::Index::STEM_LANGUAGE)
+    term_generator.stemmer = Xapian::Stem.new($config[:stem_language])
     term_generator.document = self
     term_generator.index_text text, weight, prefix
   end

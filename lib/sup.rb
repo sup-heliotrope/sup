@@ -1,6 +1,11 @@
 require 'rubygems'
+
 require 'syck'
 require 'yaml'
+if YAML.const_defined? :ENGINE
+  YAML::ENGINE.yamler = 'syck'
+end
+
 require 'zlib'
 require 'thread'
 require 'fileutils'
@@ -39,8 +44,6 @@ class Module
 end
 
 module Redwood
-  VERSION = "git"
-
   BASE_DIR   = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
   CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
   COLOR_FN   = File.join(BASE_DIR, "colors.yaml")
@@ -285,7 +288,8 @@ EOS
       :poll_interval => 300,
       :wrap_width => 0,
       :slip_rows => 0,
-      :col_jump => 2
+      :col_jump => 2,
+      :stem_language => "english"
     }
     if File.exists? filename
       config = Redwood::load_yaml_obj filename
@@ -330,6 +334,7 @@ EOS
                   :load_config, :managers
 end
 
+require 'sup/version'
 require "sup/util"
 require "sup/hook"
 require "sup/time"

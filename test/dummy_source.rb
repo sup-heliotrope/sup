@@ -12,7 +12,7 @@ class DummySource < Source
   attr_accessor :messages
 
   def initialize uri, last_date=nil, usual=true, archived=false, id=nil, labels=[]
-    super uri, last_date, usual, archived, id
+    super uri, usual, archived, id
     @messages = nil
   end
 

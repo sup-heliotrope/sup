@@ -1,10 +1,6 @@
 require 'rubygems'
 
-begin
-  require 'ncursesw'
-rescue LoadError
-  require 'ncurses'
-end
+require 'ncursesw'
 
 Ncurses.initscr
 Ncurses.noecho

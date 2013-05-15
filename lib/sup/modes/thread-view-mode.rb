@@ -846,7 +846,7 @@ private
       else
         width = buffer.content_width
       end
-      lines = lines.map { |l| l.chomp.wrap width }.flatten
+      lines = lines.map { |l| l.chomp.wrap width if l }.flatten
     end
     return lines
   end

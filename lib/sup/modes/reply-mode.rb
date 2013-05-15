@@ -48,6 +48,7 @@ EOS
     ## the full headers (most importantly the list-post header, if
     ## any)
     body = reply_body_lines message
+    @body_orig = body
 
     ## first, determine the address at which we received this email. this will
     ## become our From: address in the reply.
@@ -97,14 +98,21 @@ EOS
     @headers = {}
     @headers[:recipient] = {
       "To" => cc.map { |p| p.full_address },
+      "Cc" => [],
     } if useful_recipient
 
     ## typically we don't want to have a reply-to-sender option if the sender
     ## is a user account. however, if the cc is empty, it's a message to
     ## ourselves, so for the lack of any other options, we'll add it.
-    @headers[:sender] = { "To" => [to.full_address], } if !AccountManager.is_account?(to) || !useful_recipient
+    @headers[:sender] = {
+      "To" => [to.full_address],
+      "Cc" => [],
+    } if !AccountManager.is_account?(to) || !useful_recipient
 
-    @headers[:user] = {}
+    @headers[:user] = {
+      "To" => [],
+      "Cc" => [],
+    }
 
     not_me_ccs = cc.select { |p| !AccountManager.is_account?(p) }
     @headers[:all] = {
@@ -114,21 +122,10 @@ EOS
 
     @headers[:list] = {
       "To" => [@m.list_address.full_address],
+      "Cc" => [],
     } if @m.is_list_message?
 
     refs = gen_references
-
-    @headers.each do |k, v|
-      @headers[k] = {
-               "From" => from.full_address,
-               "To" => [],
-               "Cc" => [],
-               "Bcc" => [],
-               "In-reply-to" => "<#{@m.id}>",
-               "Subject" => Message.reify_subj(@m.subj),
-               "References" => refs,
-             }.merge v
-    end
 
     types = REPLY_TYPES.select { |t| @headers.member?(t) }
     @type_selector = HorizontalSelector.new "Reply to:", types, types.map { |x| TYPE_DESCRIPTIONS[x] }
@@ -148,13 +145,17 @@ EOS
         :recipient
       end)
 
-    @bodies = {}
-    @headers.each do |k, v|
-      @bodies[k] = body
-      HookManager.run "before-edit", :header => v, :body => @bodies[k]
-    end
+    headers_full = {
+      "From" => from.full_address,
+      "Bcc" => [],
+      "In-reply-to" => "<#{@m.id}>",
+      "Subject" => Message.reify_subj(@m.subj),
+      "References" => refs,
+    }.merge @headers[@type_selector.val]
 
-    super :header => @headers[@type_selector.val], :body => @bodies[@type_selector.val], :twiddles => false
+    HookManager.run "before-edit", :header => headers_full, :body => body
+
+    super :header => headers_full, :body => body, :twiddles => false
     add_selector @type_selector
   end
 
@@ -163,8 +164,7 @@ protected
   def move_cursor_right
     super
     if @headers[@type_selector.val] != self.header
-      self.header = @headers[@type_selector.val]
-      self.body = @bodies[@type_selector.val] unless @edited
+      self.header = self.header.merge @headers[@type_selector.val]
       rerun_crypto_selector_hook
       update
     end
@@ -173,8 +173,7 @@ protected
   def move_cursor_left
     super
     if @headers[@type_selector.val] != self.header
-      self.header = @headers[@type_selector.val]
-      self.body = @bodies[@type_selector.val] unless @edited
+      self.header = self.header.merge @headers[@type_selector.val]
       rerun_crypto_selector_hook
       update
     end
@@ -192,14 +191,15 @@ protected
   end
 
   def handle_new_text new_header, new_body
-    if new_body != @bodies[@type_selector.val]
-      @bodies[@type_selector.val] = new_body
+    if new_body != @body_orig
+      @body_orig = new_body
       @edited = true
     end
     old_header = @headers[@type_selector.val]
-    if new_header.size != old_header.size || old_header.any? { |k, v| new_header[k] != v }
+    if old_header.any? { |k, v| new_header[k] != v }
       @type_selector.set_to :user
-      self.header = @headers[:user] = new_header
+      self.header["To"] = @headers[:user]["To"] = new_header["To"]
+      self.header["Cc"] = @headers[:user]["Cc"] = new_header["Cc"]
       update
     end
   end
@@ -210,8 +210,10 @@ protected
 
   def edit_field field
     edited_field = super
-    if edited_field && edited_field != "Subject"
+    if edited_field and (field == "To" or field == "Cc")
       @type_selector.set_to :user
+      @headers[:user]["To"] = self.header["To"]
+      @headers[:user]["Cc"] = self.header["Cc"]
       update
     end
   end
