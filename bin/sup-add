@@ -4,7 +4,7 @@ require 'uri'
 require 'rubygems'
 require 'highline/import'
 require 'trollop'
-require "sup"; Redwood::check_library_version_against "git"
+require "sup"; Redwood::check_library_version_against "0.13.0"
 
 $opts = Trollop::options do
   version "sup-add (sup #{Redwood::VERSION})"

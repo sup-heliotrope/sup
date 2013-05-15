@@ -4,7 +4,7 @@ require 'rubygems'
 require 'uri'
 require 'tempfile'
 require 'trollop'
-require "sup"; Redwood::check_library_version_against "git"
+require "sup"; Redwood::check_library_version_against "0.13.0"
 
 fail "not working yet"
 
