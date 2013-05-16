@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
 
+$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+
 require 'rubygems'
 require 'trollop'
-require "sup"; Redwood::check_library_version_against "git"
+require "sup"
 
 class Float
   def to_s; sprintf '%.2f', self; end
