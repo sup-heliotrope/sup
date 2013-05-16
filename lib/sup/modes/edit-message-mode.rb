@@ -619,6 +619,7 @@ protected
 private
 
   def sanitize_body body
+    body.force_encoding 'UTF-8' if body.methods.include?(:encoding)
     body.gsub(/^From /, ">From ")
   end
 
