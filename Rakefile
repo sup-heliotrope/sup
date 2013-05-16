@@ -6,6 +6,7 @@ Rake::TestTask.new(:test) do |test|
   test.test_files = FileList.new('test/**/test_*.rb')
   test.verbose = true
 end
+task :default => :test
 
 require 'rubygems/package_task'
 # For those who don't have `rubygems-bundler` installed
