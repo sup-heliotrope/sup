@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-require 'test/unit'
+require 'test_helper'
 require 'sup'
 require 'stringio'
 
@@ -26,7 +26,7 @@ end
 
 module Redwood
 
-class TestMessage < Test::Unit::TestCase
+class TestMessage < ::Minitest::Unit::TestCase
 
   def setup
     @path = Dir.mktmpdir
@@ -289,7 +289,7 @@ EOS
     from = sup_message.from
     # very basic email address check
     assert_match(/\w+@\w+\.\w{2,4}/, from.email)
-    assert_not_nil(from.name)
+    refute_nil(from.name)
 
   end
 
@@ -327,11 +327,7 @@ EOS
 
     # read the message body chunks: no errors should reach this level
 
-    chunks = nil
-
-    assert_nothing_raised() do
-      chunks = sup_message.load_from_source!
-    end
+    chunks = sup_message.load_from_source!
 
     # the chunks list should be empty
 
@@ -426,10 +422,7 @@ EOS
 
     # read the message body chunks
 
-    assert_nothing_raised() do
-      chunks = sup_message.load_from_source!
-    end
-
+    sup_message.load_from_source!
   end
 
   def test_blank_header_lines
@@ -537,4 +530,3 @@ end
 end
 
 # vim:noai:ts=2:sw=2:
-
