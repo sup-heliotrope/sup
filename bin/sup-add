@@ -1,10 +1,12 @@
 #!/usr/bin/env ruby
 
+$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+
 require 'uri'
 require 'rubygems'
 require 'highline/import'
 require 'trollop'
-require "sup"; Redwood::check_library_version_against "git"
+require "sup"
 
 $opts = Trollop::options do
   version "sup-add (sup #{Redwood::VERSION})"
