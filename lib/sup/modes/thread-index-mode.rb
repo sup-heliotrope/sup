@@ -876,8 +876,9 @@ protected
       from << [(newness ? :index_new_color : (starred ? :index_starred_color : :index_old_color)), abbrev]
     end
 
-    dp = t.direct_participants.any? { |p| AccountManager.is_account? p }
-    p = dp || t.participants.any? { |p| AccountManager.is_account? p }
+    is_me = AccountManager.method(:is_account?)
+    directly_participated = t.direct_participants.any?(&is_me)
+    participated = directly_participated || t.participants.any?(&is_me)
 
     subj_color =
       if t.has_label?(:draft)
@@ -907,7 +908,7 @@ protected
       [
       [:size_widget_color, size_widget_text],
       [:to_me_color, t.labels.member?(:attachment) ? "@" : " "],
-      [:to_me_color, dp ? ">" : (p ? '+' : " ")],
+      [:to_me_color, directly_participated ? ">" : (participated ? '+' : " ")],
     ] +
       (t.labels - @hidden_labels).sort_by {|x| x.to_s}.map {
             |label| [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]
