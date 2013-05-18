@@ -258,7 +258,6 @@ EOS
 
   ## returns an undo lambda
   def actually_toggle_starred t
-    pos = curpos
     if t.has_label? :starred # if ANY message has a star
       t.remove_label :starred # remove from all
       UpdateManager.relay self, :unstarred, t.first
