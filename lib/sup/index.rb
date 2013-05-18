@@ -4,14 +4,7 @@ require 'xapian'
 require 'set'
 require 'fileutils'
 require 'monitor'
-
-begin
-  require 'chronic'
-  $have_chronic = true
-rescue LoadError => e
-  debug "No 'chronic' gem detected. Install it for date/time query restrictions."
-  $have_chronic = false
-end
+require 'chronic'
 
 if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,1]) < 0
 	fail "Xapian version 1.2.1 or higher required"
@@ -388,27 +381,25 @@ EOS
       end
     end
 
-    if $have_chronic
-      lastdate = 2<<32 - 1
-      firstdate = 0
-      subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
-        field, datestr = $1, ($3 || $4)
-        realdate = Chronic.parse datestr, :guess => false, :context => :past
-        if realdate
-          case field
-          when "after"
-            debug "chronic: translated #{field}:#{datestr} to #{realdate.end}"
-            "date:#{realdate.end.to_i}..#{lastdate}"
-          when "before"
-            debug "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
-            "date:#{firstdate}..#{realdate.end.to_i}"
-          else
-            debug "chronic: translated #{field}:#{datestr} to #{realdate}"
-            "date:#{realdate.begin.to_i}..#{realdate.end.to_i}"
-          end
+    lastdate = 2<<32 - 1
+    firstdate = 0
+    subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
+      field, datestr = $1, ($3 || $4)
+      realdate = Chronic.parse datestr, :guess => false, :context => :past
+      if realdate
+        case field
+        when "after"
+          debug "chronic: translated #{field}:#{datestr} to #{realdate.end}"
+          "date:#{realdate.end.to_i}..#{lastdate}"
+        when "before"
+          debug "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
+          "date:#{firstdate}..#{realdate.end.to_i}"
         else
-          raise ParseError, "can't understand date #{datestr.inspect}"
+          debug "chronic: translated #{field}:#{datestr} to #{realdate}"
+          "date:#{realdate.begin.to_i}..#{realdate.end.to_i}"
         end
+      else
+        raise ParseError, "can't understand date #{datestr.inspect}"
       end
     end
 

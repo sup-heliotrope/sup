@@ -44,6 +44,7 @@ DESC
     s.add_dependency "lockfile"
     s.add_dependency "mime-types", "~> 1"
     s.add_dependency "gettext"
+    s.add_dependency "chronic", "~> 0.9", ">= 0.9.1"
 
     s.add_development_dependency "bundler", "~> 1.3"
     s.add_development_dependency "rake"
