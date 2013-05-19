@@ -12,11 +12,19 @@ class Console
   end
 
   def add_labels(query, *labels)
-    query(query).each { |m| m.labels += labels; m.save Index }
+    query(query).each do |m|
+      labels.each {|l| m.add_label l }
+      Index.update_message_state m
+    end
+    Index.save_index
   end
 
   def remove_labels(query, *labels)
-    query(query).each { |m| m.labels -= labels; m.save Index }
+    query(query).each do |m|
+      labels.each {|l| m.remove_label l }
+      Index.update_message_state m
+    end
+    Index.save_index
   end
 
   def xapian; Index.instance.instance_variable_get :@xapian; end
