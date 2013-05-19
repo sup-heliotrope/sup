@@ -6,6 +6,11 @@ require 'fileutils'
 require 'monitor'
 require 'chronic'
 
+require "sup/interactive_lock"
+require "sup/hook"
+require "sup/logger/singleton"
+
+
 if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,1]) < 0
 	fail "Xapian version 1.2.1 or higher required"
 end

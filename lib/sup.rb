@@ -309,9 +309,7 @@ require "sup/hook"
 require "sup/time"
 
 ## everything we need to get logging working
-require "sup/logger"
-Redwood::Logger.init.add_sink $stderr
-include Redwood::LogsStuff
+require "sup/logger/singleton"
 
 ## determine encoding and character set
 $encoding = Locale.current.charset
