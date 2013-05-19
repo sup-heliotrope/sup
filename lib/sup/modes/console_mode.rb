@@ -12,19 +12,27 @@ class Console
   end
 
   def add_labels(query, *labels)
+    count = 0
     query(query).each do |m|
       labels.each {|l| m.add_label l }
       Index.update_message_state m
+      count += 1
     end
     Index.save_index
+    puts "Labels modified on #{count} messages."
+    puts "You might want to refresh open buffer with `@` key."
   end
 
   def remove_labels(query, *labels)
+    count = 0
     query(query).each do |m|
       labels.each {|l| m.remove_label l }
       Index.update_message_state m
+      count += 1
     end
     Index.save_index
+    puts "Labels modified on #{count} messages."
+    puts "You might want to refresh open buffer with `@` key."
   end
 
   def xapian; Index.instance.instance_variable_get :@xapian; end
