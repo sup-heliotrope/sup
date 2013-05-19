@@ -49,5 +49,6 @@ DESC
     s.add_development_dependency "bundler", "~> 1.3"
     s.add_development_dependency "rake"
     s.add_development_dependency "minitest", "~> 4"
+    s.add_development_dependency "rr", "~> 1.0"
   end
 end
