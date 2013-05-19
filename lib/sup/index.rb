@@ -259,6 +259,11 @@ EOS
     end
   end
 
+  # Search messages. Returns an Enumerator.
+  def find_messages query_expr
+    enum_for :each_message, parse_query(query_expr)
+  end
+
   # wrap all future changes inside a transaction so they're done atomically
   def begin_transaction
     synchronize { @xapian.begin_transaction }
