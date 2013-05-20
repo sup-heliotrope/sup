@@ -1,3 +1,5 @@
+require "sup/util"
+
 module Redwood
 
 class HookManager
