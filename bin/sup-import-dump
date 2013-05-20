@@ -1,9 +1,11 @@
 #!/usr/bin/env ruby
 
+$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+
 require 'uri'
 require 'rubygems'
 require 'trollop'
-require "sup"; Redwood::check_library_version_against "git"
+require "sup"
 
 PROGRESS_UPDATE_INTERVAL = 15 # seconds
 
