@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+
 require 'rubygems'
 require 'highline/import'
 require 'trollop'
@@ -19,11 +21,12 @@ EOS
 end
 
 def axe q, default=nil
-  ans = if default && !default.empty?
-    ask "#{q} (enter for \"#{default}\"): "
-  else
-    ask "#{q}: "
-  end
+  question = if default && !default.empty?
+               "#{q} (enter for \"#{default}\"): "
+             else
+               "#{q}: "
+             end
+  ans = ask question
   ans.empty? ? default : ans.to_s
 end
 
@@ -36,6 +39,8 @@ def build_cmd cmd
 end
 
 def add_source
+  require "sup/util/uri"
+
   type = nil
 
   say "Ok, adding a new source."
@@ -69,7 +74,7 @@ def add_source
     end
 
     uri = begin
-      URI::Generic.build components
+      Redwood::Util::Uri.build components
     rescue URI::Error => e
       say "Whoopsie! I couldn't build a URI from that: #{e.message}"
       if axe_yes("Try again?") then next else return end

@@ -267,7 +267,7 @@ EOS
 
   def handle_input c
     if @focus_buf
-      if @focus_buf.mode.in_search? && c != CONTINUE_IN_BUFFER_SEARCH_KEY[0]
+      if @focus_buf.mode.in_search? && c != CONTINUE_IN_BUFFER_SEARCH_KEY.ord
         @focus_buf.mode.cancel_search!
         @focus_buf.mark_dirty
       end
