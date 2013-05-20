@@ -5,7 +5,8 @@ require 'sup/version'
 
 # Files
 SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump
-  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels)
+  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels
+  sup-psych-ify-config-files)
 SUP_EXTRA_FILES = %w(CONTRIBUTORS README.md LICENSE History.txt ReleaseNotes)
 SUP_FILES =
   SUP_EXTRA_FILES +
