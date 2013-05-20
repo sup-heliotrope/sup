@@ -228,36 +228,6 @@ EOM
     end
   end
 
-  ## to be called by entry points in bin/, to ensure that
-  ## their versions match up against the library versions.
-  ##
-  ## this is a perennial source of bug reports from people
-  ## who both use git and have a gem version installed.
-  def check_library_version_against v
-    unless Redwood::VERSION == v
-      $stderr.puts <<EOS
-Error: version mismatch!
-The sup executable is at version #{v.inspect}.
-The sup libraries are at version #{Redwood::VERSION.inspect}.
-
-Your development environment may be picking up code from a
-rubygems installation of sup.
-
-If you're running from git with a commandline like
-
-  ruby -Ilib #{$0}
-
-try this instead:
-
-  RUBY_INVOCATION="ruby -Ilib" ruby -Ilib #{$0}
-
-You can also try `gem uninstall sup` and removing all Sup rubygems.
-
-EOS
-#' duh!
-      abort
-    end
-  end
 
   ## set up default configuration file
   def load_config filename
@@ -324,8 +294,7 @@ EOS
   end
 
   module_function :save_yaml_obj, :load_yaml_obj, :start, :finish,
-                  :report_broken_sources, :check_library_version_against,
-                  :load_config, :managers
+                  :report_broken_sources, :load_config, :managers
 end
 
 require 'sup/version'
