@@ -38,8 +38,6 @@ class Module
 end
 
 module Redwood
-  VERSION = "git"
-
   BASE_DIR   = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
   CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
   COLOR_FN   = File.join(BASE_DIR, "colors.yaml")
@@ -330,6 +328,7 @@ EOS
                   :load_config, :managers
 end
 
+require 'sup/version'
 require "sup/util"
 require "sup/hook"
 require "sup/time"
