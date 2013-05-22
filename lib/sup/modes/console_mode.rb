@@ -1,10 +1,13 @@
 require 'pp'
 
+require "sup/service/label_service"
+
 module Redwood
 
 class Console
   def initialize mode
     @mode = mode
+    @label_service = LabelService.new
   end
 
   def query(query)
@@ -12,19 +15,27 @@ class Console
   end
 
   def add_labels(query, *labels)
-    query(query).each { |m| m.labels += labels; m.save Index }
+    count = @label_service.add_labels(query, *labels)
+    print_buffer_dirty_msg count
   end
 
   def remove_labels(query, *labels)
-    query(query).each { |m| m.labels -= labels; m.save Index }
+    count = @label_service.remove_labels(query, *labels)
+    print_buffer_dirty_msg count
   end
+
+  def print_buffer_dirty_msg msg_count
+    puts "Scanned #{msg_count} messages."
+    puts "You might want to refresh open buffers with `@` key."
+  end
+  private :print_buffer_dirty_msg
 
   def xapian; Index.instance.instance_variable_get :@xapian; end
 
   def loglevel; Redwood::Logger.level; end
   def set_loglevel(level); Redwood::Logger.level = level; end
 
-  def special_methods; methods - Object.methods end
+  def special_methods; public_methods - Object.methods end
 
   def puts x; @mode << "#{x.to_s.rstrip}\n" end
   def p x; puts x.inspect end
