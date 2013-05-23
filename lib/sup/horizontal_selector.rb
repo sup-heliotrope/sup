@@ -1,6 +1,8 @@
 module Redwood
 
 class HorizontalSelector
+  class UnknownValue < StandardError; end
+
   attr_accessor :label, :changed_by_user
 
   def initialize label, vals, labels, base_color=:horizontal_selector_unselected_color, selected_color=:horizontal_selector_selected_color
@@ -13,7 +15,14 @@ class HorizontalSelector
     @changed_by_user = false
   end
 
-  def set_to val; @selection = @vals.index(val) end
+  def set_to val
+    raise UnknownValue, val.inspect unless can_set_to? val
+    @selection = @vals.index(val)
+  end
+
+  def can_set_to? val
+    @vals.include? val
+  end
 
   def val; @vals[@selection] end
 
