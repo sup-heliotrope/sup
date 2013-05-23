@@ -266,36 +266,6 @@ EOM
     end
   end
 
-  ## to be called by entry points in bin/, to ensure that
-  ## their versions match up against the library versions.
-  ##
-  ## this is a perennial source of bug reports from people
-  ## who both use git and have a gem version installed.
-  def check_library_version_against v
-    unless Redwood::VERSION == v
-      $stderr.puts <<EOS
-Error: version mismatch!
-The sup executable is at version #{v.inspect}.
-The sup libraries are at version #{Redwood::VERSION.inspect}.
-
-Your development environment may be picking up code from a
-rubygems installation of sup.
-
-If you're running from git with a commandline like
-
-  ruby -Ilib #{$0}
-
-try this instead:
-
-  RUBY_INVOCATION="ruby -Ilib" ruby -Ilib #{$0}
-
-You can also try `gem uninstall sup` and removing all Sup rubygems.
-
-EOS
-#' duh!
-      abort
-    end
-  end
 
   ## set up default configuration file
   def load_config filename
@@ -363,8 +333,7 @@ EOS
   end
 
   module_function :save_yaml_obj, :load_yaml_obj, :start, :finish,
-                  :report_broken_sources, :check_library_version_against,
-                  :load_config, :managers
+                  :report_broken_sources, :load_config, :managers
 end
 
 require 'sup/version'
@@ -373,9 +342,7 @@ require "sup/hook"
 require "sup/time"
 
 ## everything we need to get logging working
-require "sup/logger"
-Redwood::Logger.init.add_sink $stderr
-include Redwood::LogsStuff
+require "sup/logger/singleton"
 
 ## determine encoding and character set
 $encoding = Locale.current.charset
@@ -390,11 +357,11 @@ end
 require "sup/buffer"
 require "sup/keymap"
 require "sup/mode"
-require "sup/modes/scroll-mode"
-require "sup/modes/text-mode"
-require "sup/modes/log-mode"
+require "sup/modes/scroll_mode"
+require "sup/modes/text_mode"
+require "sup/modes/log_mode"
 require "sup/update"
-require "sup/message-chunks"
+require "sup/message_chunks"
 require "sup/message"
 require "sup/source"
 require "sup/mbox"
@@ -402,7 +369,7 @@ require "sup/maildir"
 require "sup/person"
 require "sup/account"
 require "sup/thread"
-require "sup/interactive-lock"
+require "sup/interactive_lock"
 require "sup/index"
 require "sup/textfield"
 require "sup/colormap"
@@ -413,31 +380,31 @@ require "sup/draft"
 require "sup/poll"
 require "sup/crypto"
 require "sup/undo"
-require "sup/horizontal-selector"
-require "sup/modes/line-cursor-mode"
-require "sup/modes/help-mode"
-require "sup/modes/edit-message-mode"
-require "sup/modes/edit-message-async-mode"
-require "sup/modes/compose-mode"
-require "sup/modes/resume-mode"
-require "sup/modes/forward-mode"
-require "sup/modes/reply-mode"
-require "sup/modes/label-list-mode"
-require "sup/modes/contact-list-mode"
-require "sup/modes/thread-view-mode"
-require "sup/modes/thread-index-mode"
-require "sup/modes/label-search-results-mode"
-require "sup/modes/search-results-mode"
-require "sup/modes/person-search-results-mode"
-require "sup/modes/inbox-mode"
-require "sup/modes/buffer-list-mode"
-require "sup/modes/poll-mode"
-require "sup/modes/file-browser-mode"
-require "sup/modes/completion-mode"
-require "sup/modes/console-mode"
+require "sup/horizontal_selector"
+require "sup/modes/line_cursor_mode"
+require "sup/modes/help_mode"
+require "sup/modes/edit_message_mode"
+require "sup/modes/edit_message_async_mode"
+require "sup/modes/compose_mode"
+require "sup/modes/resume_mode"
+require "sup/modes/forward_mode"
+require "sup/modes/reply_mode"
+require "sup/modes/label_list_mode"
+require "sup/modes/contact_list_mode"
+require "sup/modes/thread_view_mode"
+require "sup/modes/thread_index_mode"
+require "sup/modes/label_search_results_mode"
+require "sup/modes/search_results_mode"
+require "sup/modes/person_search_results_mode"
+require "sup/modes/inbox_mode"
+require "sup/modes/buffer_list_mode"
+require "sup/modes/poll_mode"
+require "sup/modes/file_browser_mode"
+require "sup/modes/completion_mode"
+require "sup/modes/console_mode"
 require "sup/sent"
 require "sup/search"
-require "sup/modes/search-list-mode"
+require "sup/modes/search_list_mode"
 require "sup/idle"
 
 $:.each do |base|
