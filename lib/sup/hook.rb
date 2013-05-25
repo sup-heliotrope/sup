@@ -19,6 +19,10 @@ class HookManager
       end
     end
 
+    def flash s
+      BufferManager.flash s
+    end
+
     def log s
       info "hook[#@__name]: #{s}"
     end
