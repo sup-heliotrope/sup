@@ -7,6 +7,7 @@ require 'pathname'
 require 'set'
 require 'enumerator'
 require 'benchmark'
+require 'unicode'
 
 ## time for some monkeypatching!
 class Symbol
@@ -254,15 +255,8 @@ class Object
 end
 
 class String
-  ## nasty multibyte hack for ruby 1.8. if it's utf-8, split into chars using
-  ## the utf8 regex and count those. otherwise, use the byte length.
   def display_length
-    if RUBY_VERSION < '1.9.1' && ($encoding == "UTF-8" || $encoding == "utf8")
-      # scan hack is somewhat slow, worth trying to cache
-      @display_length ||= scan(/./u).size
-    else
-      size
-    end
+    @display_length ||= Unicode.width(self, false)
   end
 
   def camel_to_hyphy
