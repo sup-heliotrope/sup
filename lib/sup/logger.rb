@@ -1,4 +1,4 @@
-require "sup"
+require "sup/util"
 require 'stringio'
 require 'thread'
 
