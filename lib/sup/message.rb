@@ -69,7 +69,9 @@ class Message
     return unless v
     return v unless v.is_a? String
     return unless v.size < MAX_HEADER_VALUE_SIZE # avoid regex blowup on spam
-    Rfc2047.decode_to $encoding, Iconv.easy_decode($encoding, 'ASCII', v)
+    d = v.dup
+    d = d.transcode($encoding, 'ASCII')
+    Rfc2047.decode_to $encoding, d
   end
 
   def parse_header encoded_header
@@ -524,7 +526,7 @@ private
           ## if there's no charset, use the current encoding as the charset.
           ## this ensures that the body is normalized to avoid non-displayable
           ## characters
-          body = Iconv.easy_decode($encoding, m.charset || $encoding, m.decode)
+          body = m.decode.transcode($encoding, m.charset)
         else
           body = ""
         end
@@ -546,7 +548,7 @@ private
       msg = RMail::Message.new
       msg.body = gpg.join("\n")
 
-      body = Iconv.easy_decode(encoding_to, encoding_from, body)
+      body = body.transcode(encoding_to, encoding_from)
       lines = body.split("\n")
       sig = lines.between(GPG_SIGNED_START, GPG_SIG_START)
       startidx = lines.index(GPG_SIGNED_START)
