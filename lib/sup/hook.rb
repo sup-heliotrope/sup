@@ -20,7 +20,11 @@ class HookManager
     end
 
     def flash s
-      BufferManager.flash s
+      if BufferManager.instantiated?
+        BufferManager.flash s
+      else
+        log s
+      end
     end
 
     def log s
