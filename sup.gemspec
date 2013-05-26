@@ -52,6 +52,7 @@ SUP: Please run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14
     s.add_runtime_dependency "mime-types", "~> 1.0"
     s.add_runtime_dependency "locale", "~> 2.0"
     s.add_runtime_dependency "chronic", "~> 0.9.1"
+    s.add_runtime_dependency "unicode", "~> 0.4.4"
 
     s.add_development_dependency "bundler", "~> 1.3"
     s.add_development_dependency "rake"
