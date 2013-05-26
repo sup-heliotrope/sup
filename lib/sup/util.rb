@@ -366,16 +366,13 @@ class String
   #
   # Not Ruby 1.8 compatible
   def fix_encoding
-    if encoding == $encoding and valid_encoding?
-      self
-    end
-
     encode!('UTF-8', :invalid => :replace, :undef => :replace)
 
-    unless valid_encoding?
-      encode!('UTF-16', 'UTF-8', :invalid => :replace, :undef => :replace)
-      encode!('UTF-8', 'UTF-16', :invalid => :replace, :undef => :replace)
-    end
+    # do this anyway in case string is set to be UTF-8, encoding to
+    # something else (UTF-16 which can fully represent UTF-8) and back
+    # ensures invalid chars are replaced.
+    encode!('UTF-16', 'UTF-8', :invalid => :replace, :undef => :replace)
+    encode!('UTF-8', 'UTF-16', :invalid => :replace, :undef => :replace)
 
     fail "Could not create valid UTF-8 string out of: '#{self.to_s}'." unless valid_encoding?
 
@@ -394,7 +391,12 @@ class String
   #
   # Not Ruby 1.8 compatible
   def transcode to_encoding, from_encoding
-    encode!(to_encoding, from_encoding, :invalid => :replace, :undef => :replace)
+    begin
+      encode!(to_encoding, from_encoding, :invalid => :replace, :undef => :replace)
+    rescue Encoding::ConverterNotFoundError
+      debug "Encoding converter not found for #{from_encoding.inspect}, fixing string: '#{self.to_s}', but expect weird characters."
+      fix_encoding
+    end
 
     unless valid_encoding?
       encode!('UTF-16', 'UTF-8', :invalid => :replace, :undef => :replace)
@@ -453,8 +455,8 @@ class String
         out << b.chr
       end
     end
-    out.fix_encoding
-    out
+    out = out.fix_encoding # this should now be an utf-8 string of ascii
+                           # compat chars.
   end
 
   unless method_defined? :ascii_only?
