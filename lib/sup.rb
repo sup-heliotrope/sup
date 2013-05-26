@@ -1,11 +1,5 @@
 require 'rubygems'
-
-require 'syck'
 require 'yaml'
-if YAML.const_defined? :ENGINE
-  YAML::ENGINE.yamler = 'syck'
-end
-
 require 'zlib'
 require 'thread'
 require 'fileutils'
@@ -58,7 +52,7 @@ module Redwood
   SEARCH_FN  = File.join(BASE_DIR, "searches.txt")
   LOG_FN     = File.join(BASE_DIR, "log")
 
-  YAML_DOMAIN = "masanjin.net"
+  YAML_DOMAIN = "supmua.org"
   YAML_DATE = "2006-10-01"
 
   ## record exceptions thrown in threads nicely
