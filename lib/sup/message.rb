@@ -111,7 +111,9 @@ class Message
       Time.now
     end
 
-    @subj = header["subject"] ? header["subject"].gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
+    subj = header["subject"]
+    subj = subj ? subj.fix_encoding : nil
+    @subj = subj ? subj.gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
     @to = Person.from_address_list header["to"]
     @cc = Person.from_address_list header["cc"]
     @bcc = Person.from_address_list header["bcc"]
