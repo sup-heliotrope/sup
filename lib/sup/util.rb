@@ -5,7 +5,6 @@ require 'pathname'
 require 'set'
 require 'enumerator'
 require 'benchmark'
-require 'iconv'
 
 ## time for some monkeypatching!
 class Symbol
@@ -31,7 +30,7 @@ class Lockfile
   def dump_lock_id lock_id = @lock_id
       "host: %s\npid: %s\nppid: %s\ntime: %s\nuser: %s\npname: %s\n" %
         lock_id.values_at('host','pid','ppid','time','user', 'pname')
-    end
+  end
 
   def lockinfo_on_disk
     h = load_lock_id IO.read(path)
@@ -341,7 +340,57 @@ class String
     ret << s
   end
 
+  # Fix the damn string! make sure it is valid utf-8, then convert to
+  # user encoding.
+  #
+  # Not Ruby 1.8 compatible
+  def fix_encoding
+    if encoding == $encoding and valid_encoding?
+      self
+    end
+
+    encode!('UTF-8', :invalid => :replace, :undef => :replace)
+
+    unless valid_encoding?
+      encode!('UTF-16', 'UTF-8', :invalid => :replace, :undef => :replace)
+      encode!('UTF-8', 'UTF-16', :invalid => :replace, :undef => :replace)
+    end
+
+    fail "Could not create valid UTF-8 string out of: '#{self.to_s}'." unless valid_encoding?
+
+    # now convert to $encoding
+    if $encoding != 'UTF-8'
+      encode!($encoding, :invalid => :replace, :undef => :replace)
+    end
+
+    fail "Could not create valid #{$encoding.inspect?} string out of: '#{self.to_s}'." unless valid_encoding?
+
+    self
+  end
+
+  # transcode the string if original encoding is know
+  # fix if broken.
+  #
+  # Not Ruby 1.8 compatible
+  def transcode to_encoding, from_encoding
+    encode!(to_encoding, from_encoding, :invalid => :replace, :undef => :replace)
+
+    unless valid_encoding?
+      encode!('UTF-16', 'UTF-8', :invalid => :replace, :undef => :replace)
+      encode!('UTF-8', 'UTF-16', :invalid => :replace, :undef => :replace)
+    end
+
+    if to_encoding != 'UTF-8'
+      encode!(to_encoding, :invalid => :replace, :undef => :replace)
+    end
+
+    fail "Could not create valid #{to_encoding.inspect?} string out of: '#{self.to_s}'." unless valid_encoding?
+
+    self
+  end
+
   def normalize_whitespace
+    fix_encoding
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
 
@@ -383,12 +432,8 @@ class String
         out << b.chr
       end
     end
-    out.force_encoding Encoding::UTF_8 if out.respond_to? :force_encoding
+    out.fix_encoding
     out
-  end
-
-  def transcode src_encoding=$encoding
-    Iconv.easy_decode $encoding, src_encoding, self
   end
 
   unless method_defined? :ascii_only?
@@ -659,27 +704,3 @@ class FinishLine
   end
 end
 
-class Iconv
-  def self.easy_decode target, orig_charset, text
-    if text.respond_to? :force_encoding
-      text = text.dup
-      text.force_encoding Encoding::BINARY
-    end
-    charset = case orig_charset
-      when /UTF[-_ ]?8/i then "utf-8"
-      when /(iso[-_ ])?latin[-_ ]?1$/i then "ISO-8859-1"
-      when /iso[-_ ]?8859[-_ ]?15/i then 'ISO-8859-15'
-      when /unicode[-_ ]1[-_ ]1[-_ ]utf[-_]7/i then "utf-7"
-      when /^euc$/i then 'EUC-JP' # XXX try them all?
-      when /^(x-unknown|unknown[-_ ]?8bit|ascii[-_ ]?7[-_ ]?bit)$/i then 'ASCII'
-      else orig_charset
-    end
-
-    begin
-      returning(Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]) { |str| str.check }
-    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::InvalidCharacter, Iconv::IllegalSequence, String::CheckError
-      debug "couldn't transcode text from #{orig_charset} (#{charset}) to #{target} (#{text[0 ... 20].inspect}...): got #{$!.class} (#{$!.message})"
-      text.ascii
-    end
-  end
-end
