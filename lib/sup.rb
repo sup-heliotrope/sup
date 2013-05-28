@@ -23,12 +23,9 @@ class Module
   def yaml_properties *props
     props = props.map { |p| p.to_s }
 
-    def self.to_yaml_tag
-      path = name.gsub(/::/, "/")
-      "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
-    end
+    path = name.gsub(/::/, "/")
+    yaml_tag "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
 
-    define_method(:to_yaml_type) { self.class.to_yaml_tag }
     define_method :init_with do |coder|
       initialize(*coder.map.values_at(*props))
     end
@@ -40,8 +37,7 @@ class Module
       end
     end
 
-    yaml_tag to_yaml_tag
-    path = name.gsub(/::/, "/")
+    # Legacy
     Psych.load_tags["!#{Redwood::LEGACY_YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"] = self
   end
 end
