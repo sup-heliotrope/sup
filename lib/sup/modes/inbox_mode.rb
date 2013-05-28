@@ -1,4 +1,4 @@
-require 'sup'
+require "sup/modes/thread_index_mode"
 
 module Redwood
 

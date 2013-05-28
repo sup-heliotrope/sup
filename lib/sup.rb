@@ -22,17 +22,29 @@ end
 class Module
   def yaml_properties *props
     props = props.map { |p| p.to_s }
-    vars = props.map { |p| "@#{p}" }
     klass = self
-    path = klass.name.gsub(/::/, "/")
 
     klass.instance_eval do
-      define_method(:to_yaml_properties) { vars }
-      define_method(:to_yaml_type) { "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}" }
-    end
+      def self.to_yaml_tag
+        path = name.gsub(/::/, "/")
+        "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
+      end
 
-    YAML.add_domain_type("#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}", path) do |type, val|
-      klass.new(*props.map { |p| val[p] })
+      define_method(:to_yaml_type) { self.class.to_yaml_tag }
+      define_method :init_with do |coder|
+        initialize(*coder.map.values_at(*props))
+      end
+      
+      define_method :encode_with do |coder|
+        coder.map = props.inject({}) do |hash, key|
+          hash[key] = instance_variable_get("@#{key}")
+          hash
+        end
+      end
+
+      yaml_tag to_yaml_tag
+      path = name.gsub(/::/, "/")
+      Psych.load_tags["!#{Redwood::LEGACY_YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"] = self
     end
   end
 end
@@ -53,6 +65,7 @@ module Redwood
   LOG_FN     = File.join(BASE_DIR, "log")
 
   YAML_DOMAIN = "supmua.org"
+  LEGACY_YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
 
   ## record exceptions thrown in threads nicely
