@@ -22,30 +22,27 @@ end
 class Module
   def yaml_properties *props
     props = props.map { |p| p.to_s }
-    klass = self
 
-    klass.instance_eval do
-      def self.to_yaml_tag
-        path = name.gsub(/::/, "/")
-        "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
-      end
-
-      define_method(:to_yaml_type) { self.class.to_yaml_tag }
-      define_method :init_with do |coder|
-        initialize(*coder.map.values_at(*props))
-      end
-      
-      define_method :encode_with do |coder|
-        coder.map = props.inject({}) do |hash, key|
-          hash[key] = instance_variable_get("@#{key}")
-          hash
-        end
-      end
-
-      yaml_tag to_yaml_tag
+    def self.to_yaml_tag
       path = name.gsub(/::/, "/")
-      Psych.load_tags["!#{Redwood::LEGACY_YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"] = self
+      "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
     end
+
+    define_method(:to_yaml_type) { self.class.to_yaml_tag }
+    define_method :init_with do |coder|
+      initialize(*coder.map.values_at(*props))
+    end
+
+    define_method :encode_with do |coder|
+      coder.map = props.inject({}) do |hash, key|
+        hash[key] = instance_variable_get("@#{key}")
+        hash
+      end
+    end
+
+    yaml_tag to_yaml_tag
+    path = name.gsub(/::/, "/")
+    Psych.load_tags["!#{Redwood::LEGACY_YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"] = self
   end
 end
 
