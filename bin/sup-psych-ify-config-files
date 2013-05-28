@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+
+require "sup"
+require "fileutils"
+
+Redwood.start
+
+fn = Redwood::SOURCE_FN
+FileUtils.cp fn, "#{fn}.syck_bak"
+
+Redwood::SourceManager.load_sources fn
+Redwood::SourceManager.save_sources fn, true
+
+Redwood.finish
