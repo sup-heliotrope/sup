@@ -34,6 +34,10 @@ module Redwood
       * Automatically tracking recent contacts
 DESC
     s.license = 'GPL-2'
+    # TODO: might want to add index migrating script here, too
+    s.post_install_message = <<-EOF
+SUP: Please run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14
+    EOF
     s.files = SUP_FILES
     s.executables = SUP_EXECUTABLES
 
