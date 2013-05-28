@@ -314,6 +314,7 @@ require "sup/logger/singleton"
 ## determine encoding and character set
 $encoding = Locale.current.charset
 $encoding = "UTF-8" if $encoding == "utf8"
+$encoding = "UTF-8" if $encoding == "UTF8"
 if $encoding
   debug "using character set encoding #{$encoding.inspect}"
 else
