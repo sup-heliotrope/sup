@@ -322,6 +322,16 @@ else
   $encoding = "UTF-8"
 end
 
+# test encoding
+teststr = "test"
+teststr.encode('UTF-8')
+begin
+  teststr.encode($encoding)
+rescue Encoding::ConverterNotFoundError
+  warn "locale encoding is invalid, defaulting to utf-8"
+  $encoding = "UTF-8"
+end
+
 require "sup/buffer"
 require "sup/keymap"
 require "sup/mode"
