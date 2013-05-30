@@ -53,6 +53,7 @@ EOS
     k.add :tag_matching, "Tag matching threads", 'g'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", '+', '='
     k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
+    k.add :toggle_sort, "Toggle newest first/last sort order", 'o'
     k.add :undo, "Undo the previous action", 'u'
   end
 
@@ -72,6 +73,8 @@ EOS
     @load_thread_opts = load_thread_opts
     @hidden_labels = hidden_labels + LabelManager::HIDDEN_RESERVED_LABELS
     @date_width = DATE_WIDTH
+
+    @newest_first = true
 
     @interrupt_search = false
 
@@ -230,11 +233,19 @@ EOS
     UndoManager.undo
   end
 
+  def toggle_sort
+    @newest_first = !@newest_first
+    update
+  end
+
   def update
     old_cursor_thread = cursor_thread
     @mutex.synchronize do
       ## let's see you do THIS in python
       @threads = @ts.threads.select { |t| !@hidden_threads.member?(t) }.select(&:has_message?).sort_by(&:sort_key)
+      if !@newest_first
+        @threads = @threads.reverse
+      end
       @size_widgets = @threads.map { |t| size_widget_for_thread t }
       @size_widget_width = @size_widgets.max_of { |w| w.display_length }
       @date_widgets = @threads.map { |t| date_widget_for_thread t }
@@ -692,6 +703,9 @@ EOS
       n = ThreadIndexMode::LOAD_MORE_THREAD_NUM
     else
       n = opts[:num]
+    end
+    if !@newest_first
+      n = -1
     end
 
     myopts = @load_thread_opts.merge({ :when_done => (lambda do |num|

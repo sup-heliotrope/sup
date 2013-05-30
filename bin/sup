@@ -231,7 +231,7 @@ begin
   end
 
   if $opts[:search]
-    SearchResultsMode.spawn_from_query $opts[:search]
+    SearchResultsMode.spawn_from_query $opts[:search], true
   end
 
   until Redwood::exceptions.nonempty? || $die
@@ -301,11 +301,11 @@ begin
         if query.empty?
           bm.spawn_unless_exists("Saved searches") { SearchListMode.new }
         else
-          SearchResultsMode.spawn_from_query query
+          SearchResultsMode.spawn_from_query query, true
         end
       end
     when :search_unread
-      SearchResultsMode.spawn_from_query "is:unread"
+      SearchResultsMode.spawn_from_query "is:unread", InboxMode.newest_first
     when :list_labels
       labels = LabelManager.all_labels.map { |l| LabelManager.string_for l }
       labels = labels.each { |l| l.force_encoding 'UTF-8' if l.methods.include?(:encoding) }

@@ -1,9 +1,10 @@
 module Redwood
 
 class SearchResultsMode < ThreadIndexMode
-  def initialize query
+  def initialize query, newest_first
     @query = query
     super [], query
+    @newest_first = newest_first
   end
 
   register_keymap do |k|
@@ -14,7 +15,7 @@ class SearchResultsMode < ThreadIndexMode
   def refine_search
     text = BufferManager.ask :search, "refine query: ", (@query[:text] + " ")
     return unless text && text !~ /^\s*$/
-    SearchResultsMode.spawn_from_query text
+    SearchResultsMode.spawn_from_query text, @newest_first
   end
 
   def save_search
@@ -38,12 +39,12 @@ class SearchResultsMode < ThreadIndexMode
   ## the message, and search against it to see if i have > 0 results,
   ## but that seems pretty insane.
 
-  def self.spawn_from_query text
+  def self.spawn_from_query text, newest_first
     begin
       query = Index.parse_query(text)
       return unless query
       short_text = text.length < 20 ? text : text[0 ... 20] + "..."
-      mode = SearchResultsMode.new query
+      mode = SearchResultsMode.new query, newest_first
       BufferManager.spawn "search: \"#{short_text}\"", mode
       mode.load_threads :num => mode.buffer.content_height
     rescue Index::ParseError => e

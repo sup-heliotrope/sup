@@ -10,10 +10,19 @@ class InboxMode < ThreadIndexMode
     k.add :refine_search, "Refine search", '|'
   end
 
+  def self.newest_first
+    if !$config[:inbox_newest_first].nil?
+      $config[:inbox_newest_first]
+    else
+      true
+    end
+  end
+
   def initialize
     super [:inbox, :sent, :draft], { :label => :inbox, :skip_killed => true }
     raise "can't have more than one!" if defined? @@instance
     @@instance = self
+    @newest_first = InboxMode.newest_first
   end
 
   def is_relevant? m; (m.labels & [:spam, :deleted, :killed, :inbox]) == Set.new([:inbox]) end
@@ -22,7 +31,7 @@ class InboxMode < ThreadIndexMode
     text = BufferManager.ask :search, "refine inbox with query: "
     return unless text && text !~ /^\s*$/
     text = "label:inbox -label:spam -label:deleted " + text
-    SearchResultsMode.spawn_from_query text
+    SearchResultsMode.spawn_from_query text, @newest_first
   end
 
   ## label-list-mode wants to be able to raise us if the user selects
