@@ -315,10 +315,21 @@ require "sup/logger/singleton"
 ## determine encoding and character set
 $encoding = Locale.current.charset
 $encoding = "UTF-8" if $encoding == "utf8"
+$encoding = "UTF-8" if $encoding == "UTF8"
 if $encoding
   debug "using character set encoding #{$encoding.inspect}"
 else
   warn "can't find character set by using locale, defaulting to utf-8"
+  $encoding = "UTF-8"
+end
+
+# test encoding
+teststr = "test"
+teststr.encode('UTF-8')
+begin
+  teststr.encode($encoding)
+rescue Encoding::ConverterNotFoundError
+  warn "locale encoding is invalid, defaulting to utf-8"
   $encoding = "UTF-8"
 end
 
