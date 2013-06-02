@@ -43,7 +43,7 @@ SUP: Please run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14
 
     s.required_ruby_version = '>= 1.9.2'
 
-    s.add_dependency "xapian-full-alaveteli", "~> 1.2"
+    s.add_dependency "xapian-ruby", "~> 1.2.15"
     s.add_dependency "ncursesw-sup", "~> 1.3", ">= 1.3.1"
     s.add_dependency "rmail", ">= 0.17"
     s.add_dependency "highline"
