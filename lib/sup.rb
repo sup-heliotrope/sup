@@ -9,7 +9,7 @@ end
 require 'zlib'
 require 'thread'
 require 'fileutils'
-require 'gettext'
+require 'locale'
 require 'curses'
 require 'rmail'
 begin
