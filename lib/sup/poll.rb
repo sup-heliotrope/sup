@@ -27,6 +27,7 @@ Variables:
 num_inbox_total_unread: the total number of unread messages in the inbox
            num_updated: the total number of updated messages
            num_deleted: the total number of deleted messages
+                labels: the labels that were applied
          from_and_subj: an array of (from email address, subject) pairs
    from_and_subj_inbox: an array of (from email address, subject) pairs for
                         only those messages appearing in the inbox
@@ -68,6 +69,7 @@ EOS
                     :num_total => @running_totals[:num], :num_inbox_total => @running_totals[:numi],
                     :num_updated => @running_totals[:numu],
                     :num_deleted => @running_totals[:numd],
+                    :labels => @running_totals[:loaded_labels],
                     :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox,
                     :num_inbox_total_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] } }
 
