@@ -50,7 +50,7 @@ SUP: Please run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14
     s.add_dependency "trollop", ">= 1.12"
     s.add_dependency "lockfile"
     s.add_dependency "mime-types", "~> 1"
-    s.add_dependency "gettext"
+    s.add_dependency "locale", "~> 2.0"
     s.add_dependency "chronic", "~> 0.9", ">= 0.9.1"
 
     s.add_development_dependency "bundler", "~> 1.3"
