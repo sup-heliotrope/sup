@@ -38,11 +38,11 @@ private
           suffix = s[(@prefix_len + 1) .. -1]
           char = s[@prefix_len].chr
 
-          @lines.last += [[:none, sprintf("%#{max_length - suffix.length - 1}s", prefix)],
+          @lines.last += [[:text_color, sprintf("%#{max_length - suffix.length - 1}s", prefix)],
                           [:completion_character_color, char],
-                          [:none, suffix + INTERSTITIAL]]
+                          [:text_color, suffix + INTERSTITIAL]]
         else
-          @lines.last += [[:none, sprintf("%#{max_length}s#{INTERSTITIAL}", s)]]
+          @lines.last += [[:text_color, sprintf("%#{max_length}s#{INTERSTITIAL}", s)]]
         end
       else
         @lines << "" if i % num_per == 0

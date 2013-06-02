@@ -47,9 +47,9 @@ protected
 
   def draw_line ln, opts={}
     if ln == @curpos
-      super ln, :highlight => true, :debug => opts[:debug]
+      super ln, :highlight => true, :debug => opts[:debug], :color => :text_color
     else
-      super
+      super ln, :color => :text_color
     end
   end
 
