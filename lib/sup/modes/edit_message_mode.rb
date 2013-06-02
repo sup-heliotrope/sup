@@ -131,12 +131,17 @@ EOS
         HorizontalSelector.new "Account:", AccountManager.user_emails + [nil], user_emails_copy + ["Customized"]
 
       if @header["From"] =~ /<?(\S+@(\S+?))>?$/
-        @account_selector.set_to $1
-        @account_user = ""
+        # TODO: this is ugly. might implement an AccountSelector and handle
+        # special cases more transparently.
+        account_from = @account_selector.can_set_to?($1) ? $1 : nil
+        @account_selector.set_to account_from
       else
         @account_selector.set_to nil
-        @account_user = @header["From"]
       end
+
+      # A single source of truth might better than duplicating this in both
+      # @account_user and @account_selector.
+      @account_user = @header["From"]
 
       add_selector @account_selector
     end

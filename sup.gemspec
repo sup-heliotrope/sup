@@ -5,7 +5,8 @@ require 'sup/version'
 
 # Files
 SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump
-  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels)
+  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels
+  sup-psych-ify-config-files)
 SUP_EXTRA_FILES = %w(CONTRIBUTORS README.md LICENSE History.txt ReleaseNotes)
 SUP_FILES =
   SUP_EXTRA_FILES +
@@ -33,8 +34,14 @@ module Redwood
       * Automatically tracking recent contacts
 DESC
     s.license = 'GPL-2'
+    # TODO: might want to add index migrating script here, too
+    s.post_install_message = <<-EOF
+SUP: Please run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14
+    EOF
     s.files = SUP_FILES
     s.executables = SUP_EXECUTABLES
+
+    s.required_ruby_version = '>= 1.9.2'
 
     s.add_dependency "xapian-full-alaveteli", "~> 1.2"
     s.add_dependency "ncursesw-sup", "~> 1.3", ">= 1.3.1"
