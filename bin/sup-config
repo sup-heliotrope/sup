@@ -209,7 +209,7 @@ EOS
 
 if axe_yes "Run sup-sync to import all messages now?"
   while true
-    cmd = build_cmd("sup-sync") + " --all-sources"
+    cmd = build_cmd("sup-sync") + " --all-sources --archive"
     puts "Ok, trying to run \"#{cmd}\"..."
     system cmd
     if $?.success?
