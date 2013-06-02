@@ -22,7 +22,7 @@ Variables:
                    num: the total number of new messages added in this poll
              num_inbox: the number of new messages added in this poll which
                         appear in the inbox (i.e. were not auto-archived).
-             num_total: the total number of messages
+             num_total: the total number of messages 
        num_inbox_total: the total number of new messages in the inbox.
 num_inbox_total_unread: the total number of unread messages in the inbox
            num_updated: the total number of updated messages
