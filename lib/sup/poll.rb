@@ -25,6 +25,9 @@ Variables:
              num_total: the total number of messages 
        num_inbox_total: the total number of new messages in the inbox.
 num_inbox_total_unread: the total number of unread messages in the inbox
+           num_updated: the total number of updated messages
+           num_deleted: the total number of deleted messages
+                labels: the labels that were applied
          from_and_subj: an array of (from email address, subject) pairs
    from_and_subj_inbox: an array of (from email address, subject) pairs for
                         only those messages appearing in the inbox
@@ -52,25 +55,32 @@ EOS
       BufferManager.flash "Polling for new messages..."
     end
 
-    num, numi, from_and_subj, from_and_subj_inbox, loaded_labels = @mode.poll
+    num, numi, numu, numd, from_and_subj, from_and_subj_inbox, loaded_labels = @mode.poll
     clear_running_totals if @should_clear_running_totals
     @running_totals[:num] += num
     @running_totals[:numi] += numi
     @running_totals[:numu] += numu
     @running_totals[:numd] += numd
     @running_totals[:loaded_labels] += loaded_labels || []
-   
-    
+
+
     if HookManager.enabled? "after-poll"
       hook_args = { :num => num, :num_inbox => numi,
                     :num_total => @running_totals[:num], :num_inbox_total => @running_totals[:numi],
-                    :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox, 
+                    :num_updated => @running_totals[:numu],
+                    :num_deleted => @running_totals[:numd],
+                    :labels => @running_totals[:loaded_labels],
+                    :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox,
                     :num_inbox_total_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] } }
 
-      HookManager.run("after-poll", hook_args) 
+      HookManager.run("after-poll", hook_args)
     else
       if @running_totals[:num] > 0
-        BufferManager.flash "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox. Labels: #{@running_totals[:loaded_labels].map{|l| l.to_s}.join(', ')}"
+        flash_msg = "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox. " if @running_totals[:num] > 0
+        flash_msg += "Updated #{@running_totals[:numu].pluralize 'message'}. " if @running_totals[:numu] > 0
+        flash_msg += "Deleted #{@running_totals[:numd].pluralize 'message'}. " if @running_totals[:numd] > 0
+        flash_msg += "Labels: #{@running_totals[:loaded_labels].map{|l| l.to_s}.join(', ')}." if @running_totals[:loaded_labels].size > 0
+        BufferManager.flash flash_msg
       else
         BufferManager.flash "No new messages."
       end
