@@ -766,7 +766,7 @@ private
       msg = RMail::Message.new
       msg.body = gpg.join("\n")
 
-      body = Iconv.easy_decode(encoding_to, encoding_from, body)
+      body = body.transcode(encoding_to, encoding_from)
       lines = body.split("\n")
       sig = lines.between(GPG_SIGNED_START, GPG_SIG_START)
       startidx = lines.index(GPG_SIGNED_START)

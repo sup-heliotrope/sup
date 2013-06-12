@@ -50,7 +50,7 @@ module Rfc2047
         # WORD.
       end
 
-      Iconv.easy_decode(target, charset, text)
+      text.transcode(target, charset)
     end
   end
 end

@@ -120,8 +120,7 @@ EOS
 
       @lines = nil
       if text
-        #text = text.transcode(encoded_content.charset || $encoding)
-        text.fix_encoding
+        text = text.transcode(encoded_content.charset || $encoding, text.encoding)
         @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
         @quotable = true
       end
