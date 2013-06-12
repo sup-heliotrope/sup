@@ -3,7 +3,7 @@ require 'yaml'
 require 'zlib'
 require 'thread'
 require 'fileutils'
-require 'gettext'
+require 'locale'
 require 'curses'
 require 'mail'
 begin
@@ -22,18 +22,23 @@ end
 class Module
   def yaml_properties *props
     props = props.map { |p| p.to_s }
-    vars = props.map { |p| "@#{p}" }
-    klass = self
-    path = klass.name.gsub(/::/, "/")
 
-    klass.instance_eval do
-      define_method(:to_yaml_properties) { vars }
-      define_method(:to_yaml_type) { "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}" }
+    path = name.gsub(/::/, "/")
+    yaml_tag "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
+
+    define_method :init_with do |coder|
+      initialize(*coder.map.values_at(*props))
     end
 
-    YAML.add_domain_type("#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}", path) do |type, val|
-      klass.new(*props.map { |p| val[p] })
+    define_method :encode_with do |coder|
+      coder.map = props.inject({}) do |hash, key|
+        hash[key] = instance_variable_get("@#{key}")
+        hash
+      end
     end
+
+    # Legacy
+    Psych.load_tags["!#{Redwood::LEGACY_YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"] = self
   end
 end
 
@@ -54,6 +59,7 @@ module Redwood
   SYNC_OK_FN = File.join(BASE_DIR, "sync-back-ok")
 
   YAML_DOMAIN = "supmua.org"
+  LEGACY_YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
 
   ## record exceptions thrown in threads nicely
@@ -341,10 +347,21 @@ require "sup/logger/singleton"
 ## determine encoding and character set
 $encoding = Locale.current.charset
 $encoding = "UTF-8" if $encoding == "utf8"
+$encoding = "UTF-8" if $encoding == "UTF8"
 if $encoding
   debug "using character set encoding #{$encoding.inspect}"
 else
   warn "can't find character set by using locale, defaulting to utf-8"
+  $encoding = "UTF-8"
+end
+
+# test encoding
+teststr = "test"
+teststr.encode('UTF-8')
+begin
+  teststr.encode($encoding)
+rescue Encoding::ConverterNotFoundError
+  warn "locale encoding is invalid, defaulting to utf-8"
   $encoding = "UTF-8"
 end
 

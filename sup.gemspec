@@ -34,8 +34,14 @@ module Redwood
       * Automatically tracking recent contacts
 DESC
     s.license = 'GPL-2'
+    # TODO: might want to add index migrating script here, too
+    s.post_install_message = <<-EOF
+SUP: Please run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14
+    EOF
     s.files = SUP_FILES
     s.executables = SUP_EXECUTABLES
+
+    s.required_ruby_version = '>= 1.9.2'
 
     s.add_dependency "xapian-full-alaveteli", "~> 1.2"
     s.add_dependency "ncursesw-sup", "~> 1.3", ">= 1.3.1"
@@ -44,7 +50,7 @@ DESC
     s.add_dependency "trollop", ">= 1.12"
     s.add_dependency "lockfile"
     s.add_dependency "mime-types", "~> 1"
-    s.add_dependency "gettext"
+    s.add_dependency "locale", "~> 2.0"
     s.add_dependency "chronic", "~> 0.9", ">= 0.9.1"
 
     s.add_development_dependency "bundler", "~> 1.3"

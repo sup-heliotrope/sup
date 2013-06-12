@@ -127,7 +127,7 @@ EOS
       end
     end
 
-    def color; :none end
+    def color; :text_color end
     def patina_color; :attachment_color end
     def patina_text
       if expandable?
@@ -188,7 +188,7 @@ EOS
     def quotable?; true end
     def expandable?; false end
     def viewable?; false end
-    def color; :none end
+    def color; :text_color end
   end
 
   class Quote

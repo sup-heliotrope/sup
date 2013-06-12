@@ -43,12 +43,12 @@ class ScrollMode < Mode
 
   def draw
     ensure_mode_validity
-    (@topline ... @botline).each { |ln| draw_line ln }
+    (@topline ... @botline).each { |ln| draw_line ln, :color => :text_color }
     ((@botline - @topline) ... buffer.content_height).each do |ln|
       if @twiddles
         buffer.write ln, 0, "~", :color => :twiddle_color
       else
-        buffer.write ln, 0, ""
+        buffer.write ln, 0, "", :color => :text_color
       end
     end
     @status = "lines #{@topline + 1}:#{@botline}/#{lines}"
@@ -208,7 +208,7 @@ protected
       # return
   end
 
-  def matching_text_array s, regex, oldcolor=:none
+  def matching_text_array s, regex, oldcolor=:text_color
     s.split(regex).map do |text|
       next if text.empty?
       if text =~ regex
@@ -244,7 +244,7 @@ protected
   end
 
   def draw_line_from_string ln, s, opts
-    buffer.write ln - @topline, 0, s[@leftcol .. -1], :highlight => opts[:highlight]
+    buffer.write ln - @topline, 0, s[@leftcol .. -1], :highlight => opts[:highlight], :color => opts[:color]
   end
 end
 

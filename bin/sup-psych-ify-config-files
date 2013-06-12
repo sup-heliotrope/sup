@@ -1,37 +1,16 @@
 #!/usr/bin/env ruby
 
-unless RUBY_VERSION =~ /^1.9/ then
-  STDERR.puts "This tool is made for MRI 1.9"
-  exit 1
-end
+$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
-require 'fileutils'
-require 'yaml'
-begin
-  require 'psych'
-  require 'syck'
-rescue LoadError => e
-  STDERR.puts 'sup-psych-ify-config-files: We need to be able to require both psych and syck for this conversion'
-  raise
-end
+require "sup"
+require "fileutils"
 
-# From: http://darwinweb.net/articles/convert-syck-to-psych-yaml-format
-def use_syck
-  YAML::ENGINE.yamler = 'syck'
-  raise "Oops! Something went horribly wrong." unless YAML == Syck
-end
-def use_psych
-  YAML::ENGINE.yamler = 'psych'
-  raise "Oops! Something went horribly wrong." unless YAML == Psych
-end
-#
+Redwood.start
 
-Dir.glob(Dir.home + "/.sup/*yaml").each do |yaml_file|
-  print "Converting #{yaml_file}..."
-  use_syck
-  y = YAML.load(File.read yaml_file)
-  FileUtils.cp yaml_file, "#{yaml_file}.syck_bak"
-  use_psych
-  File.open(yaml_file, 'w'){ |file| file.write(YAML.dump(y)) }
-  puts "Done."
-end
+fn = Redwood::SOURCE_FN
+FileUtils.cp fn, "#{fn}.syck_bak"
+
+Redwood::SourceManager.load_sources fn
+Redwood::SourceManager.save_sources fn, true
+
+Redwood.finish

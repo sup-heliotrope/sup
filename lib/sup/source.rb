@@ -218,9 +218,9 @@ class SourceManager
     end
   end
 
-  def save_sources fn=Redwood::SOURCE_FN
+  def save_sources fn=Redwood::SOURCE_FN, force=false
     @source_mutex.synchronize do
-      if @sources_dirty
+      if @sources_dirty || force
         Redwood::save_yaml_obj sources, fn, false, true
       end
       @sources_dirty = false
