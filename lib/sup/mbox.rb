@@ -87,8 +87,8 @@ class MBox < Source
         until @f.eof? || MBox::is_break_line?(l = @f.gets)
           string << l
         end
-        RMail::Parser.read string
-      rescue RMail::Parser::Error => e
+        Mail.read_from_string string
+      rescue e
         raise FatalSourceError, "error parsing mbox file: #{e.message}"
       end
     end
