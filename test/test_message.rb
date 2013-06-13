@@ -107,6 +107,7 @@ EOS
     assert_equal("<mailto:example-unsubscribe@example.invalid>", list_unsubscribe)
 
     list_address = sup_message.list_address
+    puts list_address.inspect
     assert_equal("example@example.invalid", list_address.email)
     assert_equal("example", list_address.name)
 
@@ -514,8 +515,7 @@ EOS
 
     # Look at another header field whose first line was blank.
     list_unsubscribe = sup_message.list_unsubscribe
-    assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>,\n \t" +
-                 "<mailto:monitor-list-request@widget.com?subject=unsubscribe>",
+    assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>, <mailto:monitor-list-request@widget.com?subject=unsubscribe>",
                  list_unsubscribe)
 
   end

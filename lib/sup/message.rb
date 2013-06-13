@@ -1,6 +1,7 @@
 # encoding: UTF-8
 
 require 'time'
+require 'uri'
 
 module Mail
   class Message
@@ -136,7 +137,7 @@ class Message
     @safe_id = munge_msgid @id
 
     @from = Person.from_address m.fetch_header(:from)
-    @from = Person.from_address "Unknown sender <unkown@unknown>" unless @from
+    @from = Person.from_address "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>" unless @from
     @sender = Person.from_address m.fetch_header(:sender)
 
     @date = (m.date || Time.now).to_time
@@ -171,15 +172,23 @@ class Message
 
     @safe_replytos = @replytos.nil? ? [] : @replytos.compact.map { |r| rr = munge_msgid(r); debug "addin replyto #{r} -> #{rr}.."; rr }
 
+    @recipient_email = (m.fetch_header(:Envelope_to) || m.fetch_header(:x_original_to) || m.fetch_header(:delivered_to))
 
-    @receipient_email = (m.fetch_header(:envelope_to) || m.fetch_header(:x_original_to) || m.fetch_header(:delivered_to))
-
-    @list_subscribe = m.fetch_header (:list_subscribe)
-    @list_unsubscribe = m.fetch_header (:list_unsubscribe)
-    @list_address = Person.from_address(m.fetch_header(:list_post) || m.fetch_header(:x_mailing_list))
+    @list_subscribe = m.fetch_header(:list_subscribe)
+    @list_unsubscribe = m.fetch_header(:list_unsubscribe)
+    @list_address = Person.from_address(get_email_from_mailto(m.fetch_header(:list_post) || m.fetch_header(:x_mailing_list)))
 
     @source_marked_read = !location.labels?.member?(:unread)
     @source_starred = location.labels?.member?(:starred)
+  end
+
+  # get to field from mailto:example@example uri
+  def get_email_from_mailto field
+    return nil if field.nil?
+    u = URI
+    k = u.extract field, 'mailto'
+    a = u.parse k[0]
+    return a.to
   end
 
   ## Expected index entry format:
