@@ -1,8 +1,6 @@
 #!/usr/bin/ruby
 
-require 'sup'
 require 'stringio'
-require 'mail'
 require 'uri'
 
 module Redwood

@@ -8,6 +8,36 @@ require 'set'
 require 'enumerator'
 require 'benchmark'
 
+module Mail
+  class Message
+    # a common interface that matches all the field
+    # IMPORTANT: if not existing, it must return nil
+    def fetch_header field
+      sym = field.to_sym
+      begin
+        self[sym] ? self[sym].to_s : nil
+      rescue
+        info "Error while fetching header field: #{field}."
+        nil
+      end
+    end
+
+    # make sure the message has valid message ids for the message, and
+    # fetch them
+    def fetch_message_ids field
+      if self[field]
+        begin
+          self[field].message_ids || []
+        rescue
+          []
+        end
+      else
+        []
+      end
+    end
+  end
+end
+
 ## time for some monkeypatching!
 class Symbol
   unless method_defined? :to_proc
@@ -60,101 +90,6 @@ class Pathname
       ctime.strftime("%Y-%m-%d %H:%M")
     rescue SystemCallError
       "?"
-    end
-  end
-end
-
-## more monkeypatching!
-module RMail
-  class EncodingUnsupportedError < StandardError; end
-
-  class Message
-    def self.make_file_attachment fn
-      bfn = File.basename fn
-      t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first
-      make_attachment IO.read(fn), t.content_type, t.encoding, bfn.to_s
-    end
-
-    def charset
-      if header.field?("content-type") && header.fetch("content-type") =~ /charset="?(.*?)"?(;|$)/i
-        $1
-      end
-    end
-
-    def self.make_attachment payload, mime_type, encoding, filename
-      a = Message.new
-      a.header.add "Content-Disposition", "attachment; filename=#{filename.inspect}"
-      a.header.add "Content-Type", "#{mime_type}; name=#{filename.inspect}"
-      a.header.add "Content-Transfer-Encoding", encoding if encoding
-      a.body =
-        case encoding
-        when "base64"
-          [payload].pack "m"
-        when "quoted-printable"
-          [payload].pack "M"
-        when "7bit", "8bit", nil
-          payload
-        else
-          raise EncodingUnsupportedError, encoding.inspect
-        end
-      a
-    end
-  end
-
-  class Serialize
-    ## Don't add MIME-Version headers on serialization. Sup sometimes want's to serialize
-    ## message parts where these headers are not needed and messing with the message on
-    ## serialization breaks gpg signatures. The commented section shows the original RMail
-    ## code.
-    def calculate_boundaries(message)
-      calculate_boundaries_low(message, [])
-      # unless message.header['MIME-Version']
-      #   message.header['MIME-Version'] = "1.0"
-      # end
-    end
-  end
-
-  class Header
-
-    # Convert to ASCII before trying to match with regexp
-    class Field
-
-      EXTRACT_FIELD_NAME_RE = /\A([^\x00-\x1f\x7f-\xff :]+):\s*/no
-
-      class << self
-        def parse(field)
-          field = field.dup.to_s
-          field = field.fix_encoding.ascii
-          if field =~ EXTRACT_FIELD_NAME_RE
-            [ $1, $'.chomp ]
-          else
-            [ "", Field.value_strip(field) ]
-          end
-        end
-      end
-    end
-
-    ## Be more cautious about invalid content-type headers
-    ## the original RMail code calls
-    ## value.strip.split(/\s*;\s*/)[0].downcase
-    ## without checking if split returned an element
-
-    # This returns the full content type of this message converted to
-    # lower case.
-    #
-    # If there is no content type header, returns the passed block is
-    # executed and its return value is returned.  If no block is passed,
-    # the value of the +default+ argument is returned.
-    def content_type(default = nil)
-      if value = self['content-type'] and ct = value.strip.split(/\s*;\s*/)[0]
-        return ct.downcase
-      else
-        if block_given?
-          yield
-        else
-          default
-        end
-      end
     end
   end
 end

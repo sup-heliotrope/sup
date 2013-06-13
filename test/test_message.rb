@@ -1,7 +1,6 @@
 #!/usr/bin/ruby
 
 require 'test_helper'
-require 'sup'
 require 'stringio'
 
 require 'dummy_source'
@@ -107,7 +106,6 @@ EOS
     assert_equal("<mailto:example-unsubscribe@example.invalid>", list_unsubscribe)
 
     list_address = sup_message.list_address
-    puts list_address.inspect
     assert_equal("example@example.invalid", list_address.email)
     assert_equal("example", list_address.name)
 
