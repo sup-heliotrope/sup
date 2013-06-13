@@ -3,7 +3,6 @@ language: ruby
 rvm:
   - 2.0.0
   - 1.9.3
-  - 1.9.2
 
 before_install:
   - sudo apt-get update -qq
@@ -15,4 +14,3 @@ matrix:
   allow_failures:
     - rvm: 2.0.0
     - rvm: 1.9.3
-    - rvm: 1.9.2
