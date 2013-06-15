@@ -111,7 +111,13 @@ class Message
     @from = Person.from_address "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>" unless @from
     @sender = Person.from_address m.fetch_header(:sender)
 
-    @date = (m.date || Time.now).to_time
+    begin
+      @date = (m.date || Time.now).to_time
+    rescue NoMethodError
+      # TODO: remove this rescue once mail/#564 is fixed
+      warn "Invalid date for message #{@id}, using 'now'."
+      @date = Time.now.to_time
+    end
 
     @to = Person.from_address_list (m.fetch_header (:to))
     @cc = Person.from_address_list (m.fetch_header (:cc))
