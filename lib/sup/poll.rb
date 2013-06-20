@@ -35,7 +35,7 @@ EOS
     @mutex = Mutex.new
     @thread = nil
     @last_poll = nil
-    @polling = false
+    @polling = Mutex.new
     @poll_sources = nil
     @mode = nil
     @should_clear_running_totals = false
@@ -77,21 +77,27 @@ EOS
   end
 
   def poll
-    return if @polling
-    @polling = true
-    @poll_sources = SourceManager.usual_sources
-    num, numi = poll_with_sources
-    @polling = false
-    [num, numi]
+    if @polling.try_lock
+      @poll_sources = SourceManager.usual_sources
+      num, numi = poll_with_sources
+      @polling.unlock
+      [num, numi]
+    else
+      debug "poll already in progress."
+      return
+    end
   end
 
   def poll_unusual
-    return if @polling
-    @polling = true
-    @poll_sources = SourceManager.unusual_sources
-    num, numi = poll_with_sources
-    @polling = false
-    [num, numi]
+    if @polling.try_lock
+      @poll_sources = SourceManager.unusual_sources
+      num, numi = poll_with_sources
+      @polling.unlock
+      [num, numi]
+    else
+      debug "poll_unusual already in progress."
+      return
+    end
   end
 
   def start
@@ -157,7 +163,6 @@ EOS
       loaded_labels = loaded_labels - LabelManager::HIDDEN_RESERVED_LABELS - [:inbox, :killed]
       yield "Done polling; loaded #{total_num} new messages total"
       @last_poll = Time.now
-      @polling = false
     end
     [total_num, total_numi, from_and_subj, from_and_subj_inbox, loaded_labels]
   end
