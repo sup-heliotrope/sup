@@ -202,11 +202,11 @@ EOS
           end
         end
 
-        source.go_idle
       rescue SourceError => e
         warn "problem getting messages from #{source}: #{e.message}"
 
       ensure
+        source.go_idle
         source.poll_lock.unlock
       end
     else
