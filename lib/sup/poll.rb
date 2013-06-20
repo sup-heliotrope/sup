@@ -22,7 +22,7 @@ Variables:
                    num: the total number of new messages added in this poll
              num_inbox: the number of new messages added in this poll which
                         appear in the inbox (i.e. were not auto-archived).
-             num_total: the total number of messages 
+             num_total: the total number of messages
        num_inbox_total: the total number of new messages in the inbox.
 num_inbox_total_unread: the total number of unread messages in the inbox
          from_and_subj: an array of (from email address, subject) pairs
@@ -57,15 +57,15 @@ EOS
     @running_totals[:num] += num
     @running_totals[:numi] += numi
     @running_totals[:loaded_labels] += loaded_labels || []
-   
-    
+
+
     if HookManager.enabled? "after-poll"
       hook_args = { :num => num, :num_inbox => numi,
                     :num_total => @running_totals[:num], :num_inbox_total => @running_totals[:numi],
-                    :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox, 
+                    :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox,
                     :num_inbox_total_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] } }
 
-      HookManager.run("after-poll", hook_args) 
+      HookManager.run("after-poll", hook_args)
     else
       if @running_totals[:num] > 0
         BufferManager.flash "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox. Labels: #{@running_totals[:loaded_labels].map{|l| l.to_s}.join(', ')}"
