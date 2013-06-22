@@ -540,7 +540,9 @@ private
   def inline_gpg_to_chunks body, encoding_to, encoding_from
     lines = body.split("\n")
     gpg = lines.between(GPG_SIGNED_START, GPG_SIGNED_END)
-    if !gpg.empty?
+    # between does not check if GPG_END actually exists
+    # Reference: http://permalink.gmane.org/gmane.mail.sup.devel/641
+    if !gpg.empty? && !lines.index(GPG_END).nil?
       msg = RMail::Message.new
       msg.body = gpg.join("\n")
 
