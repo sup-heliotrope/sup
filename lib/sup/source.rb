@@ -62,7 +62,7 @@ class Source
 
   bool_accessor :usual, :archived
   attr_reader :uri
-  attr_accessor :id
+  attr_accessor :id, :poll_lock
 
   def initialize uri, usual=true, archived=false, id=nil
     puts "Initialize source: #{uri}.."
@@ -72,6 +72,8 @@ class Source
     @usual = usual
     @archived = archived
     @id = id
+
+    @poll_lock = Mutex.new
   end
 
   ## overwrite me if you have a disk incarnation (currently used only for sup-sync-back)

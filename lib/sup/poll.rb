@@ -22,7 +22,7 @@ Variables:
                    num: the total number of new messages added in this poll
              num_inbox: the number of new messages added in this poll which
                         appear in the inbox (i.e. were not auto-archived).
-             num_total: the total number of messages 
+             num_total: the total number of messages
        num_inbox_total: the total number of new messages in the inbox.
 num_inbox_total_unread: the total number of unread messages in the inbox
            num_updated: the total number of updated messages
@@ -38,7 +38,7 @@ EOS
     @mutex = Mutex.new
     @thread = nil
     @last_poll = nil
-    @polling = false
+    @polling = Mutex.new
     @poll_sources = nil
     @mode = nil
     @should_clear_running_totals = false
@@ -89,21 +89,27 @@ EOS
   end
 
   def poll
-    return if @polling
-    @polling = true
-    @poll_sources = SourceManager.usual_sources
-    num, numi = poll_with_sources
-    @polling = false
-    [num, numi]
+    if @polling.try_lock
+      @poll_sources = SourceManager.usual_sources
+      num, numi = poll_with_sources
+      @polling.unlock
+      [num, numi]
+    else
+      debug "poll already in progress."
+      return
+    end
   end
 
   def poll_unusual
-    return if @polling
-    @polling = true
-    @poll_sources = SourceManager.unusual_sources
-    num, numi = poll_with_sources
-    @polling = false
-    [num, numi]
+    if @polling.try_lock
+      @poll_sources = SourceManager.unusual_sources
+      num, numi = poll_with_sources
+      @polling.unlock
+      [num, numi]
+    else
+      debug "poll_unusual already in progress."
+      return
+    end
   end
 
   def start
@@ -181,7 +187,6 @@ EOS
       loaded_labels = loaded_labels - LabelManager::HIDDEN_RESERVED_LABELS - [:inbox, :killed]
       yield "Done polling; loaded #{total_num} new messages total"
       @last_poll = Time.now
-      @polling = false
     end
     [total_num, total_numi, total_numu, total_numd, from_and_subj, from_and_subj_inbox, loaded_labels]
   end
@@ -190,64 +195,73 @@ EOS
   ## labels and locations set correctly. The Messages are saved to or removed
   ## from the index after being yielded.
   def poll_from source, opts={}
-    begin
-      source.poll do |sym, args|
-        case sym
-        when :add
-          m = Message.build_from_source source, args[:info]
-          old_m = Index.build_message m.id
-          m.labels += args[:labels]
-          m.labels.delete :inbox  if source.archived?
-          m.labels.delete :unread if source.read?
-          m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
-          m.labels.each { |l| LabelManager << l }
-          m.labels = old_m.labels + (m.labels - [:unread, :inbox]) if old_m
-          m.locations = old_m.locations + m.locations if old_m
-          HookManager.run "before-add-message", :message => m
-          yield :add, m, old_m, args[:progress] if block_given?
-          Index.sync_message m, true
-
-          if Index.message_joining_killed? m
-            m.labels += [:killed]
+    debug "trying to acquire poll lock for: #{source}.."
+    if source.poll_lock.try_lock
+      debug "lock acquired for: #{source}."
+      begin
+        source.poll do |sym, args|
+          case sym
+          when :add
+            m = Message.build_from_source source, args[:info]
+            old_m = Index.build_message m.id
+            m.labels += args[:labels]
+            m.labels.delete :inbox  if source.archived?
+            m.labels.delete :unread if source.read?
+            m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
+            m.labels.each { |l| LabelManager << l }
+            m.labels = old_m.labels + (m.labels - [:unread, :inbox]) if old_m
+            m.locations = old_m.locations + m.locations if old_m
+            HookManager.run "before-add-message", :message => m
+            yield :add, m, old_m, args[:progress] if block_given?
             Index.sync_message m, true
-          end
 
-          ## We need to add or unhide the message when it either did not exist
-          ## before at all or when it was updated. We do *not* add/unhide when
-          ## the same message was found at a different location
-          if old_m
-            UpdateManager.relay self, :updated, m
-          elsif !old_m or not old_m.locations.member? m.location
-            UpdateManager.relay self, :added, m
-          end
-        when :delete
-          Index.each_message({:location => [source.id, args[:info]]}, false) do |m|
-            m.locations.delete Location.new(source, args[:info])
-            Index.sync_message m, false
-            if m.locations.size == 0
-              yield :delete, m, [source,args[:info]], args[:progress] if block_given?
-              Index.delete m.id
-              UpdateManager.relay self, :location_deleted, m
+            if Index.message_joining_killed? m
+              m.labels += [:killed]
+              Index.sync_message m, true
+            end
+
+            ## We need to add or unhide the message when it either did not exist
+            ## before at all or when it was updated. We do *not* add/unhide when
+            ## the same message was found at a different location
+            if old_m
+              UpdateManager.relay self, :updated, m
+            elsif !old_m or not old_m.locations.member? m.location
+              UpdateManager.relay self, :added, m
+            end
+          when :delete
+            Index.each_message({:location => [source.id, args[:info]]}, false) do |m|
+              m.locations.delete Location.new(source, args[:info])
+              Index.sync_message m, false
+              if m.locations.size == 0
+                yield :delete, m, [source,args[:info]], args[:progress] if block_given?
+                Index.delete m.id
+                UpdateManager.relay self, :location_deleted, m
+              end
+            end
+          when :update
+            Index.each_message({:location => [source.id, args[:old_info]]}, false) do |m|
+              old_m = Index.build_message m.id
+              m.locations.delete Location.new(source, args[:old_info])
+              m.locations.push Location.new(source, args[:new_info])
+              ## Update labels that might have been modified remotely
+              m.labels -= source.supported_labels?
+              m.labels += args[:labels]
+              yield :update, m, old_m if block_given?
+              Index.sync_message m, true
+              UpdateManager.relay self, :updated, m
             end
           end
-        when :update
-          Index.each_message({:location => [source.id, args[:old_info]]}, false) do |m|
-            old_m = Index.build_message m.id
-            m.locations.delete Location.new(source, args[:old_info])
-            m.locations.push Location.new(source, args[:new_info])
-            ## Update labels that might have been modified remotely
-            m.labels -= source.supported_labels?
-            m.labels += args[:labels]
-            yield :update, m, old_m if block_given?
-            Index.sync_message m, true
-            UpdateManager.relay self, :updated, m
-          end
         end
-      end
 
-      source.go_idle
-    rescue SourceError => e
-      warn "problem getting messages from #{source}: #{e.message}"
+      rescue SourceError => e
+        warn "problem getting messages from #{source}: #{e.message}"
+
+      ensure
+        source.go_idle
+        source.poll_lock.unlock
+      end
+    else
+      debug "source #{source} is already being polled."
     end
   end
 

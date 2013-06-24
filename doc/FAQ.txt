@@ -21,8 +21,8 @@ A: I hate ads, I hate using a mouse, and I hate non-programmability and
 
 Q: Why the console?
 A: Because a keystroke is worth a hundred mouse clicks, as any Unix
-   user knows. Because you don't need web browser. Because you get
-   instantaneous response and a simple interface.
+   user knows. Because you don't need a web browser. Because you get
+   an instantaneous response and a simple interface.
 
 Q: How does Sup deal with spam?
 A: You can manually mark messages as spam, which prevents them from
