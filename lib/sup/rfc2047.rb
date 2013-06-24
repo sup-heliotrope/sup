@@ -16,8 +16,6 @@
 #
 # This file is distributed under the same terms as Ruby.
 
-require 'iconv'
-
 module Rfc2047
   WORD = %r{=\?([!\#$%&'*+-/0-9A-Z\\^\`a-z{|}~]+)\?([BbQq])\?([!->@-~]+)\?=} # :nodoc: 'stupid ruby-mode
   WORDSEQ = %r{(#{WORD.source})\s+(?=#{WORD.source})}
@@ -52,7 +50,7 @@ module Rfc2047
         # WORD.
       end
 
-      Iconv.easy_decode(target, charset, text)
+      text.transcode(target, charset)
     end
   end
 end
