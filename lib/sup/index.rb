@@ -604,7 +604,6 @@ EOS
 
   def find_docid safe_id
     docids = term_docids(mkterm(:safe_id, safe_id))
-    debug "docids.size: #{docids.size}"
     fail unless docids.size <= 1
     docids.first
   end
