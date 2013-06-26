@@ -1,3 +1,7 @@
+Release 0.13.2:
+
+FreeBSD compatability and more thread safe polling.
+
 Release 0.13.1:
 
 Another ruby 1.8 compatible release, various fixes.
