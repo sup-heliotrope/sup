@@ -20,4 +20,20 @@ describe "Sup's String extension" do
       end
     end
   end
+
+  describe "#slice_by_display_length(len)" do
+    let :data do
+      [
+        ['some words', 6, 'some w'],
+        ['中文', 2, '中'],
+        ['älpha', 3, 'älp'],
+      ]
+    end
+
+    it "slices string by display length" do
+      data.each do |(str, length, sliced)|
+        str.slice_by_display_length(length).must_equal sliced
+      end
+    end
+  end
 end
