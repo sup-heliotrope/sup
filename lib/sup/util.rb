@@ -349,14 +349,14 @@ class String
   def wrap len
     ret = []
     s = self
-    while s.length > len
-      cut = s[0 ... len].rindex(/\s/)
+    while s.display_length > len
+      cut = s.slice_by_display_length(len).rindex(/\s/)
       if cut
         ret << s[0 ... cut]
         s = s[(cut + 1) .. -1]
       else
-        ret << s[0 ... len]
-        s = s[len .. -1]
+        ret << s.slice_by_display_length(len)
+        s = s[ret.last.length .. -1]
       end
     end
     ret << s

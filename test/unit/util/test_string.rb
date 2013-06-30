@@ -36,4 +36,22 @@ describe "Sup's String extension" do
       end
     end
   end
+
+  describe "#wrap" do
+    let :data do
+      [
+        ['some words', 6, ['some', 'words']],
+        ['some words', 80, ['some words']],
+        ['中文', 2, ['中', '文']],
+        ['中文', 5, ['中文']],
+        ['älpha', 3, ['älp', 'ha']],
+      ]
+    end
+
+    it "wraps string by display length" do
+      data.each do |(str, length, wrapped)|
+        str.wrap(length).must_equal wrapped
+      end
+    end
+  end
 end
