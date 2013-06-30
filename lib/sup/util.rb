@@ -259,6 +259,13 @@ class String
     @display_length ||= Unicode.width(self, false)
   end
 
+  def slice_by_display_length len
+    each_char.each_with_object "" do |c, buffer|
+      len -= c.display_length
+      buffer << c if len >= 0
+    end
+  end
+
   def camel_to_hyphy
     self.gsub(/([a-z])([A-Z0-9])/, '\1-\2').downcase
   end
