@@ -46,7 +46,7 @@ class TextMode < ScrollMode
 
   def << line
     @lines = [0] if @text.empty?
-    @text << line
+    @text << line.fix_encoding
     @lines << @text.length
     if buffer
       ensure_mode_validity
