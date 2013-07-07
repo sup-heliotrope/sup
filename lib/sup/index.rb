@@ -448,7 +448,7 @@ EOS
       raise ParseError, "xapian query parser error: #{e}"
     end
 
-    debug "parsed xapian query: #{xapian_query.description}"
+    debug "parsed xapian query: #{Util::Query.describe(xapian_query)}"
 
     raise ParseError if xapian_query.nil? or xapian_query.empty?
     query[:qobj] = xapian_query
