@@ -6,6 +6,7 @@ require 'fileutils'
 require 'monitor'
 require 'chronic'
 
+require "sup/util/query"
 require "sup/interactive_lock"
 require "sup/hook"
 require "sup/logger/singleton"
