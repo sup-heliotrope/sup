@@ -51,7 +51,7 @@ class AccountManager
     end
     hash[:alternates] ||= []
 
-    [:name, :signature].each { |x| hash[x].force_encoding Encoding::UTF_8 if hash[x].respond_to? :encoding }
+    [:name, :signature].each { |x| hash[x] ? hash[x].fix_encoding : nil }
 
     a = Account.new hash
     @accounts[a] = true
