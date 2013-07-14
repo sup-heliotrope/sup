@@ -352,6 +352,17 @@ EOS
 
   PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
 
+  COMPL_OPERATORS = %w[AND OR NOT]
+  COMPL_PREFIXES = (
+    %w[
+      from to
+      is has label 
+      filename filetypem
+      before on in during after
+      limit
+    ] + NORMAL_PREFIX.keys + BOOLEAN_PREFIX.keys
+  ).map{|p|"#{p}:"} + COMPL_OPERATORS
+
   ## parse a query string from the user. returns a query object
   ## that can be passed to any index method with a 'query'
   ## argument.

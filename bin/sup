@@ -291,7 +291,7 @@ begin
     when :search
       completions = LabelManager.all_labels.map { |l| "label:#{LabelManager.string_for l}" }
       completions = completions.each { |l| l.force_encoding 'UTF-8' if l.respond_to?(:encoding) }
-      completions += ["from:", "to:", "after:", "before:", "date:", "limit:", "AND", "OR", "NOT"]
+      completions += Index::COMPL_PREFIXES
       query = BufferManager.ask_many_with_completions :search, "Search all messages (enter for saved searches): ", completions
       unless query.nil?
         if query.empty?
