@@ -321,6 +321,37 @@ EOS
 
   class ParseError < StandardError; end
 
+  # Stemmed
+  NORMAL_PREFIX = {
+    'subject' => {:prefix => 'S', :exclusive => false},
+    'body' => {:prefix => 'B', :exclusive => false},
+    'from_name' => {:prefix => 'FN', :exclusive => false},
+    'to_name' => {:prefix => 'TN', :exclusive => false},
+    'name' => {:prefix => %w(FN TN), :exclusive => false},
+    'attachment' => {:prefix => 'A', :exclusive => false},
+    'email_text' => {:prefix => 'E', :exclusive => false},
+    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
+  }
+
+  # Unstemmed
+  BOOLEAN_PREFIX = {
+    'type' => {:prefix => 'K', :exclusive => true},
+    'from_email' => {:prefix => 'FE', :exclusive => false},
+    'to_email' => {:prefix => 'TE', :exclusive => false},
+    'email' => {:prefix => %w(FE TE), :exclusive => false},
+    'date' => {:prefix => 'D', :exclusive => true},
+    'label' => {:prefix => 'L', :exclusive => false},
+    'source_id' => {:prefix => 'I', :exclusive => true},
+    'attachment_extension' => {:prefix => 'O', :exclusive => false},
+    'msgid' => {:prefix => 'Q', :exclusive => true},
+    'id' => {:prefix => 'Q', :exclusive => true},
+    'thread' => {:prefix => 'H', :exclusive => false},
+    'ref' => {:prefix => 'R', :exclusive => false},
+    'location' => {:prefix => 'J', :exclusive => false},
+  }
+
+  PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
+
   ## parse a query string from the user. returns a query object
   ## that can be passed to any index method with a 'query'
   ## argument.
@@ -490,37 +521,6 @@ EOS
   end
 
   private
-
-  # Stemmed
-  NORMAL_PREFIX = {
-    'subject' => {:prefix => 'S', :exclusive => false},
-    'body' => {:prefix => 'B', :exclusive => false},
-    'from_name' => {:prefix => 'FN', :exclusive => false},
-    'to_name' => {:prefix => 'TN', :exclusive => false},
-    'name' => {:prefix => %w(FN TN), :exclusive => false},
-    'attachment' => {:prefix => 'A', :exclusive => false},
-    'email_text' => {:prefix => 'E', :exclusive => false},
-    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
-  }
-
-  # Unstemmed
-  BOOLEAN_PREFIX = {
-    'type' => {:prefix => 'K', :exclusive => true},
-    'from_email' => {:prefix => 'FE', :exclusive => false},
-    'to_email' => {:prefix => 'TE', :exclusive => false},
-    'email' => {:prefix => %w(FE TE), :exclusive => false},
-    'date' => {:prefix => 'D', :exclusive => true},
-    'label' => {:prefix => 'L', :exclusive => false},
-    'source_id' => {:prefix => 'I', :exclusive => true},
-    'attachment_extension' => {:prefix => 'O', :exclusive => false},
-    'msgid' => {:prefix => 'Q', :exclusive => true},
-    'id' => {:prefix => 'Q', :exclusive => true},
-    'thread' => {:prefix => 'H', :exclusive => false},
-    'ref' => {:prefix => 'R', :exclusive => false},
-    'location' => {:prefix => 'J', :exclusive => false},
-  }
-
-  PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
 
   MSGID_VALUENO = 0
   THREAD_VALUENO = 1
