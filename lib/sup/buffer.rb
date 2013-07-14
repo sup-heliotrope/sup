@@ -450,7 +450,7 @@ EOS
 
   def ask_with_completions domain, question, completions, default=nil
     ask domain, question, default do |s|
-      s.force_encoding 'UTF-8' if s.methods.include?(:encoding)
+      s.force_encoding 'UTF-8' if s.respond_to?(:encoding)
       completions.select { |x| x =~ /^#{Regexp::escape s}/iu }.map { |x| [x, x] }
     end
   end
@@ -467,8 +467,8 @@ EOS
           raise "william screwed up completion: #{partial.inspect}"
         end
 
-      prefix.force_encoding 'UTF-8' if prefix.methods.include?(:encoding)
-      target.force_encoding 'UTF-8' if target.methods.include?(:encoding)
+      prefix.force_encoding 'UTF-8' if prefix.respond_to?(:encoding)
+      target.force_encoding 'UTF-8' if target.respond_to?(:encoding)
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.map { |x| [prefix + x, x] }
     end
   end
@@ -477,10 +477,10 @@ EOS
     ask domain, question, default do |partial|
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ""
-      target.force_encoding 'UTF-8' if target.methods.include?(:encoding)
+      target.force_encoding 'UTF-8' if target.respond_to?(:encoding)
 
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
-      prefix.force_encoding 'UTF-8' if prefix.methods.include?(:encoding)
+      prefix.force_encoding 'UTF-8' if prefix.respond_to?(:encoding)
 
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
     end
