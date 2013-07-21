@@ -25,17 +25,13 @@ describe Redwood::Util::Query do
       life = 'hæi'
 
       # this is now possibly UTF-8 string with possibly invalid chars
-      desc = Redwood::Util::Query.describe (query)
+      assert_raises Redwood::Util::Query::QueryDescriptionError do
+        desc = Redwood::Util::Query.describe (query)
+      end
 
       assert_raises Encoding::CompatibilityError do
         _ = life + query.description
       end
-
-      _ = (life + desc)
-
-      # try to do something with string: raises invalid byte sequence
-      _.gsub(/" "/, "  ")
-
     end
   end
 end
