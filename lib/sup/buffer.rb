@@ -450,7 +450,7 @@ EOS
 
   def ask_with_completions domain, question, completions, default=nil
     ask domain, question, default do |s|
-      s.force_encoding 'UTF-8' if s.respond_to?(:encoding)
+      s.fix_encoding
       completions.select { |x| x =~ /^#{Regexp::escape s}/iu }.map { |x| [x, x] }
     end
   end
@@ -467,8 +467,8 @@ EOS
           raise "william screwed up completion: #{partial.inspect}"
         end
 
-      prefix.force_encoding 'UTF-8' if prefix.respond_to?(:encoding)
-      target.force_encoding 'UTF-8' if target.respond_to?(:encoding)
+      prefix.fix_encoding
+      target.fix_encoding
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.map { |x| [prefix + x, x] }
     end
   end
@@ -477,10 +477,10 @@ EOS
     ask domain, question, default do |partial|
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ""
-      target.force_encoding 'UTF-8' if target.respond_to?(:encoding)
+      target.fix_encoding
 
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
-      prefix.force_encoding 'UTF-8' if prefix.respond_to?(:encoding)
+      prefix.fix_encoding
 
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
     end
@@ -622,7 +622,7 @@ EOS
       tf.deactivate
       draw_screen :sync => false, :status => status, :title => title
     end
-    tf.value.tap { |x| x.force_encoding Encoding::UTF_8 if x && x.respond_to?(:encoding) }
+    tf.value.tap { |x| x.fix_encoding if x }
   end
 
   def ask_getch question, accept=nil
