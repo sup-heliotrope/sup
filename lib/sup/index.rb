@@ -356,7 +356,7 @@ EOS
   COMPL_PREFIXES = (
     %w[
       from to
-      is has label 
+      is has label
       filename filetypem
       before on in during after
       limit
