@@ -226,7 +226,8 @@ EOS
 
       @sigwinch_mutex.unlock
     rescue ThreadError
-      # thread locked by this thread already
+      # sigwinch_mutex locked by this thread already
+      debug "SIGWINCH already being handled in this thread."
     end
   end
 
