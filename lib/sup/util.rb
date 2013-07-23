@@ -379,7 +379,7 @@ class String
     # now convert to $encoding
     encode!($encoding, :invalid => :replace, :undef => :replace)
 
-    fail "Could not create valid #{$encoding.inspect?} string out of: '#{self.to_s}'." unless valid_encoding?
+    fail "Could not create valid #{$encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
 
     self
   end
@@ -403,7 +403,7 @@ class String
       fix_encoding
     end
 
-    fail "Could not create valid #{to_encoding.inspect?} string out of: '#{self.to_s}'." unless valid_encoding?
+    fail "Could not create valid #{to_encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
 
     self
   end
