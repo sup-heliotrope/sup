@@ -158,7 +158,11 @@ begin
 
   $die = false
   trap("TERM") { |x| $die = true }
-  trap("WINCH") { |x| BufferManager.sigwinch_happened! }
+  trap("WINCH") do |x|
+   ::Thread.new do
+     BufferManager.sigwinch_happened!
+   end
+  end
 
   if(s = Redwood::SourceManager.source_for DraftManager.source_name)
     DraftManager.source = s
