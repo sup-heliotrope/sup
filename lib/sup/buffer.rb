@@ -227,7 +227,6 @@ EOS
       @sigwinch_mutex.unlock
     rescue ThreadError
       # thread locked by this thread already
-
     end
   end
 
