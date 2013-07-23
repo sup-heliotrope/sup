@@ -215,7 +215,22 @@ EOS
     @sigwinch_mutex = Mutex.new
   end
 
-  def sigwinch_happened!; @sigwinch_mutex.synchronize { @sigwinch_happened = true } end
+  def sigwinch_happened!
+    # TODO: After moving to Ruby 2.0.0, migrate this to using Mutex.owned?
+    begin
+      @sigwinch_mutex.lock
+
+      ::Thread.new do
+        @sigwinch_happened = true
+      end
+
+      @sigwinch_mutex.unlock
+    rescue ThreadError
+      # sigwinch_mutex locked by this thread already
+      debug "SIGWINCH already being handled in this thread."
+    end
+  end
+
   def sigwinch_happened?; @sigwinch_mutex.synchronize { @sigwinch_happened } end
 
   def buffers; @name_map.to_a; end
