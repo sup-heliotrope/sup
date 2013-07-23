@@ -6,7 +6,7 @@ require 'yaml'
 require 'sup'
 
 module Redwood
-  class TestYamlRegressions < ::Minitest::Unit::TestCase
+  class TestYamlRegressions < ::Minitest::Test
     def test_yamling_hash
       hsh = {:foo => 42}
       reloaded = YAML.load(hsh.to_yaml)
