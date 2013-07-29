@@ -23,10 +23,11 @@ class Source
   ## to delete them, but that is optional.)
   ##
   ## Messages are identified internally based on the message id, and stored
-  ## with an unique document id, but source information that can
-  ## contai arbitrary fields (set up by the source) will be passed back
-  ## to the source when a message in the index (Sup database) needs to
-  ## be identified to its source, e.g. when re-reading or modifying.
+  ## with an unique document id. Along with the message, source information
+  ## that can contain arbitrary fields (set up by the source) is stored. This
+  ## information will be passed back to the source when a message in the
+  ## index (Sup database) needs to be identified to its source, e.g. when
+  ## re-reading or modifying a unique message.
   ##
   ## To write a new source, subclass this class, and implement:
   ##
