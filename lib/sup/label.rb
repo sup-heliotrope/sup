@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Redwood
 
 class LabelManager
@@ -77,7 +79,7 @@ class LabelManager
 
   def save
     return unless @modified
-    File.open(@fn, "w") { |f| f.puts @labels.keys.sort_by { |l| l.to_s } }
+    File.open(@fn, "w:UTF-8") { |f| f.puts @labels.keys.sort_by { |l| l.to_s } }
     @new_labels = {}
   end
 end

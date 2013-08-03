@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 #!/usr/bin/env ruby
 
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
@@ -416,7 +418,7 @@ unless Redwood::exceptions.empty?
 We are very sorry. It seems that an error occurred in Sup. Please
 accept our sincere apologies. Please submit the contents of
 #{BASE_DIR}/exception-log.txt and a brief report of the
-circumstances to https://github.com/sup-heliotrope/sup/issues so that 
+circumstances to https://github.com/sup-heliotrope/sup/issues so that
 we might address this problem. Thank you!
 
 Sincerely,

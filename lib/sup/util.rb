@@ -302,6 +302,15 @@ class String
   #
   # Not Ruby 1.8 compatible
   def fix_encoding
+    # first try to set the string to utf-8 and check if it is valid
+    # in case ruby just thinks it is something else
+    orig_encoding = encoding
+    force_encoding 'UTF-8'
+    return self if valid_encoding?
+
+    # that didn't work, go back to original and try to convert
+    force_encoding orig_encoding
+
     encode!('UTF-8', :invalid => :replace, :undef => :replace)
 
     # do this anyway in case string is set to be UTF-8, encoding to
