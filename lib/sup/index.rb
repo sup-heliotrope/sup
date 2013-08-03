@@ -387,6 +387,7 @@ EOS
     'safe_id' => {:prefix => 'S', :exclusive => true},
     'thread' => {:prefix => 'H', :exclusive => false},
     'ref' => {:prefix => 'R', :exclusive => false},
+    'safe_ref' => {:prefix => 'SR', :exclusive => false},
     'location' => {:prefix => 'J', :exclusive => false},
   }
 
