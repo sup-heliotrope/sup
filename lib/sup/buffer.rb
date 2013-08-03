@@ -126,14 +126,11 @@ class Buffer
     @w.attrset Colormap.color_for(opts[:color] || :none, opts[:highlight])
     s ||= ""
     maxl = @width - x # maximum display width width
-    stringl = maxl    # string "length"
 
     # fill up the line with blanks to overwrite old screen contents
     @w.mvaddstr y, x, " " * maxl unless opts[:no_fill]
 
-    ## the next horribleness is thanks to ruby's lack of widechar support
-    stringl += 1 while stringl < s.length && s[0 ... stringl].display_length < maxl
-    @w.mvaddstr y, x, s[0 ... stringl]
+    @w.mvaddstr y, x, s.slice_by_display_length(maxl)
   end
 
   def clear
@@ -450,7 +447,7 @@ EOS
 
   def ask_with_completions domain, question, completions, default=nil
     ask domain, question, default do |s|
-      s.force_encoding 'UTF-8' if s.methods.include?(:encoding)
+      s.fix_encoding
       completions.select { |x| x =~ /^#{Regexp::escape s}/iu }.map { |x| [x, x] }
     end
   end
@@ -467,8 +464,8 @@ EOS
           raise "william screwed up completion: #{partial.inspect}"
         end
 
-      prefix.force_encoding 'UTF-8' if prefix.methods.include?(:encoding)
-      target.force_encoding 'UTF-8' if target.methods.include?(:encoding)
+      prefix.fix_encoding
+      target.fix_encoding
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.map { |x| [prefix + x, x] }
     end
   end
@@ -477,10 +474,10 @@ EOS
     ask domain, question, default do |partial|
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ""
-      target.force_encoding 'UTF-8' if target.methods.include?(:encoding)
+      target.fix_encoding
 
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
-      prefix.force_encoding 'UTF-8' if prefix.methods.include?(:encoding)
+      prefix.fix_encoding
 
       completions.select { |x| x =~ /^#{Regexp::escape target}/i }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
     end
@@ -622,7 +619,7 @@ EOS
       tf.deactivate
       draw_screen :sync => false, :status => status, :title => title
     end
-    tf.value.tap { |x| x.force_encoding Encoding::UTF_8 if x && x.respond_to?(:encoding) }
+    tf.value.tap { |x| x.fix_encoding if x }
   end
 
   def ask_getch question, accept=nil

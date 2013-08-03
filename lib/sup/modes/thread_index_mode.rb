@@ -891,14 +891,14 @@ protected
 
       abbrev =
         if cur_width + name.display_length > from_width
-          name[0 ... (from_width - cur_width - 1)] + "."
+          name.slice_by_display_length(from_width - cur_width - 1) + "."
         elsif cur_width + name.display_length == from_width
-          name[0 ... (from_width - cur_width)]
+          name.slice_by_display_length(from_width - cur_width)
         else
           if last
-            name[0 ... (from_width - cur_width)]
+            name.slice_by_display_length(from_width - cur_width)
           else
-            name[0 ... (from_width - cur_width - 1)] + ","
+            name.slice_by_display_length(from_width - cur_width - 1) + ","
           end
         end
 

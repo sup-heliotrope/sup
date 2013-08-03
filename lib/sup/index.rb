@@ -1,4 +1,5 @@
 ENV["XAPIAN_FLUSH_THRESHOLD"] = "1000"
+ENV["XAPIAN_CJK_NGRAM"] = "1"
 
 require 'xapian'
 require 'set'
@@ -6,6 +7,7 @@ require 'fileutils'
 require 'monitor'
 require 'chronic'
 
+require "sup/util/query"
 require "sup/interactive_lock"
 require "sup/hook"
 require "sup/logger/singleton"
@@ -330,7 +332,7 @@ EOS
   def optimize
   end
 
-  ## Return the id source of the source the message with the given safe 
+  ## Return the id source of the source the message with the given safe
   ## message-id was synced from
   def source_for_safe_id safe_id
     synchronize { get_entry(safe_id)[:source_id] }
@@ -357,6 +359,48 @@ EOS
   end
 
   class ParseError < StandardError; end
+
+  # Stemmed
+  NORMAL_PREFIX = {
+    'subject' => {:prefix => 'S', :exclusive => false},
+    'body' => {:prefix => 'B', :exclusive => false},
+    'from_name' => {:prefix => 'FN', :exclusive => false},
+    'to_name' => {:prefix => 'TN', :exclusive => false},
+    'name' => {:prefix => %w(FN TN), :exclusive => false},
+    'attachment' => {:prefix => 'A', :exclusive => false},
+    'email_text' => {:prefix => 'E', :exclusive => false},
+    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
+  }
+
+  # Unstemmed
+  BOOLEAN_PREFIX = {
+    'type' => {:prefix => 'K', :exclusive => true},
+    'from_email' => {:prefix => 'FE', :exclusive => false},
+    'to_email' => {:prefix => 'TE', :exclusive => false},
+    'email' => {:prefix => %w(FE TE), :exclusive => false},
+    'date' => {:prefix => 'D', :exclusive => true},
+    'label' => {:prefix => 'L', :exclusive => false},
+    'source_id' => {:prefix => 'I', :exclusive => true},
+    'attachment_extension' => {:prefix => 'O', :exclusive => false},
+    'msgid' => {:prefix => 'Q', :exclusive => true},
+    'id' => {:prefix => 'Q', :exclusive => true},
+    'thread' => {:prefix => 'H', :exclusive => false},
+    'ref' => {:prefix => 'R', :exclusive => false},
+    'location' => {:prefix => 'J', :exclusive => false},
+  }
+
+  PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
+
+  COMPL_OPERATORS = %w[AND OR NOT]
+  COMPL_PREFIXES = (
+    %w[
+      from to
+      is has label
+      filename filetypem
+      before on in during after
+      limit
+    ] + NORMAL_PREFIX.keys + BOOLEAN_PREFIX.keys
+  ).map{|p|"#{p}:"} + COMPL_OPERATORS
 
   ## parse a query string from the user. returns a query object
   ## that can be passed to any index method with a 'query'
@@ -487,7 +531,7 @@ EOS
       raise ParseError, "xapian query parser error: #{e}"
     end
 
-    debug "parsed xapian query: #{xapian_query.description}"
+    debug "parsed xapian query: #{Util::Query.describe(xapian_query)}"
 
     raise ParseError if xapian_query.nil? or xapian_query.empty?
     query[:qobj] = xapian_query
@@ -531,37 +575,6 @@ EOS
   end
 
   private
-
-  # Stemmed
-  NORMAL_PREFIX = {
-    'subject' => {:prefix => 'S', :exclusive => false},
-    'body' => {:prefix => 'B', :exclusive => false},
-    'from_name' => {:prefix => 'FN', :exclusive => false},
-    'to_name' => {:prefix => 'TN', :exclusive => false},
-    'name' => {:prefix => %w(FN TN), :exclusive => false},
-    'attachment' => {:prefix => 'A', :exclusive => false},
-    'email_text' => {:prefix => 'E', :exclusive => false},
-    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
-  }
-
-  # Unstemmed
-  BOOLEAN_PREFIX = {
-    'type' => {:prefix => 'K', :exclusive => true},
-    'from_email' => {:prefix => 'FE', :exclusive => false},
-    'to_email' => {:prefix => 'TE', :exclusive => false},
-    'email' => {:prefix => %w(FE TE), :exclusive => false},
-    'date' => {:prefix => 'D', :exclusive => true},
-    'label' => {:prefix => 'L', :exclusive => false},
-    'source_id' => {:prefix => 'I', :exclusive => true},
-    'attachment_extension' => {:prefix => 'O', :exclusive => false},
-    'id' => {:prefix => 'S', :exclusive => true},
-    'safe_id' => {:prefix => 'S', :exclusive => true},
-    'thread' => {:prefix => 'H', :exclusive => false},
-    'safe_ref' => {:prefix => 'R', :exclusive => false},
-    'location' => {:prefix => 'J', :exclusive => false},
-  }
-
-  PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
 
   SAFE_MSGID_VALUENO = 0
   THREAD_VALUENO = 1
@@ -724,7 +737,7 @@ EOS
       k = @xapian.document docid
       debug "Stored safe_id: " + k.value(0)
     end
-    
+
 
     m.labels.each { |l| LabelManager << l }
     true

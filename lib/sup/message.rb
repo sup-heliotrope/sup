@@ -299,6 +299,8 @@ class Message
         warn "problem reading message #{id}"
         puts location.inspect
         [Chunk::Text.new(error_message.split("\n"))]
+
+        debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
       end
   end
 
