@@ -7,6 +7,7 @@ require 'pathname'
 require 'set'
 require 'enumerator'
 require 'benchmark'
+require 'unicode'
 
 ## time for some monkeypatching!
 class Symbol
@@ -254,14 +255,14 @@ class Object
 end
 
 class String
-  ## nasty multibyte hack for ruby 1.8. if it's utf-8, split into chars using
-  ## the utf8 regex and count those. otherwise, use the byte length.
   def display_length
-    if RUBY_VERSION < '1.9.1' && ($encoding == "UTF-8" || $encoding == "utf8")
-      # scan hack is somewhat slow, worth trying to cache
-      @display_length ||= scan(/./u).size
-    else
-      size
+    @display_length ||= Unicode.width(self, false)
+  end
+
+  def slice_by_display_length len
+    each_char.each_with_object "" do |c, buffer|
+      len -= c.display_length
+      buffer << c if len >= 0
     end
   end
 
@@ -348,14 +349,14 @@ class String
   def wrap len
     ret = []
     s = self
-    while s.length > len
-      cut = s[0 ... len].rindex(/\s/)
+    while s.display_length > len
+      cut = s.slice_by_display_length(len).rindex(/\s/)
       if cut
         ret << s[0 ... cut]
         s = s[(cut + 1) .. -1]
       else
-        ret << s[0 ... len]
-        s = s[len .. -1]
+        ret << s.slice_by_display_length(len)
+        s = s[ret.last.length .. -1]
       end
     end
     ret << s
@@ -379,7 +380,7 @@ class String
     # now convert to $encoding
     encode!($encoding, :invalid => :replace, :undef => :replace)
 
-    fail "Could not create valid #{$encoding.inspect?} string out of: '#{self.to_s}'." unless valid_encoding?
+    fail "Could not create valid #{$encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
 
     self
   end
@@ -403,7 +404,7 @@ class String
       fix_encoding
     end
 
-    fail "Could not create valid #{to_encoding.inspect?} string out of: '#{self.to_s}'." unless valid_encoding?
+    fail "Could not create valid #{to_encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
 
     self
   end

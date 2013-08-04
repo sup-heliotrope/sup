@@ -158,7 +158,11 @@ begin
 
   $die = false
   trap("TERM") { |x| $die = true }
-  trap("WINCH") { |x| BufferManager.sigwinch_happened! }
+  trap("WINCH") do |x|
+   ::Thread.new do
+     BufferManager.sigwinch_happened!
+   end
+  end
 
   if(s = Redwood::SourceManager.source_for DraftManager.source_name)
     DraftManager.source = s
@@ -290,8 +294,8 @@ begin
       b.mode.load_in_background if new
     when :search
       completions = LabelManager.all_labels.map { |l| "label:#{LabelManager.string_for l}" }
-      completions = completions.each { |l| l.force_encoding 'UTF-8' if l.methods.include?(:encoding) }
-      completions += ["from:", "to:", "after:", "before:", "date:", "limit:", "AND", "OR", "NOT"]
+      completions = completions.each { |l| l.fix_encoding }
+      completions += Index::COMPL_PREFIXES
       query = BufferManager.ask_many_with_completions :search, "Search all messages (enter for saved searches): ", completions
       unless query.nil?
         if query.empty?
@@ -304,7 +308,7 @@ begin
       SearchResultsMode.spawn_from_query "is:unread"
     when :list_labels
       labels = LabelManager.all_labels.map { |l| LabelManager.string_for l }
-      labels = labels.each { |l| l.force_encoding 'UTF-8' if l.methods.include?(:encoding) }
+      labels = labels.each { |l| l.fix_encoding }
 
       user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
       unless user_label.nil?

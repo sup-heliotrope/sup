@@ -275,7 +275,7 @@ EOS
     end
     plain_data.seek(0, IO::SEEK_SET)
     output = plain_data.read
-    output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
+    output.transcode(Encoding::ASCII_8BIT, output.encoding)
 
     ## TODO: test to see if it is still necessary to do a 2nd run if verify
     ## fails.
@@ -314,7 +314,7 @@ EOS
       msg = RMail::Parser.read output
       if msg.header.content_type =~ %r{^multipart/} && !msg.multipart?
         output = "MIME-Version: 1.0\n" + output
-        output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
+        output.fix_encoding
         msg = RMail::Parser.read output
       end
     end
