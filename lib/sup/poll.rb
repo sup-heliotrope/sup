@@ -171,7 +171,7 @@ EOS
   ## labels and locations set correctly. The Messages are saved to or removed
   ## from the index after being yielded.
   def poll_from source, opts={}
-    debug "trying to acquiring poll lock for: #{source}.."
+    debug "trying to acquire poll lock for: #{source}.."
     if source.poll_lock.try_lock
       debug "lock acquired for: #{source}."
       begin
