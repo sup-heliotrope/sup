@@ -60,7 +60,10 @@ private
   ## actually distribute the message
   def send_message m
     @mutex.synchronize do
-      @sinks.each { |sink| sink << m }
+      @sinks.each do |sink|
+        sink << m
+        sink.flush if sink.respond_to?(:flush) and level == "debug"
+      end
       @buf << m
     end
   end
