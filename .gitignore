@@ -11,3 +11,7 @@ sup-exception-log.txt
 # bundler stuff
 Gemfile.lock
 .bundle
+
+# generated file for gnupg test
+test/gnupg_test_home/random_seed
+
