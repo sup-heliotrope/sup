@@ -119,6 +119,7 @@ EOS
   end
 
   def have_crypto?; @not_working_reason.nil? end
+  def not_working_reason; @not_working_reason end
 
   def sign from, to, payload
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?

@@ -41,6 +41,10 @@ class TestCryptoManager < ::Minitest::Unit::TestCase
         Redwood::AccountManager.init am
 
         Redwood::CryptoManager.init
+
+        if not CryptoManager.have_crypto?
+          warn "No crypto set up, crypto will not be tested. Reason: #{CryptoManager.not_working_reason}"
+        end
     end
 
     def teardown
