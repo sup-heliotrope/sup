@@ -25,8 +25,13 @@ class SentManager
   end
 
   def write_sent_message date, from_email, &block
-    @source.store_message date, from_email, &block
-    PollManager.poll_from @source
+    ::Thread.new do
+      debug "store the sent message (locking sent source..)"
+      @source.poll_lock.synchronize do
+        @source.store_message date, from_email, &block
+      end
+      PollManager.poll_from @source
+    end
   end
 end
 
@@ -37,6 +42,10 @@ class SentLoader < MBox
     @filename = Redwood::SENT_FN
     File.open(@filename, "w") { } unless File.exists? @filename
     super "mbox://" + @filename, true, $config[:archive_sent]
+  end
+
+  def init_with coder
+    initialize
   end
 
   def file_path; @filename end

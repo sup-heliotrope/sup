@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require 'uri'
 require 'set'
 
@@ -14,6 +16,8 @@ class Maildir < Source
     @expanded_uri = Source.expand_filesystem_uri(uri)
     uri = URI(@expanded_uri)
 
+    puts "Initializing maildir: #{uri}.."
+
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
     raise ArgumentError, "maildir URI must have a path component" unless uri.path
@@ -22,6 +26,10 @@ class Maildir < Source
     @labels = Set.new(labels || [])
     @mutex = Mutex.new
     @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
+  end
+
+  def init_with coder
+    initialize coder['uri'], coder['usual'], coder['archived'], coder['id'], coder['labels']
   end
 
   def file_path; @dir end
@@ -73,7 +81,13 @@ class Maildir < Source
   end
 
   def load_message id
-    with_file_for(id) { |f| RMail::Parser.read f }
+    with_file_for(id) do |f|
+      begin
+        Mail.read_from_string f.read
+      rescue
+        raise SourceError
+      end
+    end
   end
 
   def sync_back id, labels
@@ -108,7 +122,7 @@ class Maildir < Source
       next if prev_ctime >= ctime
       @ctimes[d] = ctime
 
-      old_ids = benchmark(:maildir_read_index) { Enumerator.new(Index.instance, :each_source_info, self.id, "#{d}/").to_a }
+      old_ids = benchmark(:maildir_read_index) { Index.to_enum(:each_source_info, self.id, "#{d}/").to_a }
       new_ids = benchmark(:maildir_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(d,File.basename(x)) }.sort }
       added += new_ids - old_ids
       deleted += old_ids - new_ids
@@ -207,13 +221,13 @@ private
 
   def maildir_reconcile_flags id, labels
       new_flags = Set.new( maildir_data(id)[2].each_char )
-    
-      # Set flags based on labels for the six flags we recognize 
-      if labels.member? :draft then new_flags.add?( "D" ) else new_flags.delete?( "D" ) end 
-      if labels.member? :starred then new_flags.add?( "F" ) else new_flags.delete?( "F" ) end 
-      if labels.member? :forwarded then new_flags.add?( "P" ) else new_flags.delete?( "P" ) end 
-      if labels.member? :replied then new_flags.add?( "R" ) else new_flags.delete?( "R" ) end 
-      if not labels.member? :unread then new_flags.add?( "S" ) else new_flags.delete?( "S" ) end 
+
+      # Set flags based on labels for the six flags we recognize
+      if labels.member? :draft then new_flags.add?( "D" ) else new_flags.delete?( "D" ) end
+      if labels.member? :starred then new_flags.add?( "F" ) else new_flags.delete?( "F" ) end
+      if labels.member? :forwarded then new_flags.add?( "P" ) else new_flags.delete?( "P" ) end
+      if labels.member? :replied then new_flags.add?( "R" ) else new_flags.delete?( "R" ) end
+      if not labels.member? :unread then new_flags.add?( "S" ) else new_flags.delete?( "S" ) end
       if labels.member? :deleted or labels.member? :killed then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
 
       ## Flags must be stored in ASCII order according to Maildir

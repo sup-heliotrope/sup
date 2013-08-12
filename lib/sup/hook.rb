@@ -1,3 +1,5 @@
+require "sup/util"
+
 module Redwood
 
 class HookManager
@@ -12,6 +14,14 @@ class HookManager
       if BufferManager.instantiated?
         @__say_id = BufferManager.say s, @__say_id
         BufferManager.draw_screen
+      else
+        log s
+      end
+    end
+
+    def flash s
+      if BufferManager.instantiated?
+        BufferManager.flash s
       else
         log s
       end

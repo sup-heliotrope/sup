@@ -110,7 +110,7 @@ EOS
       num = t.size
       message = "Loading #{num.pluralize 'message body'}..."
       BufferManager.say(message) do |sid|
-        t.each_with_index do |(m, *o), i|
+        t.each_with_index do |(m, *_), i|
           next unless m
           BufferManager.say "#{message} (#{i}/#{num})", sid if t.size > 1
           m.load_from_source!
@@ -251,6 +251,7 @@ EOS
   end
 
   def update
+    debug "update screen.."
     old_cursor_thread = cursor_thread
     @mutex.synchronize do
       ## let's see you do THIS in python
@@ -267,7 +268,7 @@ EOS
 
   def edit_message
     return unless(t = cursor_thread)
-    message, *crap = t.find { |m, *o| m.has_label? :draft }
+    message, *_ = t.find { |m, *o| m.has_label? :draft }
     if message
       mode = ResumeMode.new message
       BufferManager.spawn "Edit message", mode
@@ -278,7 +279,6 @@ EOS
 
   ## returns an undo lambda
   def actually_toggle_starred t
-    pos = curpos
     if t.has_label? :starred # if ANY message has a star
       t.remove_label :starred # remove from all
       UpdateManager.relay self, :unstarred, t.first
@@ -428,7 +428,11 @@ EOS
   end
 
   def multi_join_threads threads
-    @ts.join_threads threads or return
+    if not @ts.join_threads threads
+      debug "join_threads failed for some reason.."
+      update
+      return
+    end
     threads.each { |t| Index.save_thread t }
     @tags.drop_all_tags # otherwise we have tag pointers to invalid threads!
     update
@@ -887,14 +891,14 @@ protected
 
       abbrev =
         if cur_width + name.display_length > from_width
-          name[0 ... (from_width - cur_width - 1)] + "."
+          name.slice_by_display_length(from_width - cur_width - 1) + "."
         elsif cur_width + name.display_length == from_width
-          name[0 ... (from_width - cur_width)]
+          name.slice_by_display_length(from_width - cur_width)
         else
           if last
-            name[0 ... (from_width - cur_width)]
+            name.slice_by_display_length(from_width - cur_width)
           else
-            name[0 ... (from_width - cur_width - 1)] + ","
+            name.slice_by_display_length(from_width - cur_width - 1) + ","
           end
         end
 
@@ -907,8 +911,9 @@ protected
       from << [(newness ? :index_new_color : (starred ? :index_starred_color : :index_old_color)), abbrev]
     end
 
-    dp = t.direct_participants.any? { |p| AccountManager.is_account? p }
-    p = dp || t.participants.any? { |p| AccountManager.is_account? p }
+    is_me = AccountManager.method(:is_account?)
+    directly_participated = t.direct_participants.any?(&is_me)
+    participated = directly_participated || t.participants.any?(&is_me)
 
     subj_color =
       if t.has_label?(:draft)
@@ -938,7 +943,7 @@ protected
       [
       [:size_widget_color, size_widget_text],
       [:to_me_color, t.labels.member?(:attachment) ? "@" : " "],
-      [:to_me_color, dp ? ">" : (p ? '+' : " ")],
+      [:to_me_color, directly_participated ? ">" : (participated ? '+' : " ")],
     ] +
       (t.labels - @hidden_labels).sort_by {|x| x.to_s}.map {
             |label| [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]

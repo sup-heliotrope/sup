@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'thread'
 require 'lockfile'
 require 'mime/types'
@@ -5,7 +7,37 @@ require 'pathname'
 require 'set'
 require 'enumerator'
 require 'benchmark'
-require 'iconv'
+require 'unicode'
+
+module Mail
+  class Message
+    # a common interface that matches all the field
+    # IMPORTANT: if not existing, it must return nil
+    def fetch_header field
+      sym = field.to_sym
+      begin
+        self[sym] ? self[sym].to_s : nil
+      rescue
+        info "Error while fetching header field: #{field}."
+        nil
+      end
+    end
+
+    # make sure the message has valid message ids for the message, and
+    # fetch them
+    def fetch_message_ids field
+      if self[field]
+        begin
+          self[field].message_ids || []
+        rescue
+          []
+        end
+      else
+        []
+      end
+    end
+  end
+end
 
 ## time for some monkeypatching!
 class Symbol
@@ -31,7 +63,7 @@ class Lockfile
   def dump_lock_id lock_id = @lock_id
       "host: %s\npid: %s\nppid: %s\ntime: %s\nuser: %s\npname: %s\n" %
         lock_id.values_at('host','pid','ppid','time','user', 'pname')
-    end
+  end
 
   def lockinfo_on_disk
     h = load_lock_id IO.read(path)
@@ -59,82 +91,6 @@ class Pathname
       ctime.strftime("%Y-%m-%d %H:%M")
     rescue SystemCallError
       "?"
-    end
-  end
-end
-
-## more monkeypatching!
-module RMail
-  class EncodingUnsupportedError < StandardError; end
-
-  class Message
-    def self.make_file_attachment fn
-      bfn = File.basename fn
-      t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first
-      make_attachment IO.read(fn), t.content_type, t.encoding, bfn.to_s
-    end
-
-    def charset
-      if header.field?("content-type") && header.fetch("content-type") =~ /charset="?(.*?)"?(;|$)/i
-        $1
-      end
-    end
-
-    def self.make_attachment payload, mime_type, encoding, filename
-      a = Message.new
-      a.header.add "Content-Disposition", "attachment; filename=#{filename.inspect}"
-      a.header.add "Content-Type", "#{mime_type}; name=#{filename.inspect}"
-      a.header.add "Content-Transfer-Encoding", encoding if encoding
-      a.body =
-        case encoding
-        when "base64"
-          [payload].pack "m"
-        when "quoted-printable"
-          [payload].pack "M"
-        when "7bit", "8bit", nil
-          payload
-        else
-          raise EncodingUnsupportedError, encoding.inspect
-        end
-      a
-    end
-  end
-
-  class Serialize
-    ## Don't add MIME-Version headers on serialization. Sup sometimes want's to serialize
-    ## message parts where these headers are not needed and messing with the message on
-    ## serialization breaks gpg signatures. The commented section shows the original RMail
-    ## code.
-    def calculate_boundaries(message)
-      calculate_boundaries_low(message, [])
-      # unless message.header['MIME-Version']
-      #   message.header['MIME-Version'] = "1.0"
-      # end
-    end
-  end
-
-  class Header
-    ## Be more cautious about invalid content-type headers
-    ## the original RMail code calls
-    ## value.strip.split(/\s*;\s*/)[0].downcase
-    ## without checking if split returned an element
-
-    # This returns the full content type of this message converted to
-    # lower case.
-    #
-    # If there is no content type header, returns the passed block is
-    # executed and its return value is returned.  If no block is passed,
-    # the value of the +default+ argument is returned.
-    def content_type(default = nil)
-      if value = self['content-type'] and ct = value.strip.split(/\s*;\s*/)[0]
-        return ct.downcase
-      else
-        if block_given?
-          yield
-        else
-          default
-        end
-      end
     end
   end
 end
@@ -234,14 +190,14 @@ class Object
 end
 
 class String
-  ## nasty multibyte hack for ruby 1.8. if it's utf-8, split into chars using
-  ## the utf8 regex and count those. otherwise, use the byte length.
   def display_length
-    if RUBY_VERSION < '1.9.1' && ($encoding == "UTF-8" || $encoding == "utf8")
-      # scan hack is somewhat slow, worth trying to cache
-      @display_length ||= scan(/./u).size
-    else
-      size
+    @display_length ||= Unicode.width(self, false)
+  end
+
+  def slice_by_display_length len
+    each_char.each_with_object "" do |c, buffer|
+      len -= c.display_length
+      buffer << c if len >= 0
     end
   end
 
@@ -328,20 +284,77 @@ class String
   def wrap len
     ret = []
     s = self
-    while s.length > len
-      cut = s[0 ... len].rindex(/\s/)
+    while s.display_length > len
+      cut = s.slice_by_display_length(len).rindex(/\s/)
       if cut
         ret << s[0 ... cut]
         s = s[(cut + 1) .. -1]
       else
-        ret << s[0 ... len]
-        s = s[len .. -1]
+        ret << s.slice_by_display_length(len)
+        s = s[ret.last.length .. -1]
       end
     end
     ret << s
   end
 
+  # Fix the damn string! make sure it is valid utf-8, then convert to
+  # user encoding.
+  #
+  # Not Ruby 1.8 compatible
+  def fix_encoding
+    # first try to set the string to utf-8 and check if it is valid
+    # in case ruby just thinks it is something else
+    orig_encoding = encoding
+    force_encoding 'UTF-8'
+    return self if valid_encoding?
+
+    # that didn't work, go back to original and try to convert
+    force_encoding orig_encoding
+
+    encode!('UTF-8', :invalid => :replace, :undef => :replace)
+
+    # do this anyway in case string is set to be UTF-8, encoding to
+    # something else (UTF-16 which can fully represent UTF-8) and back
+    # ensures invalid chars are replaced.
+    encode!('UTF-16', 'UTF-8', :invalid => :replace, :undef => :replace)
+    encode!('UTF-8', 'UTF-16', :invalid => :replace, :undef => :replace)
+
+    fail "Could not create valid UTF-8 string out of: '#{self.to_s}'." unless valid_encoding?
+
+    # now convert to $encoding
+    encode!($encoding, :invalid => :replace, :undef => :replace)
+
+    fail "Could not create valid #{$encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
+
+    self
+  end
+
+  # transcode the string if original encoding is know
+  # fix if broken.
+  #
+  # Not Ruby 1.8 compatible
+  def transcode to_encoding, from_encoding
+    begin
+      encode!(to_encoding, from_encoding, :invalid => :replace, :undef => :replace)
+
+      unless valid_encoding?
+        # fix encoding (through UTF-8)
+        encode!('UTF-16', from_encoding, :invalid => :replace, :undef => :replace)
+        encode!(to_encoding, 'UTF-16', :invalid => :replace, :undef => :replace)
+      end
+
+    rescue Encoding::ConverterNotFoundError
+      debug "Encoding converter not found for #{from_encoding.inspect} or #{to_encoding.inspect}, fixing string: '#{self.to_s}', but expect weird characters."
+      fix_encoding
+    end
+
+    fail "Could not create valid #{to_encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
+
+    self
+  end
+
   def normalize_whitespace
+    fix_encoding
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
 
@@ -383,12 +396,8 @@ class String
         out << b.chr
       end
     end
-    out.force_encoding Encoding::UTF_8 if out.respond_to? :force_encoding
-    out
-  end
-
-  def transcode src_encoding=$encoding
-    Iconv.easy_decode $encoding, src_encoding, self
+    out = out.fix_encoding # this should now be an utf-8 string of ascii
+                           # compat chars.
   end
 
   unless method_defined? :ascii_only?
@@ -659,27 +668,3 @@ class FinishLine
   end
 end
 
-class Iconv
-  def self.easy_decode target, orig_charset, text
-    if text.respond_to? :force_encoding
-      text = text.dup
-      text.force_encoding Encoding::BINARY
-    end
-    charset = case orig_charset
-      when /UTF[-_ ]?8/i then "utf-8"
-      when /(iso[-_ ])?latin[-_ ]?1$/i then "ISO-8859-1"
-      when /iso[-_ ]?8859[-_ ]?15/i then 'ISO-8859-15'
-      when /unicode[-_ ]1[-_ ]1[-_ ]utf[-_]7/i then "utf-7"
-      when /^euc$/i then 'EUC-JP' # XXX try them all?
-      when /^(x-unknown|unknown[-_ ]?8bit|ascii[-_ ]?7[-_ ]?bit)$/i then 'ASCII'
-      else orig_charset
-    end
-
-    begin
-      returning(Iconv.iconv(target + "//IGNORE", charset, text + " ").join[0 .. -2]) { |str| str.check }
-    rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::InvalidCharacter, Iconv::IllegalSequence, String::CheckError
-      debug "couldn't transcode text from #{orig_charset} (#{charset}) to #{target} (#{text[0 ... 20].inspect}...): got #{$!.class} (#{$!.message})"
-      text.ascii
-    end
-  end
-end

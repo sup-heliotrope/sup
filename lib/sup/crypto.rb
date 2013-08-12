@@ -74,7 +74,7 @@ EOS
       end
 
     unless @gpgme_present
-      @not_working_reason = ['gpgme gem not present', 
+      @not_working_reason = ['gpgme gem not present',
         'Install the gpgme gem in order to use signed and encrypted emails']
       return
     end
@@ -85,7 +85,7 @@ EOS
     else
       # check if the gpg-options hook uses the passphrase_callback
       # if it doesn't then check if gpg agent is present
-      gpg_opts = HookManager.run("gpg-options", 
+      gpg_opts = HookManager.run("gpg-options",
                                {:operation => "sign", :options => {}}) || {}
       if gpg_opts[:passphrase_callback].nil?
         if ENV['GPG_AGENT_INFO'].nil?
@@ -116,7 +116,7 @@ EOS
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     gpg_opts.merge!(gen_sign_user_opts(from))
-    gpg_opts = HookManager.run("gpg-options", 
+    gpg_opts = HookManager.run("gpg-options",
                                {:operation => "sign", :options => gpg_opts}) || gpg_opts
 
     begin
@@ -125,7 +125,7 @@ EOS
       raise Error, gpgme_exc_msg(exc.message)
     end
 
-    # if the key (or gpg-agent) is not available GPGME does not complain 
+    # if the key (or gpg-agent) is not available GPGME does not complain
     # but just returns a zero length string. Let's catch that
     if sig.length == 0
       raise Error, gpgme_exc_msg("GPG failed to generate signature: check that gpg-agent is running and your key is available.")
@@ -145,7 +145,7 @@ EOS
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     if sign
-      gpg_opts.merge!(gen_sign_user_opts(from)) 
+      gpg_opts.merge!(gen_sign_user_opts(from))
       gpg_opts.merge!({:sign => true})
     end
     gpg_opts = HookManager.run("gpg-options",
@@ -158,7 +158,7 @@ EOS
       raise Error, gpgme_exc_msg(exc.message)
     end
 
-    # if the key (or gpg-agent) is not available GPGME does not complain 
+    # if the key (or gpg-agent) is not available GPGME does not complain
     # but just returns a zero length string. Let's catch that
     if cipher.length == 0
       raise Error, gpgme_exc_msg("GPG failed to generate cipher text: check that gpg-agent is running and your key is available.")
@@ -275,7 +275,7 @@ EOS
     end
     plain_data.seek(0, IO::SEEK_SET)
     output = plain_data.read
-    output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
+    output.transcode(Encoding::ASCII_8BIT, output.encoding)
 
     ## TODO: test to see if it is still necessary to do a 2nd run if verify
     ## fails.
@@ -290,7 +290,7 @@ EOS
       # Look for Charset, they are put before the base64 crypted part
       charsets = payload.body.split("\n").grep(/^Charset:/)
       if !charsets.empty? and charsets[0] =~ /^Charset: (.+)$/
-        output = Iconv.easy_decode($encoding, $1, output)
+        output.transcode($encoding, $1)
       end
       msg.body = output
     else
@@ -314,7 +314,7 @@ EOS
       msg = RMail::Parser.read output
       if msg.header.content_type =~ %r{^multipart/} && !msg.multipart?
         output = "MIME-Version: 1.0\n" + output
-        output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
+        output.fix_encoding
         msg = RMail::Parser.read output
       end
     end
@@ -362,7 +362,7 @@ private
       else
         first_sig = "Unknown error or empty signature"
       end
-    rescue EOFError 
+    rescue EOFError
       from_key = nil
       first_sig = "No public key available for #{signature.fingerprint}"
     end

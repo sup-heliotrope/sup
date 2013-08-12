@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require 'tempfile'
 require 'rbconfig'
 
@@ -105,12 +107,7 @@ EOS
       @filename = filename
       @quotable = false # changed to true if we can parse it through the
                         # mime-decode hook, or if it's plain text
-      @raw_content =
-        if encoded_content.body
-          encoded_content.decode
-        else
-          "For some bizarre reason, RubyMail was unable to parse this attachment.\n"
-        end
+      @raw_content = encoded_content
 
       text = case @content_type
       when /^text\/plain\b/
@@ -118,19 +115,18 @@ EOS
       else
         HookManager.run "mime-decode", :content_type => content_type,
                         :filename => lambda { write_to_disk },
-                        :charset => encoded_content.charset,
                         :sibling_types => sibling_types
       end
 
       @lines = nil
       if text
-        text = text.transcode(encoded_content.charset || $encoding)
+        text = text.transcode(encoded_content.encoding || $encoding, text.encoding)
         @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
         @quotable = true
       end
     end
 
-    def color; :none end
+    def color; :text_color end
     def patina_color; :attachment_color end
     def patina_text
       if expandable?
@@ -191,7 +187,7 @@ EOS
     def quotable?; true end
     def expandable?; false end
     def viewable?; false end
-    def color; :none end
+    def color; :text_color end
   end
 
   class Quote

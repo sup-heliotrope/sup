@@ -1,17 +1,13 @@
+# encoding: utf-8
+
 require 'rubygems'
-
-require 'syck'
 require 'yaml'
-if YAML.const_defined? :ENGINE
-  YAML::ENGINE.yamler = 'syck'
-end
-
 require 'zlib'
 require 'thread'
 require 'fileutils'
-require 'gettext'
+require 'locale'
 require 'curses'
-require 'rmail'
+require 'mail'
 begin
   require 'fastthread'
 rescue LoadError
@@ -28,18 +24,23 @@ end
 class Module
   def yaml_properties *props
     props = props.map { |p| p.to_s }
-    vars = props.map { |p| "@#{p}" }
-    klass = self
-    path = klass.name.gsub(/::/, "/")
 
-    klass.instance_eval do
-      define_method(:to_yaml_properties) { vars }
-      define_method(:to_yaml_type) { "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}" }
+    path = name.gsub(/::/, "/")
+    yaml_tag "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
+
+    define_method :init_with do |coder|
+      initialize(*coder.map.values_at(*props))
     end
 
-    YAML.add_domain_type("#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}", path) do |type, val|
-      klass.new(*props.map { |p| val[p] })
+    define_method :encode_with do |coder|
+      coder.map = props.inject({}) do |hash, key|
+        hash[key] = instance_variable_get("@#{key}")
+        hash
+      end
     end
+
+    # Legacy
+    Psych.load_tags["!#{Redwood::LEGACY_YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"] = self
   end
 end
 
@@ -59,7 +60,8 @@ module Redwood
   LOG_FN     = File.join(BASE_DIR, "log")
   SYNC_OK_FN = File.join(BASE_DIR, "sync-back-ok")
 
-  YAML_DOMAIN = "masanjin.net"
+  YAML_DOMAIN = "supmua.org"
+  LEGACY_YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
 
   ## record exceptions thrown in threads nicely
@@ -342,13 +344,12 @@ require "sup/hook"
 require "sup/time"
 
 ## everything we need to get logging working
-require "sup/logger"
-Redwood::Logger.init.add_sink $stderr
-include Redwood::LogsStuff
+require "sup/logger/singleton"
 
 ## determine encoding and character set
 $encoding = Locale.current.charset
 $encoding = "UTF-8" if $encoding == "utf8"
+$encoding = "UTF-8" if $encoding == "UTF8"
 if $encoding
   debug "using character set encoding #{$encoding.inspect}"
 else
@@ -356,14 +357,24 @@ else
   $encoding = "UTF-8"
 end
 
+# test encoding
+teststr = "test"
+teststr.encode('UTF-8')
+begin
+  teststr.encode($encoding)
+rescue Encoding::ConverterNotFoundError
+  warn "locale encoding is invalid, defaulting to utf-8"
+  $encoding = "UTF-8"
+end
+
 require "sup/buffer"
 require "sup/keymap"
 require "sup/mode"
-require "sup/modes/scroll-mode"
-require "sup/modes/text-mode"
-require "sup/modes/log-mode"
+require "sup/modes/scroll_mode"
+require "sup/modes/text_mode"
+require "sup/modes/log_mode"
 require "sup/update"
-require "sup/message-chunks"
+require "sup/message_chunks"
 require "sup/message"
 require "sup/source"
 require "sup/mbox"
@@ -371,7 +382,7 @@ require "sup/maildir"
 require "sup/person"
 require "sup/account"
 require "sup/thread"
-require "sup/interactive-lock"
+require "sup/interactive_lock"
 require "sup/index"
 require "sup/textfield"
 require "sup/colormap"
@@ -382,31 +393,31 @@ require "sup/draft"
 require "sup/poll"
 require "sup/crypto"
 require "sup/undo"
-require "sup/horizontal-selector"
-require "sup/modes/line-cursor-mode"
-require "sup/modes/help-mode"
-require "sup/modes/edit-message-mode"
-require "sup/modes/edit-message-async-mode"
-require "sup/modes/compose-mode"
-require "sup/modes/resume-mode"
-require "sup/modes/forward-mode"
-require "sup/modes/reply-mode"
-require "sup/modes/label-list-mode"
-require "sup/modes/contact-list-mode"
-require "sup/modes/thread-view-mode"
-require "sup/modes/thread-index-mode"
-require "sup/modes/label-search-results-mode"
-require "sup/modes/search-results-mode"
-require "sup/modes/person-search-results-mode"
-require "sup/modes/inbox-mode"
-require "sup/modes/buffer-list-mode"
-require "sup/modes/poll-mode"
-require "sup/modes/file-browser-mode"
-require "sup/modes/completion-mode"
-require "sup/modes/console-mode"
+require "sup/horizontal_selector"
+require "sup/modes/line_cursor_mode"
+require "sup/modes/help_mode"
+require "sup/modes/edit_message_mode"
+require "sup/modes/edit_message_async_mode"
+require "sup/modes/compose_mode"
+require "sup/modes/resume_mode"
+require "sup/modes/forward_mode"
+require "sup/modes/reply_mode"
+require "sup/modes/label_list_mode"
+require "sup/modes/contact_list_mode"
+require "sup/modes/thread_view_mode"
+require "sup/modes/thread_index_mode"
+require "sup/modes/label_search_results_mode"
+require "sup/modes/search_results_mode"
+require "sup/modes/person_search_results_mode"
+require "sup/modes/inbox_mode"
+require "sup/modes/buffer_list_mode"
+require "sup/modes/poll_mode"
+require "sup/modes/file_browser_mode"
+require "sup/modes/completion_mode"
+require "sup/modes/console_mode"
 require "sup/sent"
 require "sup/search"
-require "sup/modes/search-list-mode"
+require "sup/modes/search_list_mode"
 require "sup/idle"
 
 $:.each do |base|

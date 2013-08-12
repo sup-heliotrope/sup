@@ -1,20 +1,27 @@
 ENV["XAPIAN_FLUSH_THRESHOLD"] = "1000"
+ENV["XAPIAN_CJK_NGRAM"] = "1"
 
 require 'xapian'
 require 'set'
 require 'fileutils'
 require 'monitor'
+require 'chronic'
 
-begin
-  require 'chronic'
-  $have_chronic = true
-rescue LoadError => e
-  debug "No 'chronic' gem detected. Install it for date/time query restrictions."
-  $have_chronic = false
-end
+require "sup/util/query"
+require "sup/interactive_lock"
+require "sup/hook"
+require "sup/logger/singleton"
 
-if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,1]) < 0
-	fail "Xapian version 1.2.1 or higher required"
+
+if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,15]) < 0
+  fail <<-EOF
+\n
+Xapian version 1.2.15 or higher required.
+If you have xapian-full-alaveteli installed,
+Please remove it by running `gem uninstall xapian-full-alaveteli`
+since it's been replaced by the xapian-ruby gem.
+
+  EOF
 end
 
 module Redwood
@@ -25,7 +32,7 @@ module Redwood
 class Index
   include InteractiveLock
 
-  INDEX_VERSION = '4'
+  INDEX_VERSION = '5'
 
   ## dates are converted to integers for xapian, and are used for document ids,
   ## so we must ensure they're reasonably valid. this typically only affect
@@ -91,9 +98,9 @@ EOS
     end
   end
 
-  def load
+  def load failsafe=false
     SourceManager.load_sources
-    load_index
+    load_index failsafe
   end
 
   def save
@@ -103,7 +110,11 @@ EOS
     save_index
   end
 
-  def load_index
+  def get_xapian
+    @xapian
+  end
+
+  def load_index failsafe=false
     path = File.join(@dir, 'xapian')
     if File.exists? path
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
@@ -112,8 +123,12 @@ EOS
       if false
         info "Upgrading index format #{db_version} to #{INDEX_VERSION}"
         @xapian.set_metadata 'version', INDEX_VERSION
+
+      elsif (db_version == '4')
+        fail "This Sup has a new index version v#{INDEX_VERSION}, but you have v#{db_version}. If you have just upgraded Sup there has been a major change in the index format and a migration tool need to be run. Please first back up your existing index using sup-dump and back up #{path}, then run sup-migrate-index to upgrade it." unless failsafe
+
       elsif db_version != INDEX_VERSION
-        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{path} out of the way, and run sup-sync --restore."
+        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{path} out of the way, and run sup-sync --restore." unless failsafe
       end
     else
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_CREATE)
@@ -134,11 +149,11 @@ EOS
     @xapian.flush
   end
 
-  def contains_id? id
-    synchronize { find_docid(id) && true }
+  def contains_safe_id? safe_id
+    synchronize { find_docid(safe_id) && true }
   end
 
-  def contains? m; contains_id? m.id end
+  def contains? m; contains_safe_id? m.safe_id end
 
   def size
     synchronize { @xapian.doccount }
@@ -146,12 +161,12 @@ EOS
 
   def empty?; size == 0 end
 
-  ## Yields a message-id and message-building lambda for each
+  ## Yields a safe message-id and message-building lambda for each
   ## message that matches the given query, in descending date order.
   ## You should probably not call this on a block that doesn't break
   ## rather quickly because the results can be very large.
-  def each_id_by_date query={}
-    each_id(query) { |id| yield id, lambda { build_message id } }
+  def each_safe_id_by_date query={}
+    each_safe_id(query) { |safe_id| yield safe_id, lambda { build_message safe_id } }
   end
 
   ## Return the number of matches for query in the index
@@ -165,12 +180,12 @@ EOS
   ## (warning: duplicates code below)
   ## NOTE: We can be more efficient if we assume every
   ## killed message that hasn't been initially added
-  ## to the indexi s this way
+  ## to the index is this way
   def message_joining_killed? m
-    return false unless doc = find_doc(m.id)
+    return false unless doc = find_doc(m.safe_id)
     queue = doc.value(THREAD_VALUENO).split(',')
     seen_threads = Set.new
-    seen_messages = Set.new [m.id]
+    seen_messages = Set.new [m.safe_id]
     while not queue.empty?
       thread_id = queue.pop
       next if seen_threads.member? thread_id
@@ -178,9 +193,9 @@ EOS
       seen_threads << thread_id
       docs = term_docids(mkterm(:thread, thread_id)).map { |x| @xapian.document x }
       docs.each do |doc|
-        msgid = doc.value MSGID_VALUENO
-        next if seen_messages.member? msgid
-        seen_messages << msgid
+        safe_msgid = doc.value SAFE_MSGID_VALUENO
+        next if seen_messages.member? safe_msgid
+        seen_messages << safe_msgid
         queue.concat doc.value(THREAD_VALUENO).split(',')
       end
     end
@@ -188,7 +203,7 @@ EOS
   end
 
   ## yield all messages in the thread containing 'm' by repeatedly
-  ## querying the index. yields pairs of message ids and
+  ## querying the index. yields pairs of safe message ids and
   ## message-building lambdas, so that building an unwanted message
   ## can be skipped in the block if desired.
   ##
@@ -197,11 +212,12 @@ EOS
   ## is found.
   def each_message_in_thread_for m, opts={}
     # TODO thread by subject
-    return unless doc = find_doc(m.id)
+    debug "yield messages for: #{m.safe_id}"
+    return unless doc = find_doc(m.safe_id)
     queue = doc.value(THREAD_VALUENO).split(',')
-    msgids = [m.id]
+    safe_msgids = [m.safe_id]
     seen_threads = Set.new
-    seen_messages = Set.new [m.id]
+    seen_messages = Set.new [m.safe_id]
     while not queue.empty?
       thread_id = queue.pop
       next if seen_threads.member? thread_id
@@ -209,20 +225,20 @@ EOS
       seen_threads << thread_id
       docs = term_docids(mkterm(:thread, thread_id)).map { |x| @xapian.document x }
       docs.each do |doc|
-        msgid = doc.value MSGID_VALUENO
-        next if seen_messages.member? msgid
-        msgids << msgid
-        seen_messages << msgid
+        safe_msgid = doc.value SAFE_MSGID_VALUENO
+        next if seen_messages.member? safe_msgid
+        safe_msgids << safe_msgid
+        seen_messages << safe_msgid
         queue.concat doc.value(THREAD_VALUENO).split(',')
       end
     end
-    msgids.each { |id| yield id, lambda { build_message id } }
+    safe_msgids.each { |safe_id| yield safe_id, lambda { build_message safe_id } }
     true
   end
 
-  ## Load message with the given message-id from the index
-  def build_message id
-    entry = synchronize { get_entry id }
+  ## Load message with the given safe message-id from the index
+  def build_message safe_id
+    entry = synchronize { get_entry safe_id }
     return unless entry
 
     locations = entry[:locations].map do |source_id,source_info|
@@ -247,9 +263,9 @@ EOS
     m
   end
 
-  ## Delete message with the given message-id from the index
-  def delete id
-    synchronize { @xapian.delete_document mkterm(:msgid, id) }
+  ## Delete message with the given safe message-id from the index
+  def delete safe_id
+    synchronize { @xapian.delete_document mkterm(:safe_msgid, safe_id) }
   end
 
   ## Given an array of email addresses, return an array of Person objects that
@@ -257,7 +273,7 @@ EOS
   def load_contacts email_addresses, opts={}
     contacts = Set.new
     num = opts[:num] || 20
-    each_id_by_date :participants => email_addresses do |id,b|
+    each_safe_id_by_date :participants => email_addresses do |id,b|
       break if contacts.size >= num
       m = b.call
       ([m.from]+m.to+m.cc+m.bcc).compact.each { |p| contacts << [p.name, p.email] }
@@ -265,17 +281,17 @@ EOS
     contacts.to_a.compact[0...num].map { |n,e| Person.from_name_and_email n, e }
   end
 
-  ## Yield each message-id matching query
+  ## Yield each safe message-id matching query
   EACH_ID_PAGE = 100
-  def each_id query={}, ignore_neg_terms = true
+  def each_safe_id query={}, ignore_neg_terms = true
     offset = 0
     page = EACH_ID_PAGE
 
     xapian_query = build_xapian_query query, ignore_neg_terms
     while true
-      ids = run_query_ids xapian_query, offset, (offset+page)
-      ids.each { |id| yield id }
-      break if ids.size < page
+      safe_ids = run_query_safe_ids xapian_query, offset, (offset+page)
+      safe_ids.each { |safe_id| yield safe_id }
+      break if safe_ids.size < page
       offset += page
     end
   end
@@ -286,9 +302,14 @@ EOS
   ## Poll#poll_from when we need to get the location of a message that
   ## may contain these labels
   def each_message query={}, ignore_neg_terms = true, &b
-    each_id query, ignore_neg_terms do |id|
-      yield build_message(id)
+    each_safe_id query, ignore_neg_terms do |safe_id|
+      yield build_message(safe_id)
     end
+  end
+
+  # Search messages. Returns an Enumerator.
+  def find_messages query_expr
+    enum_for :each_message, parse_query(query_expr)
   end
 
   # wrap all future changes inside a transaction so they're done atomically
@@ -311,13 +332,13 @@ EOS
   def optimize
   end
 
-  ## Return the id source of the source the message with the given message-id
-  ## was synced from
-  def source_for_id id
-    synchronize { get_entry(id)[:source_id] }
+  ## Return the id source of the source the message with the given safe
+  ## message-id was synced from
+  def source_for_safe_id safe_id
+    synchronize { get_entry(safe_id)[:source_id] }
   end
 
-  ## Yields each tearm in the index that starts with prefix
+  ## Yields each term in the index that starts with prefix
   def each_prefixed_term prefix
     term = @xapian._dangerous_allterms_begin prefix
     lastTerm = @xapian._dangerous_allterms_end prefix
@@ -338,6 +359,50 @@ EOS
   end
 
   class ParseError < StandardError; end
+
+  # Stemmed
+  NORMAL_PREFIX = {
+    'subject' => {:prefix => 'S', :exclusive => false},
+    'body' => {:prefix => 'B', :exclusive => false},
+    'from_name' => {:prefix => 'FN', :exclusive => false},
+    'to_name' => {:prefix => 'TN', :exclusive => false},
+    'name' => {:prefix => %w(FN TN), :exclusive => false},
+    'attachment' => {:prefix => 'A', :exclusive => false},
+    'email_text' => {:prefix => 'E', :exclusive => false},
+    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
+  }
+
+  # Unstemmed
+  BOOLEAN_PREFIX = {
+    'type' => {:prefix => 'K', :exclusive => true},
+    'from_email' => {:prefix => 'FE', :exclusive => false},
+    'to_email' => {:prefix => 'TE', :exclusive => false},
+    'email' => {:prefix => %w(FE TE), :exclusive => false},
+    'date' => {:prefix => 'D', :exclusive => true},
+    'label' => {:prefix => 'L', :exclusive => false},
+    'source_id' => {:prefix => 'I', :exclusive => true},
+    'attachment_extension' => {:prefix => 'O', :exclusive => false},
+    'msgid' => {:prefix => 'Q', :exclusive => true},
+    'id' => {:prefix => 'S', :exclusive => true},
+    'safe_id' => {:prefix => 'S', :exclusive => true},
+    'thread' => {:prefix => 'H', :exclusive => false},
+    'ref' => {:prefix => 'R', :exclusive => false},
+    'safe_ref' => {:prefix => 'SR', :exclusive => false},
+    'location' => {:prefix => 'J', :exclusive => false},
+  }
+
+  PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
+
+  COMPL_OPERATORS = %w[AND OR NOT]
+  COMPL_PREFIXES = (
+    %w[
+      from to
+      is has label
+      filename filetypem
+      before on in during after
+      limit
+    ] + NORMAL_PREFIX.keys + BOOLEAN_PREFIX.keys
+  ).map{|p|"#{p}:"} + COMPL_OPERATORS
 
   ## parse a query string from the user. returns a query object
   ## that can be passed to any index method with a 'query'
@@ -418,27 +483,25 @@ EOS
       end
     end
 
-    if $have_chronic
-      lastdate = 2<<32 - 1
-      firstdate = 0
-      subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
-        field, datestr = $1, ($3 || $4)
-        realdate = Chronic.parse datestr, :guess => false, :context => :past
-        if realdate
-          case field
-          when "after"
-            debug "chronic: translated #{field}:#{datestr} to #{realdate.end}"
-            "date:#{realdate.end.to_i}..#{lastdate}"
-          when "before"
-            debug "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
-            "date:#{firstdate}..#{realdate.end.to_i}"
-          else
-            debug "chronic: translated #{field}:#{datestr} to #{realdate}"
-            "date:#{realdate.begin.to_i}..#{realdate.end.to_i}"
-          end
+    lastdate = 2<<32 - 1
+    firstdate = 0
+    subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
+      field, datestr = $1, ($3 || $4)
+      realdate = Chronic.parse datestr, :guess => false, :context => :past
+      if realdate
+        case field
+        when "after"
+          debug "chronic: translated #{field}:#{datestr} to #{realdate.end}"
+          "date:#{realdate.end.to_i}..#{lastdate}"
+        when "before"
+          debug "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
+          "date:#{firstdate}..#{realdate.end.to_i}"
         else
-          raise ParseError, "can't understand date #{datestr.inspect}"
+          debug "chronic: translated #{field}:#{datestr} to #{realdate}"
+          "date:#{realdate.begin.to_i}..#{realdate.end.to_i}"
         end
+      else
+        raise ParseError, "can't understand date #{datestr.inspect}"
       end
     end
 
@@ -470,7 +533,7 @@ EOS
       raise ParseError, "xapian query parser error: #{e}"
     end
 
-    debug "parsed xapian query: #{xapian_query.description}"
+    debug "parsed xapian query: #{Util::Query.describe(xapian_query)}"
 
     raise ParseError if xapian_query.nil? or xapian_query.empty?
     query[:qobj] = xapian_query
@@ -515,42 +578,11 @@ EOS
 
   private
 
-  # Stemmed
-  NORMAL_PREFIX = {
-    'subject' => {:prefix => 'S', :exclusive => false},
-    'body' => {:prefix => 'B', :exclusive => false},
-    'from_name' => {:prefix => 'FN', :exclusive => false},
-    'to_name' => {:prefix => 'TN', :exclusive => false},
-    'name' => {:prefix => %w(FN TN), :exclusive => false},
-    'attachment' => {:prefix => 'A', :exclusive => false},
-    'email_text' => {:prefix => 'E', :exclusive => false},
-    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
-  }
-
-  # Unstemmed
-  BOOLEAN_PREFIX = {
-    'type' => {:prefix => 'K', :exclusive => true},
-    'from_email' => {:prefix => 'FE', :exclusive => false},
-    'to_email' => {:prefix => 'TE', :exclusive => false},
-    'email' => {:prefix => %w(FE TE), :exclusive => false},
-    'date' => {:prefix => 'D', :exclusive => true},
-    'label' => {:prefix => 'L', :exclusive => false},
-    'source_id' => {:prefix => 'I', :exclusive => true},
-    'attachment_extension' => {:prefix => 'O', :exclusive => false},
-    'msgid' => {:prefix => 'Q', :exclusive => true},
-    'id' => {:prefix => 'Q', :exclusive => true},
-    'thread' => {:prefix => 'H', :exclusive => false},
-    'ref' => {:prefix => 'R', :exclusive => false},
-    'location' => {:prefix => 'J', :exclusive => false},
-  }
-
-  PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
-
-  MSGID_VALUENO = 0
+  SAFE_MSGID_VALUENO = 0
   THREAD_VALUENO = 1
   DATE_VALUENO = 2
 
-  MAX_TERM_LENGTH = 245
+  MAX_TERM_LENGTH = 300
 
   # Xapian can very efficiently sort in ascending docid order. Sup always wants
   # to sort by descending date, so this method maps between them. In order to
@@ -585,24 +617,24 @@ EOS
     @xapian.postlist(term).map { |x| x.docid }
   end
 
-  def find_docid id
-    docids = term_docids(mkterm(:msgid,id))
+  def find_docid safe_id
+    docids = term_docids(mkterm(:safe_id, safe_id))
     fail unless docids.size <= 1
     docids.first
   end
 
-  def find_doc id
-    return unless docid = find_docid(id)
+  def find_doc safe_id
+    return unless docid = find_docid(safe_id)
     @xapian.document docid
   end
 
   def get_id docid
     return unless doc = @xapian.document(docid)
-    doc.value MSGID_VALUENO
+    doc.value SAFE_MSGID_VALUENO
   end
 
-  def get_entry id
-    return unless doc = find_doc(id)
+  def get_entry safe_id
+    return unless doc = find_doc(safe_id)
     doc.entry
   end
 
@@ -621,9 +653,9 @@ EOS
     end
   end
 
-  def run_query_ids xapian_query, offset, limit
+  def run_query_safe_ids xapian_query, offset, limit
     matchset = run_query xapian_query, offset, limit
-    matchset.matches.map { |r| r.document.value MSGID_VALUENO }
+    matchset.matches.map { |r| r.document.value SAFE_MSGID_VALUENO }
   end
 
   Q = Xapian::Query
@@ -660,7 +692,7 @@ EOS
     ## since it would overwrite the location field
     m.sync_back
 
-    doc = synchronize { find_doc(m.id) }
+    doc = synchronize { find_doc(m.safe_id) }
     existed = doc != nil
     doc ||= Xapian::Document.new
     do_index_static = overwrite || !existed
@@ -669,6 +701,7 @@ EOS
 
     entry = {
       :message_id => m.id,
+      :safe_id => m.safe_id,
       :locations => m.locations.map { |x| [x.source.id, x.info] },
       :date => truncate_date(m.date),
       :snippet => snippet,
@@ -679,7 +712,9 @@ EOS
       :bcc => m.bcc.map { |p| [p.email, p.name] },
       :subject => m.subj,
       :refs => m.refs.to_a,
+      :safe_refs => m.safe_refs.to_a,
       :replytos => m.replytos.to_a,
+      :safe_replytos => m.safe_replytos.to_a,
     }
 
     if do_index_static
@@ -696,11 +731,15 @@ EOS
     synchronize do
       unless docid = existed ? doc.docid : assign_docid(m, truncate_date(m.date))
         # Could be triggered by spam
-        warn "docid underflow, dropping #{m.id.inspect}"
+        warn "docid underflow, dropping #{m.safe_id.inspect}"
         return
       end
       @xapian.replace_document docid, doc
+      debug "Docid: #{docid}"
+      k = @xapian.document docid
+      debug "Stored safe_id: " + k.value(0)
     end
+
 
     m.labels.each { |l| LabelManager << l }
     true
@@ -730,7 +769,7 @@ EOS
     # Miscellaneous terms
     doc.add_term mkterm(:date, m.date) if m.date
     doc.add_term mkterm(:type, 'mail')
-    doc.add_term mkterm(:msgid, m.id)
+    doc.add_term mkterm(:safe_id, m.safe_id)
     m.attachments.each do |a|
       a =~ /\.(\w+)$/ or next
       doc.add_term mkterm(:attachment_extension, $1)
@@ -743,7 +782,7 @@ EOS
       Xapian.sortable_serialise 0
     end
 
-    doc.add_value MSGID_VALUENO, m.id
+    doc.add_value SAFE_MSGID_VALUENO, m.safe_id
     doc.add_value DATE_VALUENO, date_value
   end
 
@@ -772,18 +811,18 @@ EOS
   ## more. XapianIndex#each_message_in_thread_for follows the thread ids when
   ## searching so the user sees a single unified thread.
   def index_message_threading doc, entry, old_entry
-    return if old_entry && (entry[:refs] == old_entry[:refs]) && (entry[:replytos] == old_entry[:replytos])
-    children = term_docids(mkterm(:ref, entry[:message_id])).map { |docid| @xapian.document docid }
-    parent_ids = entry[:refs] + entry[:replytos]
-    parents = parent_ids.map { |id| find_doc id }.compact
+    return if old_entry && (entry[:safe_refs] == old_entry[:safe_refs])
+    children = term_docids(mkterm(:safe_ref, entry[:safe_id])).map { |docid| @xapian.document docid }
+    parent_ids = entry[:safe_refs]
+    parents = parent_ids.map { |safe_id| find_doc safe_id }.compact
     thread_members = SavingHash.new { [] }
     (children + parents).each do |doc2|
       thread_ids = doc2.value(THREAD_VALUENO).split ','
       thread_ids.each { |thread_id| thread_members[thread_id] << doc2 }
     end
-    thread_ids = thread_members.empty? ? [entry[:message_id]] : thread_members.keys
+    thread_ids = thread_members.empty? ? [entry[:safe_id]] : thread_members.keys
     thread_ids.each { |thread_id| doc.add_term mkterm(:thread, thread_id) }
-    parent_ids.each { |ref| doc.add_term mkterm(:ref, ref) }
+    parent_ids.each { |ref| doc.add_term mkterm(:safe_ref, ref) }
     doc.add_value THREAD_VALUENO, (thread_ids * ',')
   end
 
@@ -820,7 +859,10 @@ EOS
       PREFIX['location'][:prefix] + [args[0]].pack('n') + args[1].to_s
     when :attachment_extension
       PREFIX['attachment_extension'][:prefix] + args[0].to_s.downcase
-    when :msgid, :ref, :thread
+    when :thread, :safe_id, :safe_ref
+      if not PREFIX.member? type.to_s
+        raise NotImplementedError
+      end
       PREFIX[type.to_s][:prefix] + args[0][0...(MAX_TERM_LENGTH-1)]
     else
       raise "Invalid term type #{type}"

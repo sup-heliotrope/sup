@@ -1,3 +1,5 @@
+# encoding: UTF-8
+#
 ## Herein lies all the code responsible for threading messages. It's
 ## basically an online version of the JWZ threading algorithm:
 ## http://www.jwz.org/doc/threading.html
@@ -150,14 +152,14 @@ class Thread
 
   def sort_key
     m = latest_message
-    m ? [-m.date.to_i, m.id] : [-Time.now.to_i, ""]
+    m ? [-m.date.to_i, m.safe_id] : [-Time.now.to_i, ""]
   end
 end
 
 ## recursive structure used internally to represent message trees as
 ## described by reply-to: and references: headers.
 ##
-## the 'id' field is the same as the message id. but the message might
+## the 'id' field is the same as the safe message id. but the message might
 ## be empty, in the case that we represent a message that was referenced
 ## by another message (as an ancestor) but never received.
 class Container
@@ -259,16 +261,16 @@ class ThreadSet
     @index = index
     @num_messages = 0
     ## map from message ids to container objects
-    @messages = SavingHash.new { |id| Container.new id }
+    @messages = SavingHash.new { |safe_id| Container.new safe_id }
     ## map from subject strings or (or root message ids) to thread objects
     @threads = SavingHash.new { Thread.new }
     @thread_by_subj = thread_by_subj
   end
 
-  def thread_for_id mid; @messages.member?(mid) && @messages[mid].root.thread end
-  def contains_id? id; @messages.member?(id) && !@messages[id].empty? end
-  def thread_for m; thread_for_id m.id end
-  def contains? m; contains_id? m.id end
+  def thread_for_id safe_mid; @messages.member?(safe_mid) && @messages[safe_mid].root.thread end
+  def contains_id? safe_id; @messages.member?(safe_id) && !@messages[safe_id].empty? end
+  def thread_for m; thread_for_id m.safe_id end
+  def contains? m; contains_id? m.safe_id end
 
   def threads; @threads.values end
   def size; @threads.size end
@@ -289,9 +291,14 @@ class ThreadSet
       return
     end
 
-    #puts "in link for #{p.id} to #{c.id}, perform? #{c.parent.nil?} || #{overwrite}"
+    debug "in link for #{p.id} to #{c.id}, perform? #{c.parent.nil?} || #{overwrite}"
 
-    return unless c.parent.nil? || overwrite
+    debug "c.parent: #{c.parent}"
+    debug "c.parent.nil?: #{c.parent.nil?}"
+    debug "return: #{!c.parent.nil?}"
+    # TODO: Something very wrong here...
+    #return unless (c.parent.nil? || overwrite)
+    debug "remove container"
     remove_container c
     p.children << c
     c.parent = p
@@ -331,7 +338,7 @@ class ThreadSet
 
   ## load in (at most) num number of threads from the index
   def load_n_threads num, opts={}
-    @index.each_id_by_date opts do |mid, builder|
+    @index.each_safe_id_by_date opts do |mid, builder|
       break if size >= num unless num == -1
       next if contains_id? mid
 
@@ -360,13 +367,17 @@ class ThreadSet
   ## merges two threads together. both must be members of this threadset.
   ## does its best, heuristically, to determine which is the parent.
   def join_threads threads
+    debug "join threads.size: #{threads.size}"
     return if threads.size < 2
 
     containers = threads.map do |t|
-      c = @messages.member?(t.first.id) ? @messages[t.first.id] : nil
-      raise "not in threadset: #{t.first.id}" unless c && c.message
+      c = @messages.member?(t.first.safe_id) ? @messages[t.first.safe_id] : nil
+      raise "not in threadset: #{t.first.safe_id}" unless c && c.message
+      debug "joining: #{c}"
       c
     end
+
+    debug "containers: #{containers.inspect}"
 
     ## use subject headers heuristically
     parent = containers.find { |c| !c.is_reply? }
@@ -374,7 +385,10 @@ class ThreadSet
     ## no thread was rooted by a non-reply, so make a fake parent
     parent ||= @messages["joining-ref-" + containers.map { |c| c.id }.join("-")]
 
+    debug "parent: #{parent}"
+
     containers.each do |c|
+      debug "linking: #{c}"
       next if c == parent
       c.message.add_ref parent.id
       link parent, c
@@ -384,34 +398,35 @@ class ThreadSet
   end
 
   def is_relevant? m
-    m.refs.any? { |ref_id| @messages.member? ref_id }
+    m.safe_refs.any? { |ref_id| @messages.member? ref_id }
   end
 
   def delete_message message
-    el = @messages[message.id]
+    el = @messages[message.safe_id]
     return unless el.message
     el.message = nil
   end
 
   ## the heart of the threading code
   def add_message message
-    el = @messages[message.id]
+    el = @messages[message.safe_id]
     return if el.message # we've seen it before
 
-    #puts "adding: #{message.id}, refs #{message.refs.inspect}"
+    debug "adding message to thread: #{message.safe_id}, refs #{message.safe_refs.inspect}"
 
     el.message = message
     oldroot = el.root
+    debug "element: #{el.inspect}"
 
     ## link via references:
-    (message.refs + [el.id]).inject(nil) do |prev, ref_id|
+    (message.safe_refs + [el.id]).inject(nil) do |prev, ref_id|
       ref = @messages[ref_id]
       link prev, ref if prev
       ref
     end
 
     ## link via in-reply-to:
-    message.replytos.each do |ref_id|
+    message.safe_replytos.each do |ref_id|
       ref = @messages[ref_id]
       link ref, el, true
       break # only do the first one
@@ -425,11 +440,14 @@ class ThreadSet
         root.id
       end
 
+    debug "root: #{root.inspect}"
+    debug "key: #{key}"
     ## check to see if the subject is still the same (in the case
     ## that we first added a child message with a different
     ## subject)
     if root.thread
       if @threads.member?(key) && @threads[key] != root.thread
+        debug "delete thread: #{key}"
         @threads.delete key
       end
     else
