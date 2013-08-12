@@ -484,10 +484,10 @@ protected
       m = build_message date
 
       if HookManager.enabled? "sendmail"
-    if not HookManager.run "sendmail", :message => m, :account => acct
-          warn "Sendmail hook was not successful"
-          return false
-    end
+        if not HookManager.run "sendmail", :message => m, :account => acct
+              warn "Sendmail hook was not successful"
+              return false
+        end
       else
         IO.popen(acct.sendmail, "w") { |p| p.puts m }
         raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
