@@ -1,56 +1,55 @@
-#!/usr/bin/ruby
-
 # tests for sup's crypto libs
 #
 # Copyright Clint Byrum <clint@ubuntu.com> 2011. All Rights Reserved.
+# Copyright Sup Developers                 2013.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-require 'tmpdir'
-require 'test/unit'
-require 'rmail/message'
-require 'rmail/parser'
-require 'sup/util'
-require 'sup/hook'
-require 'sup/contact'
-require 'sup/person'
-require 'sup/account'
-require 'sup/message-chunks'
-require 'sup/crypto'
+require 'test_helper'
+require 'sup'
 require 'stringio'
+require 'tmpdir'
 
 module Redwood
 
-# These are all singletons
-CryptoManager.init
-Dir.mktmpdir('sup-test') do|f|
-    HookManager.init f
-end
-am = {:default=> {:name => "", :email=>ENV['EMAIL']}}
-AccountManager.init am
-
-class TestCryptoManager < Test::Unit::TestCase
+class TestCryptoManager < ::Minitest::Unit::TestCase
 
     def setup
-        @from_email = ENV['EMAIL']
-        # Change this or import my public key to make these tests work.
-        @to_email = 'clint@ubuntu.com'
+        @from_email = 'sup-test-1@foo.bar'
+        @to_email   = 'sup-test-2@foo.bar'
+        # Use test gnupg setup
+        @orig_gnupghome = ENV['GNUPGHOME']
+        ENV['GNUPGHOME'] = File.join(File.dirname(__FILE__), 'gnupg_test_home')
+
+        @path = Dir.mktmpdir
+        Redwood::HookManager.init File.join(@path, 'hooks')
+
+        am = {:default=> {:name => "test", :email=> 'sup-test-1@foo.bar'}}
+        Redwood::AccountManager.init am
+
+        Redwood::CryptoManager.init
     end
 
     def teardown
+      CryptoManager.deinstantiate!
+      AccountManager.deinstantiate!
+      HookManager.deinstantiate!
+      FileUtils.rm_r @path
+
+      ENV['GNUPGHOME'] = @orig_gnupghome
     end
 
     def test_sign
@@ -101,7 +100,6 @@ class TestCryptoManager < Test::Unit::TestCase
             CryptoManager.verify signed.body[0], signed.body[1], true
         end
     end
-        
 end
 
 end

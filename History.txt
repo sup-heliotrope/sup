@@ -6,6 +6,7 @@
 * Thread safety
 * No more Iconv, but using built in Ruby encodings. Better UTF-8
   handling.
+* GPGME 2.0 support
 
 == 0.13.2 / 2013-06-26
 

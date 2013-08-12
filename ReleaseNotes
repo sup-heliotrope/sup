@@ -1,7 +1,7 @@
 Release 0.14.0:
 
-CJK-compatability, Psych usage, thread safety. Sup is now Ruby 1.9 based, and
-apart from RMail - ready for Ruby 2.0.0.
+CJK-compatability, Psych usage, thread safety, GPGME 2.0 support. Sup is now
+Ruby 1.9 based, and apart from RMail - ready for Ruby 2.0.0.
 
 Sup now uses Psych as a YAML parser (default by Ruby) and your previous
 configuration files (~/.sup/*.yaml) may need to be migrated or re-created for
