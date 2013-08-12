@@ -34,19 +34,22 @@ class TestCryptoManager < ::Minitest::Unit::TestCase
         @orig_gnupghome = ENV['GNUPGHOME']
         ENV['GNUPGHOME'] = File.join(File.dirname(__FILE__), 'gnupg_test_home')
 
-        CryptoManager.init
         @path = Dir.mktmpdir
-        HookManager.init @path
+        Redwood::HookManager.init File.join(@path, 'hooks')
+
         am = {:default=> {:name => "test", :email=> 'sup-test-1@foo.bar'}}
-        AccountManager.init am
+        Redwood::AccountManager.init am
+
+        Redwood::CryptoManager.init
     end
 
     def teardown
-      ENV['GNUPGHOME'] = @orig_gnupghome
-
       CryptoManager.deinstantiate!
-      HookManager.deinstantiate!
       AccountManager.deinstantiate!
+      HookManager.deinstantiate!
+      FileUtils.rm_r @path
+
+      ENV['GNUPGHOME'] = @orig_gnupghome
     end
 
     def test_sign
