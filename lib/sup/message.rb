@@ -88,7 +88,7 @@ class Message
     # @list_unsubscribe
 
     unless m.message_id
-      m.message_id =  "<#{Time.now.to_i}-defaulted-#{munge_msgid m.header.to_s}@sup-faked>"
+      m.message_id =  "<#{Time.now.to_i}-defaulted-#{Digest::MD5.hexdigest m.header.to_s}@sup-faked>"
     end
 
     @id = m.message_id
