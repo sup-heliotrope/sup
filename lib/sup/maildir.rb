@@ -23,6 +23,10 @@ class Maildir < Source
     @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
   end
 
+  def init_with coder
+    initialize coder['uri'], coder['usual'], coder['archived'], coder['id'], coder['labels']
+  end
+
   def file_path; @dir end
   def self.suggest_labels_for path; [] end
   def is_source_for? uri; super || (uri == @expanded_uri); end
@@ -68,7 +72,13 @@ class Maildir < Source
   end
 
   def load_message id
-    with_file_for(id) { |f| RMail::Parser.read f }
+    with_file_for(id) do |f|
+      begin
+        Mail.read_from_string f.read
+      rescue
+        raise SourceError
+      end
+    end
   end
 
   def raw_header id
@@ -95,7 +105,7 @@ class Maildir < Source
       next if prev_mtime >= mtime
       @mtimes[d] = mtime
 
-      old_ids = benchmark(:maildir_read_index) { Enumerator.new(Index.instance, :each_source_info, self.id, "#{d}/").to_a }
+      old_ids = benchmark(:maildir_read_index) { Index.to_enum(:each_source_info, self.id, "#{d}/").to_a }
       new_ids = benchmark(:maildir_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.basename x }.sort }
       added = new_ids - old_ids
       deleted = old_ids - new_ids

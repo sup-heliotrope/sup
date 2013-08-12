@@ -34,6 +34,10 @@ class MBox < Source
     super uri_or_fp, usual, archived, id
   end
 
+  def init_with coder
+    initialize coder['uri'], coder['usual'], coder['archived'], coder['id'], coder['labels']
+  end
+
   def file_path; @path end
   def is_source_for? uri; super || (uri == @expanded_uri) end
 
@@ -81,8 +85,8 @@ class MBox < Source
         until @f.eof? || MBox::is_break_line?(l = @f.gets)
           string << l
         end
-        RMail::Parser.read string
-      rescue RMail::Parser::Error => e
+        Mail.read_from_string string
+      rescue e
         raise FatalSourceError, "error parsing mbox file: #{e.message}"
       end
     end
@@ -161,7 +165,7 @@ class MBox < Source
   ## TODO optimize this by iterating over allterms list backwards or
   ## storing source_info negated
   def last_indexed_message
-    benchmark(:mbox_read_index) { Enumerator.new(Index.instance, :each_source_info, self.id).map(&:to_i).max }
+    benchmark(:mbox_read_index) { Index.to_enum(:each_source_info, self.id).map(&:to_i).max }
   end
 
   ## offset of first new message or nil

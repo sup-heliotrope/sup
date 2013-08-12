@@ -32,7 +32,7 @@ module Redwood
 class Index
   include InteractiveLock
 
-  INDEX_VERSION = '4'
+  INDEX_VERSION = '5'
 
   ## dates are converted to integers for xapian, and are used for document ids,
   ## so we must ensure they're reasonably valid. this typically only affect
@@ -98,9 +98,9 @@ EOS
     end
   end
 
-  def load
+  def load failsafe=false
     SourceManager.load_sources
-    load_index
+    load_index failsafe
   end
 
   def save
@@ -110,7 +110,11 @@ EOS
     save_index
   end
 
-  def load_index
+  def get_xapian
+    @xapian
+  end
+
+  def load_index failsafe=false
     path = File.join(@dir, 'xapian')
     if File.exists? path
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
@@ -119,8 +123,12 @@ EOS
       if false
         info "Upgrading index format #{db_version} to #{INDEX_VERSION}"
         @xapian.set_metadata 'version', INDEX_VERSION
+
+      elsif (db_version == '4')
+        fail "This Sup has a new index version v#{INDEX_VERSION}, but you have v#{db_version}. If you have just upgraded Sup there has been a major change in the index format and a migration tool need to be run. Please first back up your existing index using sup-dump and back up #{path}, then run sup-migrate-index to upgrade it." unless failsafe
+
       elsif db_version != INDEX_VERSION
-        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{path} out of the way, and run sup-sync --restore."
+        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{path} out of the way, and run sup-sync --restore." unless failsafe
       end
     else
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_CREATE)
@@ -299,7 +307,7 @@ EOS
     synchronize { get_entry(id)[:source_id] }
   end
 
-  ## Yields each tearm in the index that starts with prefix
+  ## Yields each term in the index that starts with prefix
   def each_prefixed_term prefix
     term = @xapian._dangerous_allterms_begin prefix
     lastTerm = @xapian._dangerous_allterms_end prefix

@@ -63,7 +63,7 @@ configured for the account is used.
 The message will be saved after this hook is run, so any modification to it
 will be recorded.
 Variables:
-    message: RMail::Message instance of the mail to send
+    message: Mail instance of the mail to send
     account: Account instance matching the From address
 Return value:
      True if mail has been sent successfully, false otherwise.
@@ -105,7 +105,7 @@ EOS
     begin
       hostname = File.open("/etc/mailname", "r").gets.chomp
     rescue
-        nil
+      nil
     end
     hostname = Socket.gethostname if hostname.nil? or hostname.empty?
 
@@ -511,18 +511,19 @@ protected
   end
 
   def build_message date
-    m = RMail::Message.new
-    m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
-    m.body = @body.join("\n")
-    m.body += "\n" + sig_lines.join("\n") unless @sig_edited
+    m = Mail.new
+    m.content_type = "text/plain; charset=#{$encoding}"
+    bb = @body.join ("\n")
+    bb += "\n" + sig_lines.join("\n") unless @sig_edited
     ## body must end in a newline or GPG signatures will be WRONG!
-    m.body += "\n" unless m.body =~ /\n\Z/
+    bb += "\n" unless bb =~ /\n\Z/
+    m.body = bb
 
     ## there are attachments, so wrap body in an attachment of its own
     unless @attachments.empty?
       body_m = m
-      body_m.header["Content-Disposition"] = "inline"
-      m = RMail::Message.new
+      body_m.content_disposition = "inline"
+      m = Mail.new
 
       m.add_part body_m
       @attachments.each { |a| m.add_part a }
@@ -533,7 +534,7 @@ protected
       from_email = Person.from_address(@header["From"]).email
       to_email = [@header["To"], @header["Cc"], @header["Bcc"]].flatten.compact.map { |p| Person.from_address(p).email }
       if m.multipart?
-        m.each_part {|p| p = transfer_encode p}
+        m.parts.each {|p| p = transfer_encode p}
       else
         m = transfer_encode m
       end

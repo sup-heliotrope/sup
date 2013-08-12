@@ -2,13 +2,12 @@
 
 require 'rubygems'
 require 'yaml'
-YAML::ENGINE.yamler = 'psych'
 require 'zlib'
 require 'thread'
 require 'fileutils'
 require 'locale'
 require 'curses'
-require 'rmail'
+require 'mail'
 begin
   require 'fastthread'
 rescue LoadError

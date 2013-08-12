@@ -85,7 +85,7 @@ begin
 
   parsed_query = index.parse_query query
   parsed_query.merge! :load_spam => true, :load_deleted => true, :load_killed => true
-  ids = Enumerator.new(index, :each_id, parsed_query)
+  ids = index.to_enum(:each_id, parsed_query)
   num_total = index.num_results_for parsed_query
 
   $stderr.puts "Found #{num_total} documents across #{source_ids.length} sources. Scanning..."
