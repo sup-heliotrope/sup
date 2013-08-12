@@ -61,5 +61,6 @@ SUP: Check https://github.com/sup-heliotrope/sup/wiki/Migration-0.13-to-0.14
     s.add_development_dependency "rake"
     s.add_development_dependency "minitest", "~> 4.7"
     s.add_development_dependency "rr", "~> 1.0.5"
+    s.add_development_dependency "gpgme", ">= 2.0.2"
   end
 end
