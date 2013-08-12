@@ -84,7 +84,6 @@ class Message
     # @list_address
     # @receipient_email
     # @source_marked_read
-    # @source_starred
     # @list_subscribe
     # @list_unsubscribe
 
