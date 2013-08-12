@@ -64,6 +64,9 @@ class Message
 
     ## we need to initialize this. see comments in parse_header as to
     ## why.
+    @date = nil # may or may not have been set when the message was loaded
+                # or discovered for the first time.
+    @id   = nil # same as @date for invalid ids
     @refs = []
 
     #parse_header(opts[:header] || @source.load_header(@source_info))
@@ -88,21 +91,29 @@ class Message
     # @list_unsubscribe
 
     unless m.message_id
-      m.message_id =  "<#{Time.now.to_i}-defaulted-#{Digest::MD5.hexdigest m.header.to_s}@sup-faked>"
+      m.message_id =  @id || "<#{Time.now.to_i}-defaulted-#{Digest::MD5.hexdigest m.header.to_s}@sup-faked>"
+      debug "Using fake id (newly created or existing): #{id} for message located at: #{location.inspect}."
     end
 
-    @id = m.message_id
+    @id = sanitize_message_id m.message_id
 
     @from = Person.from_address m.fetch_header(:from)
     @from = Person.from_address "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>" unless @from
     @sender = Person.from_address m.fetch_header(:sender)
 
     begin
-      @date = (m.date || Time.now).to_time
+      if m.date
+        @date = m.date.to_time
+      else
+        warn "Invalid date for message #{@id}, using 'now' or previously fake 'now'."
+        BufferManager.flash "Invalid date for message #{@id}, using 'now' or previously fake 'now'." if BufferManager.instantiated?
+        @date = @date || Time.now.to_time
+      end
     rescue NoMethodError
       # TODO: remove this rescue once mail/#564 is fixed
-      warn "Invalid date for message #{@id}, using 'now'."
-      @date = Time.now.to_time
+      warn "Invalid date for message #{@id}, using 'now' or previously fake 'now'."
+      BufferManager.flash "Invalid date for message #{@id}, using 'now' or previously fake 'now'." if BufferManager.instantiated?
+      @date = (@date || Time.now.to_time)
     end
 
     @to = Person.from_address_list (m.fetch_header (:to))
