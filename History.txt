@@ -1,3 +1,10 @@
+== 0.*.* /
+
+* CJK compatability
+* Psych over Syck
+* Ruby 1.8 deprecated
+* Thread safety
+
 == 0.13.2 / 2013-06-26
 
 * FreeBSD 10 comptability

@@ -1,3 +1,7 @@
+Release 0.*.*:
+
+CJK-compatability, Psych usage, thread safety
+
 Release 0.13.2:
 
 FreeBSD compatability and more thread safe polling.
