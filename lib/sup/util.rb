@@ -370,11 +370,11 @@ class String
     # first try to set the string to utf-8 and check if it is valid
     # in case ruby just thinks it is something else
     orig_encoding = encoding
-    force_encoding 'UTF-8'
+    encode 'UTF-8'
     return self if valid_encoding?
 
     # that didn't work, go back to original and try to convert
-    force_encoding orig_encoding
+    encode orig_encoding
 
     encode!('UTF-8', :invalid => :replace, :undef => :replace)
 
