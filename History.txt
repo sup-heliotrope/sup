@@ -1,4 +1,4 @@
-== 0.14.0 / 2013-?
+== 0.14.0 / 2013-08-15
 
 * CJK compatability
 * Psych over Syck
