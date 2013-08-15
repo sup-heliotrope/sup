@@ -622,7 +622,7 @@ EOS
       tf.deactivate
       draw_screen :sync => false, :status => status, :title => title
     end
-    tf.value.tap { |x| x.fix_encoding if x }
+    tf.value.tap { |x| x }
   end
 
   def ask_getch question, accept=nil
