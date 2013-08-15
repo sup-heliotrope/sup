@@ -177,7 +177,7 @@ private
     # encoding) will produce erronous results, but will also do that for
     # a log of other programs since it is impossible to detect which is
     # which and what encoding the inputted byte chars are supposed to have.
-    v.force_encoding($encoding).fix_encoding
+    v.force_encoding($encoding).fix_encoding!
   end
 
   def remove_extra_space
