@@ -5,7 +5,8 @@ require 'sup/version'
 
 # Files
 SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump
-  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels)
+  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels
+  sup-psych-ify-config-files)
 SUP_EXTRA_FILES = %w(CONTRIBUTORS README.md LICENSE History.txt ReleaseNotes)
 SUP_FILES =
   SUP_EXTRA_FILES +
@@ -21,7 +22,7 @@ module Redwood
     s.authors = ["William Morgan", "Gaute Hope", "Hamish Downer", "Matthieu Rakotojaona"]
     s.email   = "sup-talk@rubyforge.org"
     s.summary = "A console-based email client with the best features of GMail, mutt and Emacs"
-    s.homepage = "https://github.com/sup-heliotrope/sup/wiki"
+    s.homepage = "http://supmua.org"
     s.description = <<-DESC
       Sup is a console-based email client for people with a lot of email.
 
@@ -33,19 +34,33 @@ module Redwood
       * Automatically tracking recent contacts
 DESC
     s.license = 'GPL-2'
+    # TODO: might want to add index migrating script here, too
+    s.post_install_message = <<-EOF
+SUP: Please run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14.
+
+SUP: Check https://github.com/sup-heliotrope/sup/wiki/Migration-0.13-to-0.14
+     for more detailed up-to-date instructions.
+    EOF
     s.files = SUP_FILES
     s.executables = SUP_EXECUTABLES
 
-    s.add_dependency "xapian-full-alaveteli", "~> 1.2"
-    s.add_dependency "ncursesw-sup", "~> 1.3", ">= 1.3.1"
-    s.add_dependency "rmail", ">= 0.17"
-    s.add_dependency "highline"
-    s.add_dependency "trollop", ">= 1.12"
-    s.add_dependency "lockfile"
-    s.add_dependency "mime-types", "~> 1"
-    s.add_dependency "gettext"
+    s.required_ruby_version = '>= 1.9.2'
+
+    s.add_runtime_dependency "xapian-ruby", "~> 1.2.15"
+    s.add_runtime_dependency "ncursesw-sup", "~> 1.3.1"
+    s.add_runtime_dependency "rmail", ">= 0.17"
+    s.add_runtime_dependency "highline"
+    s.add_runtime_dependency "trollop", ">= 1.12"
+    s.add_runtime_dependency "lockfile"
+    s.add_runtime_dependency "mime-types", "~> 1.0"
+    s.add_runtime_dependency "locale", "~> 2.0"
+    s.add_runtime_dependency "chronic", "~> 0.9.1"
+    s.add_runtime_dependency "unicode", "~> 0.4.4"
 
     s.add_development_dependency "bundler", "~> 1.3"
     s.add_development_dependency "rake"
+    s.add_development_dependency "minitest", "~> 4.7"
+    s.add_development_dependency "rr", "~> 1.0.5"
+    s.add_development_dependency "gpgme", ">= 2.0.2"
   end
 end

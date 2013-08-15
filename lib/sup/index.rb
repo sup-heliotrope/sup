@@ -1,20 +1,27 @@
 ENV["XAPIAN_FLUSH_THRESHOLD"] = "1000"
+ENV["XAPIAN_CJK_NGRAM"] = "1"
 
 require 'xapian'
 require 'set'
 require 'fileutils'
 require 'monitor'
+require 'chronic'
 
-begin
-  require 'chronic'
-  $have_chronic = true
-rescue LoadError => e
-  debug "No 'chronic' gem detected. Install it for date/time query restrictions."
-  $have_chronic = false
-end
+require "sup/util/query"
+require "sup/interactive_lock"
+require "sup/hook"
+require "sup/logger/singleton"
 
-if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,1]) < 0
-	fail "Xapian version 1.2.1 or higher required"
+
+if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,15]) < 0
+  fail <<-EOF
+\n
+Xapian version 1.2.15 or higher required.
+If you have xapian-full-alaveteli installed,
+Please remove it by running `gem uninstall xapian-full-alaveteli`
+since it's been replaced by the xapian-ruby gem.
+
+  EOF
 end
 
 module Redwood
@@ -261,6 +268,11 @@ EOS
     end
   end
 
+  # Search messages. Returns an Enumerator.
+  def find_messages query_expr
+    enum_for :each_message, parse_query(query_expr)
+  end
+
   # wrap all future changes inside a transaction so they're done atomically
   def begin_transaction
     synchronize { @xapian.begin_transaction }
@@ -308,6 +320,48 @@ EOS
   end
 
   class ParseError < StandardError; end
+
+  # Stemmed
+  NORMAL_PREFIX = {
+    'subject' => {:prefix => 'S', :exclusive => false},
+    'body' => {:prefix => 'B', :exclusive => false},
+    'from_name' => {:prefix => 'FN', :exclusive => false},
+    'to_name' => {:prefix => 'TN', :exclusive => false},
+    'name' => {:prefix => %w(FN TN), :exclusive => false},
+    'attachment' => {:prefix => 'A', :exclusive => false},
+    'email_text' => {:prefix => 'E', :exclusive => false},
+    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
+  }
+
+  # Unstemmed
+  BOOLEAN_PREFIX = {
+    'type' => {:prefix => 'K', :exclusive => true},
+    'from_email' => {:prefix => 'FE', :exclusive => false},
+    'to_email' => {:prefix => 'TE', :exclusive => false},
+    'email' => {:prefix => %w(FE TE), :exclusive => false},
+    'date' => {:prefix => 'D', :exclusive => true},
+    'label' => {:prefix => 'L', :exclusive => false},
+    'source_id' => {:prefix => 'I', :exclusive => true},
+    'attachment_extension' => {:prefix => 'O', :exclusive => false},
+    'msgid' => {:prefix => 'Q', :exclusive => true},
+    'id' => {:prefix => 'Q', :exclusive => true},
+    'thread' => {:prefix => 'H', :exclusive => false},
+    'ref' => {:prefix => 'R', :exclusive => false},
+    'location' => {:prefix => 'J', :exclusive => false},
+  }
+
+  PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
+
+  COMPL_OPERATORS = %w[AND OR NOT]
+  COMPL_PREFIXES = (
+    %w[
+      from to
+      is has label
+      filename filetypem
+      before on in during after
+      limit
+    ] + NORMAL_PREFIX.keys + BOOLEAN_PREFIX.keys
+  ).map{|p|"#{p}:"} + COMPL_OPERATORS
 
   ## parse a query string from the user. returns a query object
   ## that can be passed to any index method with a 'query'
@@ -388,27 +442,25 @@ EOS
       end
     end
 
-    if $have_chronic
-      lastdate = 2<<32 - 1
-      firstdate = 0
-      subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
-        field, datestr = $1, ($3 || $4)
-        realdate = Chronic.parse datestr, :guess => false, :context => :past
-        if realdate
-          case field
-          when "after"
-            debug "chronic: translated #{field}:#{datestr} to #{realdate.end}"
-            "date:#{realdate.end.to_i}..#{lastdate}"
-          when "before"
-            debug "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
-            "date:#{firstdate}..#{realdate.end.to_i}"
-          else
-            debug "chronic: translated #{field}:#{datestr} to #{realdate}"
-            "date:#{realdate.begin.to_i}..#{realdate.end.to_i}"
-          end
+    lastdate = 2<<32 - 1
+    firstdate = 0
+    subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
+      field, datestr = $1, ($3 || $4)
+      realdate = Chronic.parse datestr, :guess => false, :context => :past
+      if realdate
+        case field
+        when "after"
+          debug "chronic: translated #{field}:#{datestr} to #{realdate.end}"
+          "date:#{realdate.end.to_i}..#{lastdate}"
+        when "before"
+          debug "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
+          "date:#{firstdate}..#{realdate.end.to_i}"
         else
-          raise ParseError, "can't understand date #{datestr.inspect}"
+          debug "chronic: translated #{field}:#{datestr} to #{realdate}"
+          "date:#{realdate.begin.to_i}..#{realdate.end.to_i}"
         end
+      else
+        raise ParseError, "can't understand date #{datestr.inspect}"
       end
     end
 
@@ -440,7 +492,7 @@ EOS
       raise ParseError, "xapian query parser error: #{e}"
     end
 
-    debug "parsed xapian query: #{xapian_query.description}"
+    debug "parsed xapian query: #{Util::Query.describe(xapian_query)}"
 
     raise ParseError if xapian_query.nil? or xapian_query.empty?
     query[:qobj] = xapian_query
@@ -480,37 +532,6 @@ EOS
   end
 
   private
-
-  # Stemmed
-  NORMAL_PREFIX = {
-    'subject' => {:prefix => 'S', :exclusive => false},
-    'body' => {:prefix => 'B', :exclusive => false},
-    'from_name' => {:prefix => 'FN', :exclusive => false},
-    'to_name' => {:prefix => 'TN', :exclusive => false},
-    'name' => {:prefix => %w(FN TN), :exclusive => false},
-    'attachment' => {:prefix => 'A', :exclusive => false},
-    'email_text' => {:prefix => 'E', :exclusive => false},
-    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
-  }
-
-  # Unstemmed
-  BOOLEAN_PREFIX = {
-    'type' => {:prefix => 'K', :exclusive => true},
-    'from_email' => {:prefix => 'FE', :exclusive => false},
-    'to_email' => {:prefix => 'TE', :exclusive => false},
-    'email' => {:prefix => %w(FE TE), :exclusive => false},
-    'date' => {:prefix => 'D', :exclusive => true},
-    'label' => {:prefix => 'L', :exclusive => false},
-    'source_id' => {:prefix => 'I', :exclusive => true},
-    'attachment_extension' => {:prefix => 'O', :exclusive => false},
-    'msgid' => {:prefix => 'Q', :exclusive => true},
-    'id' => {:prefix => 'Q', :exclusive => true},
-    'thread' => {:prefix => 'H', :exclusive => false},
-    'ref' => {:prefix => 'R', :exclusive => false},
-    'location' => {:prefix => 'J', :exclusive => false},
-  }
-
-  PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
 
   MSGID_VALUENO = 0
   THREAD_VALUENO = 1

@@ -22,30 +22,23 @@ class Source
   ## read, delete them, or anything else. (Well, it's nice to be able
   ## to delete them, but that is optional.)
   ##
-  ## On the other hand, Sup assumes that you can assign each message a
-  ## unique integer id, such that newer messages have higher ids than
-  ## earlier ones, and that those ids stay constant across sessions
-  ## (in the absence of some other client going in and fucking
-  ## everything up). For example, for mboxes I use the file offset of
-  ## the start of the message. If a source does NOT have that
-  ## capability, e.g. IMAP, then you have to do a little more work to
-  ## simulate it.
+  ## Messages are identified internally based on the message id, and stored
+  ## with an unique document id. Along with the message, source information
+  ## that can contain arbitrary fields (set up by the source) is stored. This
+  ## information will be passed back to the source when a message in the
+  ## index (Sup database) needs to be identified to its source, e.g. when
+  ## re-reading or modifying a unique message.
   ##
   ## To write a new source, subclass this class, and implement:
   ##
-  ## - start_offset
-  ## - end_offset (exclusive!) (or, #done?)
+  ## - initialize
   ## - load_header offset
   ## - load_message offset
   ## - raw_header offset
   ## - raw_message offset
-  ## - check (optional)
+  ## - store_message (optional)
+  ## - poll (loads new messages)
   ## - go_idle (optional)
-  ## - next (or each, if you prefer): should return a message and an
-  ##   array of labels.
-  ##
-  ## ... where "offset" really means unique id. (You can tell I
-  ## started with mbox.)
   ##
   ## All exceptions relating to accessing the source must be caught
   ## and rethrown as FatalSourceErrors or OutOfSyncSourceErrors.
@@ -57,12 +50,11 @@ class Source
   ## Finally, be sure the source is thread-safe, since it WILL be
   ## pummelled from multiple threads at once.
   ##
-  ## Examples for you to look at: mbox/loader.rb, imap.rb, and
-  ## maildir.rb.
+  ## Examples for you to look at: mbox.rb and maildir.rb.
 
   bool_accessor :usual, :archived
   attr_reader :uri
-  attr_accessor :id
+  attr_accessor :id, :poll_lock
 
   def initialize uri, usual=true, archived=false, id=nil
     raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
@@ -71,6 +63,8 @@ class Source
     @usual = usual
     @archived = archived
     @id = id
+
+    @poll_lock = Mutex.new
   end
 
   ## overwrite me if you have a disk incarnation (currently used only for sup-sync-back)
@@ -209,9 +203,9 @@ class SourceManager
     end
   end
 
-  def save_sources fn=Redwood::SOURCE_FN
+  def save_sources fn=Redwood::SOURCE_FN, force=false
     @source_mutex.synchronize do
-      if @sources_dirty
+      if @sources_dirty || force
         Redwood::save_yaml_obj sources, fn, false, true
       end
       @sources_dirty = false

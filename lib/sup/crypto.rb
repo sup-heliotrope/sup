@@ -1,6 +1,4 @@
 begin
-  # gpgme broke its API in 2.0, so make sure we have the old version for now.
-  gem 'gpgme', '=1.0.8'
   require 'gpgme'
 rescue LoadError
 end
@@ -64,9 +62,16 @@ EOS
     @gpgme_present =
       begin
         begin
-          GPGME.check_version({:protocol => GPGME::PROTOCOL_OpenPGP})
+          begin
+            GPGME.check_version({:protocol => GPGME::PROTOCOL_OpenPGP})
+          rescue TypeError
+            GPGME.check_version(nil)
+          end
           true
         rescue GPGME::Error
+          false
+        rescue ArgumentError
+          # gpgme 2.0.0 raises this due to the hash->string conversion
           false
         end
       rescue NameError
@@ -74,18 +79,22 @@ EOS
       end
 
     unless @gpgme_present
-      @not_working_reason = ['gpgme gem not present', 
+      @not_working_reason = ['gpgme gem not present',
         'Install the gpgme gem in order to use signed and encrypted emails']
       return
     end
 
     # if gpg2 is available, it will start gpg-agent if required
     if (bin = `which gpg2`.chomp) =~ /\S/
-      GPGME.set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
+      if GPGME.respond_to?('set_engine_info')
+        GPGME.set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
+      else
+        GPGME.gpgme_set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
+      end
     else
       # check if the gpg-options hook uses the passphrase_callback
       # if it doesn't then check if gpg agent is present
-      gpg_opts = HookManager.run("gpg-options", 
+      gpg_opts = HookManager.run("gpg-options",
                                {:operation => "sign", :options => {}}) || {}
       if gpg_opts[:passphrase_callback].nil?
         if ENV['GPG_AGENT_INFO'].nil?
@@ -110,22 +119,29 @@ EOS
   end
 
   def have_crypto?; @not_working_reason.nil? end
+  def not_working_reason; @not_working_reason end
 
   def sign from, to, payload
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     gpg_opts.merge!(gen_sign_user_opts(from))
-    gpg_opts = HookManager.run("gpg-options", 
+    gpg_opts = HookManager.run("gpg-options",
                                {:operation => "sign", :options => gpg_opts}) || gpg_opts
 
     begin
-      sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
+      if GPGME.respond_to?('detach_sign')
+        sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
+      else
+        crypto = GPGME::Crypto.new
+        gpg_opts[:mode] = GPGME::SIG_MODE_DETACH
+        sig = crypto.sign(format_payload(payload), gpg_opts).read
+      end
     rescue GPGME::Error => exc
       raise Error, gpgme_exc_msg(exc.message)
     end
 
-    # if the key (or gpg-agent) is not available GPGME does not complain 
+    # if the key (or gpg-agent) is not available GPGME does not complain
     # but just returns a zero length string. Let's catch that
     if sig.length == 0
       raise Error, gpgme_exc_msg("GPG failed to generate signature: check that gpg-agent is running and your key is available.")
@@ -145,7 +161,7 @@ EOS
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     if sign
-      gpg_opts.merge!(gen_sign_user_opts(from)) 
+      gpg_opts.merge!(gen_sign_user_opts(from))
       gpg_opts.merge!({:sign => true})
     end
     gpg_opts = HookManager.run("gpg-options",
@@ -153,12 +169,18 @@ EOS
     recipients = to + [from]
     recipients = HookManager.run("gpg-expand-keys", { :recipients => recipients }) || recipients
     begin
-      cipher = GPGME.encrypt(recipients, format_payload(payload), gpg_opts)
+      if GPGME.respond_to?('encrypt')
+        cipher = GPGME.encrypt(recipients, format_payload(payload), gpg_opts)
+      else
+        crypto = GPGME::Crypto.new
+        gpg_opts[:recipients] = recipients
+        cipher = crypto.encrypt(format_payload(payload), gpg_opts).read
+      end
     rescue GPGME::Error => exc
       raise Error, gpgme_exc_msg(exc.message)
     end
 
-    # if the key (or gpg-agent) is not available GPGME does not complain 
+    # if the key (or gpg-agent) is not available GPGME does not complain
     # but just returns a zero length string. Let's catch that
     if cipher.length == 0
       raise Error, gpgme_exc_msg("GPG failed to generate cipher text: check that gpg-agent is running and your key is available.")
@@ -262,7 +284,11 @@ EOS
                                {:operation => "decrypt", :options => gpg_opts}) || gpg_opts
     ctx = GPGME::Ctx.new(gpg_opts)
     cipher_data = GPGME::Data.from_str(format_payload(payload))
-    plain_data = GPGME::Data.empty
+    if GPGME::Data.respond_to?('empty')
+      plain_data = GPGME::Data.empty
+    else
+      plain_data = GPGME::Data.empty!
+    end
     begin
       ctx.decrypt_verify(cipher_data, plain_data)
     rescue GPGME::Error => exc
@@ -275,7 +301,7 @@ EOS
     end
     plain_data.seek(0, IO::SEEK_SET)
     output = plain_data.read
-    output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
+    output.transcode(Encoding::ASCII_8BIT, output.encoding)
 
     ## TODO: test to see if it is still necessary to do a 2nd run if verify
     ## fails.
@@ -290,7 +316,7 @@ EOS
       # Look for Charset, they are put before the base64 crypted part
       charsets = payload.body.split("\n").grep(/^Charset:/)
       if !charsets.empty? and charsets[0] =~ /^Charset: (.+)$/
-        output = Iconv.easy_decode($encoding, $1, output)
+        output.transcode($encoding, $1)
       end
       msg.body = output
     else
@@ -314,7 +340,7 @@ EOS
       msg = RMail::Parser.read output
       if msg.header.content_type =~ %r{^multipart/} && !msg.multipart?
         output = "MIME-Version: 1.0\n" + output
-        output.force_encoding Encoding::ASCII_8BIT if output.respond_to? :force_encoding
+        output.fix_encoding
         msg = RMail::Parser.read output
       end
     end
@@ -330,7 +356,7 @@ private
 
   def gpgme_exc_msg msg
     err_msg = "Exception in GPGME call: #{msg}"
-    info err_msg
+    #info err_msg
     err_msg
   end
 
@@ -362,7 +388,7 @@ private
       else
         first_sig = "Unknown error or empty signature"
       end
-    rescue EOFError 
+    rescue EOFError
       from_key = nil
       first_sig = "No public key available for #{signature.fingerprint}"
     end

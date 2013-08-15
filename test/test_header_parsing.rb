@@ -1,12 +1,12 @@
 #!/usr/bin/ruby
 
-require 'test/unit'
+require 'test_helper'
 require 'sup'
 require 'stringio'
 
 include Redwood
 
-class TestMBoxParsing < Test::Unit::TestCase
+class TestMBoxParsing < Minitest::Unit::TestCase
 
   def setup
     @path = Dir.mktmpdir
@@ -150,10 +150,10 @@ To: a dear friend
 Hello again! Would you like to buy my products?
 EOS
     offset = l.next_offset 0
-    assert_not_nil offset
+    refute_nil offset
 
     offset = l.next_offset offset
-    assert_not_nil offset
+    refute_nil offset
 
     offset = l.next_offset offset
     assert_nil offset
