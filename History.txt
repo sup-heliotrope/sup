@@ -1,3 +1,13 @@
+== 0.14.0 / 2013-08-15
+
+* CJK compatability
+* Psych over Syck
+* Ruby 1.8 deprecated
+* Thread safety
+* No more Iconv, but using built in Ruby encodings. Better UTF-8
+  handling.
+* GPGME 2.0 support
+
 == 0.13.2 / 2013-06-26
 
 * FreeBSD 10 comptability
