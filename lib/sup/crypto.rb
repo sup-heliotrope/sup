@@ -340,7 +340,7 @@ EOS
       msg = RMail::Parser.read output
       if msg.header.content_type =~ %r{^multipart/} && !msg.multipart?
         output = "MIME-Version: 1.0\n" + output
-        output.fix_encoding
+        output.fix_encoding!
         msg = RMail::Parser.read output
       end
     end
