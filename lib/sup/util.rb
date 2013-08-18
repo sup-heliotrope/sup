@@ -125,7 +125,7 @@ module RMail
       class << self
         def parse(field)
           field = field.dup.to_s
-          field = field.fix_encoding.ascii
+          field = field.fix_encoding!.ascii
           if field =~ EXTRACT_FIELD_NAME_RE
             [ $1, $'.chomp ]
           else
@@ -366,7 +366,7 @@ class String
   # user encoding.
   #
   # Not Ruby 1.8 compatible
-  def fix_encoding
+  def fix_encoding!
     # first try to encode to utf-8 from whatever current encoding
     encode!('UTF-8', :invalid => :replace, :undef => :replace)
 
@@ -402,7 +402,7 @@ class String
 
     rescue Encoding::ConverterNotFoundError
       debug "Encoding converter not found for #{from_encoding.inspect} or #{to_encoding.inspect}, fixing string: '#{self.to_s}', but expect weird characters."
-      fix_encoding
+      fix_encoding!
     end
 
     fail "Could not create valid #{to_encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
@@ -411,7 +411,7 @@ class String
   end
 
   def normalize_whitespace
-    fix_encoding
+    fix_encoding!
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
 
@@ -453,7 +453,7 @@ class String
         out << b.chr
       end
     end
-    out = out.fix_encoding # this should now be an utf-8 string of ascii
+    out = out.fix_encoding! # this should now be an utf-8 string of ascii
                            # compat chars.
   end
 
