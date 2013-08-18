@@ -256,7 +256,7 @@ end
 
 class String
   def display_length
-    @display_length ||= Unicode.width(self, false)
+    @display_length ||= Unicode.width(self.fix_encoding, false)
   end
 
   def slice_by_display_length len
