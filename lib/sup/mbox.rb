@@ -34,10 +34,6 @@ class MBox < Source
     super uri_or_fp, usual, archived, id
   end
 
-  def init_with coder
-    initialize coder['uri'], coder['usual'], coder['archived'], coder['id'], coder['labels']
-  end
-
   def file_path; @path end
   def is_source_for? uri; super || (uri == @expanded_uri) end
 

@@ -23,10 +23,6 @@ class Maildir < Source
     @mtimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
   end
 
-  def init_with coder
-    initialize coder['uri'], coder['usual'], coder['archived'], coder['id'], coder['labels']
-  end
-
   def file_path; @dir end
   def self.suggest_labels_for path; [] end
   def is_source_for? uri; super || (uri == @expanded_uri); end
