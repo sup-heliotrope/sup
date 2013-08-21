@@ -517,6 +517,7 @@ protected
     m.body += "\n" + sig_lines.join("\n") unless @sig_edited
     ## body must end in a newline or GPG signatures will be WRONG!
     m.body += "\n" unless m.body =~ /\n\Z/
+    m.body = m.body.fix_encoding
 
     ## there are attachments, so wrap body in an attachment of its own
     unless @attachments.empty?
