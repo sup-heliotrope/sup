@@ -349,6 +349,14 @@ EOS
     end
   end
 
+  def each_source_info_with_label source_id, prefix='', label, &b
+    p = mkterm :location, source_id, prefix
+    p << mkterm(:label, label)
+    each_prefixed_term p do |x|
+      yield prefix + x[p.length..-1]
+    end
+  end
+
   class ParseError < StandardError; end
 
   # Stemmed

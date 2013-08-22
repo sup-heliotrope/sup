@@ -39,25 +39,38 @@ class MaildirRoot < Source
                                 # will be copied to the archive_folder
 
 
-    @special_folders = [@inbox_folder, @sent_folder, @drafts_folder,
-                        @spam_folder, @trash_folder, @archive_folder]
+    @all_special_folders = [@inbox_folder, @sent_folder, @drafts_folder,
+                            @spam_folder, @trash_folder, @archive_folder]
 
     debug "setting up maildir subs.."
     @archive = MaildirSub.new self, @root, @archive_folder, :archive
     @inbox   = MaildirSub.new self, @root, @inbox_folder, :inbox
     @sent    = MaildirSub.new self, @root, @sent_folder, :sent
     @drafts  = MaildirSub.new self, @root, @drafts_folder, :drafts
+    @spam    = MaildirSub.new self, @root, @spam_folder, :spam
     @trash   = MaildirSub.new self, @root, @trash_folder, :trash
 
     # scan for other non-special folders
     debug "setting up non-special folders.."
-    @maildirs = Dir.new(@root).entries.select { |e| File.directory? File.join(@root,e) and e != '.' and e != '..' and !@special_folders.member? e }.each { |d| MaildirSub.new(self, @root, d, :generic) }.to_a
+    @maildirs = []
+    Dir.new(@root).entries.select { |e|
+      File.directory? File.join(@root,e) and e != '.' and e != '..' and !@all_special_folders.member? e
+    }.each { |d|
+      @maildirs.push MaildirSub.new(self, @root, d, :generic)
+    }
     debug "maildir subs setup done."
+
+    @special_maildirs  = [@inbox, @sent, @drafts,
+                          @spam, @trash]
+    @extended_maildirs = @special_maildirs
+    @maildirs.each { |m| @extended_maildirs.push m }
 
   end
 
   # A class representing one maildir (label) in the maildir root
   class MaildirSub
+    attr_reader :type, :maildirroot, :dir, :label
+
     def initialize maildirroot, root, dir, type=:generic
       @maildirroot = maildirroot
       @root   = root
@@ -67,6 +80,10 @@ class MaildirRoot < Source
 
       debug "maildirsub set up, type: #{@type}, label: #{@label}"
       @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
+    end
+
+    def to_s
+      "MaildirSub: #{@type}, #{@label}"
     end
 
     def store_message date, from_email, &block
@@ -109,7 +126,12 @@ class MaildirRoot < Source
         next if prev_ctime >= ctime
         @ctimes[d] = ctime
 
-        old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{d}/").to_a }
+        if @type == :archive
+          old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{d}/").to_a }
+        else
+          old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info_with_label, @maildirroot.id, "#{d}/", @label).to_a }
+        end
+
         new_ids = benchmark(:maildirroot_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(d,File.basename(x)) }.sort }
         added += new_ids - old_ids
         deleted += old_ids - new_ids
@@ -139,7 +161,7 @@ class MaildirRoot < Source
       added.each_with_index do |id,i|
         yield :add,
         :info => id,
-        :labels => @maildirroot.labels + maildir_labels(id) + [:inbox],
+        :labels => @maildirroot.labels + maildir_labels(id) + [@label],
         :progress => i.to_f/total_size
       end
 
@@ -221,6 +243,24 @@ class MaildirRoot < Source
         new_loc
       end
     end
+
+    # checks if message exists in this maildir
+    def has_id id
+      if valid? id
+        return true
+      elsif valid? id.dup.gsub!('cur', 'new')
+        return :wrong_state
+      elsif valid? id.dup.gsub!('new', 'cur')
+        return :wrong_state
+      else
+        return false
+      end
+    end
+
+    def valid? id
+      return false if id == nil
+      File.exists? File.join(@dir, id)
+    end
   end
 
   def file_path; @root end
@@ -248,8 +288,10 @@ class MaildirRoot < Source
   end
 
   def sync_back id, labels
-    flags = maildir_reconcile_flags id, labels
-    maildir_mark_file id, flags
+    @poll_lock.synchronize do
+      flags = maildir_reconcile_flags id, labels
+      maildir_mark_file id, flags
+    end
   end
 
   def raw_header id
@@ -269,7 +311,8 @@ class MaildirRoot < Source
   # Polling strategy:
   #
   # - Poll 'archive' folder (messages should be archived/skip inbox label)
-  # - Poll 'inbox' folder   (copy non-existant messages to archive and add)
+  # - Poll special folders: 'inbox', etc
+  # labels archived is mutually exclusive with: [inbox, trash, sent, drafts, spam]
   # - Merge inbox messages with archive messages
   # - Delete messages from inbox -> remove inbox label from message
   # - Poll other folders    (copy non-existant messages to archive and add)
@@ -280,33 +323,70 @@ class MaildirRoot < Source
     debug "polling @archive.."
 
     archived_add = []
+    archived_delete = []
+    archived_update = []
 
     @archive.poll do |sym,args|
       case sym
       when :add
-        args[:labels] -= [:inbox]
-        archived_add << [sym, args]
+        archived_add << args
+        # these are completely new:
+        # - detect other labels and add to label list
+
       when :delete
+        archived_delete << args
+        # these have been deleted:
+        # - make sure they are not left in any other labels
+        archived_delete << args
+
       when :update
+        # these have somehow had their flags changed:
+        # - make sure the flags correspond in the other labels
+        archived_update << [sym, args]
+
       end
       debug "Got: #{sym} with #{args}"
     end
 
     debug "archived_add: #{archived_add.size}"
 
-    inbox = []
-    @inbox.poll do |sym,args|
-      debug "Got: #{sym} with #{args}"
-      inbox << [sym, args]
+
+    @extended_maildirs.each do |maildir|
+      debug "polling: #{maildir}.."
+
+      maildir.poll do |sym,args|
+        case sym
+        when :add
+          ## verify the message
+          # is message in archive?
+          debug "checking #{args[:info]}: #{maildir.has_id args[:info]}"
+          case @archive.has_id args[:info]
+          when true
+            # all good unless inbox
+            fail "Message #{args[:info]} is in both '#{maildir.type}' and 'archive' folder." if @special_maildirs.member? maildir
+
+          when :wrong_state
+            # fix state and update archive_add
+            fail "Message #{args[:info]} is in wrong state in 'archive' as opposed to #{maildir.type}."
+            raise NotImplementedError
+
+          when false
+            # copy message to archive and add to archive_add
+            raise NotImplementedError unless @special_maildirs.member? maildir
+          end
+
+
+
+        when :delete
+        when :update
+        end
+        debug "Got: #{sym} with #{args}"
+
+      end
     end
 
-    debug "inbox: #{inbox.size}"
-  
   end
 
-  def valid? id
-    File.exists? File.join(@dir, id)
-  end
 
   def labels; @labels; end
 
