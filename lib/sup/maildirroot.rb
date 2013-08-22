@@ -261,6 +261,15 @@ class MaildirRoot < Source
       return false if id == nil
       File.exists? File.join(@dir, id)
     end
+
+    def with_file_for id
+      fn = File.join(@dir, id)
+      begin
+        File.open(fn, 'rb') { |f| yield f }
+      rescue SystemCallError, IOError => e
+        raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
+      end
+    end
   end
 
   def file_path; @root end
@@ -284,6 +293,7 @@ class MaildirRoot < Source
   end
 
   def load_message id
+    # find message with this source_info and a label containing this message
     with_file_for(id) { |f| RMail::Parser.read f }
   end
 
@@ -311,9 +321,6 @@ class MaildirRoot < Source
   # Polling strategy:
   #
   # - Poll 'archive' folder (messages should be archived/skip inbox label)
-  # - Poll special folders: 'inbox', etc
-  # labels archived is mutually exclusive with: [inbox, trash, sent, drafts, spam]
-  # - Merge inbox messages with archive messages
   # - Delete messages from inbox -> remove inbox label from message
   # - Poll other folders    (copy non-existant messages to archive and add)
   # - Merge messages from other folders with 'archive' and add label for folder
@@ -322,33 +329,32 @@ class MaildirRoot < Source
   def poll
     debug "polling @archive.."
 
-    archived_add = []
-    archived_delete = []
-    archived_update = []
+    add = []
+    delete = []
+    update = []
 
     @archive.poll do |sym,args|
       case sym
       when :add
-        archived_add << args
+        add << args
         # these are completely new:
         # - detect other labels and add to label list
 
       when :delete
-        archived_delete << args
+        delete << args
         # these have been deleted:
         # - make sure they are not left in any other labels
-        archived_delete << args
 
       when :update
         # these have somehow had their flags changed:
         # - make sure the flags correspond in the other labels
-        archived_update << [sym, args]
+        update << args
 
       end
       debug "Got: #{sym} with #{args}"
     end
 
-    debug "archived_add: #{archived_add.size}"
+    debug "archived_add: #{add.size}"
 
 
     @extended_maildirs.each do |maildir|
@@ -357,34 +363,35 @@ class MaildirRoot < Source
       maildir.poll do |sym,args|
         case sym
         when :add
-          ## verify the message
-          # is message in archive?
-          debug "checking #{args[:info]}: #{maildir.has_id args[:info]}"
-          case @archive.has_id args[:info]
-          when true
-            # all good unless inbox
-            fail "Message #{args[:info]} is in both '#{maildir.type}' and 'archive' folder." if @special_maildirs.member? maildir
-
-          when :wrong_state
-            # fix state and update archive_add
-            fail "Message #{args[:info]} is in wrong state in 'archive' as opposed to #{maildir.type}."
-            raise NotImplementedError
-
-          when false
-            # copy message to archive and add to archive_add
-            raise NotImplementedError unless @special_maildirs.member? maildir
+          m = add.select { |e| e[:info] == args[:info] }
+          if not m.empty?
+            add.delete m
+            m.labels += [maildir.label]
+          else
+            m = args
           end
 
-
+          add << m
 
         when :delete
-        when :update
-        end
-        debug "Got: #{sym} with #{args}"
+          # remove this label from message
 
+        when :update
+          # message should already have this label, but flags or dir have changed
+          # re-check other labels if they are the same
+
+
+        end
       end
     end
 
+    debug "adding the following messages:"
+    add.each do |args|
+      debug "adding #{args[:info]} with labels: #{args[:labels]}"
+      yield :add, args
+    end
+
+    debug "total: #{add.size}"
   end
 
 
@@ -396,16 +403,5 @@ private
     Kernel::srand()
     "#{Time.now.to_i.to_s}.#{$$}#{Kernel.rand(1000000)}.#{MYHOSTNAME}"
   end
-
-  def with_file_for id
-    fn = File.join(@dir, id)
-    begin
-      File.open(fn, 'rb') { |f| yield f }
-    rescue SystemCallError, IOError => e
-      raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
-    end
-  end
-
-
 end
 end
