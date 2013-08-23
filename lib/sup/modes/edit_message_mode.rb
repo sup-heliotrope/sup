@@ -525,7 +525,7 @@ protected
       body_m.header["Content-Disposition"] = "inline"
       m = RMail::Message.new
 
-      m.add_part body_m
+      m.add_part body_m.fix_encoding
       @attachments.each { |a| m.add_part a }
     end
 
