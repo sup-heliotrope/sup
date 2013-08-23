@@ -350,11 +350,26 @@ EOS
   end
 
   def each_source_info_with_label source_id, prefix='', label, &b
-    p = mkterm :location, source_id, prefix
-    p << mkterm(:label, label)
-    each_prefixed_term p do |x|
-      yield prefix + x[p.length..-1]
+    debug "each_source_info_with_label"
+    query = Q.new(Q::OP_AND, mkterm(:source_id, source_id), mkterm(:label, label.to_sym))
+
+    match = run_query query, 0, 999999
+
+    match.matches.each do |r|
+      debug "match: #{r.document.entry[:locations][0]}"
+      debug "labels: #{r.document.entry[:labels]}"
+      sinf = r.document.entry[:locations][0][1]
+      yield sinf if sinf.include? prefix
     end
+
+
+
+
+    #term_docids(p).each do |x|
+      #debug "x: #{x}"
+      #d = @xapian.document x
+      #yield d.entry[:location]
+    #end
   end
 
   class ParseError < StandardError; end

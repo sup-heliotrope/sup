@@ -76,7 +76,7 @@ class MaildirRoot < Source
       @root   = root
       @dir    = File.join(root, dir)
       @type   = type
-      @label  = (@type == :generic) ? dir : @type.to_s
+      @label  = (@type == :generic) ? dir : @type.to_sym
 
       debug "maildirsub set up, type: #{@type}, label: #{@label}"
       @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
@@ -128,11 +128,15 @@ class MaildirRoot < Source
 
         if @type == :archive
           old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{d}/").to_a }
+          old_ids = Index.each_source_info_with_label(@maildirroot.id, "{d}/").to_a
         else
-          old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info_with_label, @maildirroot.id, "#{d}/", @label).to_a }
+
+          old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info_with_label, @maildirroot.id, "#{d}/", @label.to_sym).to_a }
         end
 
         new_ids = benchmark(:maildirroot_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(d,File.basename(x)) }.sort }
+        debug "new: #{new_ids}"
+        debug "old: #{old_ids}"
         added += new_ids - old_ids
         deleted += old_ids - new_ids
         debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
@@ -161,7 +165,7 @@ class MaildirRoot < Source
       added.each_with_index do |id,i|
         yield :add,
         :info => id,
-        :labels => @maildirroot.labels + maildir_labels(id) + [@label],
+        :labels => @maildirroot.labels + maildir_labels(id) + (type == :archive ? [] : [@label.to_sym]),
         :progress => i.to_f/total_size
       end
 
@@ -293,8 +297,14 @@ class MaildirRoot < Source
   end
 
   def load_message id
-    # find message with this source_info and a label containing this message
-    with_file_for(id) { |f| RMail::Parser.read f }
+    # find a label with this id
+    # TODO: do this based on source info
+    dirs = @extended_maildirs
+    dirs.push @archive
+
+    mdir = dirs.select { |m| m.valid? id }.first
+
+    mdir.with_file_for(id) { |f| RMail::Parser.read f }
   end
 
   def sync_back id, labels
@@ -333,38 +343,43 @@ class MaildirRoot < Source
     delete = []
     update = []
 
-    @archive.poll do |sym,args|
-      case sym
-      when :add
-        add << args
-        # these are completely new:
-        # - detect other labels and add to label list
+    #@archive.poll do |sym,args|
+      #case sym
+      #when :add
+        #add << args
+        ## these are completely new:
+        ## - detect other labels and add to label list
 
-      when :delete
-        delete << args
-        # these have been deleted:
-        # - make sure they are not left in any other labels
+      #when :delete
+        #delete << args
+        ## these have been deleted:
+        ## - make sure they are not left in any other labels
 
-      when :update
-        # these have somehow had their flags changed:
-        # - make sure the flags correspond in the other labels
-        update << args
+      #when :update
+        ## these have somehow had their flags changed:
+        ## - make sure the flags correspond in the other labels
+        #update << args
 
-      end
-      debug "Got: #{sym} with #{args}"
-    end
+      #end
+    #end
 
     debug "archived_add: #{add.size}"
 
 
+    max = 0
+
     @extended_maildirs.each do |maildir|
       debug "polling: #{maildir}.."
+
+      maildir = @maildirs[0]
 
       maildir.poll do |sym,args|
         case sym
         when :add
           m = add.select { |e| e[:info] == args[:info] }
+
           if not m.empty?
+            debug "message also exists in archive: #{m[:info]}"
             add.delete m
             m.labels += [maildir.label]
           else
@@ -383,11 +398,17 @@ class MaildirRoot < Source
 
         end
       end
+
+      if max == 0
+        break
+      else
+        max -= 1
+      end
     end
 
-    debug "adding the following messages:"
+    #debug "adding the following messages:"
     add.each do |args|
-      debug "adding #{args[:info]} with labels: #{args[:labels]}"
+      #debug "adding #{args[:info]} with labels: #{args[:labels]}"
       yield :add, args
     end
 
