@@ -209,7 +209,7 @@ EOS
             m.labels.delete :unread if source.read?
             m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
             m.labels.each { |l| LabelManager << l }
-            m.labels = old_m.labels + (m.labels - [:unread, :inbox]) if old_m
+            m.labels = old_m.labels + (m.labels - (source.syncable ? [] : [:unread, :inbox])) if old_m
             m.locations = old_m.locations + m.locations if old_m
             HookManager.run "before-add-message", :message => m
             yield :add, m, old_m, args[:progress] if block_given?

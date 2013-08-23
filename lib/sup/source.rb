@@ -54,7 +54,7 @@ class Source
 
   bool_accessor :usual, :archived
   attr_reader :uri
-  attr_accessor :id, :poll_lock
+  attr_accessor :id, :poll_lock, :syncable
 
   def initialize uri, usual=true, archived=false, id=nil
     raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
@@ -63,6 +63,11 @@ class Source
     @usual = usual
     @archived = archived
     @id = id
+
+    # is the message state updated in the source (meaning that we can trust the
+    # message state that comes back from the source). in case a message exists
+    # in several locations they might interfere with each other.
+    @syncable = false
 
     @poll_lock = Mutex.new
   end

@@ -17,6 +17,7 @@ class MaildirRoot < Source
   def initialize uri, usual=true, archived=false, id=nil, labels=[]
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
+    @syncable = true
     uri = URI(@expanded_uri)
 
     raise ArgumentError, "not a maildirroot URI" unless uri.scheme == "maildirroot"
@@ -33,11 +34,7 @@ class MaildirRoot < Source
     @drafts_folder  = 'drafts'
     @spam_folder    = 'spam'
     @trash_folder   = 'trash'
-    @archive_folder = 'archive' # corresponding to no inbox label
-                                # all messages should end up here
-                                # new messages found anywhere else
-                                # will be copied to the archive_folder
-
+    @archive_folder = 'archive' # messages with no label should be here
 
     @all_special_folders = [@inbox_folder, @sent_folder, @drafts_folder,
                             @spam_folder, @trash_folder, @archive_folder]
@@ -60,10 +57,12 @@ class MaildirRoot < Source
     }
     debug "maildir subs setup done."
 
-    @special_maildirs  = [@inbox, @sent, @drafts,
-                          @spam, @trash]
-    @extended_maildirs = @special_maildirs
-    @maildirs.each { |m| @extended_maildirs.push m }
+    @special_maildirs  = [@inbox, @sent, @drafts, @spam, @trash]
+    @extended_maildirs = @special_maildirs + @maildirs
+
+    @all_maildirs = [@archive] + @extended_maildirs
+
+    debug "all maildirs: #{@all_maildirs.inspect}"
 
   end
 
@@ -126,15 +125,9 @@ class MaildirRoot < Source
         next if prev_ctime >= ctime
         @ctimes[d] = ctime
 
-        if @type == :archive
-          old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{d}/").to_a }
-          old_ids = Index.each_source_info_with_label(@maildirroot.id, "{d}/").to_a
-        else
+        old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{@label.to_s}/#{d}/").to_a }
 
-          old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info_with_label, @maildirroot.id, "#{d}/", @label.to_sym).to_a }
-        end
-
-        new_ids = benchmark(:maildirroot_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(d,File.basename(x)) }.sort }
+        new_ids = benchmark(:maildirroot_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s,d,File.basename(x)) }.sort }
         debug "new: #{new_ids}"
         debug "old: #{old_ids}"
         added += new_ids - old_ids
@@ -160,7 +153,7 @@ class MaildirRoot < Source
       added -= add_to_delete
       deleted -= del_to_delete
       debug "#{added.size} added, #{deleted.size} deleted, #{updated.size} updated"
-      total_size = added.size+deleted.size+updated.size
+      total_size = added.size + deleted.size + updated.size
 
       added.each_with_index do |id,i|
         yield :add,
@@ -265,15 +258,6 @@ class MaildirRoot < Source
       return false if id == nil
       File.exists? File.join(@dir, id)
     end
-
-    def with_file_for id
-      fn = File.join(@dir, id)
-      begin
-        File.open(fn, 'rb') { |f| yield f }
-      rescue SystemCallError, IOError => e
-        raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
-      end
-    end
   end
 
   def file_path; @root end
@@ -297,14 +281,16 @@ class MaildirRoot < Source
   end
 
   def load_message id
-    # find a label with this id
-    # TODO: do this based on source info
-    dirs = @extended_maildirs
-    dirs.push @archive
+    with_file_for(id) { |f| RMail::Parser.read f }
+  end
 
-    mdir = dirs.select { |m| m.valid? id }.first
-
-    mdir.with_file_for(id) { |f| RMail::Parser.read f }
+  def with_file_for id
+    fn = File.join(@root, id)
+    begin
+      File.open(fn, 'rb') { |f| yield f }
+    rescue SystemCallError, IOError => e
+      raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
+    end
   end
 
   def sync_back id, labels
@@ -363,30 +349,13 @@ class MaildirRoot < Source
       #end
     #end
 
-    debug "archived_add: #{add.size}"
-
-
-    max = 0
-
-    @extended_maildirs.each do |maildir|
+    @all_maildirs.each do |maildir|
       debug "polling: #{maildir}.."
-
-      maildir = @maildirs[0]
 
       maildir.poll do |sym,args|
         case sym
         when :add
-          m = add.select { |e| e[:info] == args[:info] }
-
-          if not m.empty?
-            debug "message also exists in archive: #{m[:info]}"
-            add.delete m
-            m.labels += [maildir.label]
-          else
-            m = args
-          end
-
-          add << m
+          add << args
 
         when :delete
           # remove this label from message
@@ -398,17 +367,11 @@ class MaildirRoot < Source
 
         end
       end
-
-      if max == 0
-        break
-      else
-        max -= 1
-      end
     end
 
     #debug "adding the following messages:"
     add.each do |args|
-      #debug "adding #{args[:info]} with labels: #{args[:labels]}"
+      debug "adding #{args[:info]} with labels: #{args[:labels]}"
       yield :add, args
     end
 
