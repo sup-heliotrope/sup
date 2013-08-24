@@ -398,7 +398,8 @@ class MaildirRoot < Source
       label_sources = l.map { |l| maildirsub_from_label l }
       debug "label_sources: #{label_sources.inspect}"
       if label_sources.member? nil
-        raise NotImplementedError "Unknown label: Maildir creation not supported yet."
+        warn "Unknown label: Maildir creation not supported yet."
+        raise NotImplementedError
       end
 
       existing_sources = msg.locations.select { |l| l.source.id == @id }.map { |l| maildirsub_from_info l.info }
@@ -414,7 +415,8 @@ class MaildirRoot < Source
       debug "sources to del: #{sources_to_del}"
 
       if (existing_sources - sources_to_del + sources_to_add).empty?
-        raise NotImplementedError "Message would no longer have a source! Should be copied to archive"
+        warn "Message would no longer have a source! Should be copied to archive"
+        raise NotImplementedError
       end
 
       dirty = false
