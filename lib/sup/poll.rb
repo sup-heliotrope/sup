@@ -242,9 +242,14 @@ EOS
             Index.each_message({:location => [source.id, args[:old_info]]}, false) do |m|
               old_m = Index.build_message m.id
               m.locations.delete Location.new(source, args[:old_info])
-              m.locations.push Location.new(source, args[:new_info])
+              m.locations.push Location.new(source, args[:new_info]) if args.has_key? :new_info
               ## Update labels that might have been modified remotely
               m.labels -= source.supported_labels?
+              debug "Updating #{args[:old_info]}"
+              if args.has_key? :remove_labels
+                debug "removing labels: #{args[:remove_labels]}"
+                m.labels -= args[:remove_labels]
+              end
               m.labels += args[:labels]
               yield :update, m, old_m if block_given?
               Index.sync_message m, true, false

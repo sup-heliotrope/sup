@@ -163,9 +163,17 @@ class MaildirRoot < Source
       end
 
       deleted.each_with_index do |id,i|
-        yield :delete,
-        :info => id,
-        :progress => (i.to_f+added.size)/total_size
+        if type == :archive
+          yield :delete,
+          :info => id,
+          :progress => (i.to_f+added.size)/total_size
+        else
+          yield :delete,
+            :old_info => id,
+            :progress => (i.to_f+added.size)/total_size,
+            :labels => @maildirroot.labels + maildir_labels(id[1]),
+            :remove_labels => [@label.to_sym]
+        end
       end
 
       updated.each_with_index do |id,i|
@@ -333,58 +341,30 @@ class MaildirRoot < Source
   # - Deleted messages from 'archive' should be deleted from all labels
   def poll
     debug "polling @archive.."
-
-    add = []
-    delete = []
-    update = []
-
-    #@archive.poll do |sym,args|
-      #case sym
-      #when :add
-        #add << args
-        ## these are completely new:
-        ## - detect other labels and add to label list
-
-      #when :delete
-        #delete << args
-        ## these have been deleted:
-        ## - make sure they are not left in any other labels
-
-      #when :update
-        ## these have somehow had their flags changed:
-        ## - make sure the flags correspond in the other labels
-        #update << args
-
-      #end
-    #end
-
     @all_maildirs.each do |maildir|
       debug "polling: #{maildir}.."
 
       maildir.poll do |sym,args|
         case sym
         when :add
-          add << args
+          yield :add, args # easy..
 
         when :delete
-          # remove this label from message
+          # remove this label from message and change to :update
+          if maildir == @archive
+            yield :delete, args
+          else
+            debug "Deleting: #{args[:new_info]}"
+            yield :update, args
+          end
 
         when :update
           # message should already have this label, but flags or dir have changed
           # re-check other labels if they are the same
-
-
+          yield :update, args # should probably check if flags match other places as well
         end
       end
     end
-
-    #debug "adding the following messages:"
-    add.each do |args|
-      debug "adding #{args[:info]} with labels: #{args[:labels]}"
-      yield :add, args
-    end
-
-    debug "total: #{add.size}"
   end
 
   def sync_back id, labels, msg
