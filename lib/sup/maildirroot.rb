@@ -79,6 +79,8 @@ class MaildirRoot < Source
 
       debug "maildirsub set up, type: #{@type}, label: #{@label}"
       @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
+
+      @mutex  = Mutex.new
     end
 
     def to_s
@@ -212,6 +214,36 @@ class MaildirRoot < Source
     def seen? id; maildir_data(id)[2].include? "S"; end
     def trashed? id; maildir_data(id)[2].include? "T"; end
 
+
+    def maildir_mark_file orig_path, flags
+      @mutex.synchronize do
+
+        id = File.basename orig_path
+        dd = File.dirname orig_path
+        sub = File.basename dd
+        orig_path = File.join sub, id
+
+        Dir.chdir(@dir) do
+          new_base = (flags.include?("S")) ? "cur" : "new"
+          md_base, md_ver, md_flags = maildir_data orig_path
+
+          return if md_flags == flags
+
+          new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
+          orig_path = File.join @dir, orig_path
+          new_path  = File.join @dir, new_loc
+          tmp_path  = File.join @dir, "tmp", "#{md_base}:#{md_ver},#{flags}"
+
+          File.link orig_path, tmp_path
+          File.unlink orig_path
+          File.link tmp_path, new_path
+          File.unlink tmp_path
+
+          new_loc
+        end
+      end
+    end
+
     def maildir_reconcile_flags id, labels
         new_flags = Set.new( maildir_data(id)[2].each_char )
 
@@ -226,27 +258,6 @@ class MaildirRoot < Source
         ## Flags must be stored in ASCII order according to Maildir
         ## documentation
         new_flags.to_a.sort.join
-    end
-
-    def maildir_mark_file orig_path, flags
-      @mutex.synchronize do
-        new_base = (flags.include?("S")) ? "cur" : "new"
-        md_base, md_ver, md_flags = maildir_data orig_path
-
-        return if md_flags == flags
-
-        new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
-        orig_path = File.join @dir, orig_path
-        new_path  = File.join @dir, new_loc
-        tmp_path  = File.join @dir, "tmp", "#{md_base}:#{md_ver},#{flags}"
-
-        File.link orig_path, tmp_path
-        File.unlink orig_path
-        File.link tmp_path, new_path
-        File.unlink tmp_path
-
-        new_loc
-      end
     end
 
     def store_message_from orig_path
@@ -415,6 +426,20 @@ class MaildirRoot < Source
         dirty = true
       end
 
+      label_sources.each do |s|
+        l = msg.locations.select { |l| l.source.id == @id and maildirsub_from_info(l.info) == s }.first
+
+        # check maildir flags
+        flags = s.maildir_reconcile_flags l.info, labels
+
+        # mark file
+        new_loc = s.maildir_mark_file l.info, flags
+        msg.locations.delete Location.new(self, l.info)
+        msg.locations.push   Location.new(self, new_loc)
+
+        dirty = true
+      end
+
 
       if dirty
         debug "maildirroot: syncing message: #{msg}"
@@ -422,14 +447,12 @@ class MaildirRoot < Source
       end
 
 
-      # check maildir flags
-      # mark file
-
       # return new info
       nil
 
     end
   end
+
 
   def labels; @labels; end
 
