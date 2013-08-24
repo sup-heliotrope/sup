@@ -258,7 +258,9 @@ class MaildirRoot < Source
     def remove_message path
       debug "#{self}: Removing message: #{path}"
       # not implemented yet
-      File.unlink path
+      Dir.chdir(@root) do
+        File.unlink path
+      end
     end
 
     def valid? id
@@ -415,27 +417,24 @@ class MaildirRoot < Source
         raise NotImplementedError "Message would no longer have a source! Should be copied to archive"
       end
 
-      locations_to_add = []
+      dirty = false
+
       sources_to_add.each do |s|
         # copy message to maildir
         new_info = s.store_message_from id
-        locations_to_add << Location.new(self, new_info)
+        msg.locations.push Location.new(self, new_info)
+        dirty = true
       end
 
-      debug "locations_to_add: #{locations_to_add.inspect}"
-
-      msg.locations += locations_to_add
-
-      locations_to_del = []
       sources_to_del.each do |s|
         l = msg.locations.select { |l| l.source.id == @id and maildirsub_from_info(l.info) == s }.first
         s.remove_message l.info
-        locations_to_del << Location.new(self, l.info)
+        msg.locations.delete Location.new(self, l.info)
+        dirty = true
       end
 
-      msg.locations -= locations_to_del
 
-      if locations_to_add.any? or locations_to_del.any?
+      if dirty
         debug "maildirroot: syncing message: #{msg}"
         Index.sync_message msg, false, false
       end
