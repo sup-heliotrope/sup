@@ -82,13 +82,13 @@ class MaildirRoot < Source
     end
 
     def to_s
-      "MaildirSub: #{@type}, #{@label}"
+      "MaildirSub (#{@label})"
     end
 
     def store_message date, from_email, &block
       stored = false
       new_fn = new_maildir_basefn + ':2,S'
-      Dir.chdir(@dir) do |d|
+      Dir.chdir(@subdir) do |d|
         tmp_path = File.join(@dir, 'tmp', new_fn)
         new_path = File.join(@dir, 'new', new_fn)
         begin
@@ -127,7 +127,7 @@ class MaildirRoot < Source
 
         old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{@label.to_s}/#{d}/").to_a }
 
-        new_ids = benchmark(:maildirroot_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s,d,File.basename(x)) }.sort }
+        new_ids = benchmark(:maildirroot_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s,File.join(d,File.basename(x))) }.sort }
         debug "new: #{new_ids}"
         debug "old: #{old_ids}"
         added += new_ids - old_ids
@@ -241,17 +241,24 @@ class MaildirRoot < Source
       end
     end
 
-    # checks if message exists in this maildir
-    def has_id id
-      if valid? id
-        return true
-      elsif valid? id.dup.gsub!('cur', 'new')
-        return :wrong_state
-      elsif valid? id.dup.gsub!('new', 'cur')
-        return :wrong_state
-      else
-        return false
-      end
+    def store_message_from orig_path
+      debug "#{self}: Storing message: #{orig_path}"
+
+      o = File.join @root, orig_path
+      id = File.basename orig_path
+      dd = File.dirname orig_path
+      sub = File.basename dd
+
+      new_path = File.join @dir, sub, id
+      File.link o, new_path
+
+      return File.join @label.to_s, sub, id
+    end
+
+    def remove_message path
+      debug "#{self}: Removing message: #{path}"
+      # not implemented yet
+      File.unlink path
     end
 
     def valid? id
@@ -378,10 +385,87 @@ class MaildirRoot < Source
     debug "total: #{add.size}"
   end
 
+  def sync_back id, labels, msg
+    @poll_lock.synchronize do
+      debug "maildirroot: syncing id: #{id}, labels: #{labels.inspect}"
+
+      # check if id is in label
+      l = labels - [:unread] # remove non-maildir related labels
+
+      # local add: check if there are sources for all labels (will be done redundantly)
+      label_sources = l.map { |l| maildirsub_from_label l }
+      debug "label_sources: #{label_sources.inspect}"
+      if label_sources.member? nil
+        raise NotImplementedError "Unknown label: Maildir creation not supported yet."
+      end
+
+      existing_sources = msg.locations.select { |l| l.source.id == @id }.map { |l| maildirsub_from_info l.info }
+      debug "existing_sources: #{existing_sources.inspect}"
+
+
+      sources_to_add = label_sources - existing_sources
+      debug "sources to add: #{sources_to_add}"
+
+      # local del: check if a label exists for this source
+      # if no label, copy to archive then remove
+      sources_to_del = existing_sources - label_sources - [@archive]
+      debug "sources to del: #{sources_to_del}"
+
+      if (existing_sources - sources_to_del + sources_to_add).empty?
+        raise NotImplementedError "Message would no longer have a source! Should be copied to archive"
+      end
+
+      locations_to_add = []
+      sources_to_add.each do |s|
+        # copy message to maildir
+        new_info = s.store_message_from id
+        locations_to_add << Location.new(self, new_info)
+      end
+
+      debug "locations_to_add: #{locations_to_add.inspect}"
+
+      msg.locations += locations_to_add
+
+      locations_to_del = []
+      sources_to_del.each do |s|
+        l = msg.locations.select { |l| l.source.id == @id and maildirsub_from_info(l.info) == s }.first
+        s.remove_message l.info
+        locations_to_del << Location.new(self, l.info)
+      end
+
+      msg.locations -= locations_to_del
+
+      if locations_to_add.any? or locations_to_del.any?
+        debug "maildirroot: syncing message: #{msg}"
+        Index.sync_message msg, false, false
+      end
+
+
+      # check maildir flags
+      # mark file
+
+      # return new info
+      nil
+
+    end
+  end
 
   def labels; @labels; end
 
 private
+  def maildirsub_from_info info
+    this_label = info
+    while (File.dirname this_label) != '.'
+      this_label = File.dirname this_label
+    end
+
+    this_label = this_label.to_sym
+    return maildirsub_from_label this_label
+  end
+
+  def maildirsub_from_label label
+    return @all_maildirs.select { |m| m.label.to_sym == label.to_sym }.first || nil
+  end
 
   def new_maildir_basefn
     Kernel::srand()

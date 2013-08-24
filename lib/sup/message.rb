@@ -292,12 +292,33 @@ EOS
   end
 
   def sync_back
-    if @locations.map { |l|
-      l.sync_back @labels if l.valid? and $config[:sync_back_to_maildir] and l.source.is_a? Maildir
+    debug "message: syncing back: #{@id}"
+
+    # syncing other type of syncbacks
+    if @locations.select {|l| not l.source.kind_of? MaildirRoot }.map { |l|
+
+      debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
+
+      l.sync_back @labels, self if l.valid? and $config[:sync_back_to_maildir] and l.source.syncable
+
     }.any?
-      Index.sync_message self, true
+      Index.sync_message self, true, false
       UpdateManager.relay self, :updated, self
     end
+
+    # syncing maildirroots
+    l = @locations.select { |l| l.source.kind_of? MaildirRoot }.first
+    if l
+      debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
+
+      l.sync_back @labels, self if l.valid? and $config[:sync_back_to_maildir] and l.source.syncable
+
+      UpdateManager.relay self, :updated, self
+
+    end
+
+
+
   end
 
   def merge_labels_from_locations merge_labels
@@ -733,8 +754,9 @@ class Location
     source.raw_message info
   end
 
-  def sync_back labels
-    new_info = source.sync_back(@info, labels) if source.respond_to? :sync_back
+  def sync_back labels, msg
+    debug "location: syncing back: #{@info.inspect}"
+    new_info = source.sync_back(@info, labels, msg) if source.syncable
     @info = new_info if new_info
   end
 

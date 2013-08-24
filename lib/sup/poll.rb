@@ -213,11 +213,11 @@ EOS
             m.locations = old_m.locations + m.locations if old_m
             HookManager.run "before-add-message", :message => m
             yield :add, m, old_m, args[:progress] if block_given?
-            Index.sync_message m, true
+            Index.sync_message m, true, false
 
             if Index.message_joining_killed? m
               m.labels += [:killed]
-              Index.sync_message m, true
+              Index.sync_message m, true, false
             end
 
             ## We need to add or unhide the message when it either did not exist
@@ -231,7 +231,7 @@ EOS
           when :delete
             Index.each_message({:location => [source.id, args[:info]]}, false) do |m|
               m.locations.delete Location.new(source, args[:info])
-              Index.sync_message m, false
+              Index.sync_message m, false, false
               if m.locations.size == 0
                 yield :delete, m, [source,args[:info]], args[:progress] if block_given?
                 Index.delete m.id
@@ -247,7 +247,7 @@ EOS
               m.labels -= source.supported_labels?
               m.labels += args[:labels]
               yield :update, m, old_m if block_given?
-              Index.sync_message m, true
+              Index.sync_message m, true, false
               UpdateManager.relay self, :updated, m
             end
           end

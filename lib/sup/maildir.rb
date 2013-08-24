@@ -12,6 +12,7 @@ class Maildir < Source
   def initialize uri, usual=true, archived=false, id=nil, labels=[]
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
+    @syncable     = true
     uri = URI(@expanded_uri)
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
@@ -76,7 +77,7 @@ class Maildir < Source
     with_file_for(id) { |f| RMail::Parser.read f }
   end
 
-  def sync_back id, labels
+  def sync_back id, labels, msg
     flags = maildir_reconcile_flags id, labels
     maildir_mark_file id, flags
   end
@@ -207,13 +208,13 @@ private
 
   def maildir_reconcile_flags id, labels
       new_flags = Set.new( maildir_data(id)[2].each_char )
-    
-      # Set flags based on labels for the six flags we recognize 
-      if labels.member? :draft then new_flags.add?( "D" ) else new_flags.delete?( "D" ) end 
-      if labels.member? :starred then new_flags.add?( "F" ) else new_flags.delete?( "F" ) end 
-      if labels.member? :forwarded then new_flags.add?( "P" ) else new_flags.delete?( "P" ) end 
-      if labels.member? :replied then new_flags.add?( "R" ) else new_flags.delete?( "R" ) end 
-      if not labels.member? :unread then new_flags.add?( "S" ) else new_flags.delete?( "S" ) end 
+
+      # Set flags based on labels for the six flags we recognize
+      if labels.member? :draft then new_flags.add?( "D" ) else new_flags.delete?( "D" ) end
+      if labels.member? :starred then new_flags.add?( "F" ) else new_flags.delete?( "F" ) end
+      if labels.member? :forwarded then new_flags.add?( "P" ) else new_flags.delete?( "P" ) end
+      if labels.member? :replied then new_flags.add?( "R" ) else new_flags.delete?( "R" ) end
+      if not labels.member? :unread then new_flags.add?( "S" ) else new_flags.delete?( "S" ) end
       if labels.member? :deleted or labels.member? :killed then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
 
       ## Flags must be stored in ASCII order according to Maildir
