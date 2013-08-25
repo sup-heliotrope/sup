@@ -395,6 +395,8 @@ class MaildirRoot < Source
     @poll_lock.synchronize do
       debug "maildirroot: syncing id: #{id}, labels: #{labels.inspect}"
 
+      # todo: handle delete msgs
+
       # check if id is in label
       l = labels - [:unread] # remove non-maildir related labels
 
@@ -468,7 +470,6 @@ class MaildirRoot < Source
       return false # don't return new info, locations have been taken care of..
     end
   end
-
 
   def labels; @labels; end
 
