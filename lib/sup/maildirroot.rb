@@ -454,7 +454,7 @@ class MaildirRoot < Source
         new_loc = s.maildir_mark_file l.info, flags
         if new_loc
           msg.locations.delete Location.new(self, l.info)
-          msg.locations.push   Location.new(self, new_loc)
+          msg.locations.push   Location.new(self, File.join(s.label.to_s, new_loc))
         end
 
         dirty = true
