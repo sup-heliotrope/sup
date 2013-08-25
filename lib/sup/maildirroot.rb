@@ -426,8 +426,10 @@ class MaildirRoot < Source
         dirty = true
       end
 
-      label_sources.each do |s|
-        l = msg.locations.select { |l| l.source.id == @id and maildirsub_from_info(l.info) == s }.first
+      debug "msg.locations: #{msg.locations.inspect}"
+      msg.locations.select { |l| l.source.id = @id }.each do |l|
+        s = maildirsub_from_info (l.info)
+        debug "checking maildir flags for: #{s}"
 
         # check maildir flags
         flags = s.maildir_reconcile_flags l.info, labels
