@@ -115,6 +115,11 @@ class MaildirRoot < Source
       stored
     end
 
+    def new_maildir_basefn
+      Kernel::srand()
+      "#{Time.now.to_i.to_s}.#{$$}#{Kernel.rand(1000000)}.#{MYHOSTNAME}"
+    end
+
     def poll
       added = []
       deleted = []
@@ -344,12 +349,20 @@ class MaildirRoot < Source
 
   # Polling strategy:
   #
-  # - Poll 'archive' folder (messages should be archived/skip inbox label)
-  # - Delete messages from inbox -> remove inbox label from message
-  # - Poll other folders    (copy non-existant messages to archive and add)
-  # - Merge messages from other folders with 'archive' and add label for folder
-  # - Deleted messages from a folder -> remove label from message
-  # - Deleted messages from 'archive' should be deleted from all labels
+  # - Poll messages from all maildirs
+  # - Special folders correspond to special labels which might correspond
+  #   to maildir flags. Will be fixed when message is synced or 'reconciled'.
+  # - When a message is deleted: the label corresponding to its maildir is
+  #   removed and the message is :update'd back to Poll.
+  # - When a message is added: the corresponding label is added through :add.
+  #   A new source is added which should now be synced with the label.
+  #
+  # - When a label is added the message is copied to the corresponding maildir
+  # - When a label is deleted the message is deleted from the corresponding
+  #   maildir.
+  # - When a maildir flag (:unread, etc.) is changed the file name is changed
+  #   on all sources(locations) using maildir_reconcile...
+  #
   def poll
     debug "polling @archive.."
     @all_maildirs.each do |maildir|
@@ -467,11 +480,6 @@ private
 
   def maildirsub_from_label label
     return @all_maildirs.select { |m| m.label.to_sym == label.to_sym }.first || nil
-  end
-
-  def new_maildir_basefn
-    Kernel::srand()
-    "#{Time.now.to_i.to_s}.#{$$}#{Kernel.rand(1000000)}.#{MYHOSTNAME}"
   end
 end
 end
