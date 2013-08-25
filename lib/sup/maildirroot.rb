@@ -442,16 +442,12 @@ class MaildirRoot < Source
         dirty = true
       end
 
-
       if dirty
         debug "maildirroot: syncing message: #{msg}"
         Index.sync_message msg, false, false
       end
 
-
-      # return new info
-      nil
-
+      nil # don't return new info, locations have been taken care of..
     end
   end
 
