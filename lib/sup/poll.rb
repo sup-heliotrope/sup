@@ -220,14 +220,11 @@ EOS
               Index.sync_message m, true, false
             end
 
-            ## We need to add or unhide the message when it either did not exist
-            ## before at all or when it was updated. We do *not* add/unhide when
-            ## the same message was found at a different location
+            UpdateManager.relay self, :added, m
             if old_m
               UpdateManager.relay self, :updated, m
-            elsif !old_m or not old_m.locations.member? m.location
-              UpdateManager.relay self, :added, m
             end
+
           when :delete
             Index.each_message({:location => [source.id, args[:info]]}, false) do |m|
               m.locations.delete Location.new(source, args[:info])
