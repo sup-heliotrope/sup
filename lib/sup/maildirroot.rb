@@ -413,10 +413,13 @@ class MaildirRoot < Source
       sources_to_add = label_sources - existing_sources
       debug "sources to add: #{sources_to_add}"
 
+      fail "nil in sources_to_add" if sources_to_add.select { |s| s == nil }.any?
+
       # local del: check if a label exists for this source
       # if no label, copy to archive then remove
       sources_to_del = existing_sources - label_sources - [@archive]
       debug "sources to del: #{sources_to_del}"
+      fail "nil in sources_to_del" if sources_to_del.select { |s| s == nil }.any?
 
       if (existing_sources - sources_to_del + sources_to_add).empty?
         warn "Message would no longer have a source! Should be copied to archive"
@@ -449,18 +452,20 @@ class MaildirRoot < Source
 
         # mark file
         new_loc = s.maildir_mark_file l.info, flags
-        msg.locations.delete Location.new(self, l.info)
-        msg.locations.push   Location.new(self, new_loc)
+        if new_loc
+          msg.locations.delete Location.new(self, l.info)
+          msg.locations.push   Location.new(self, new_loc)
+        end
 
         dirty = true
       end
 
       if dirty
-        debug "maildirroot: syncing message: #{msg}"
+        debug "maildirroot: syncing message: #{msg.id}"
         Index.sync_message msg, false, false
       end
 
-      nil # don't return new info, locations have been taken care of..
+      return false # don't return new info, locations have been taken care of..
     end
   end
 
