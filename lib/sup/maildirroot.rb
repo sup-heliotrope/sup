@@ -29,7 +29,6 @@ module Redwood
 
 class MaildirRoot < Source
   include SerializeLabelsNicely
-  MYHOSTNAME = Socket.gethostname
 
   ## remind me never to use inheritance again.
   yaml_properties :uri, :usual, :archived, :id, :labels, :syncback
@@ -88,6 +87,8 @@ class MaildirRoot < Source
 
   # A class representing one maildir (label) in the maildir root
   class MaildirSub
+    MYHOSTNAME = Socket.gethostname
+
     attr_reader :type, :maildirroot, :dir, :label, :basedir
 
     def initialize maildirroot, root, dir, type=:generic
@@ -244,7 +245,6 @@ class MaildirRoot < Source
     def replied? id; maildir_data(id)[2].include? "R"; end
     def seen? id; maildir_data(id)[2].include? "S"; end
     def trashed? id; maildir_data(id)[2].include? "T"; end
-
 
     def maildir_mark_file orig_path, flags
       @mutex.synchronize do
