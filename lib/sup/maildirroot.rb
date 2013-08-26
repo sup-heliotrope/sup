@@ -134,9 +134,9 @@ class MaildirRoot < Source
         next if prev_ctime >= ctime
         @ctimes[d] = ctime
 
-        old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{@label.to_s}/#{d}/").to_a }
+        old_ids = benchmark(:maildirsub_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{@label.to_s}/#{d}/").to_a }
 
-        new_ids = benchmark(:maildirroot_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s,File.join(d,File.basename(x))) }.sort }
+        new_ids = benchmark(:maildirsub_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s,File.join(d,File.basename(x))) }.sort }
         added += new_ids - old_ids
         deleted += old_ids - new_ids
         debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
@@ -386,27 +386,29 @@ class MaildirRoot < Source
   #   on all sources(locations) using maildir_reconcile...
   def poll
     debug "polling @archive.."
-    @all_maildirs.each do |maildir|
-      debug "polling: #{maildir}.."
+    benchmark (:maildirroot_pool) do
+      @all_maildirs.each do |maildir|
+        debug "polling: #{maildir}.."
 
-      maildir.poll do |sym,args|
-        case sym
-        when :add
-          yield :add, args # easy..
+        maildir.poll do |sym,args|
+          case sym
+          when :add
+            yield :add, args # easy..
 
-        when :delete
-          # remove this label from message and change to :update
-          if maildir == @archive
-            yield :delete, args
-          else
-            debug "Deleting: #{args[:new_info]}"
-            yield :update, args
+          when :delete
+            # remove this label from message and change to :update
+            if maildir == @archive
+              yield :delete, args
+            else
+              debug "Deleting: #{args[:new_info]}"
+              yield :update, args
+            end
+
+          when :update
+            # message should already have this label, but flags or dir have changed
+            # re-check other labels if they are the same
+            yield :update, args # should probably check if flags match other places as well
           end
-
-        when :update
-          # message should already have this label, but flags or dir have changed
-          # re-check other labels if they are the same
-          yield :update, args # should probably check if flags match other places as well
         end
       end
     end
