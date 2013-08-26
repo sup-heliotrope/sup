@@ -393,9 +393,11 @@ class MaildirRoot < Source
         maildir.poll do |sym,args|
           case sym
           when :add
+            # remote add: new label or new message in archive
             yield :add, args # easy..
 
           when :delete
+            # remote del: remove label or message deleted
             # remove this label from message and change to :update
             if maildir == @archive
               yield :delete, args
@@ -405,6 +407,7 @@ class MaildirRoot < Source
             end
 
           when :update
+            # remote: changed state on message
             # message should already have this label, but flags or dir have changed
             # re-check other labels if they are the same
             yield :update, args # should probably check if flags match other places as well
@@ -476,6 +479,7 @@ class MaildirRoot < Source
 
       debug "msg.locations: #{msg.locations.inspect}"
       msg.locations.select { |l| l.source.id = @id }.each do |l|
+        # local: message changed state
         s = maildirsub_from_info (l.info)
         debug "checking maildir flags for: #{s}"
 
