@@ -13,11 +13,12 @@ class MaildirRoot < Source
   MYHOSTNAME = Socket.gethostname
 
   ## remind me never to use inheritance again.
-  yaml_properties :uri, :usual, :archived, :id, :labels
-  def initialize uri, usual=true, archived=false, id=nil, labels=[]
+  yaml_properties :uri, :usual, :archived, :id, :labels, :syncback
+  def initialize uri, usual=true, archived=false, id=nil, labels=[], syncback=false
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
     @syncable = true
+    @syncback = syncback
     uri = URI(@expanded_uri)
 
     raise ArgumentError, "not a maildirroot URI" unless uri.scheme == "maildirroot"
@@ -407,6 +408,11 @@ class MaildirRoot < Source
   end
 
   def sync_back id, labels, msg
+    if not @syncback
+      debug "#{self.to_s}: syncback disabled for this source."
+      return false
+    end
+
     @poll_lock.synchronize do
       debug "maildirroot: syncing id: #{id}, labels: #{labels.inspect}"
 
