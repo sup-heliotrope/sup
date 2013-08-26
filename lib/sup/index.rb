@@ -132,6 +132,7 @@ EOS
     @enquire.docid_order = Xapian::Enquire::ASCENDING
   end
 
+  # aliases for sync_message
   def add_message m; sync_message m, true end
   def update_message m; sync_message m, true end
   def update_message_state m; sync_message m, false end

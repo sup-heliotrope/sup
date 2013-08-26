@@ -220,8 +220,14 @@ EOS
               Index.sync_message m, true, false
             end
 
+            # send message :added signal regardless since labels/locations
+            # might have changed and a message might need to be added to a
+            # listing.
             UpdateManager.relay self, :added, m
             if old_m
+              # if a message has been modified send the :updated signal
+              # so that existing listed messages can be updated with
+              # new labels, etc.
               UpdateManager.relay self, :updated, m
             end
 
@@ -229,6 +235,8 @@ EOS
             Index.each_message({:location => [source.id, args[:info]]}, false) do |m|
               m.locations.delete Location.new(source, args[:info])
               Index.sync_message m, false, false
+
+              # if all locations have been removed delete message from index
               if m.locations.size == 0
                 yield :delete, m, [source,args[:info]], args[:progress] if block_given?
                 Index.delete m.id
@@ -239,14 +247,22 @@ EOS
             Index.each_message({:location => [source.id, args[:old_info]]}, false) do |m|
               old_m = Index.build_message m.id
               m.locations.delete Location.new(source, args[:old_info])
-              m.locations.push Location.new(source, args[:new_info]) if args.has_key? :new_info
-              ## Update labels that might have been modified remotely
+
+              if args.has_key? :new_info
+                # add new_info if it is provided: if it is not, a location
+                # has been removed and the message should be updated.
+                m.locations.push Location.new(source, args[:new_info])
+              end
+
+              # update labels that might have been modified remotely
+              # and has been re-calculated (maildir flags).
               m.labels -= source.supported_labels?
               debug "Updating #{args[:old_info]}"
               if args.has_key? :remove_labels
                 debug "removing labels: #{args[:remove_labels]}"
                 m.labels -= args[:remove_labels]
               end
+
               m.labels += args[:labels]
               yield :update, m, old_m if block_given?
               Index.sync_message m, true, false
