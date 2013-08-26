@@ -412,6 +412,9 @@ class MaildirRoot < Source
     end
   end
 
+  # sync back will be called on one of the sub-locations (maildirsubs),
+  # but we will sync all locations of the message. sync_back should therefore
+  # only be called once for all the sub-locations of the maildirroot.
   def sync_back id, labels, msg
     if not @syncback
       debug "#{self.to_s}: syncback disabled for this source."
@@ -425,7 +428,7 @@ class MaildirRoot < Source
       # remove labels that do not have a a corresponding maildir
       l = labels - (supported_labels? - folder_for_labels) - unsupported_labels
 
-      # local add: check if there are sources for all labels (will be done redundantly)
+      # local add: check if there are sources for all labels
       label_sources = l.map { |l| maildirsub_from_label l }
       debug "label_sources: #{label_sources.inspect}"
       if label_sources.member? nil

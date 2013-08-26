@@ -306,7 +306,9 @@ EOS
       UpdateManager.relay self, :updated, self
     end
 
-    # syncing maildirroots
+    # syncing maildirroots, there will be one source for each label.
+    # it is only necessary to sync back on one source (it will operate
+    # on the master maildirroot).
     l = @locations.select { |l| l.source.kind_of? MaildirRoot }.first
     if l
       debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
