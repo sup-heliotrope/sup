@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Redwood
 
 class ContactManager
@@ -54,7 +56,7 @@ class ContactManager
   def is_aliased_contact? person; !@p2a[person].nil? end
 
   def save
-    File.open(@fn, "w") do |f|
+    File.open(@fn, "w:UTF-8") do |f|
       @p2a.sort_by { |(p, a)| [p.full_address, a] }.each do |(p, a)|
         f.puts "#{a || ''}: #{p.full_address}"
       end

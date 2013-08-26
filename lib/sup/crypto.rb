@@ -1,6 +1,4 @@
 begin
-  # gpgme broke its API in 2.0, so make sure we have the old version for now.
-  gem 'gpgme', '=1.0.8'
   require 'gpgme'
 rescue LoadError
 end
@@ -64,9 +62,16 @@ EOS
     @gpgme_present =
       begin
         begin
-          GPGME.check_version({:protocol => GPGME::PROTOCOL_OpenPGP})
+          begin
+            GPGME.check_version({:protocol => GPGME::PROTOCOL_OpenPGP})
+          rescue TypeError
+            GPGME.check_version(nil)
+          end
           true
         rescue GPGME::Error
+          false
+        rescue ArgumentError
+          # gpgme 2.0.0 raises this due to the hash->string conversion
           false
         end
       rescue NameError
@@ -81,7 +86,11 @@ EOS
 
     # if gpg2 is available, it will start gpg-agent if required
     if (bin = `which gpg2`.chomp) =~ /\S/
-      GPGME.set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
+      if GPGME.respond_to?('set_engine_info')
+        GPGME.set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
+      else
+        GPGME.gpgme_set_engine_info GPGME::PROTOCOL_OpenPGP, bin, nil
+      end
     else
       # check if the gpg-options hook uses the passphrase_callback
       # if it doesn't then check if gpg agent is present
@@ -110,6 +119,7 @@ EOS
   end
 
   def have_crypto?; @not_working_reason.nil? end
+  def not_working_reason; @not_working_reason end
 
   def sign from, to, payload
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
@@ -120,7 +130,13 @@ EOS
                                {:operation => "sign", :options => gpg_opts}) || gpg_opts
 
     begin
-      sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
+      if GPGME.respond_to?('detach_sign')
+        sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
+      else
+        crypto = GPGME::Crypto.new
+        gpg_opts[:mode] = GPGME::SIG_MODE_DETACH
+        sig = crypto.sign(format_payload(payload), gpg_opts).read
+      end
     rescue GPGME::Error => exc
       raise Error, gpgme_exc_msg(exc.message)
     end
@@ -153,7 +169,13 @@ EOS
     recipients = to + [from]
     recipients = HookManager.run("gpg-expand-keys", { :recipients => recipients }) || recipients
     begin
-      cipher = GPGME.encrypt(recipients, format_payload(payload), gpg_opts)
+      if GPGME.respond_to?('encrypt')
+        cipher = GPGME.encrypt(recipients, format_payload(payload), gpg_opts)
+      else
+        crypto = GPGME::Crypto.new
+        gpg_opts[:recipients] = recipients
+        cipher = crypto.encrypt(format_payload(payload), gpg_opts).read
+      end
     rescue GPGME::Error => exc
       raise Error, gpgme_exc_msg(exc.message)
     end
@@ -262,7 +284,11 @@ EOS
                                {:operation => "decrypt", :options => gpg_opts}) || gpg_opts
     ctx = GPGME::Ctx.new(gpg_opts)
     cipher_data = GPGME::Data.from_str(format_payload(payload))
-    plain_data = GPGME::Data.empty
+    if GPGME::Data.respond_to?('empty')
+      plain_data = GPGME::Data.empty
+    else
+      plain_data = GPGME::Data.empty!
+    end
     begin
       ctx.decrypt_verify(cipher_data, plain_data)
     rescue GPGME::Error => exc
@@ -314,7 +340,7 @@ EOS
       msg = RMail::Parser.read output
       if msg.header.content_type =~ %r{^multipart/} && !msg.multipart?
         output = "MIME-Version: 1.0\n" + output
-        output.fix_encoding
+        output.fix_encoding!
         msg = RMail::Parser.read output
       end
     end
@@ -330,7 +356,7 @@ private
 
   def gpgme_exc_msg msg
     err_msg = "Exception in GPGME call: #{msg}"
-    info err_msg
+    #info err_msg
     err_msg
   end
 

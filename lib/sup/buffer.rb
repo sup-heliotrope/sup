@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'etc'
 require 'thread'
 
@@ -447,7 +449,7 @@ EOS
 
   def ask_with_completions domain, question, completions, default=nil
     ask domain, question, default do |s|
-      s.fix_encoding
+      s.fix_encoding!
       completions.select { |x| x =~ /^#{Regexp::escape s}/iu }.map { |x| [x, x] }
     end
   end
@@ -464,9 +466,9 @@ EOS
           raise "william screwed up completion: #{partial.inspect}"
         end
 
-      prefix.fix_encoding
-      target.fix_encoding
-      completions.select { |x| x =~ /^#{Regexp::escape target}/i }.map { |x| [prefix + x, x] }
+      prefix.fix_encoding!
+      target.fix_encoding!
+      completions.select { |x| x =~ /^#{Regexp::escape target}/iu }.map { |x| [prefix + x, x] }
     end
   end
 
@@ -474,12 +476,12 @@ EOS
     ask domain, question, default do |partial|
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ""
-      target.fix_encoding
+      target.fix_encoding!
 
       prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
-      prefix.fix_encoding
+      prefix.fix_encoding!
 
-      completions.select { |x| x =~ /^#{Regexp::escape target}/i }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
+      completions.select { |x| x =~ /^#{Regexp::escape target}/iu }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
     end
   end
 
@@ -492,7 +494,7 @@ EOS
         if dir
           [[s.sub(full, dir), "~#{name}"]]
         else
-          users.select { |u| u =~ /^#{Regexp::escape name}/ }.map do |u|
+          users.select { |u| u =~ /^#{Regexp::escape name}/u }.map do |u|
             [s.sub("~#{name}", "~#{u}"), "~#{u}"]
           end
         end
@@ -551,6 +553,7 @@ EOS
 
     completions = (recent + contacts).flatten.uniq
     completions += HookManager.run("extra-contact-addresses") || []
+
     answer = BufferManager.ask_many_emails_with_completions domain, question, completions, default
 
     if answer
@@ -619,7 +622,7 @@ EOS
       tf.deactivate
       draw_screen :sync => false, :status => status, :title => title
     end
-    tf.value.tap { |x| x.fix_encoding if x }
+    tf.value.tap { |x| x }
   end
 
   def ask_getch question, accept=nil

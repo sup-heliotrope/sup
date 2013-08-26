@@ -112,7 +112,7 @@ class Message
     end
 
     subj = header["subject"]
-    subj = subj ? subj.fix_encoding : nil
+    subj = subj ? subj.fix_encoding! : nil
     @subj = subj ? subj.gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
     @to = Person.from_address_list header["to"]
     @cc = Person.from_address_list header["cc"]
@@ -338,7 +338,7 @@ EOS
   end
 
   def indexable_chunks
-    chunks.select { |c| c.is_a? Chunk::Text }
+    chunks ? chunks.select { |c| c.is_a? Chunk::Text } : []
   end
 
   def indexable_subject

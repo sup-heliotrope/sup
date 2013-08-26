@@ -50,8 +50,9 @@ class AccountManager
       [:name, :sendmail, :signature, :gpgkey].each { |k| hash[k] ||= @default_account.send(k) }
     end
     hash[:alternates] ||= []
+    fail "alternative emails are not an array: #{hash[:alternates]}" unless hash[:alternates].kind_of? Array
 
-    [:name, :signature].each { |x| hash[x] ? hash[x].fix_encoding : nil }
+    [:name, :signature].each { |x| hash[x] ? hash[x].fix_encoding! : nil }
 
     a = Account.new hash
     @accounts[a] = true

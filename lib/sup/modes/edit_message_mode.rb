@@ -178,7 +178,7 @@ EOS
   def handle_new_text header, body; end
 
   def edit_message_or_field
-    lines = DECORATION_LINES + @selectors.size
+    lines = (@selectors.empty? ? 0 : DECORATION_LINES) + @selectors.size
     if lines > curpos
       return
     elsif (curpos - lines) >= @header_lines.length
@@ -484,10 +484,10 @@ protected
       m = build_message date
 
       if HookManager.enabled? "sendmail"
-    if not HookManager.run "sendmail", :message => m, :account => acct
-          warn "Sendmail hook was not successful"
-          return false
-    end
+        if not HookManager.run "sendmail", :message => m, :account => acct
+              warn "Sendmail hook was not successful"
+              return false
+        end
       else
         IO.popen(acct.sendmail, "w") { |p| p.puts m }
         raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0

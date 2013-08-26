@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'rubygems'
 require 'yaml'
 YAML::ENGINE.yamler = 'psych'
@@ -302,7 +304,7 @@ EOM
     else
       require 'etc'
       require 'socket'
-      name = Etc.getpwnam(ENV["USER"]).gecos.split(/,/).first rescue nil
+      name = Etc.getpwnam(ENV["USER"]).gecos.split(/,/).first.force_encoding($encoding).fix_encoding! rescue nil
       name ||= ENV["USER"]
       email = ENV["USER"] + "@" +
         begin
@@ -314,8 +316,8 @@ EOM
       config = {
         :accounts => {
           :default => {
-            :name => name,
-            :email => email,
+            :name => name.dup.fix_encoding!,
+            :email => email.fix_encoding!,
             :alternates => [],
             :sendmail => "/usr/sbin/sendmail -oem -ti",
             :signature => File.join(ENV["HOME"], ".signature"),
