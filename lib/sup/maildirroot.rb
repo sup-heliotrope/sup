@@ -4,9 +4,24 @@ require 'set'
 module Redwood
 
 # A Maildir Root source using each source as a label. Adding or deleting a
-# a label in Sup means removing or copying a message to the label folders.
+# a label in Sup means copying to or removing a message in the corresponding
+# maildir folder.
 #
-# Deleting a message in Sup means removing a message from all folders.
+# Special labels that have corresponding folders (inbox, drafts, etc) are mapped
+# as well. Special sup labels like :attachment are ignored. The maildir files
+# are synced based on the file flag as in the regular maildir-syncback source.
+#
+# Where maildir flags and special folders overlap they are both synced.
+#
+# Files are copied using File.link which means that they should not take any
+# extra space on disk. When a file is removed from all labels it is copied
+# to the archive folder unless it is already there.
+#
+# Deleted files are copied to the trash/:deleted special folder, a separate
+# sync-back script should be used to delete messages with this label from
+# _all_ the label-folders it exists in. Un-deleting a :deleted message works
+# because it is still stored in all the other label-folders. The sync-back
+# approach resembles the existing solution for mbox sources.
 
 class MaildirRoot < Source
   include SerializeLabelsNicely
