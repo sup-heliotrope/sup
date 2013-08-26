@@ -288,7 +288,6 @@ class MaildirRoot < Source
 
     def remove_message path
       debug "#{self}: Removing message: #{path}"
-      # not implemented yet
       Dir.chdir(@root) do
         File.unlink @maildirroot.get_real_id path
       end
