@@ -371,16 +371,17 @@ class MaildirRoot < Source
   # - Special folders correspond to special labels which might correspond
   #   to maildir flags. Will be fixed when message is synced or 'reconciled'.
   # - When a message is deleted: the label corresponding to its maildir is
-  #   removed and the message is :update'd back to Poll.
+  #   removed and the message is :update'd back to Poll, a array of
+  #   :remove_labels specify which label should be removed.
   # - When a message is added: the corresponding label is added through :add.
-  #   A new source is added which should now be synced with the label.
+  #   A new source is added which should now be in sync with the label.
   #
+  # In sync_back:
   # - When a label is added the message is copied to the corresponding maildir
   # - When a label is deleted the message is deleted from the corresponding
   #   maildir.
   # - When a maildir flag (:unread, etc.) is changed the file name is changed
   #   on all sources(locations) using maildir_reconcile...
-  #
   def poll
     debug "polling @archive.."
     @all_maildirs.each do |maildir|
