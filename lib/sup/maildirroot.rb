@@ -27,15 +27,17 @@ class MaildirRoot < Source
 
     @root   = uri.path
     @labels = Set.new(labels || [])
-    @mutex  = Mutex.new
+    @mutex  = Mutex.new # this is probably close to the def of a bad var name
 
-
+    # special labels map to maildirs on disk
+    # should eventually be configurable, but can for the time
+    # being be configured by mapping your maildir <-> whatever sync setup.
     @inbox_folder   = 'inbox'
     @sent_folder    = 'sent'
     @drafts_folder  = 'drafts'
     @spam_folder    = 'spam'
     @trash_folder   = 'trash'
-    @archive_folder = 'archive' # messages with no label should be here
+    @archive_folder = 'archive' # messages with no label
 
     @all_special_folders = [@inbox_folder, @sent_folder, @drafts_folder,
                             @spam_folder, @trash_folder, @archive_folder]
