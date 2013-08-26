@@ -41,11 +41,11 @@ class MaildirRoot < Source
 
     debug "setting up maildir subs.."
     @archive = MaildirSub.new self, @root, @archive_folder, :archive
-    @inbox   = MaildirSub.new self, @root, @inbox_folder, :inbox
-    @sent    = MaildirSub.new self, @root, @sent_folder, :sent
-    @drafts  = MaildirSub.new self, @root, @drafts_folder, :drafts
-    @spam    = MaildirSub.new self, @root, @spam_folder, :spam
-    @trash   = MaildirSub.new self, @root, @trash_folder, :trash
+    @inbox   = MaildirSub.new self, @root, @inbox_folder,   :inbox
+    @sent    = MaildirSub.new self, @root, @sent_folder,    :sent
+    @drafts  = MaildirSub.new self, @root, @drafts_folder,  :draft
+    @spam    = MaildirSub.new self, @root, @spam_folder,    :spam
+    @trash   = MaildirSub.new self, @root, @trash_folder,   :deleted
 
     # scan for other non-special folders
     debug "setting up non-special folders.."
@@ -68,12 +68,13 @@ class MaildirRoot < Source
 
   # A class representing one maildir (label) in the maildir root
   class MaildirSub
-    attr_reader :type, :maildirroot, :dir, :label
+    attr_reader :type, :maildirroot, :dir, :label, :basedir
 
     def initialize maildirroot, root, dir, type=:generic
       @maildirroot = maildirroot
       @root   = root
       @dir    = File.join(root, dir)
+      @basedir = File.basename dir
       @type   = type
       @label  = (@type == :generic) ? dir : @type.to_sym
 
@@ -268,6 +269,8 @@ class MaildirRoot < Source
     def store_message_from orig_path
       debug "#{self}: Storing message: #{orig_path}"
 
+      orig_path = @maildirroot.get_real_id orig_path
+
       o = File.join @root, orig_path
       id = File.basename orig_path
       dd = File.dirname orig_path
@@ -283,14 +286,16 @@ class MaildirRoot < Source
       debug "#{self}: Removing message: #{path}"
       # not implemented yet
       Dir.chdir(@root) do
-        File.unlink path
+        File.unlink @maildirroot.get_real_id path
       end
     end
+  end
 
-    def valid? id
-      return false if id == nil
-      File.exists? File.join(@dir, id)
-    end
+  def valid? id
+    return false if id == nil
+    id = get_real_id id
+    fn = File.join(@root, id)
+    File.exists? fn
   end
 
   def file_path; @root end
@@ -298,7 +303,13 @@ class MaildirRoot < Source
   def is_source_for? uri; super || (uri == @expanded_uri); end
 
   def supported_labels?
+    # folders exist for:
+    # :draft, :starred, :deleted
     [:draft, :starred, :forwarded, :replied, :unread, :deleted]
+  end
+
+  def folder_for_labels
+    [:draft, :starred, :deleted]
   end
 
   def each_raw_message_line id
@@ -317,7 +328,14 @@ class MaildirRoot < Source
     with_file_for(id) { |f| RMail::Parser.read f }
   end
 
+  # return id with label translated to real path of id
+  def get_real_id id
+    m  = maildirsub_from_info id
+    id = id.gsub(/#{m.label.to_s}/, m.basedir)
+  end
+
   def with_file_for id
+    id = get_real_id id
     fn = File.join(@root, id)
     begin
       File.open(fn, 'rb') { |f| yield f }
@@ -397,8 +415,8 @@ class MaildirRoot < Source
 
       # todo: handle delete msgs
 
-      # check if id is in label
-      l = labels - [:unread] # remove non-maildir related labels
+      # remove labels that do not have a a corresponding maildir
+      l = labels - (supported_labels? - folder_for_labels)
 
       # local add: check if there are sources for all labels (will be done redundantly)
       label_sources = l.map { |l| maildirsub_from_label l }
@@ -424,8 +442,8 @@ class MaildirRoot < Source
       fail "nil in sources_to_del" if sources_to_del.select { |s| s == nil }.any?
 
       if (existing_sources - sources_to_del + sources_to_add).empty?
-        warn "Message would no longer have a source! Should be copied to archive"
-        raise NotImplementedError
+        warn "message no longer has any source, copying to archive."
+        sources_to_add.push @archive
       end
 
       dirty = false
