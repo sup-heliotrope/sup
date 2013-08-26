@@ -136,8 +136,6 @@ class MaildirRoot < Source
         old_ids = benchmark(:maildirroot_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{@label.to_s}/#{d}/").to_a }
 
         new_ids = benchmark(:maildirroot_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s,File.join(d,File.basename(x))) }.sort }
-        debug "new: #{new_ids}"
-        debug "old: #{old_ids}"
         added += new_ids - old_ids
         deleted += old_ids - new_ids
         debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
@@ -312,6 +310,11 @@ class MaildirRoot < Source
     [:draft, :starred, :deleted]
   end
 
+  # labels that won't be synced
+  def unsupported_labels
+    [:attachments]
+  end
+
   def each_raw_message_line id
     with_file_for(id) do |f|
       until f.eof?
@@ -414,9 +417,8 @@ class MaildirRoot < Source
       debug "maildirroot: syncing id: #{id}, labels: #{labels.inspect}"
 
       # todo: handle delete msgs
-
       # remove labels that do not have a a corresponding maildir
-      l = labels - (supported_labels? - folder_for_labels)
+      l = labels - (supported_labels? - folder_for_labels) - unsupported_labels
 
       # local add: check if there are sources for all labels (will be done redundantly)
       label_sources = l.map { |l| maildirsub_from_label l }
