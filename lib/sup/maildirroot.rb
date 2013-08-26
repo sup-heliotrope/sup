@@ -339,7 +339,7 @@ class MaildirRoot < Source
 
   # special sup labels that won't be synced
   def unsupported_labels
-    [:attachment]
+    [:attachment, :killed]
   end
 
   def each_raw_message_line id
