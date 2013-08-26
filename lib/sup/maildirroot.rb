@@ -47,6 +47,8 @@ class MaildirRoot < Source
     @labels = Set.new(labels || [])
     @mutex  = Mutex.new # this is probably close to the def of a bad var name
 
+    debug "#{self.to_s}: setting up maildirroot.."
+
     # special labels map to maildirs on disk
     # should eventually be configurable, but can for the time
     # being be configured by mapping your maildir <-> whatever sync setup.
@@ -155,7 +157,8 @@ class MaildirRoot < Source
 
         old_ids = benchmark(:maildirsub_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{@label.to_s}/#{d}/").to_a }
 
-        new_ids = benchmark(:maildirsub_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s,File.join(d,File.basename(x))) }.sort }
+        new_ids = benchmark(:maildirsub_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s, d, File.basename(x)) }.sort }
+
         added += new_ids - old_ids
         deleted += old_ids - new_ids
         debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
@@ -190,7 +193,9 @@ class MaildirRoot < Source
 
       deleted.each_with_index do |id,i|
         if type == :archive
-          # delete location from msg without further ado
+          # delete archive-location from msg without further ado, since this
+          # means 'no labels' in sup/maildir language. and possibly a
+          # remote delete.
           yield :delete,
           :info => id,
           :progress => (i.to_f+added.size)/total_size
@@ -211,7 +216,7 @@ class MaildirRoot < Source
         yield :update,
         :old_info => id[0],
         :new_info => id[1],
-        :labels => @maildirroot.labels + maildir_labels(id[1]),
+        :labels =>   @maildirroot.labels + maildir_labels(id[1]),
         :progress => (i.to_f+added.size+deleted.size)/total_size
       end
       nil
@@ -428,7 +433,7 @@ class MaildirRoot < Source
             # remote: changed state on message
             # message should already have this label, but flags or dir have changed
             # re-check other labels if they are the same
-            yield :update, args # should probably check if flags match other places as well
+            yield :update, args
           end
         end
       end
