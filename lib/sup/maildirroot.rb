@@ -69,20 +69,17 @@ class MaildirRoot < Source
     @trash   = MaildirSub.new self, @root, @trash_folder,   :deleted
 
     # scan for other non-special folders
-    debug "setting up non-special folders.."
+    debug "setting up generic folders.."
     @maildirs = []
     Dir.new(@root).entries.select { |e|
       File.directory? File.join(@root,e) and e != '.' and e != '..' and !@all_special_folders.member? e
     }.each { |d|
       @maildirs.push MaildirSub.new(self, @root, d, :generic)
     }
-    debug "maildir subs setup done."
 
     @special_maildirs  = [@inbox, @sent, @drafts, @spam, @trash]
     @extended_maildirs = @special_maildirs + @maildirs
     @all_maildirs      = [@archive] + @extended_maildirs
-
-    debug "all maildirs: #{@all_maildirs.inspect}"
   end
 
   # A class representing one maildir (label) in the maildir root
