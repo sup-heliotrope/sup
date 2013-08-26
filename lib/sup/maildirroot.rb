@@ -77,6 +77,8 @@ class MaildirRoot < Source
       @dir    = File.join(root, dir)
       @basedir = File.basename dir
       @type   = type
+      # todo: shellwords.escape so that weird labels can have
+      #       a disk representation.
       @label  = (@type == :generic) ? dir : @type.to_sym
 
       debug "maildirsub set up, type: #{@type}, label: #{@label}"
