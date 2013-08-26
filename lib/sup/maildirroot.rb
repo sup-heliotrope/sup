@@ -3,9 +3,13 @@ require 'set'
 
 module Redwood
 
-# A Maildir Root source using each source as a label. Adding or deleting a
+# A Maildir Root source using each sub maildr as a label. Adding or deleting a
 # a label in Sup means copying to or removing a message in the corresponding
 # maildir folder.
+#
+# All sub-folders will be added as a location to the message in the index, so
+# that syncing the message back is a matter of updating the locations to match
+# the labels of the message.
 #
 # Special labels that have corresponding folders (inbox, drafts, etc) are mapped
 # as well. Special sup labels like :attachment are ignored. The maildir files
