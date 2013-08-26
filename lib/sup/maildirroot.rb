@@ -300,17 +300,18 @@ class MaildirRoot < Source
   def self.suggest_labels_for path; [] end
   def is_source_for? uri; super || (uri == @expanded_uri); end
 
+  # labels supported by the maildir file
   def supported_labels?
-    # folders exist for:
-    # :draft, :starred, :deleted
+    # folders exist for (see below: folder_for_labels)
     [:draft, :starred, :forwarded, :replied, :unread, :deleted]
   end
 
+  # special labels with corresponding maildir
   def folder_for_labels
     [:draft, :starred, :deleted]
   end
 
-  # labels that won't be synced
+  # special sup labels that won't be synced
   def unsupported_labels
     [:attachments]
   end
@@ -344,13 +345,6 @@ class MaildirRoot < Source
       File.open(fn, 'rb') { |f| yield f }
     rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
-    end
-  end
-
-  def sync_back id, labels
-    @poll_lock.synchronize do
-      flags = maildir_reconcile_flags id, labels
-      maildir_mark_file id, flags
     end
   end
 
