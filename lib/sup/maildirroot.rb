@@ -60,11 +60,9 @@ class MaildirRoot < Source
 
     @special_maildirs  = [@inbox, @sent, @drafts, @spam, @trash]
     @extended_maildirs = @special_maildirs + @maildirs
-
-    @all_maildirs = [@archive] + @extended_maildirs
+    @all_maildirs      = [@archive] + @extended_maildirs
 
     debug "all maildirs: #{@all_maildirs.inspect}"
-
   end
 
   # A class representing one maildir (label) in the maildir root
@@ -173,10 +171,15 @@ class MaildirRoot < Source
 
       deleted.each_with_index do |id,i|
         if type == :archive
+          # delete location from msg without further ado
           yield :delete,
           :info => id,
           :progress => (i.to_f+added.size)/total_size
         else
+          # will be changed to :update in maildirroot
+          # labels in :remove_labels will be removed along with
+          # the old_info location. since no new new_info is provided
+          # the location will not be replaced.
           yield :delete,
             :old_info => id,
             :progress => (i.to_f+added.size)/total_size,
@@ -486,7 +489,7 @@ class MaildirRoot < Source
       end
 
       if dirty
-        debug "maildirroot: syncing message: #{msg.id}"
+        debug "maildirroot: syncing message to index: #{msg.id}"
         Index.sync_message msg, false, false
       end
 
