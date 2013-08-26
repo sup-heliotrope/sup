@@ -15,10 +15,27 @@ class SearchManager
       end
     end
     @modified = false
+
+    @predefined_searches = { 'All mail' => 'Search all mail.' }
+    @predefined_queries  = { 'All mail'.to_sym => { :qobj => Xapian::Query.new('Kmail'),
+                                                    :load_spam => false,
+                                                    :load_deleted => false,
+                                                    :load_killed => false,
+                                                    :text => 'Search all mail.'}
+    }
+    @predefined_searches.each do |k,v|
+      @searches[k] = v
+    end
   end
 
+  def predefined_queries; return @predefined_queries; end
   def all_searches; return @searches.keys.sort; end
-  def search_string_for name; return @searches[name]; end
+  def search_string_for name;
+    if @predefined_searches.keys.member? name
+      return name.to_sym
+    end
+    return @searches[name];
+  end
   def valid_name? name; name =~ /^[\w-]+$/; end
   def name_format_hint; "letters, numbers, underscores and dashes only"; end
 
@@ -65,7 +82,7 @@ class SearchManager
 
   def save
     return unless @modified
-    File.open(@fn, "w") { |f| @searches.sort.each { |(n, s)| f.puts "#{n}: #{s}" } }
+    File.open(@fn, "w") { |f| (@searches - @predefined_searches.keys).sort.each { |(n, s)| f.puts "#{n}: #{s}" } }
     @modified = false
   end
 end
