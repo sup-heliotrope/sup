@@ -526,6 +526,15 @@ class MaildirRoot < Source
     end
   end
 
+  # relay to @sent
+  def store_message date, from_email, &block
+    @sent.store_message date, from_email do |f|
+      yield f
+    end
+  end
+
+  # todo: store drafts
+
   def labels; @labels; end
 
 private
