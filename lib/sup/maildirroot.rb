@@ -298,9 +298,9 @@ class MaildirRoot < Source
 
       orig_path = @maildirroot.get_real_id orig_path
 
-      o = File.join @root, orig_path
-      id = File.basename orig_path
-      dd = File.dirname orig_path
+      o   = File.join @root, orig_path
+      id  = File.basename orig_path
+      dd  = File.dirname orig_path
       sub = File.basename dd
 
       new_path = File.join @dir, sub, id
@@ -494,6 +494,7 @@ class MaildirRoot < Source
       end
 
       sources_to_del.each do |s|
+        # remove message from maildir
         l = msg.locations.select { |l| l.source.id == @id and maildirsub_from_info(l.info) == s }.first
         s.remove_message l.info
         msg.locations.delete Location.new(self, l.info)
@@ -507,10 +508,12 @@ class MaildirRoot < Source
         debug "checking maildir flags for: #{s}"
 
         # check maildir flags
-        flags = s.maildir_reconcile_flags l.info, labels
+        flags   = s.maildir_reconcile_flags l.info, labels
 
         # mark file
         new_loc = s.maildir_mark_file l.info, flags
+
+        # update location
         if new_loc
           msg.locations.delete Location.new(self, l.info)
           msg.locations.push   Location.new(self, File.join(s.label.to_s, new_loc))
@@ -524,7 +527,8 @@ class MaildirRoot < Source
         Index.sync_message msg, false, false
       end
 
-      return false # don't return new info, locations have been taken care of..
+      # don't return new info, locations have been taken care of.
+      return false
     end
   end
 
