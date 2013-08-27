@@ -38,11 +38,6 @@ module Redwood
 #
 #   Consequently: This source does not work very well with the syncback flag
 #   disabled and remote changes being made.
-#
-#
-# This mail-source was written by Gaute Hope <eg@gaute.vetsj.com>, 2013, and
-# has made much use of the existing maildir and maildir-syncback code. Licenced
-# as the rest of Sup.
 
 class MaildirRoot < Source
   include SerializeLabelsNicely
