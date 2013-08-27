@@ -339,9 +339,9 @@ class MaildirRoot < Source
     [:draft, :starred, :deleted]
   end
 
-  # special sup labels that won't be synced
+  # unsupported special sup labels that won't be synced
   def unsupported_labels
-    [:attachment, :killed]
+    LabelManager::RESERVED_LABELS - supported_labels? - @special_maildirs.map { |m| m.label }
   end
 
   def each_raw_message_line id
