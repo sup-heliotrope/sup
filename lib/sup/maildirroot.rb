@@ -26,17 +26,36 @@ module Redwood
 # _all_ the label-folders it exists in. Un-deleting a :deleted message works
 # because it is still stored in all the other label-folders. The sync-back
 # approach resembles the existing solution for mbox sources.
+#
+##  Warning on changing the syncback flag:
+#
+#   Syncback is disabled by default. Changes you make to the Sup index (reading,
+#   labeling, etc) might be lost when the remote message state changes. Local
+#   existing changes are not propagated when the syncback flag is enabled, a
+#   separate script should be run/made for updating/merging the
+#   sup index -> maildir. But a clear merge strategy needs to be made
+#   since changes might have been made on both sides (local and remote).
+#
+#   Consequently: This source does not work very well with the syncback flag
+#   disabled and remote changes being made.
+#
+#
+# This mail-source was written by Gaute Hope <eg@gaute.vetsj.com>, 2013, and
+# has made much use of the existing maildir and maildir-syncback code. Licenced
+# as the rest of Sup.
 
 class MaildirRoot < Source
   include SerializeLabelsNicely
 
   ## remind me never to use inheritance again.
-  yaml_properties :uri, :usual, :archived, :id, :labels, :syncback
-  def initialize uri, usual=true, archived=false, id=nil, labels=[], syncback=false
+  yaml_properties :uri, :usual, :archived, :id, :labels, :syncback,
+                  :confirm_enable_experimental
+  def initialize uri, usual=true, archived=false, id=nil, labels=[], syncback=false, confirm_enable_experimental = false
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
     @syncable = true
     @syncback = syncback
+    @confirm_enable_experimental = confirm_enable_experimental
     uri = URI(@expanded_uri)
 
     raise ArgumentError, "not a maildirroot URI" unless uri.scheme == "maildirroot"
@@ -48,6 +67,7 @@ class MaildirRoot < Source
     @mutex  = Mutex.new # this is probably close to the def of a bad var name
 
     debug "#{self.to_s}: setting up maildirroot.."
+
 
     # special labels map to maildirs on disk
     # should eventually be configurable, but can for the time
@@ -390,6 +410,12 @@ class MaildirRoot < Source
     with_file_for(id) { |f| f.read }
   end
 
+  def check_enable_experimental
+    if not @confirm_enable_experimental
+      fail "This MaildirRoot source (#{self.to_s}) is EXPERIMENTAL. It might chew, hide or altogether totally delete your email. Forever. If you really are as adventurous as you claim to be please continue bravely forth and set 'confirm_enable_experimental' to 'true' as well as 'syncback' to 'true' for this source in 'sources.yaml' in the Sup base directory. Otherwise; delete this source from your 'sources.yaml'."
+    end
+  end
+
   # Polling strategy:
   #
   # - Poll messages from all maildirs
@@ -408,7 +434,8 @@ class MaildirRoot < Source
   # - When a maildir flag (:unread, etc.) is changed the file name is changed
   #   on all sources(locations) using maildir_reconcile...
   def poll
-    debug "polling @archive.."
+    check_enable_experimental
+
     benchmark (:maildirroot_pool) do
       @all_maildirs.each do |maildir|
         debug "polling: #{maildir}.."
@@ -444,6 +471,8 @@ class MaildirRoot < Source
   # but we will sync all locations of the message. sync_back should therefore
   # only be called once for all the sub-locations of the maildirroot.
   def sync_back id, labels, msg
+    check_enable_experimental
+
     if not @syncback
       debug "#{self.to_s}: syncback disabled for this source."
       return false
@@ -534,6 +563,8 @@ class MaildirRoot < Source
 
   # relay to @sent
   def store_message date, from_email, &block
+    check_enable_experimental
+
     @sent.store_message date, from_email do |f|
       yield f
     end
