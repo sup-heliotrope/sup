@@ -363,7 +363,7 @@ class MaildirRoot < Source
   # return id with label translated to real path of id
   def get_real_id id
     m  = maildirsub_from_info id
-    id = id.gsub(/#{m.label.to_s}/, m.basedir)
+    id = id.gsub(/^#{m.label.to_s}/, m.basedir)
   end
 
   def with_file_for id
