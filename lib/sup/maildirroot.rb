@@ -477,7 +477,7 @@ class MaildirRoot < Source
       debug "maildirroot: syncing id: #{id}, labels: #{labels.inspect}"
 
       # todo: handle delete msgs
-      # remove labels that do not have a a corresponding maildir
+      # remove labels that do not have a corresponding maildir
       l = labels - (supported_labels? - folder_for_labels) - unsupported_labels
 
       # local add: check if there are sources for all labels
