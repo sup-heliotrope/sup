@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Redwood
 
 class SearchManager
@@ -65,7 +67,7 @@ class SearchManager
 
   def save
     return unless @modified
-    File.open(@fn, "w") { |f| @searches.sort.each { |(n, s)| f.puts "#{n}: #{s}" } }
+    File.open(@fn, "w:UTF-8") { |f| @searches.sort.each { |(n, s)| f.puts "#{n}: #{s}" } }
     @modified = false
   end
 end
