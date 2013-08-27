@@ -188,11 +188,11 @@ class MaildirRoot < Source
           map[maildir_data(id_del)[0]].push id_del
       end
       added.each do |id_add|
-          map[maildir_data(id_add)[0]].each do |id_del|
-            updated.push [ id_del, id_add ]
-            add_to_delete.push id_add
-            del_to_delete.push id_del
-          end
+        map[maildir_data(id_add)[0]].each do |id_del|
+          updated.push [ id_del, id_add ]
+          add_to_delete.push id_add
+          del_to_delete.push id_del
+        end
       end
       added -= add_to_delete
       deleted -= del_to_delete
