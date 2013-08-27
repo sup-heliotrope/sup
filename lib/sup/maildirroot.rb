@@ -318,10 +318,16 @@ class MaildirRoot < Source
       dd  = File.dirname orig_path
       sub = File.basename dd
 
-      new_path = File.join @dir, sub, id
+      new_flags = Set.new( maildir_data(id)[2].each_char )
+      new_flags = new_flags.to_a.sort.join
+
+      # create new id
+      new_id   = new_maildir_basefn + ":2," + new_flags
+
+      new_path = File.join @dir, sub, new_id
       File.link o, new_path
 
-      return File.join @label.to_s, sub, id
+      return File.join @label.to_s, sub, new_id
     end
 
     def remove_message path
