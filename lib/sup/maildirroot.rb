@@ -3,7 +3,7 @@ require 'set'
 
 module Redwood
 
-# A Maildir Root source using each sub maildr as a label. Adding or deleting a
+# A Maildir Root source using each sub maildir as a label. Adding or deleting
 # a label in Sup means copying to or removing a message in the corresponding
 # maildir folder.
 #
