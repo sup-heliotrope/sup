@@ -309,18 +309,17 @@ EOS
     # syncing maildirroots, there will be one source for each label.
     # it is only necessary to sync back on one source (it will operate
     # on the master maildirroot).
-    l = @locations.select { |l| l.source.kind_of? MaildirRoot }.first
-    if l
-      debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
+    source_ids_done = []
+    @locations.select { |l| l.source.kind_of? MaildirRoot }.each do |l|
+      if not source_ids_done.member? l.source.id
+        debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
+        source_ids_done << l.source.id
 
-      l.sync_back @labels, self if l.valid? and l.source.syncable
+        l.sync_back @labels, self if l.valid? and l.source.syncable
 
-      UpdateManager.relay self, :updated, self
-
+        UpdateManager.relay self, :updated, self
+      end
     end
-
-
-
   end
 
   def merge_labels_from_locations merge_labels

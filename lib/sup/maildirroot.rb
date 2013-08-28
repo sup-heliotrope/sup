@@ -537,7 +537,7 @@ class MaildirRoot < Source
       end
 
       debug "msg.locations: #{msg.locations.inspect}"
-      msg.locations.select { |l| l.source.id = @id }.each do |l|
+      msg.locations.select { |l| l.source.id == @id }.each do |l|
         # local: message changed state
         s = maildirsub_from_info (l.info)
         debug "checking maildir flags for: #{s}"

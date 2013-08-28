@@ -171,7 +171,7 @@ EOS
                 numi += 1
               end
             end
-          else fail
+          else fail "unknown action"
           end
         end
         msg += "Found #{num} messages, #{numi} to inbox. " unless num == 0
