@@ -313,7 +313,7 @@ EOS
     if l
       debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
 
-      l.sync_back @labels, self if l.valid? and $config[:sync_back_to_maildir] and l.source.syncable
+      l.sync_back @labels, self if l.valid? and l.source.syncable
 
       UpdateManager.relay self, :updated, self
 
