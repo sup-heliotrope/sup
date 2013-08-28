@@ -44,8 +44,15 @@ class MaildirRoot < Source
 
   ## remind me never to use inheritance again.
   yaml_properties :uri, :usual, :archived, :id, :labels, :syncback,
-                  :confirm_enable_experimental
-  def initialize uri, usual=true, archived=false, id=nil, labels=[], syncback=false, confirm_enable_experimental = false
+                  :confirm_enable_experimental, :inbox_folder,
+                  :sent_folder, :drafts_folder, :spam_folder,
+                  :archive_folder
+  def initialize uri, usual=true, archived=false, id=nil, labels=[], 
+                 syncback=false, confirm_enable_experimental = false,
+                 inbox_folder = 'Inbox', sent_folder = 'Sent', 
+                 drafts_folder = 'Drafts', spam_folder = 'Spam',
+                 archive_folder = 'All Mail'
+
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
     @syncable = true
@@ -65,14 +72,12 @@ class MaildirRoot < Source
 
 
     # special labels map to maildirs on disk
-    # should eventually be configurable, but can for the time
-    # being be configured by mapping your maildir <-> whatever sync setup.
-    @inbox_folder   = 'inbox'
-    @sent_folder    = 'sent'
-    @drafts_folder  = 'drafts'
-    @spam_folder    = 'spam'
-    @trash_folder   = 'trash'
-    @archive_folder = 'archive' # messages with no label
+    @inbox_folder   = inbox_folder
+    @sent_folder    = sent_folder 
+    @drafts_folder  = drafts_folder 
+    @spam_folder    = spam_folder 
+    @trash_folder   = trash_folder
+    @archive_folder = archive_folder # messages with no label
 
     @all_special_folders = [@inbox_folder, @sent_folder, @drafts_folder,
                             @spam_folder, @trash_folder, @archive_folder]
