@@ -607,11 +607,6 @@ class MaildirRoot < Source
         s = maildirsub_from_info (l.info)
         debug "checking maildir flags for: #{s}"
 
-        if s.nil?
-          warn "missing maildir for: #{self.to_s}: #{l.info}"
-          next
-        end
-
         # check maildir flags
         flags   = s.maildir_reconcile_flags l.info, labels
 
