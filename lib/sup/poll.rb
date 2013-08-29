@@ -149,9 +149,11 @@ EOS
             loaded_labels.merge m.labels
             numd += 1
           elsif action == :update
+            debug ":update"
             yield "Message at #{m.source_info} is an update of an old message. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
             loaded_labels.merge m.labels
             numu += 1
+            debug ":update done"
           elsif action == :add
             if old_m
               new_locations = (m.locations - old_m.locations)
@@ -208,8 +210,12 @@ EOS
             m.labels.delete :inbox  if source.archived?
             m.labels.delete :unread if source.read?
             m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
+            debug "add message: #{args[:info]}, marked_read: #{m.source_marked_read?}"
             m.labels.each { |l| LabelManager << l }
+
+            # syncable sources need to handle special labels
             m.labels = old_m.labels + (m.labels - (source.syncable ? [] : [:unread, :inbox])) if old_m
+
             m.locations = old_m.locations + m.locations if old_m
             HookManager.run "before-add-message", :message => m
             yield :add, m, old_m, args[:progress] if block_given?
@@ -257,10 +263,19 @@ EOS
               # update labels that might have been modified remotely
               # and has been re-calculated (maildir flags).
               m.labels -= source.supported_labels?
-              debug "Updating #{args[:old_info]}"
+
+              debug "Updating #{args[:old_info]}, labels: #{m.labels.inspect}"
               if args.has_key? :remove_labels
                 debug "removing labels: #{args[:remove_labels]}"
-                m.labels -= args[:remove_labels]
+                # check if remove_labels should be applied, if another
+                # source says it should stay we leave it
+                args[:remove_labels].each do |label_to_remove|
+                  if source.really_remove? m, label_to_remove
+                    m.labels.delete label_to_remove
+                  else
+                    debug "#{args[:old_info]}: another source for: #{label_to_remove} exists, we will not remove label."
+                  end
+                end
               end
 
               m.labels += args[:labels]

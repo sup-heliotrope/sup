@@ -542,6 +542,7 @@ EOS
 
   def save_thread t
     t.each_dirty_message do |m|
+      debug "index: saving message: #{m.id}"
       save_message m
     end
   end

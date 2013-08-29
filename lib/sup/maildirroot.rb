@@ -124,10 +124,18 @@ class MaildirRoot < Source
       @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
 
       @mutex  = Mutex.new
+
+      # check if maildir is valid
+      fail "#{self.to_s}: invalid maildir directory: #{@dir}" if not valid_maildir?
     end
 
     def to_s
       "MaildirSub (#{@label})"
+    end
+
+    def valid_maildir?
+      File.directory?(@dir) && File.directory?(File.join(@dir, 'cur')) &&
+        File.directory?(File.join(@dir, 'new'))
     end
 
     def store_message date, from_email, &block
@@ -227,7 +235,7 @@ class MaildirRoot < Source
           yield :delete,
             :old_info => id,
             :progress => (i.to_f+added.size)/total_size,
-            :labels => @maildirroot.labels + maildir_labels(id[1]),
+            :labels => @maildirroot.labels + maildir_labels(id),
             :remove_labels => [@label.to_sym]
         end
       end
@@ -282,7 +290,7 @@ class MaildirRoot < Source
 
           return if md_flags == flags
 
-          new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
+          new_loc =   File.join new_base, "#{md_base}:#{md_ver},#{flags}"
           orig_path = File.join @dir, orig_path
           new_path  = File.join @dir, new_loc
           tmp_path  = File.join @dir, "tmp", "#{md_base}:#{md_ver},#{flags}"
@@ -458,7 +466,7 @@ class MaildirRoot < Source
             if maildir == @archive
               yield :delete, args
             else
-              debug "Deleting: #{args[:new_info]}"
+              debug "maildirroot: pool: deleting: #{args[:old_info]}"
               yield :update, args
             end
 
@@ -499,9 +507,33 @@ class MaildirRoot < Source
         raise NotImplementedError
       end
 
-      existing_sources = msg.locations.select { |l| l.source.id == @id }.map { |l| maildirsub_from_info l.info }
+      my_locations = msg.locations.select { |l| l.source.id == @id }
+      existing_sources = my_locations.map { |l| maildirsub_from_info l.info }
+
       debug "existing_sources: #{existing_sources.inspect}"
 
+      # remote rename:
+      # check existing_sources
+      new_existing_sources = existing_sources.dup
+      existing_sources.each_with_index do |m,i|
+        if not valid? my_locations[i].info
+          info = my_locations[i].info
+          debug "#{m.to_s}: invalid location: #{info}, deleting location from message."
+
+          new_existing_sources[i] = nil
+          msg.locations.delete Location.new(self,info)
+
+          # does a duplicate source exist
+          if new_existing_sources.member? m
+            debug "#{m.to_s}: another source exists for same folder."
+          end
+
+          dirty = true
+        end
+      end
+
+      existing_sources = new_existing_sources.select { |m| not m.nil? }
+      debug "new existing_sources: #{existing_sources.inspect}"
 
       sources_to_add = label_sources - existing_sources
       debug "sources to add: #{sources_to_add}"
@@ -550,6 +582,7 @@ class MaildirRoot < Source
 
         # update location
         if new_loc
+          debug "message moved to: #{new_loc}"
           msg.locations.delete Location.new(self, l.info)
           msg.locations.push   Location.new(self, File.join(s.label.to_s, new_loc))
         end
@@ -565,6 +598,25 @@ class MaildirRoot < Source
       # don't return new info, locations have been taken care of.
       return false
     end
+  end
+
+  # check if several sources indicate label and let poll know
+  # if we really want a :deleted message to indicate a label
+  # to be removed
+  def really_remove? m, label
+    # the locations that remain in m are the final locations and
+    # if any of them provide label, keep message.
+    m.locations.select { |l| l.source.id == @id }.each do |l|
+      s = maildirsub_from_info l.info
+      debug "really_remove: testing location: #{label} towards #{s.to_s}"
+      if s.label.to_sym == label.to_sym
+        return false
+        break
+      end
+    end
+
+    debug "really_remove: could not find other source for: #{label}."
+    return true
   end
 
   # relay to @sent
