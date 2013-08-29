@@ -133,7 +133,7 @@ class MaildirRoot < Source
       @mutex  = Mutex.new
 
       # check if maildir is valid
-      fail "#{self.to_s}: invalid maildir directory: #{@dir}" if not valid_maildir?
+      warn "#{self.to_s}: invalid maildir directory: #{@dir}" if not valid_maildir?
     end
 
     def to_s
@@ -525,6 +525,8 @@ class MaildirRoot < Source
             # setting up maildirsub
             m = MaildirSub.new self, @root, l.to_s, :generic
             @maildirs.push m
+            @extended_maildirs.push m
+            @all_maildirs.push m
 
           else
             warn "Unknown label: #{l.to_s}: Maildir creation not allowed on this source (#{self.to_s})."
