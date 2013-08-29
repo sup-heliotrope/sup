@@ -210,7 +210,6 @@ EOS
             m.labels.delete :inbox  if source.archived?
             m.labels.delete :unread if source.read?
             m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
-            debug "add message: #{args[:info]}, marked_read: #{m.source_marked_read?}"
             m.labels.each { |l| LabelManager << l }
 
             # syncable sources need to handle special labels

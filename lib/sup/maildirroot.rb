@@ -44,11 +44,13 @@ class MaildirRoot < Source
 
   ## remind me never to use inheritance again.
   yaml_properties :uri, :usual, :archived, :id, :labels, :syncback,
-                  :confirm_enable_experimental, :inbox_folder,
+                  :confirm_enable_experimental, :maildir_creation_allowed,
+                  :inbox_folder,
                   :sent_folder, :drafts_folder, :spam_folder,
                   :trash_folder, :archive_folder
   def initialize uri, usual=true, archived=false, id=nil, labels=[],
                  syncback=false, confirm_enable_experimental = false,
+                 maildir_creation_allowed = false,
                  inbox_folder = 'inbox', sent_folder = 'sent',
                  drafts_folder = 'drafts', spam_folder = 'spam',
                  trash_folder = 'trash', archive_folder = 'archive'
@@ -58,6 +60,7 @@ class MaildirRoot < Source
     @syncable = true
     @syncback = syncback
     @confirm_enable_experimental = confirm_enable_experimental
+    @maildir_creation_allowed = maildir_creation_allowed
     uri = URI(@expanded_uri)
 
     raise ArgumentError, "not a maildirroot URI" unless uri.scheme == "maildirroot"
@@ -506,11 +509,35 @@ class MaildirRoot < Source
       l = labels - (supported_labels? - folder_for_labels) - unsupported_labels
 
       # local add: check if there are sources for all labels
-      label_sources = l.map { |l| maildirsub_from_label l }
+      label_sources = l.map do |l|
+        m = maildirsub_from_label l
+        if m.nil?
+          if @maildir_creation_allowed
+            debug "#{self.to_s}: Creating maildir for label: #{l.to_s}"
+
+            new_dir = File.join @root, l.to_s
+
+            Dir.mkdir new_dir
+            Dir.mkdir File.join new_dir, 'cur'
+            Dir.mkdir File.join new_dir, 'new'
+            Dir.mkdir File.join new_dir, 'tmp'
+
+            # setting up maildirsub
+            m = MaildirSub.new self, @root, l.to_s, :generic
+            @maildirs.push m
+
+          else
+            warn "Unknown label: #{l.to_s}: Maildir creation not allowed on this source (#{self.to_s})."
+          end
+        end
+
+        m # map
+      end
+
       debug "label_sources: #{label_sources.inspect}"
       if label_sources.member? nil
-        warn "Unknown label: Maildir creation not supported yet."
-        raise NotImplementedError
+        warn "#{self.to_s}: Unknown labels (missing maildir), skipping from sync."
+        label_sources = label_sources.select { |l| not l.nil? }
       end
 
       my_locations = msg.locations.select { |l| l.source.id == @id }
