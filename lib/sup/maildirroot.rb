@@ -120,6 +120,10 @@ class MaildirRoot < Source
       #       a disk representation.
       @label  = (@type == :generic) ? dir : @type.to_sym
 
+      # todo: some folders in the gmail case are synced remotely
+      #       automatically. specifically the 'starred' where it
+      #       suffices to add the 'F' flag to the maildir file.
+
       debug "maildirsub set up, type: #{@type}, label: #{@label}"
       @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
 
@@ -495,6 +499,8 @@ class MaildirRoot < Source
     @poll_lock.synchronize do
       debug "maildirroot: syncing id: #{id}, labels: #{labels.inspect}"
 
+      dirty = false
+
       # todo: handle delete msgs
       # remove labels that do not have a corresponding maildir
       l = labels - (supported_labels? - folder_for_labels) - unsupported_labels
@@ -551,8 +557,6 @@ class MaildirRoot < Source
         sources_to_add.push @archive
       end
 
-      dirty = false
-
       sources_to_add.each do |s|
         # copy message to maildir
         new_info = s.store_message_from id
@@ -593,6 +597,7 @@ class MaildirRoot < Source
       if dirty
         debug "maildirroot: syncing message to index: #{msg.id}"
         Index.sync_message msg, false, false
+        # todo: possibly need an UpdateManager :update here
       end
 
       # don't return new info, locations have been taken care of.
