@@ -116,8 +116,14 @@ EOS
           m.load_from_source!
         end
       end
+
       mode = ThreadViewMode.new t, @hidden_labels, self
-      BufferManager.spawn t.subj, mode
+      user_labels = t.labels.to_a.map do |l|
+        l.to_s if LabelManager.user_defined_labels.member?(l)
+      end.compact.join(",")
+      title = (user_labels ? "<" + user_labels + "> " : "") + t.subj
+
+      BufferManager.spawn title, mode
       BufferManager.draw_screen
       mode.jump_to_first_open if $config[:jump_to_open_message]
       BufferManager.draw_screen # lame TODO: make this unnecessary
