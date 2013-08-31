@@ -284,7 +284,7 @@ EOM
         :accounts => {
           :default => {
             :name => name.dup.fix_encoding!,
-            :email => email.fix_encoding!,
+            :email => email.dup.fix_encoding!,
             :alternates => [],
             :sendmail => "/usr/sbin/sendmail -oem -ti",
             :signature => File.join(ENV["HOME"], ".signature"),
