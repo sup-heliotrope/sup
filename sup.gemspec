@@ -36,10 +36,11 @@ DESC
     s.license = 'GPL-2'
     # TODO: might want to add index migrating script here, too
     s.post_install_message = <<-EOF
-SUP: Please run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14.
+SUP: If you are upgrading Sup from before version 0.14.0: Please
+     run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14.
 
-SUP: Check https://github.com/sup-heliotrope/sup/wiki/Migration-0.13-to-0.14
-     for more detailed up-to-date instructions.
+     Check https://github.com/sup-heliotrope/sup/wiki/Migration-0.13-to-0.14
+     for more detailed and up-to-date instructions.
     EOF
     s.files = SUP_FILES
     s.executables = SUP_EXECUTABLES
