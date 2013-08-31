@@ -293,7 +293,7 @@ begin
       b.mode.load_in_background if new
     when :search
       completions = LabelManager.all_labels.map { |l| "label:#{LabelManager.string_for l}" }
-      completions = completions.each { |l| l.fix_encoding }
+      completions = completions.each { |l| l.fix_encoding! }
       completions += Index::COMPL_PREFIXES
       query = BufferManager.ask_many_with_completions :search, "Search all messages (enter for saved searches): ", completions
       unless query.nil?
@@ -307,7 +307,7 @@ begin
       SearchResultsMode.spawn_from_query "is:unread"
     when :list_labels
       labels = LabelManager.all_labels.map { |l| LabelManager.string_for l }
-      labels = labels.each { |l| l.fix_encoding }
+      labels = labels.each { |l| l.fix_encoding! }
 
       user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
       unless user_label.nil?
@@ -375,7 +375,7 @@ ensure
     Index.stop_lock_update_thread
   end
 
-  HookManager.run "shutdown"
+  HookManager.run "shutdown" if HookManager.instantiated?
 
   Index.stop_sync_worker
   Redwood::finish
