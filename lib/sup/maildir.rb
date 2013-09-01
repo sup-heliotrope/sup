@@ -77,8 +77,11 @@ class Maildir < Source
   end
 
   def sync_back id, labels
-    flags = maildir_reconcile_flags id, labels
-    maildir_mark_file id, flags
+    synchronize do
+      debug "syncing back maildir message #{id} with flags #{labels.to_a}"
+      flags = maildir_reconcile_flags id, labels
+      maildir_mark_file id, flags
+    end
   end
 
   def raw_header id

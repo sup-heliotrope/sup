@@ -292,10 +292,7 @@ EOS
   end
 
   def sync_back
-    if @locations.map { |l|
-      l.sync_back @labels if l.valid? and $config[:sync_back_to_maildir] and l.source.is_a? Maildir
-    }.any?
-      Index.sync_message self, true
+    @locations.map { |l| l.sync_back @labels, self }.any? do
       UpdateManager.relay self, :updated, self
     end
   end
@@ -733,9 +730,18 @@ class Location
     source.raw_message info
   end
 
-  def sync_back labels
-    new_info = source.sync_back(@info, labels) if source.respond_to? :sync_back
-    @info = new_info if new_info
+  def sync_back labels, message
+    synced = false
+    return synced unless $config[:sync_back_to_maildir] and valid? and source.respond_to? :sync_back
+    source.synchronize do
+      new_info = source.sync_back(@info, labels)
+      if new_info
+        @info = new_info
+        Index.sync_message message, true
+        synced = true
+      end
+    end
+    synced
   end
 
   ## much faster than raw_message
