@@ -618,9 +618,9 @@ class MaildirRoot < Source
           debug "message moved to: #{new_loc}"
           msg.locations.delete Location.new(self, l.info)
           msg.locations.push   Location.new(self, File.join(s.label.to_s, new_loc))
-        end
 
-        dirty = true
+          dirty = true
+        end
       end
 
       if dirty
