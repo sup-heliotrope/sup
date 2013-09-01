@@ -626,7 +626,7 @@ class MaildirRoot < Source
       if dirty
         debug "maildirroot: syncing message to index: #{msg.id}"
         Index.sync_message msg, false, false
-        # todo: possibly need an UpdateManager :update here
+        UpdateManager.relay self, :updated, msg
       end
 
       # don't return new info, locations have been taken care of.
