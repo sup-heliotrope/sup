@@ -121,7 +121,7 @@ class MaildirRoot < Source
       @type   = type
       # todo: shellwords.escape so that weird labels can have
       #       a disk representation.
-      @label  = (@type == :generic) ? dir : @type.to_sym
+      @label  = (@type == :generic) ? dir.to_sym : @type.to_sym
 
       # todo: some folders in the gmail case are synced remotely
       #       automatically. specifically the 'starred' where it
@@ -141,8 +141,10 @@ class MaildirRoot < Source
     end
 
     def valid_maildir?
-      File.directory?(@dir) && File.directory?(File.join(@dir, 'cur')) &&
-        File.directory?(File.join(@dir, 'new'))
+      File.directory?(@dir) &&
+        File.directory?(File.join(@dir, 'cur')) &&
+        File.directory?(File.join(@dir, 'new')) &&
+        File.directory?(File.join(@dir, 'tmp'))
     end
 
     def store_message date, from_email, &block
