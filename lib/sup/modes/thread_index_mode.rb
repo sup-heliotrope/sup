@@ -196,12 +196,24 @@ EOS
   def is_relevant? m; false; end
 
   def handle_added_update sender, m
+    debug "added update"
     add_or_unhide m
     BufferManager.draw_screen
   end
 
   def handle_updated_update sender, m
-    t = thread_containing(m) or return
+    debug "updated update"
+    t = thread_containing(m)
+
+    # not already member, check if it should be added
+    # a message may have been updated that previously did not have
+    # the relevant label
+    if not t
+      add_or_unhide m
+      BufferManager.draw_screen
+      return
+    end
+
     l = @lines[t] or return
     @ts_mutex.synchronize do
       @ts.delete_message m
@@ -741,6 +753,7 @@ EOS
 protected
 
   def add_or_unhide m
+    debug "add_or_unhide: #{m.id}"
     @ts_mutex.synchronize do
       if (is_relevant?(m) || @ts.is_relevant?(m)) && !@ts.contains?(m)
         @ts.load_thread_for_message m, @load_thread_opts

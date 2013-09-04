@@ -133,7 +133,7 @@ class MaildirRoot < Source
       @mutex  = Mutex.new
 
       # check if maildir is valid
-      warn "#{self.to_s}: invalid maildir directory: #{@dir}" if not valid_maildir?
+      warn "#{self.to_s}: invalid maildir directory: #{@dir}, does there exist a maildir directory for the label: #{basedir}?" if not valid_maildir?
     end
 
     def to_s
@@ -192,9 +192,12 @@ class MaildirRoot < Source
         next if prev_ctime >= ctime
         @ctimes[d] = ctime
 
-        old_ids = benchmark(:maildirsub_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, "#{@label.to_s}/#{d}/").to_a }
+        old_ids = benchmark(:maildirsub_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, File.join(@label.to_s,d,'/')).to_a }
 
         new_ids = benchmark(:maildirsub_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s, d, File.basename(x)) }.sort }
+
+        #debug "old_ids: #{old_ids.inspect}"
+        #debug "new_ids: #{new_ids.inspect}"
 
         added += new_ids - old_ids
         deleted += old_ids - new_ids
@@ -653,6 +656,12 @@ class MaildirRoot < Source
 
     debug "really_remove: could not find other source for: #{label}."
     return true
+  end
+
+  # should the message really be deleted if no more locations
+  # exist for the message
+  def really_delete? m
+    true
   end
 
   # relay to @sent

@@ -149,11 +149,9 @@ EOS
             loaded_labels.merge m.labels
             numd += 1
           elsif action == :update
-            debug ":update"
             yield "Message at #{m.source_info} is an update of an old message. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
             loaded_labels.merge m.labels
             numu += 1
-            debug ":update done"
           elsif action == :add
             if old_m
               new_locations = (m.locations - old_m.locations)
@@ -228,12 +226,13 @@ EOS
             # send message :added signal regardless since labels/locations
             # might have changed and a message might need to be added to a
             # listing.
-            UpdateManager.relay self, :added, m
             if old_m
               # if a message has been modified send the :updated signal
               # so that existing listed messages can be updated with
               # new labels, etc.
               UpdateManager.relay self, :updated, m
+            else
+              UpdateManager.relay self, :added, m
             end
 
           when :delete
@@ -278,6 +277,18 @@ EOS
               end
 
               m.labels += args[:labels]
+
+              # :update's that should be :delete's
+              if m.locations.size == 0
+                if source.really_delete? m
+                  debug ":update: no more locations, deleting message."
+                  yield :delete, m, [source,args[:old_info]] if block_given?
+                  Index.delete m.id
+                  UpdateManager.relay self, :location_deleted, m
+                  next
+                end
+              end
+
               yield :update, m, old_m if block_given?
               Index.sync_message m, true, false
               UpdateManager.relay self, :updated, m
