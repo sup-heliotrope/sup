@@ -49,7 +49,7 @@ SUP: If you are upgrading Sup from before version 0.14.0: Please
 
     s.add_runtime_dependency "xapian-ruby", "~> 1.2.15"
     s.add_runtime_dependency "ncursesw-sup", "~> 1.3.1"
-    s.add_runtime_dependency "rmail", ">= 0.17"
+    s.add_runtime_dependency "rmail-sup", "~> 1.0.1"
     s.add_runtime_dependency "highline"
     s.add_runtime_dependency "trollop", ">= 1.12"
     s.add_runtime_dependency "lockfile"
