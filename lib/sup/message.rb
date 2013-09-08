@@ -335,7 +335,7 @@ EOS
   end
 
   def indexable_chunks
-    chunks ? chunks.select { |c| c.is_a? Chunk::Text } : []
+    chunks.select { |c| c.is_a? Chunk::Text } || []
   end
 
   def indexable_subject
