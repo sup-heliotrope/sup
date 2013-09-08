@@ -31,7 +31,8 @@ Usage:
   sup-sync-back-maildir [options] <source>*
 
 where <source>* is source URIs. If no source is given, the default
-behavior is to sync back all Maildir sources.
+behavior is to sync back all Maildir sources that have not disabled
+sync back using the configuration parameter sync_back = false.
 
 Options include:
 EOS
@@ -60,12 +61,15 @@ begin
   sources = ARGV.map do |uri|
     s = Redwood::SourceManager.source_for(uri) or die "unknown source: #{uri}. Did you add it with sup-add first?"
     s.is_a?(Redwood::Maildir) or die "#{uri} is not a Maildir source."
+    s.sync_back_enabled? or die "#{uri} has disabled sync back - check your configuration."
     s
   end unless opts[:list_sources]
 
   ## Otherwise, check all sources in sources.yaml
   if sources.empty? or opts[:list_sources] == true
-    sources = Redwood::SourceManager.usual_sources.select { |s| s.is_a? Redwood::Maildir }
+    sources = Redwood::SourceManager.usual_sources.select do |s|
+      s.is_a? Redwood::Maildir and s.sync_back_enabled?
+    end
   end
 
   if opts[:list_sources] == true
