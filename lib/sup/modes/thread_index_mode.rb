@@ -222,6 +222,7 @@ EOS
     debug "thread_index_mode: save_thread"
     Index.save_thread t
     update_text_for_line l
+    BufferManager.draw_screen
   end
 
   def handle_location_deleted_update sender, m
