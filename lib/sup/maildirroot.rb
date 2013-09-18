@@ -650,7 +650,6 @@ class MaildirRoot < Source
       debug "really_remove: testing location: #{label} towards #{s.to_s}"
       if s.label.to_sym == label.to_sym
         return false
-        break
       end
     end
 
