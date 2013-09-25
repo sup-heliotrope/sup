@@ -640,7 +640,7 @@ private
   end
 
   def top_posting?
-    @body.join("\n") =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
+    @body.join("\n").fix_encoding =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
   end
 
   def sig_lines
