@@ -125,7 +125,12 @@ EOS
       @lines = nil
       if text
         text = text.transcode(encoded_content.charset || $encoding, text.encoding)
-        @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+        begin
+          @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+        rescue
+          @lines = text.fix_encoding!.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+        end
+
         @quotable = true
       end
     end
