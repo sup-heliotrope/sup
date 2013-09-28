@@ -786,7 +786,7 @@ private
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
         [color,
-        "#{m.from ? m.from.mediumname : '?'}, #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})  #{m.snippet}"]]]
+        "#{m.from ? m.from.mediumname.fix_encoding! : '?'}, #{m.date.to_nice_s.fix_encoding!} (#{m.date.to_nice_distance_s.fix_encoding!})  #{m.snippet.fix_encoding!}"]]]
 
     when :detailed
       @person_lines[start] = m.from
