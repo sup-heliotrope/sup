@@ -33,5 +33,14 @@ describe Redwood::Util::Query do
         _ = life + query.description
       end
     end
+
+    it "returns a valid UTF-8 fallback description of bad input" do
+      msg = "asdfa \xc3\x28 åasdf"
+      query = Xapian::Query.new msg
+
+      desc = Redwood::Util::Query.describe(query, "invalid query")
+
+      assert_equal("invalid query", desc)
+    end
   end
 end
