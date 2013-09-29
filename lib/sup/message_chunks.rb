@@ -129,6 +129,7 @@ EOS
           @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
         rescue Encoding::CompatibilityError
           @lines = text.fix_encoding!.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+          debug "error while decoding message text, falling back to default encoding, expect errors in encoding: #{text.fix_encoding!}"
         end
 
         @quotable = true
