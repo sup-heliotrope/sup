@@ -127,7 +127,7 @@ EOS
         text = text.transcode(encoded_content.charset || $encoding, text.encoding)
         begin
           @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
-        rescue
+        rescue Encoding::CompatibilityError
           @lines = text.fix_encoding!.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
         end
 
