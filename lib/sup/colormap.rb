@@ -111,8 +111,10 @@ class Colormap
       case fg
       when Curses::COLOR_BLUE
         Curses::COLOR_WHITE
-      when Curses::COLOR_YELLOW, Curses::COLOR_GREEN
+      when Curses::COLOR_YELLOW, Curses::COLOR_GREEN, Curses::COLOR_CYAN
         fg
+      when Curses::COLOR_WHITE
+        Curses::COLOR_WHITE
       else
         Curses::COLOR_BLACK
       end
