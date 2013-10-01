@@ -732,7 +732,7 @@ class Location
 
   def sync_back labels, message
     synced = false
-    return synced unless $config[:sync_back_to_maildir] and valid? and source.respond_to? :sync_back
+    return synced unless sync_back_enabled? and valid?
     source.synchronize do
       new_info = source.sync_back(@info, labels)
       if new_info
@@ -742,6 +742,10 @@ class Location
       end
     end
     synced
+  end
+
+  def sync_back_enabled?
+    source.respond_to? :sync_back and $config[:sync_back_to_maildir] and source.sync_back_enabled?
   end
 
   ## much faster than raw_message
