@@ -121,10 +121,12 @@ EOS
       when /^text\/plain\b/
         @raw_content
       else
-        HookManager.run "mime-decode", :content_type => content_type,
-                        :filename => lambda { write_to_disk },
-                        :charset => encoded_content.charset,
-                        :sibling_types => sibling_types
+        write_to_disk do |file|
+          HookManager.run "mime-decode", :content_type => content_type,
+                          :filename => lambda { file.path },
+                          :charset => encoded_content.charset,
+                          :sibling_types => sibling_types
+        end
       end
 
       @lines = nil
