@@ -64,6 +64,7 @@ module Redwood
   YAML_DOMAIN = "supmua.org"
   LEGACY_YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
+  MAILDIR_SYNC_CHECK_SKIPPED = 'SKIPPED'
 
   ## record exceptions thrown in threads nicely
   @exceptions = []
@@ -177,13 +178,45 @@ module Redwood
 
     return if bypass_sync_check
 
-    if $config[:sync_back_to_maildir] and not File.exists? Redwood::SYNC_OK_FN
-      $stderr.puts <<EOS
+    if $config[:sync_back_to_maildir]
+      if not File.exists? Redwood::SYNC_OK_FN
+        Redwood.warn_syncback <<EOS
+It appears that the "sync_back_to_maildir" option has been changed
+from false to true since the last execution of sup.
+EOS
+        $stderr.puts <<EOS
+
+Should I complain about this again? (Y/n)
+EOS
+        File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write(Redwood::MAILDIR_SYNC_CHECK_SKIPPED) } if STDIN.gets.chomp.downcase == 'n'
+      elsif not $config[:sync_back_to_maildir] and File.exists? Redwood::SYNC_OK_FN
+        File.delete(Redwood::SYNC_OK_FN)
+      end
+    end
+  end
+
+  def check_syncback_settings
+    active_sync_sources = File.readlines(Redwood::SYNC_OK_FN).collect { |s| s.strip }
+    return if active_sync_sources.length == 1 and active_sync_sources[0] == Redwood::MAILDIR_SYNC_CHECK_SKIPPED
+    sources = SourceManager.sources
+    newly_synced = sources.select { |s| s.is_a? Maildir and s.sync_back_enabled? and not active_sync_sources.include? s.uri }
+    unless newly_synced.empty?
+      Redwood.warn_syncback <<EOS
+It appears that the option "sync_back" of the following source(s)
+has been changed from false to true since the last execution of
+sup:
+
+#{newly_synced.join("\n")}
+EOS
+    end
+  end
+
+  def self.warn_syncback details
+    $stderr.puts <<EOS
 WARNING
 -------
 
-It appears that the "sync_back_to_maildir" option has been changed
-from false to true since the last execution of sup.
+#{details}
 
 It is *strongly* recommended that you run "sup-sync-back-maildir"
 before continuing, otherwise you might lose informations in your
@@ -196,15 +229,7 @@ Please run "sup-sync-back-maildir -h" to see why it is useful.
 
 Are you really sure you want to continue? (y/N)
 EOS
-      abort "Aborted" unless STDIN.gets.chomp.downcase == 'y'
-      $stderr.puts <<EOS
-
-Should I complain about this again? (Y/n)
-EOS
-      File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write("SKIPPED") } if STDIN.gets.chomp.downcase == 'n'
-    elsif not $config[:sync_back_to_maildir] and File.exists? Redwood::SYNC_OK_FN
-      File.delete(Redwood::SYNC_OK_FN)
-    end
+    abort "Aborted" unless STDIN.gets.chomp.downcase == 'y'
   end
 
   def finish
@@ -336,7 +361,8 @@ EOM
   end
 
   module_function :save_yaml_obj, :load_yaml_obj, :start, :finish,
-                  :report_broken_sources, :load_config, :managers
+                  :report_broken_sources, :load_config, :managers,
+                  :check_syncback_settings
 end
 
 require 'sup/version'

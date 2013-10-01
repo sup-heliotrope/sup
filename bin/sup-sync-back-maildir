@@ -55,6 +55,7 @@ index.load
 $config[:sync_back_to_maildir] = true
 
 begin
+  sync_performed = File.readlines Redwood::SYNC_OK_FN
   sources = []
 
   ## Try to find out sources given in parameters
@@ -100,10 +101,10 @@ begin
         end
       end
       print "\n"
-
-      ## Write a flag file to tell sup that the synchronization has been performed
-      File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write("OK") }
+      sync_performed << s.uri
     end
+    ## Write a flag file to tell sup that the synchronization has been performed
+    File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write(sync_performed.join("\n")) }
   end
 rescue Exception => e
   File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
