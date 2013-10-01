@@ -197,7 +197,15 @@ EOS
     @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
     @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
-    @file.puts @body.join("\n")
+
+    begin
+      text = @body.join("\n")
+    rescue Encoding::CompatibilityError
+      text = @body.map { |x| x.fix_encoding! }.join("\n")
+      debug "encoding problem while writing message, trying to rescue, but expect errors: #{text}"
+    end
+
+    @file.puts text
     @file.puts sig if ($config[:edit_signature] and !@sig_edited)
     @file.close
   end
