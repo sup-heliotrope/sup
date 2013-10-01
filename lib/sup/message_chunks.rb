@@ -229,7 +229,7 @@ EOS
   class EnclosedMessage
     attr_reader :lines
     def initialize from, to, cc, date, subj
-      @from = from ? "unknown sender" : from.full_adress
+      @from = from ? "unknown sender" : from.full_address
       @to = to ? "" : to.map { |p| p.full_address }.join(", ")
       @cc = cc ? "" : cc.map { |p| p.full_address }.join(", ")
       if date
