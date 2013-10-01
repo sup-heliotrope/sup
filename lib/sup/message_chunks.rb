@@ -1,5 +1,6 @@
 require 'tempfile'
 require 'rbconfig'
+require 'shellwords'
 
 ## Here we define all the "chunks" that a message is parsed
 ## into. Chunks are used by ThreadViewMode to render a message. Chunks
@@ -176,7 +177,7 @@ EOS
 
     def write_to_disk
       begin
-        file = Tempfile.new(["sup", @filename.gsub("/", "_") || "sup-attachment"])
+        file = Tempfile.new(["sup", Shellwords.escape(@filename.gsub("/", "_")) || "sup-attachment"])
         file.print @raw_content
         yield file if block_given?
         return file.path
