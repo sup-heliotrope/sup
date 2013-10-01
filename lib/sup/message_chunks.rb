@@ -122,7 +122,7 @@ EOS
         @raw_content
       else
         HookManager.run "mime-decode", :content_type => content_type,
-                        :filename => lambda { write_to_disk.path },
+                        :filename => lambda { write_to_disk },
                         :charset => encoded_content.charset,
                         :sibling_types => sibling_types
       end
