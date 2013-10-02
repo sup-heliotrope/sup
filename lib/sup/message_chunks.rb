@@ -1,5 +1,6 @@
 require 'tempfile'
 require 'rbconfig'
+require 'shellwords'
 
 ## Here we define all the "chunks" that a message is parsed
 ## into. Chunks are used by ThreadViewMode to render a message. Chunks
@@ -100,6 +101,11 @@ EOS
     attr_reader :content_type, :filename, :lines, :raw_content
     bool_reader :quotable
 
+    ## store tempfile objects as class variables so that they
+    ## are not removed when the viewing process returns. they
+    ## should be garbage collected when the class variable is removed.
+    @@view_tempfiles = []
+
     def initialize content_type, filename, encoded_content, sibling_types
       @content_type = content_type.downcase
       @filename = filename
@@ -159,17 +165,25 @@ EOS
     end
 
     def view!
-      path = write_to_disk
-      ret = HookManager.run "mime-view", :content_type => @content_type,
-                                         :filename => path
-      ret || view_default!(path)
+      write_to_disk do |file|
+
+        @@view_tempfiles.push file # make sure the tempfile is not garbage collected before sup stops
+
+        ret = HookManager.run "mime-view", :content_type => @content_type,
+                                           :filename => file.path
+        ret || view_default!(file.path)
+      end
     end
 
     def write_to_disk
-      file = Tempfile.new(["sup", @filename.gsub("/", "_") || "sup-attachment"])
-      file.print @raw_content
-      file.close
-      file.path
+      begin
+        file = Tempfile.new(["sup", Shellwords.escape(@filename.gsub("/", "_")) || "sup-attachment"])
+        file.print @raw_content
+        yield file if block_given?
+        return file.path
+      ensure
+        file.close
+      end
     end
 
     ## used when viewing the attachment as text
