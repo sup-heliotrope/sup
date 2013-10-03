@@ -504,7 +504,7 @@ class MaildirRoot < Source
       return false
     end
 
-    @poll_lock.synchronize do
+    synchronize do
       debug "maildirroot: syncing id: #{id}, labels: #{labels.inspect}"
 
       dirty = false

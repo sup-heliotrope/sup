@@ -312,10 +312,12 @@ EOS
     source_ids_done = []
     @locations.select { |l| l.source.kind_of? MaildirRoot }.each do |l|
       if not source_ids_done.member? l.source.id
-        debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
-        source_ids_done << l.source.id
 
-        l.sync_back @labels, self if l.valid? and l.source.syncable
+        if l.valid? and l.source.syncable
+          debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
+          l.sync_back @labels, self
+          source_ids_done << l.source.id
+        end
 
         UpdateManager.relay self, :updated, self
       end
@@ -757,7 +759,6 @@ class Location
 
   def sync_back labels, message
     synced = false
-    return synced unless $config[:sync_back_to_maildir] and valid? and source.respond_to? :sync_back
     source.synchronize do
       new_info = source.sync_back(@info, labels, message) if source.syncable
       if new_info

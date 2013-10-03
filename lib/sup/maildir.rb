@@ -78,6 +78,7 @@ class Maildir < Source
   end
 
   def sync_back id, labels, msg
+    return false unless $config[:sync_back_to_maildir] and valid? id
     synchronize do
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
