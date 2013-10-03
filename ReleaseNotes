@@ -1,3 +1,27 @@
+Release 0.14.1:
+
+Service release to 0.14.0 plus a predefined 'All mail' search.
+
+Release 0.14.0:
+
+CJK-compatability, Psych usage, thread safety, GPGME 2.0 support. Sup is now
+Ruby 1.9 based, and apart from RMail - ready for Ruby 2.0.0.
+
+Sup now uses Psych as a YAML parser (default by Ruby) and your previous
+configuration files (~/.sup/*.yaml) may need to be migrated or re-created for
+them to work with the new sup. A migration script is included for this.
+
+Check https://github.com/sup-heliotrope/sup/wiki/Migration-0.13-to-0.14 for
+the latest instructions.
+
+First back up your ~/.sup directory and index, after installing the new sup
+run:
+
+$ sup-psych-ify-config-files
+
+to migrate your files. You should now be all set for buisness.
+
+
 Release 0.13.2:
 
 FreeBSD compatability and more thread safe polling.

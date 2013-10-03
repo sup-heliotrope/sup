@@ -112,7 +112,7 @@ class Message
     end
 
     subj = header["subject"]
-    subj = subj ? subj.fix_encoding : nil
+    subj = subj ? subj.fix_encoding! : nil
     @subj = subj ? subj.gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
     @to = Person.from_address_list header["to"]
     @cc = Person.from_address_list header["cc"]
@@ -360,7 +360,7 @@ EOS
   end
 
   def indexable_chunks
-    chunks.select { |c| c.is_a? Chunk::Text }
+    chunks.select { |c| c.is_a? Chunk::Text } || []
   end
 
   def indexable_subject
@@ -755,10 +755,18 @@ class Location
     source.raw_message info
   end
 
-  def sync_back labels, msg
-    debug "location: syncing back: #{@info.inspect}"
-    new_info = source.sync_back(@info, labels, msg) if source.syncable
-    @info = new_info if new_info
+  def sync_back labels, message
+    synced = false
+    return synced unless $config[:sync_back_to_maildir] and valid? and source.respond_to? :sync_back
+    source.synchronize do
+      new_info = source.sync_back(@info, labels, message) if source.syncable
+      if new_info
+        @info = new_info
+        Index.sync_message message, true
+        synced = true
+      end
+    end
+    synced
   end
 
   ## much faster than raw_message

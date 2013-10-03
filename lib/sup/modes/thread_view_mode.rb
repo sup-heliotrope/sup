@@ -782,13 +782,13 @@ private
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
         [color,
-            "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
+            "#{m.from ? m.from.mediumname.fix_encoding! : '?'} to #{m.recipients.map { |l| l.shortname.fix_encoding! }.join(', ')} #{m.date.to_nice_s.fix_encoding!} (#{m.date.to_nice_distance_s.fix_encoding!})"]]]
 
     when :closed
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
         [color,
-        "#{m.from ? m.from.mediumname : '?'}, #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})  #{m.snippet}"]]]
+        "#{m.from ? m.from.mediumname.fix_encoding! : '?'}, #{m.date.to_nice_s.fix_encoding!} (#{m.date.to_nice_distance_s.fix_encoding!})  #{m.snippet ? m.snippet.fix_encoding! : ''}"]]]
 
     when :detailed
       @person_lines[start] = m.from
@@ -847,6 +847,10 @@ private
         width = [config_width, buffer.content_width].min
       else
         width = buffer.content_width
+      end
+      # lines can apparently be both String and Array, convert to Array for map.
+      if lines.kind_of? String
+        lines = lines.lines.to_a
       end
       lines = lines.map { |l| l.chomp.wrap width if l }.flatten
     end

@@ -125,7 +125,7 @@ module RMail
       class << self
         def parse(field)
           field = field.dup.to_s
-          field = field.fix_encoding.ascii
+          field = field.fix_encoding!.ascii
           if field =~ EXTRACT_FIELD_NAME_RE
             [ $1, $'.chomp ]
           else
@@ -256,7 +256,7 @@ end
 
 class String
   def display_length
-    @display_length ||= Unicode.width(self, false)
+    @display_length ||= Unicode.width(self.fix_encoding!, false)
   end
 
   def slice_by_display_length len
@@ -366,16 +366,8 @@ class String
   # user encoding.
   #
   # Not Ruby 1.8 compatible
-  def fix_encoding
-    # first try to set the string to utf-8 and check if it is valid
-    # in case ruby just thinks it is something else
-    orig_encoding = encoding
-    force_encoding 'UTF-8'
-    return self if valid_encoding?
-
-    # that didn't work, go back to original and try to convert
-    force_encoding orig_encoding
-
+  def fix_encoding!
+    # first try to encode to utf-8 from whatever current encoding
     encode!('UTF-8', :invalid => :replace, :undef => :replace)
 
     # do this anyway in case string is set to be UTF-8, encoding to
@@ -410,7 +402,7 @@ class String
 
     rescue Encoding::ConverterNotFoundError
       debug "Encoding converter not found for #{from_encoding.inspect} or #{to_encoding.inspect}, fixing string: '#{self.to_s}', but expect weird characters."
-      fix_encoding
+      fix_encoding!
     end
 
     fail "Could not create valid #{to_encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
@@ -419,7 +411,7 @@ class String
   end
 
   def normalize_whitespace
-    fix_encoding
+    fix_encoding!
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
 
@@ -461,7 +453,7 @@ class String
         out << b.chr
       end
     end
-    out = out.fix_encoding # this should now be an utf-8 string of ascii
+    out = out.fix_encoding! # this should now be an utf-8 string of ascii
                            # compat chars.
   end
 

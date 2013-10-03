@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'trollop'
-require "sup"; Redwood::check_library_version_against "git"
+require "sup"
 
 opts = Trollop::options do
   version "sup-sync-back-maildir (sup #{Redwood::VERSION})"

@@ -86,7 +86,11 @@ protected
     counted = searches.map do |name|
       search_string = SearchManager.search_string_for name
       begin
-        query = Index.parse_query search_string
+        if SearchManager.predefined_queries.has_key? search_string
+          query = SearchManager.predefined_queries[search_string]
+        else
+          query = Index.parse_query search_string
+        end
         total = Index.num_results_for :qobj => query[:qobj]
         unread = Index.num_results_for :qobj => query[:qobj], :label => :unread
       rescue Index::ParseError => e

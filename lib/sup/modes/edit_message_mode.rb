@@ -178,7 +178,7 @@ EOS
   def handle_new_text header, body; end
 
   def edit_message_or_field
-    lines = DECORATION_LINES + @selectors.size
+    lines = (@selectors.empty? ? 0 : DECORATION_LINES) + @selectors.size
     if lines > curpos
       return
     elsif (curpos - lines) >= @header_lines.length
@@ -197,7 +197,15 @@ EOS
     @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
     @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
-    @file.puts @body.join("\n")
+
+    begin
+      text = @body.join("\n")
+    rescue Encoding::CompatibilityError
+      text = @body.map { |x| x.fix_encoding! }.join("\n")
+      debug "encoding problem while writing message, trying to rescue, but expect errors: #{text}"
+    end
+
+    @file.puts text
     @file.puts sig if ($config[:edit_signature] and !@sig_edited)
     @file.close
   end
@@ -489,7 +497,7 @@ protected
               return false
         end
       else
-        IO.popen(acct.sendmail, "w") { |p| p.puts m }
+        IO.popen(acct.sendmail, "w:UTF-8") { |p| p.puts m }
         raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
       end
 
@@ -517,6 +525,7 @@ protected
     m.body += "\n" + sig_lines.join("\n") unless @sig_edited
     ## body must end in a newline or GPG signatures will be WRONG!
     m.body += "\n" unless m.body =~ /\n\Z/
+    m.body = m.body.fix_encoding!
 
     ## there are attachments, so wrap body in an attachment of its own
     unless @attachments.empty?
@@ -525,7 +534,10 @@ protected
       m = RMail::Message.new
 
       m.add_part body_m
-      @attachments.each { |a| m.add_part a }
+      @attachments.each do |a|
+        a.body = a.body.fix_encoding! if a.body.kind_of? String
+        m.add_part a
+      end
     end
 
     ## do whatever crypto transformation is necessary
@@ -547,9 +559,9 @@ protected
       m.header[k] =
         case v
         when String
-          k.match(/subject/i) ? mime_encode_subject(v) : mime_encode_address(v)
+          (k.match(/subject/i) ? mime_encode_subject(v) : mime_encode_address(v)).fix_encoding!
         when Array
-          v.map { |v| mime_encode_address v }.join ", "
+          (v.map { |v| mime_encode_address v }.join ", ").fix_encoding!
         end
     end
 

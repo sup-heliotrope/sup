@@ -72,8 +72,10 @@ protected
 
   def send_message
     return unless super # super returns true if the mail has been sent
-    @m.add_label :forwarded
-    Index.save_message @m
+    if @m
+      @m.add_label :forwarded
+      Index.save_message @m
+    end
   end
 end
 
