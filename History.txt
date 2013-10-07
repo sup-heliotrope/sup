@@ -1,3 +1,8 @@
+== 0.14.2 /
+
+* You can now save attachments to directories without specifying the full
+  filename (default filename is used).
+
 == 0.14.1 / 2013-08-31
 
 * Various bugfixes.
