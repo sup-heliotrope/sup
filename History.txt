@@ -1,7 +1,12 @@
 == 0.14.2 /
 
+* Use our own rmail-sup gem with fixes for Ruby 2.0.0 and various
+  warnings fixed.
 * You can now save attachments to directories without specifying the full
   filename (default filename is used).
+* Various encoding fixes and minor bug fixes
+* Tempfiles for attachments are persitent through the sup process to
+  ensure that spawned processes have access to them.
 
 == 0.14.1 / 2013-08-31
 
