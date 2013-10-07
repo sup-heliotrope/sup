@@ -643,12 +643,12 @@ private
     if HookManager.enabled? "mentions-attachments"
       HookManager.run "mentions-attachments", :header => @header, :body => @body
     else
-      @body.any? {  |l| l =~ /^[^>]/ && l =~ /\battach(ment|ed|ing|)\b/i }
+      @body.any? {  |l| l.fix_encoding! =~ /^[^>]/ && l.fix_encoding! =~ /\battach(ment|ed|ing|)\b/i }
     end
   end
 
   def top_posting?
-    @body.join("\n") =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
+    @body.map { |x| x.fix_encoding! }.join("\n").fix_encoding! =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
   end
 
   def sig_lines
