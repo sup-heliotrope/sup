@@ -213,13 +213,13 @@ EOS
   def set_sig_edit_flag
     sig = sig_lines.join("\n")
     if $config[:edit_signature]
-      pbody = @body.join("\n")
+      pbody = @body.map { |x| x.fix_encoding! }.join("\n").fix_encoding!
       blen = pbody.length
       slen = sig.length
 
       if blen > slen and pbody[blen-slen..blen] == sig
         @sig_edited = false
-        @body = pbody[0..blen-slen].split("\n")
+        @body = pbody[0..blen-slen].fix_encoding!.split("\n")
       else
         @sig_edited = true
       end
