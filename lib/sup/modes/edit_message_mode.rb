@@ -559,9 +559,9 @@ protected
       m.header[k] =
         case v
         when String
-          (k.match(/subject/i) ? mime_encode_subject(v) : mime_encode_address(v)).fix_encoding!
+          (k.match(/subject/i) ? mime_encode_subject(v).dup.fix_encoding! : mime_encode_address(v)).dup.fix_encoding!
         when Array
-          (v.map { |v| mime_encode_address v }.join ", ").fix_encoding!
+          (v.map { |v| mime_encode_address v }.join ", ").dup.fix_encoding!
         end
     end
 
