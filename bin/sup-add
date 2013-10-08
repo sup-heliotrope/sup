@@ -30,6 +30,7 @@ Options are:
 EOS
   opt :archive, "Automatically archive all new messages from these sources."
   opt :unusual, "Do not automatically poll these sources for new messages."
+  opt :sync_back, "Synchronize status flags back into messages, defaults to true (Maildir sources only).", :default => true
   opt :labels, "A comma-separated set of labels to apply to all messages from this source", :type => String
   opt :force_new, "Create a new account for this source, even if one already exists."
   opt :force_account, "Reuse previously defined account user@hostname.", :type => String
@@ -99,7 +100,7 @@ begin
     source =
       case parsed_uri.scheme
       when "maildir"
-        Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], nil, labels
+        Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], $opts[:sync_back], nil, labels
       when "mbox"
         Redwood::MBox.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when nil
