@@ -23,8 +23,12 @@
   It is possible to both disable maildir syncback globally (default:
   disabled) and per-source (default: enabled).
 
+* Sup on Ruby 2.0.0 now works - but beware, this has not been very throughly
+  tested. Patches + Bugs welcome.
+
 * Use our own rmail-sup gem with fixes for Ruby 2.0.0 and various
   warnings fixed.
+
 * You can now save attachments to directories without specifying the full
   filename (default filename is used).
 * Various encoding fixes and minor bug fixes
