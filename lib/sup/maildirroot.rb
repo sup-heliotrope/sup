@@ -1,5 +1,6 @@
 require 'uri'
 require 'set'
+require 'sup/util'
 
 module Redwood
 
@@ -17,8 +18,9 @@ module Redwood
 #
 # Where maildir flags and special folders overlap they are both synced.
 #
-# Files are copied using File.link which means that they should not take any
-# extra space on disk. When a file is removed from all labels it is copied
+# Files are copied using File.safe_link which means that they should not take
+# any extra space on disk if your file system and platform supports hard
+# links. When a file is removed from all labels it is copied
 # to the archive folder unless it is already there.
 #
 # Deleted files are copied to the trash/:deleted special folder, a separate
@@ -307,9 +309,9 @@ class MaildirRoot < Source
           new_path  = File.join @dir, new_loc
           tmp_path  = File.join @dir, "tmp", "#{md_base}:#{md_ver},#{flags}"
 
-          File.link orig_path, tmp_path
+          File.safe_link orig_path, tmp_path
           File.unlink orig_path
-          File.link tmp_path, new_path
+          File.safe_link tmp_path, new_path
           File.unlink tmp_path
 
           new_loc
@@ -350,7 +352,7 @@ class MaildirRoot < Source
       new_id   = new_maildir_basefn + ":2," + new_flags
 
       new_path = File.join @dir, sub, new_id
-      File.link o, new_path
+      File.safe_link o, new_path
 
       return File.join @label.to_s, sub, new_id
     end
