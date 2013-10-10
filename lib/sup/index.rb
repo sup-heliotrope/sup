@@ -168,6 +168,32 @@ EOS
     matchset.matches_estimated
   end
 
+  ## check if a message is part of a killed thread
+  ## (warning: duplicates code below)
+  ## NOTE: We can be more efficient if we assume every
+  ## killed message that hasn't been initially added
+  ## to the indexi s this way
+  def message_joining_killed? m
+    return false unless doc = find_doc(m.id)
+    queue = doc.value(THREAD_VALUENO).split(',')
+    seen_threads = Set.new
+    seen_messages = Set.new [m.id]
+    while not queue.empty?
+      thread_id = queue.pop
+      next if seen_threads.member? thread_id
+      return true if thread_killed?(thread_id)
+      seen_threads << thread_id
+      docs = term_docids(mkterm(:thread, thread_id)).map { |x| @xapian.document x }
+      docs.each do |doc|
+        msgid = doc.value MSGID_VALUENO
+        next if seen_messages.member? msgid
+        seen_messages << msgid
+        queue.concat doc.value(THREAD_VALUENO).split(',')
+      end
+    end
+    false
+  end
+
   ## yield all messages in the thread containing 'm' by repeatedly
   ## querying the index. yields pairs of message ids and
   ## message-building lambdas, so that building an unwanted message
@@ -248,11 +274,11 @@ EOS
 
   ## Yield each message-id matching query
   EACH_ID_PAGE = 100
-  def each_id query={}
+  def each_id query={}, ignore_neg_terms = true
     offset = 0
     page = EACH_ID_PAGE
 
-    xapian_query = build_xapian_query query
+    xapian_query = build_xapian_query query, ignore_neg_terms
     while true
       ids = run_query_ids xapian_query, offset, (offset+page)
       ids.each { |id| yield id }
@@ -262,8 +288,12 @@ EOS
   end
 
   ## Yield each message matching query
-  def each_message query={}, &b
-    each_id query do |id|
+  ## The ignore_neg_terms parameter is used to display result even if
+  ## it contains "forbidden" labels such as :deleted, it is used in
+  ## Poll#poll_from when we need to get the location of a message that
+  ## may contain these labels
+  def each_message query={}, ignore_neg_terms = true, &b
+    each_id query, ignore_neg_terms do |id|
       yield build_message(id)
     end
   end
@@ -313,9 +343,9 @@ EOS
   ## Yields (in lexicographical order) the source infos of all locations from
   ## the given source with the given source_info prefix
   def each_source_info source_id, prefix='', &b
-    prefix = mkterm :location, source_id, prefix
-    each_prefixed_term prefix do |x|
-      yield x[prefix.length..-1]
+    p = mkterm :location, source_id, prefix
+    each_prefixed_term p do |x|
+      yield prefix + x[p.length..-1]
     end
   end
 
@@ -500,14 +530,18 @@ EOS
     query
   end
 
+  def save_message m
+    if @sync_worker
+      @sync_queue << m
+    else
+      update_message_state m
+    end
+    m.clear_dirty
+  end
+
   def save_thread t
     t.each_dirty_message do |m|
-      if @sync_worker
-        @sync_queue << m
-      else
-        update_message_state m
-      end
-      m.clear_dirty
+      save_message m
     end
   end
 
@@ -614,7 +648,7 @@ EOS
   end
 
   Q = Xapian::Query
-  def build_xapian_query opts
+  def build_xapian_query opts, ignore_neg_terms = true
     labels = ([opts[:label]] + (opts[:labels] || [])).compact
     neglabels = [:spam, :deleted, :killed].reject { |l| (labels.include? l) || opts.member?("load_#{l}".intern) }
     pos_terms, neg_terms = [], []
@@ -630,7 +664,7 @@ EOS
       pos_terms << Q.new(Q::OP_OR, participant_terms)
     end
 
-    neg_terms.concat(neglabels.map { |l| mkterm(:label,l) })
+    neg_terms.concat(neglabels.map { |l| mkterm(:label,l) }) if ignore_neg_terms
 
     pos_query = Q.new(Q::OP_AND, pos_terms)
     neg_query = Q.new(Q::OP_OR, neg_terms)
@@ -643,6 +677,10 @@ EOS
   end
 
   def sync_message m, overwrite
+    ## TODO: we should not save the message if the sync_back failed
+    ## since it would overwrite the location field
+    m.sync_back
+
     doc = synchronize { find_doc(m.id) }
     existed = doc != nil
     doc ||= Xapian::Document.new
