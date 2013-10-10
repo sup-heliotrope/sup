@@ -1,3 +1,7 @@
+Release 0.14.2:
+
+Maildir Syncback included. We're using rmail-sup plus additional fixes.
+
 Release 0.14.1:
 
 Service release to 0.14.0 plus a predefined 'All mail' search.

@@ -1,11 +1,34 @@
 == 0.14.2 /
 
+* Maildir Syncback has now been merged into main sup! This is a
+  long-time waiting feature which lots of people have been contributing
+  to, lately Eric Weikl has done most of the work of getting everything
+  ready and up to date now. Main authors include:
+
+  Eric Weikl
+  Edward Z. Yang
+  Damien Leone
+
+  Not all of the features proposed by have been included to maintain
+  compatibility with more operating systems and some were not included
+  to make sup more stable.
+
+  This is a big change since sup now modifies your mail (!), please
+  back up your mail and your configuration before using the maildir
+  syncback feature. For instructions on how to migrate an existing
+  maildir source or how to set up a new one, refer to:
+
+  https://github.com/sup-heliotrope/sup/wiki/Using-sup-with-other-clients
+
+  It is possible to both disable maildir syncback globally (default:
+  disabled) and per-source (default: enabled).
+
 * Use our own rmail-sup gem with fixes for Ruby 2.0.0 and various
   warnings fixed.
 * You can now save attachments to directories without specifying the full
   filename (default filename is used).
 * Various encoding fixes and minor bug fixes
-* Tempfiles for attachments are persitent through the sup process to
+* Tempfiles for attachments are persistent through the sup process to
   ensure that spawned processes have access to them.
 
 == 0.14.1 / 2013-08-31
