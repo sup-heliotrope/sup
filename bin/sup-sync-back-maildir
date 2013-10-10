@@ -1,0 +1,116 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'trollop'
+require "sup"
+
+opts = Trollop::options do
+  version "sup-sync-back-maildir (sup #{Redwood::VERSION})"
+  banner <<EOS
+Export Xapian entries to Maildir sources on disk.
+
+This script parses the Xapian entries for a given Maildir source and
+renames e-mail files on disk according to the labels stored in the
+index. It will hence export all the changes you made in Sup to your
+Maildirs so it can be propagated to your IMAP server with offlineimap
+for instance.
+
+It also merges some Maildir flags that were not supported by Sup such
+as R (replied) and P (passed, forwarded), for instance suppose you
+have an e-mail file like this: foo_bar:2,FRS (flags are favorite,
+replied, seen) and its Xapian entry has labels 'starred', the merge
+operation will add the 'replied' label to the Xapian entry.
+
+If you choose not to merge you will lose information because in the
+previous example the file will be renamed to foo_bar:2,FS.
+
+Running this script is *strongly* recommended when setting the
+"sync_back_to_maildir" option from false to true.
+
+Usage:
+  sup-sync-back-maildir [options] <source>*
+
+where <source>* is source URIs. If no source is given, the default
+behavior is to sync back all Maildir sources that have not disabled
+sync back using the configuration parameter sync_back = false.
+
+Options include:
+EOS
+  opt :no_confirm, "Don't ask for confirmation before synchronizing", :default => false, :short => "n"
+  opt :no_merge, "Don't merge new supported Maildir flags (R and P)", :default => false, :short => "m"
+  opt :list_sources, "List your Maildir sources and exit", :default => false, :short => "l"
+end
+
+def die msg
+  $stderr.puts "Error: #{msg}"
+  exit(-1)
+end
+
+Redwood::start true
+index = Redwood::Index.init
+index.lock_interactively or exit
+index.load
+
+## Force sync_back_to_maildir option otherwise nothing will happen
+$config[:sync_back_to_maildir] = true
+
+begin
+  sync_performed = File.readlines Redwood::SYNC_OK_FN
+  sources = []
+
+  ## Try to find out sources given in parameters
+  sources = ARGV.map do |uri|
+    s = Redwood::SourceManager.source_for(uri) or die "unknown source: #{uri}. Did you add it with sup-add first?"
+    s.is_a?(Redwood::Maildir) or die "#{uri} is not a Maildir source."
+    s.sync_back_enabled? or die "#{uri} has disabled sync back - check your configuration."
+    s
+  end unless opts[:list_sources]
+
+  ## Otherwise, check all sources in sources.yaml
+  if sources.empty? or opts[:list_sources] == true
+    sources = Redwood::SourceManager.usual_sources.select do |s|
+      s.is_a? Redwood::Maildir and s.sync_back_enabled?
+    end
+  end
+
+  if opts[:list_sources] == true
+    sources.each do |s|
+      puts "id: #{s.id}, uri: #{s.uri}"
+    end
+  else
+    sources.each do |s|
+      if opts[:no_confirm] == false
+        print "Are you sure you want to synchronize '#{s.uri}'? (Y/n) "
+        next if STDIN.gets.chomp.downcase == 'n'
+      end
+
+      infos = Enumerator.new(index, :each_source_info, s.id).to_a
+      counter = 0
+      infos.each do |info|
+        print "\rSynchronizing '#{s.uri}'... #{((counter += 1)/infos.size.to_f*100).to_i}%"
+        index.each_message({:location => [s.id, info]}, false) do |m|
+          if opts[:no_merge] == false
+            m.merge_labels_from_locations [:replied, :forwarded]
+          end
+
+          if Redwood::Index.message_joining_killed? m
+            m.labels += [:killed]
+          end
+
+          index.save_message m
+        end
+      end
+      print "\n"
+      sync_performed << s.uri
+    end
+    ## Write a flag file to tell sup that the synchronization has been performed
+    File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write(sync_performed.join("\n")) }
+  end
+rescue Exception => e
+  File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
+  raise
+ensure
+  index.save_index
+  Redwood::finish
+  index.unlock
+end

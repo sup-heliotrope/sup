@@ -1,4 +1,5 @@
 require "sup/rfc2047"
+require "monitor"
 
 module Redwood
 
@@ -54,7 +55,7 @@ class Source
 
   bool_accessor :usual, :archived
   attr_reader :uri
-  attr_accessor :id, :poll_lock
+  attr_accessor :id
 
   def initialize uri, usual=true, archived=false, id=nil
     raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
@@ -64,7 +65,7 @@ class Source
     @archived = archived
     @id = id
 
-    @poll_lock = Mutex.new
+    @poll_lock = Monitor.new
   end
 
   ## overwrite me if you have a disk incarnation (currently used only for sup-sync-back)
@@ -81,6 +82,14 @@ class Source
   ## leaks (esp. file descriptors).
   def go_idle; end
 
+  ## Returns an array containing all the labels that are natively
+  ## supported by this source
+  def supported_labels?; [] end
+
+  ## Returns an array containing all the labels that are currently in
+  ## the location filename
+  def labels? info; [] end
+
   ## Yields values of the form [Symbol, Hash]
   ## add: info, labels, progress
   ## delete: info, progress
@@ -90,6 +99,25 @@ class Source
 
   def valid? info
     true
+  end
+
+  def synchronize &block
+    @poll_lock.synchronize &block
+  end
+
+  def try_lock
+    acquired = @poll_lock.try_enter
+    if acquired
+      debug "lock acquired for: #{self}"
+    else
+      debug "could not acquire lock for: #{self}"
+    end
+    acquired
+  end
+
+  def unlock
+    @poll_lock.exit
+    debug "lock released for: #{self}"
   end
 
   ## utility method to read a raw email header from an IO stream and turn it

@@ -248,6 +248,8 @@ EOS
           sm.puts m.raw_message
         end
         raise SendmailCommandFailed, "Couldn't execute #{cmd}" unless $? == 0
+        m.add_label :forwarded
+        Index.save_message m
       rescue SystemCallError, SendmailCommandFailed => e
         warn "problem sending mail: #{e.message}"
         BufferManager.flash "Problem sending mail: #{e.message}"

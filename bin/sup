@@ -153,6 +153,7 @@ Index.lock_interactively or exit
 begin
   Redwood::start
   Index.load
+  Redwood::check_syncback_settings
   Index.start_sync_worker unless $opts[:no_threads]
 
   $die = false
