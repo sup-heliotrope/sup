@@ -9,9 +9,9 @@
   Edward Z. Yang
   Damien Leone
 
-  Not all of the features proposed by have been included to maintain
-  compatibility with more operating systems and some were not included
-  to make sup more stable.
+  Not all of the features proposed have been included. This is to maintain
+  compatibility with more operating systems and wait with the more
+  daring features to make sure sup is stable-ish.
 
   This is a big change since sup now modifies your mail (!), please
   back up your mail and your configuration before using the maildir
