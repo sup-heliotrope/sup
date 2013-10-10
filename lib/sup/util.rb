@@ -8,6 +8,7 @@ require 'set'
 require 'enumerator'
 require 'benchmark'
 require 'unicode'
+require 'fileutils'
 
 ## time for some monkeypatching!
 class Symbol
@@ -43,6 +44,17 @@ class Lockfile
   end
 
   def touch_yourself; touch path end
+end
+
+class File
+  # platform safe file.link which attempts a copy if hard-linking fails
+  def self.safe_link src, dest
+    begin
+      File.link src, dest
+    rescue
+      FileUtils.copy src, dest
+    end
+  end
 end
 
 class Pathname

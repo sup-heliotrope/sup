@@ -57,7 +57,7 @@ class Maildir < Source
             f.fsync
           end
 
-          File.link tmp_path, new_path
+          File.safe_link tmp_path, new_path
           stored = true
         ensure
           File.unlink tmp_path if File.exists? tmp_path
@@ -244,9 +244,9 @@ private
       new_path  = File.join @dir, new_loc
       tmp_path  = File.join @dir, "tmp", "#{md_base}:#{md_ver},#{flags}"
 
-      File.link orig_path, tmp_path
+      File.safe_link orig_path, tmp_path
       File.unlink orig_path
-      File.link tmp_path, new_path
+      File.safe_link tmp_path, new_path
       File.unlink tmp_path
 
       new_loc
