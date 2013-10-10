@@ -1,6 +1,5 @@
 require 'uri'
 require 'set'
-require 'sup/util'
 
 module Redwood
 
