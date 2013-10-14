@@ -336,7 +336,7 @@ class MaildirRoot < Source
         new_flags.to_a.sort.join
     end
 
-    def store_message_from orig_path
+    def store_message_from orig_path, msg
       debug "#{self}: Storing message: #{orig_path}"
 
       orig_path = @maildirroot.get_real_id orig_path
@@ -350,10 +350,16 @@ class MaildirRoot < Source
       new_flags = new_flags.to_a.sort.join
 
       # create new id
-      new_id   = new_maildir_basefn + ":2," + new_flags
+      basefn    = "sup-#{Digest::MD5.hexdigest(msg.id)}"
+      new_id    = basefn + ":2," + new_flags
 
       new_path = File.join @dir, sub, new_id
-      File.safe_link o, new_path
+
+      if File.exist? new_path
+        warn "#{self}: File already exists: #{new_path}"
+      else
+        File.safe_link o, new_path
+      end
 
       return File.join @label.to_s, sub, new_id
     end
@@ -596,7 +602,7 @@ class MaildirRoot < Source
 
       sources_to_add.each do |s|
         # copy message to maildir
-        new_info = s.store_message_from id
+        new_info = s.store_message_from id, msg
         msg.locations.push Location.new(self, new_info)
         dirty = true
       end
