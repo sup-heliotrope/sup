@@ -8,8 +8,8 @@ class Maildir < Source
   MYHOSTNAME = Socket.gethostname
 
   ## remind me never to use inheritance again.
-  yaml_properties :uri, :usual, :archived, :id, :labels
-  def initialize uri, usual=true, archived=false, id=nil, labels=[]
+  yaml_properties :uri, :usual, :archived, :sync_back, :id, :labels
+  def initialize uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
     @syncable     = true
@@ -18,6 +18,10 @@ class Maildir < Source
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
     raise ArgumentError, "maildir URI must have a path component" unless uri.path
+
+    @sync_back = sync_back
+    # sync by default if not specified
+    @sync_back = true if @sync_back.nil?
 
     @dir = uri.path
     @labels = Set.new(labels || [])
@@ -31,6 +35,10 @@ class Maildir < Source
 
   def supported_labels?
     [:draft, :starred, :forwarded, :replied, :unread, :deleted]
+  end
+
+  def sync_back_enabled?
+    @sync_back
   end
 
   def store_message date, from_email, &block

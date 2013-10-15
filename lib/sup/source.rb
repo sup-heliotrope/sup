@@ -1,4 +1,5 @@
 require "sup/rfc2047"
+require "monitor"
 
 module Redwood
 

@@ -213,13 +213,13 @@ EOS
   def set_sig_edit_flag
     sig = sig_lines.join("\n")
     if $config[:edit_signature]
-      pbody = @body.join("\n")
+      pbody = @body.map { |x| x.fix_encoding! }.join("\n").fix_encoding!
       blen = pbody.length
       slen = sig.length
 
       if blen > slen and pbody[blen-slen..blen] == sig
         @sig_edited = false
-        @body = pbody[0..blen-slen].split("\n")
+        @body = pbody[0..blen-slen].fix_encoding!.split("\n")
       else
         @sig_edited = true
       end
@@ -327,7 +327,7 @@ EOS
   end
 
   def delete_attachment
-    i = curpos - @attachment_lines_offset - DECORATION_LINES - 2
+    i = curpos - @attachment_lines_offset - (@selectors.empty? ? 0 : DECORATION_LINES) - @selectors.size
     if i >= 0 && i < @attachments.size && BufferManager.ask_yes_or_no("Delete attachment #{@attachment_names[i]}?")
       @attachments.delete_at i
       @attachment_names.delete_at i
@@ -559,9 +559,9 @@ protected
       m.header[k] =
         case v
         when String
-          (k.match(/subject/i) ? mime_encode_subject(v) : mime_encode_address(v)).fix_encoding!
+          (k.match(/subject/i) ? mime_encode_subject(v).dup.fix_encoding! : mime_encode_address(v)).dup.fix_encoding!
         when Array
-          (v.map { |v| mime_encode_address v }.join ", ").fix_encoding!
+          (v.map { |v| mime_encode_address v }.join ", ").dup.fix_encoding!
         end
     end
 
@@ -643,12 +643,12 @@ private
     if HookManager.enabled? "mentions-attachments"
       HookManager.run "mentions-attachments", :header => @header, :body => @body
     else
-      @body.any? {  |l| l =~ /^[^>]/ && l =~ /\battach(ment|ed|ing|)\b/i }
+      @body.any? {  |l| l.fix_encoding! =~ /^[^>]/ && l.fix_encoding! =~ /\battach(ment|ed|ing|)\b/i }
     end
   end
 
   def top_posting?
-    @body.join("\n") =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
+    @body.map { |x| x.fix_encoding! }.join("\n").fix_encoding! =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
   end
 
   def sig_lines

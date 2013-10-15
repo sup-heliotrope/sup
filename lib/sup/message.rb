@@ -770,6 +770,10 @@ class Location
     synced
   end
 
+  def sync_back_enabled?
+    source.respond_to? :sync_back and $config[:sync_back_to_maildir] and source.sync_back_enabled?
+  end
+
   ## much faster than raw_message
   def each_raw_message_line &b
     source.each_raw_message_line info, &b
