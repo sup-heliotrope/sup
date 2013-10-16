@@ -92,6 +92,14 @@ class Maildir < Source
       flags = maildir_reconcile_flags id, labels
       new_info = maildir_mark_file id, flags
 
+      if new_info
+        msg.locations.delete Location.new(self, id)
+        msg.locations.push   Location.new(self, new_info)
+        return msg.locations
+      else
+        return false
+      end
+
     end
   end
 

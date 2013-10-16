@@ -472,6 +472,10 @@ class MaildirRoot < Source
     check_enable_experimental
 
     benchmark (:maildirroot_pool) do
+      added = []
+      deleted = []
+      updated = []
+
       @all_maildirs.each do |maildir|
         debug "polling: #{maildir}.."
 
@@ -479,25 +483,36 @@ class MaildirRoot < Source
           case sym
           when :add
             # remote add: new label or new message in archive
-            yield :add, args # easy..
+            added.push args
 
           when :delete
             # remote del: remove label or message deleted
             # remove this label from message and change to :update
             if maildir == @archive
-              yield :delete, args
+              deleted.push args
             else
               debug "maildirroot: pool: deleting: #{args[:old_info]}"
-              yield :update, args
+              updated.push args
             end
 
           when :update
             # remote: changed state on message
             # message should already have this label, but flags or dir have changed
             # re-check other labels if they are the same
-            yield :update, args
+            updated.push args
           end
         end
+      end
+
+      # now yield for all sources in right order
+      updated.each do |args|
+        yield :update, args
+      end
+      added.each do |args|
+        yield :add, args
+      end
+      deleted.each do |args|
+        yield :delete, args
       end
     end
   end

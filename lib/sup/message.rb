@@ -320,6 +320,7 @@ EOS
           locations = l.sync_back @labels, self
           if locations != false
             @locations = locations
+            debug "message: new locations: #{@locations.inspect}"
             dirty = true
           end
         end
