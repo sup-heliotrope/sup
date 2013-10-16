@@ -120,7 +120,7 @@ class MBox < Source
   ## into memory with raw_message.
   ##
   ## i hoped never to have to move shit around on disk but
-  ## sup-sync-back has to do it.
+  ## sup-sync-back-mbox has to do it.
   def each_raw_message_line offset
     @mutex.synchronize do
       ensure_open

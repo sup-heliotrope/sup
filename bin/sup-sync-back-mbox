@@ -24,7 +24,7 @@ def has_any_from_source_with_label? index, source, label
 end
 
 opts = Trollop::options do
-  version "sup-sync-back (sup #{Redwood::VERSION})"
+  version "sup-sync-back-mbox (sup #{Redwood::VERSION})"
   banner <<EOS
 Drop or move messages from Sup sources that are marked as deleted or
 spam in the Sup index.
@@ -32,7 +32,7 @@ spam in the Sup index.
 Currently only works with mbox sources.
 
 Usage:
-  sup-sync-back [options] <source>*
+  sup-sync-back-mbox [options] <source>*
 
 where <source>* is zero or more source URIs. If no sources are given,
 sync back all usual sources.
@@ -112,7 +112,7 @@ EOS
     source.reset!
     num_dropped = num_moved = num_scanned = 0
 
-    out_fp = Tempfile.new "sup-sync-back-#{source.id}"
+    out_fp = Tempfile.new "sup-sync-back-mbox-#{source.id}"
     Redwood::PollManager.each_message_from source do |m|
       num_scanned += 1
 
