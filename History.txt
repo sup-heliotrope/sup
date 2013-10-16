@@ -34,6 +34,8 @@
 * Various encoding fixes and minor bug fixes
 * Tempfiles for attachments are persistent through the sup process to
   ensure that spawned processes have access to them.
+* sup-sync-back has been renamed to sup-sync-back-mbox to conform with
+  the other sync-back scripts.
 
 == 0.14.1 / 2013-08-31
 
