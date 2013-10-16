@@ -28,7 +28,7 @@ module Redwood
 # because it is still stored in all the other label-folders. The sync-back
 # approach resembles the existing solution for mbox sources.
 #
-##  Warning on changing the syncback flag:
+##  Warning on changing the sync_back flag:
 #
 #   Syncback is disabled by default. Changes you make to the Sup index (reading,
 #   labeling, etc) might be lost when the remote message state changes. Local
@@ -44,13 +44,13 @@ class MaildirRoot < Source
   include SerializeLabelsNicely
 
   ## remind me never to use inheritance again.
-  yaml_properties :uri, :usual, :archived, :id, :labels, :syncback,
+  yaml_properties :uri, :usual, :archived, :id, :labels, :sync_back,
                   :confirm_enable_experimental, :maildir_creation_allowed,
                   :inbox_folder,
                   :sent_folder, :drafts_folder, :spam_folder,
                   :trash_folder, :archive_folder
   def initialize uri, usual=true, archived=false, id=nil, labels=[],
-                 syncback=false, confirm_enable_experimental = false,
+                 sync_back=false, confirm_enable_experimental = false,
                  maildir_creation_allowed = false,
                  inbox_folder = 'inbox', sent_folder = 'sent',
                  drafts_folder = 'drafts', spam_folder = 'spam',
@@ -59,7 +59,10 @@ class MaildirRoot < Source
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
     @syncable = true
-    @syncback = syncback
+    @sync_back = sync_back
+    # do not sync by default if not specified
+    @sync_back = false if @sync_back.nil?
+
     @confirm_enable_experimental = confirm_enable_experimental
     @maildir_creation_allowed = maildir_creation_allowed
     uri = URI(@expanded_uri)
@@ -70,7 +73,6 @@ class MaildirRoot < Source
 
     @root   = uri.path
     @labels = Set.new(labels || [])
-    @mutex  = Mutex.new # this is probably close to the def of a bad var name
 
     debug "#{self.to_s}: setting up maildirroot.."
 
@@ -439,7 +441,7 @@ class MaildirRoot < Source
 
   def check_enable_experimental
     if not @confirm_enable_experimental
-      fail "This MaildirRoot source (#{self.to_s}) is EXPERIMENTAL. It might chew, hide or altogether totally delete your email. Forever. If you really are as adventurous as you claim to be please continue bravely forth and set 'confirm_enable_experimental' to 'true' as well as 'syncback' to 'true' for this source in 'sources.yaml' in the Sup base directory. Otherwise; delete this source from your 'sources.yaml'."
+      fail "This MaildirRoot source (#{self.to_s}) is EXPERIMENTAL. It might chew, hide or altogether totally delete your email. Forever. If you really are as adventurous as you claim to be please continue bravely forth and set 'confirm_enable_experimental' to 'true' as well as 'sync_back' to 'true' for this source in 'sources.yaml' in the Sup base directory. Otherwise; delete this source from your 'sources.yaml'."
     end
   end
 
@@ -500,8 +502,8 @@ class MaildirRoot < Source
   def sync_back id, labels, msg
     check_enable_experimental
 
-    if not @syncback
-      debug "#{self.to_s}: syncback disabled for this source."
+    if not @sync_back
+      debug "#{self.to_s}: sync_back disabled for this source."
       return false
     end
 
@@ -630,13 +632,11 @@ class MaildirRoot < Source
       end
 
       if dirty
-        debug "maildirroot: syncing message to index: #{msg.id}"
-        Index.sync_message msg, false, false
-        UpdateManager.relay self, :updated, msg
+        return msg.locations
+      else
+        # don't return new info, locations have been taken care of.
+        return false
       end
-
-      # don't return new info, locations have been taken care of.
-      return false
     end
   end
 
@@ -654,7 +654,7 @@ class MaildirRoot < Source
       end
     end
 
-    debug "really_remove: could not find other source for: #{label}."
+    debug "really_remove: could not find other source for: #{label}, should be deleted."
     return true
   end
 

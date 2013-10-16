@@ -294,31 +294,40 @@ EOS
   def sync_back
     debug "message: syncing back: #{@id}"
 
-    # syncing other type of syncbacks
-    if @locations.select {|l| not l.source.kind_of? MaildirRoot }.map { |l|
+    source_ids_done = [] # we only want to sync one location from each maildirroot
+                         # source for this message.
 
-      debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
+    if $config[:sync_back_to_maildir]
+      syncable_locations = @locations.select { |l| l.source.syncable }
+      dirty = false
 
-      l.sync_back @labels, self if l.valid? and $config[:sync_back_to_maildir] and l.source.syncable
+      syncable_locations.each do |l|
+        debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
 
-    }.any?
-      Index.sync_message self, true, false
-      UpdateManager.relay self, :updated, self
-    end
-
-    # syncing maildirroots, there will be one source for each label.
-    # it is only necessary to sync back on one source (it will operate
-    # on the master maildirroot).
-    source_ids_done = []
-    @locations.select { |l| l.source.kind_of? MaildirRoot }.each do |l|
-      if not source_ids_done.member? l.source.id
-
-        if l.valid? and l.source.syncable
-          debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
-          l.sync_back @labels, self
-          source_ids_done << l.source.id
+        unless @locations.member? l
+          debug "message: location no longer exists for message, skipping."
+          next
         end
 
+        if l.source.kind_of? MaildirRoot
+          next if source_ids_done.member? l.source.id
+          source_ids_done << l.source.id
+        else
+          fail "not supported!"
+        end
+
+        if l.valid?
+          locations = l.sync_back @labels, self
+          if locations != false
+            @locations = locations # update locations
+            dirty = true
+          end
+        end
+
+      end
+
+      if dirty
+        Index.sync_message self, true, false
         UpdateManager.relay self, :updated, self
       end
     end

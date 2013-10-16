@@ -90,7 +90,8 @@ class Maildir < Source
     synchronize do
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
-      maildir_mark_file id, flags
+      new_info = maildir_mark_file id, flags
+
     end
   end
 
