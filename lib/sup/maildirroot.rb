@@ -640,7 +640,7 @@ class MaildirRoot < Source
       if dirty
         return msg.locations
       else
-        # don't return new info, locations have been taken care of.
+        # nothing changed
         return false
       end
     end

@@ -319,7 +319,7 @@ EOS
         if l.valid?
           locations = l.sync_back @labels, self
           if locations != false
-            @locations = locations # update locations
+            @locations = locations
             dirty = true
           end
         end
@@ -767,16 +767,11 @@ class Location
   end
 
   def sync_back labels, message
-    synced = false
+    locations = false
     source.synchronize do
-      new_info = source.sync_back(@info, labels, message) if source.syncable
-      if new_info
-        @info = new_info
-        Index.sync_message message, true
-        synced = true
-      end
+      locations = source.sync_back(@info, labels, message)
     end
-    synced
+    return locations
   end
 
   def sync_back_enabled?
