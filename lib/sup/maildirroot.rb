@@ -712,5 +712,10 @@ private
   def maildirsub_from_label label
     return @all_maildirs.select { |m| m.label.to_sym == label.to_sym }.first || nil
   end
+
+  def dir_from_label label
+    maildirsub_from_label(label).basedir
+  end
+
 end
 end
