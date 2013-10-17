@@ -310,7 +310,10 @@ EOS
         end
 
         if l.source.kind_of? MaildirRoot
-          next if source_ids_done.member? l.source.id
+          if source_ids_done.member? l.source.id
+            debug "message: already synced for this source."
+            next
+          end
           source_ids_done << l.source.id
         else
           fail "not supported!"
