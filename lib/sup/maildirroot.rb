@@ -167,7 +167,7 @@ class MaildirRoot < Source
               f.fsync
             end
 
-            File.link tmp_path, new_path
+            File.safe_link tmp_path, new_path
             stored = true
           ensure
             File.unlink tmp_path if File.exists? tmp_path
