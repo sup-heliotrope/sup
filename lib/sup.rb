@@ -203,13 +203,18 @@ EOS
     sources = SourceManager.sources
     newly_synced = sources.select { |s| s.is_a? Maildir and s.sync_back_enabled? and not active_sync_sources.include? s.uri }
     unless newly_synced.empty?
-      Redwood.warn_syncback <<EOS
+
+      details =<<EOS
 It appears that the option "sync_back" of the following source(s)
 has been changed from false to true since the last execution of
 sup:
 
-#{newly_synced.join("\n")}
 EOS
+      newly_synced.each do |s|
+        details += "#{s} (usual: #{s.usual})\n"
+      end
+
+      Redwood.warn_syncback details
     end
   end
 
@@ -223,6 +228,9 @@ WARNING
 It is *strongly* recommended that you run "sup-sync-back-maildir"
 before continuing, otherwise you might lose informations in your
 Xapian index.
+
+Please note that if you have any sources that are not marked as 'ususal'
+you need to manually specify them to the sup-sync-back-maildir script.
 
 This script should be executed each time the "sync_back_to_maildir" is
 changed from false to true.
