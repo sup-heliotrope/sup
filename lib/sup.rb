@@ -189,9 +189,9 @@ EOS
 Should I complain about this again? (Y/n)
 EOS
         File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write(Redwood::MAILDIR_SYNC_CHECK_SKIPPED) } if STDIN.gets.chomp.downcase == 'n'
-      elsif not $config[:sync_back_to_maildir] and File.exists? Redwood::SYNC_OK_FN
-        File.delete(Redwood::SYNC_OK_FN)
       end
+    elsif not $config[:sync_back_to_maildir] and File.exists? Redwood::SYNC_OK_FN
+      File.delete(Redwood::SYNC_OK_FN)
     end
   end
 
