@@ -219,13 +219,19 @@ WARNING
 #{details}
 
 It is *strongly* recommended that you run "sup-sync-back-maildir"
-before continuing, otherwise you might lose informations in your
-Xapian index.
+before continuing, otherwise you might lose changes you have made in sup
+to your Xapian index.
 
-This script should be executed each time the "sync_back_to_maildir" is
-changed from false to true.
+This script should be run each time you change the
+"sync_back_to_maildir" flag in config.yaml from false to true or
+the "sync_back" flag is changed to true for a source in sources.yaml.
 
-Please run "sup-sync-back-maildir -h" to see why it is useful.
+Please run "sup-sync-back-maildir -h" for more information and why this
+is needed.
+
+Note that if you have any sources that are not marked as 'ususal' in
+sources.yaml you need to manually specify them when running  the
+sup-sync-back-maildir script.
 
 Are you really sure you want to continue? (y/N)
 EOS

@@ -9,36 +9,37 @@ opts = Trollop::options do
   banner <<EOS
 Export Xapian entries to Maildir sources on disk.
 
-This script parses the Xapian entries for a given Maildir source and
-renames e-mail files on disk according to the labels stored in the
-index. It will hence export all the changes you made in Sup to your
-Maildirs so it can be propagated to your IMAP server with offlineimap
-for instance.
+This script parses the Xapian entries for a given Maildir source and renames
+(changes maildir flags) e-mail files on disk according to the labels stored in
+the index. It will export all the changes you made in Sup to your
+Maildirs so that they can be propagated to your IMAP server with e.g. offlineimap.
 
-It also merges some Maildir flags that were not supported by Sup such
+The script also merges some Maildir flags into Sup such
 as R (replied) and P (passed, forwarded), for instance suppose you
 have an e-mail file like this: foo_bar:2,FRS (flags are favorite,
 replied, seen) and its Xapian entry has labels 'starred', the merge
 operation will add the 'replied' label to the Xapian entry.
 
-If you choose not to merge you will lose information because in the
-previous example the file will be renamed to foo_bar:2,FS.
+If you choose not to merge (-m) you will lose information ('replied'), and in
+the previous example the file will be renamed to foo_bar:2,FS.
 
 Running this script is *strongly* recommended when setting the
-"sync_back_to_maildir" option from false to true.
+"sync_back_to_maildir" option from false to true in config.yaml or changing the
+"sync_back" flag to true for a source in sources.yaml.
 
 Usage:
   sup-sync-back-maildir [options] <source>*
 
-where <source>* is source URIs. If no source is given, the default
-behavior is to sync back all Maildir sources that have not disabled
-sync back using the configuration parameter sync_back = false.
+where <source>* is source URIs. If no source is given, the default behavior is
+to sync back all Maildir sources marked as usual and that have not disabled
+sync back using the configuration parameter sync_back = false in sources.yaml.
 
 Options include:
 EOS
   opt :no_confirm, "Don't ask for confirmation before synchronizing", :default => false, :short => "n"
   opt :no_merge, "Don't merge new supported Maildir flags (R and P)", :default => false, :short => "m"
   opt :list_sources, "List your Maildir sources and exit", :default => false, :short => "l"
+  opt :unusual_sources_too, "Sync unusual sources too if no specific source information is given", :default => false, :short => "u"
 end
 
 def die msg
@@ -68,8 +69,14 @@ begin
 
   ## Otherwise, check all sources in sources.yaml
   if sources.empty? or opts[:list_sources] == true
-    sources = Redwood::SourceManager.usual_sources.select do |s|
-      s.is_a? Redwood::Maildir and s.sync_back_enabled?
+    if opts[:unusual_sources_too]
+      sources = Redwood::SourceManager.sources.select do |s|
+        s.is_a? Redwood::Maildir and s.sync_back_enabled?
+      end
+    else
+      sources = Redwood::SourceManager.usual_sources.select do |s|
+        s.is_a? Redwood::Maildir and s.sync_back_enabled?
+      end
     end
   end
 
