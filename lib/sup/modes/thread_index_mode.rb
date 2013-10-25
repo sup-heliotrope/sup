@@ -219,8 +219,8 @@ EOS
       @ts.delete_message m
       @ts.add_message m
     end
-    debug "thread_index_mode: save_thread"
-    Index.save_thread t
+    #debug "thread_index_mode: save_thread"
+    #Index.save_thread t
     update_text_for_line l
     BufferManager.draw_screen
   end

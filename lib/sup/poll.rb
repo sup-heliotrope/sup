@@ -215,12 +215,12 @@ EOS
             m.locations = old_m.locations + m.locations if old_m
             HookManager.run "before-add-message", :message => m
             yield :add, m, old_m, args[:progress] if block_given?
-            Index.sync_message m, true, false
 
             if Index.message_joining_killed? m
               m.labels += [:killed]
-              Index.sync_message m, true, false
             end
+
+            Index.sync_message m, true, false
 
             # send message :added signal regardless since labels/locations
             # might have changed and a message might need to be added to a
@@ -246,6 +246,7 @@ EOS
                 UpdateManager.relay self, :location_deleted, m
               end
             end
+
           when :update
             Index.each_message({:location => [source.id, args[:old_info]]}, false) do |m|
               old_m = Index.build_message m.id
