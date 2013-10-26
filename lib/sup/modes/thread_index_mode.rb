@@ -220,6 +220,11 @@ EOS
       @ts.add_message m
     end
     debug "thread_index_mode: save_thread"
+    # do not sync back; this event is run on a message change either from
+    # a poll or from a change made by the user. anyway, we're not sure if
+    # the poll has synced all remote changes yet so no sync_back (with
+    # source checking) should be done yet. this is anyway always done (as
+    # far as I can see) from an event that syncs the message anyway.
     Index.save_thread t, sync_back = false
     update_text_for_line l
     BufferManager.draw_screen
