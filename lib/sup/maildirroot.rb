@@ -505,11 +505,11 @@ class MaildirRoot < Source
       end
 
       # now yield for all sources in right order
-      updated.each do |args|
-        yield :update, args
-      end
       added.each do |args|
         yield :add, args
+      end
+      updated.each do |args|
+        yield :update, args
       end
       deleted.each do |args|
         yield :delete, args
