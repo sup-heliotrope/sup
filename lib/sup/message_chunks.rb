@@ -1,5 +1,6 @@
 require 'tempfile'
 require 'rbconfig'
+require 'shellwords'
 
 ## Here we define all the "chunks" that a message is parsed
 ## into. Chunks are used by ThreadViewMode to render a message. Chunks
@@ -59,6 +60,8 @@ end
 module Redwood
 module Chunk
   class Attachment
+    ## please see note in write_to_disk on important usage
+    ## of quotes to avoid remote command injection.
     HookManager.register "mime-decode", <<EOS
 Decodes a MIME attachment into text form. The text will be displayed
 directly in Sup. For attachments that you wish to use a separate program
@@ -75,6 +78,9 @@ Return value:
   The decoded text of the attachment, or nil if not decoded.
 EOS
 
+
+    ## please see note in write_to_disk on important usage
+    ## of quotes to avoid remote command injection.
     HookManager.register "mime-view", <<EOS
 Views a non-text MIME attachment. This hook allows you to run
 third-party programs for attachments that require such a thing (e.g.
@@ -100,6 +106,11 @@ EOS
     attr_reader :content_type, :filename, :lines, :raw_content
     bool_reader :quotable
 
+    ## store tempfile objects as class variables so that they
+    ## are not removed when the viewing process returns. they
+    ## should be garbage collected when the class variable is removed.
+    @@view_tempfiles = []
+
     def initialize content_type, filename, encoded_content, sibling_types
       @content_type = content_type.downcase
       @filename = filename
@@ -116,6 +127,8 @@ EOS
       when /^text\/plain\b/
         @raw_content
       else
+        ## please see note in write_to_disk on important usage
+        ## of quotes to avoid remote command injection.
         HookManager.run "mime-decode", :content_type => content_type,
                         :filename => lambda { write_to_disk },
                         :charset => encoded_content.charset,
@@ -125,7 +138,13 @@ EOS
       @lines = nil
       if text
         text = text.transcode(encoded_content.charset || $encoding, text.encoding)
-        @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+        begin
+          @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+        rescue Encoding::CompatibilityError
+          @lines = text.fix_encoding!.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+          debug "error while decoding message text, falling back to default encoding, expect errors in encoding: #{text.fix_encoding!}"
+        end
+
         @quotable = true
       end
     end
@@ -147,11 +166,13 @@ EOS
     def initial_state; :open end
     def viewable?; @lines.nil? end
     def view_default! path
+      ## please see note in write_to_disk on important usage
+      ## of quotes to avoid remote command injection.
       case RbConfig::CONFIG['arch']
         when /darwin/
-          cmd = "open '#{path}'"
+          cmd = "open #{path}"
         else
-          cmd = "/usr/bin/run-mailcap --action=view '#{@content_type}:#{path}'"
+          cmd = "/usr/bin/run-mailcap --action=view #{@content_type}:#{path}"
       end
       debug "running: #{cmd.inspect}"
       BufferManager.shell_out(cmd)
@@ -159,17 +180,31 @@ EOS
     end
 
     def view!
-      path = write_to_disk
-      ret = HookManager.run "mime-view", :content_type => @content_type,
-                                         :filename => path
-      ret || view_default!(path)
+      ## please see note in write_to_disk on important usage
+      ## of quotes to avoid remote command injection.
+      write_to_disk do |file|
+
+        @@view_tempfiles.push file # make sure the tempfile is not garbage collected before sup stops
+
+        ret = HookManager.run "mime-view", :content_type => @content_type,
+                                           :filename => file.path
+        ret || view_default!(file.path)
+      end
     end
 
+    ## note that the path returned from write_to_disk is
+    ## Shellwords.escaped and is intended to be used without single
+    ## or double quotes. the use of either opens sup up for remote
+    ## code injection in the file name.
     def write_to_disk
-      file = Tempfile.new(["sup", @filename.gsub("/", "_") || "sup-attachment"])
-      file.print @raw_content
-      file.close
-      file.path
+      begin
+        file = Tempfile.new(["sup", Shellwords.escape(@filename.gsub("/", "_")) || "sup-attachment"])
+        file.print @raw_content
+        yield file if block_given?
+        return file.path
+      ensure
+        file.close
+      end
     end
 
     ## used when viewing the attachment as text
@@ -229,7 +264,7 @@ EOS
   class EnclosedMessage
     attr_reader :lines
     def initialize from, to, cc, date, subj
-      @from = from ? "unknown sender" : from.full_adress
+      @from = from ? "unknown sender" : from.full_address
       @to = to ? "" : to.map { |p| p.full_address }.join(", ")
       @cc = cc ? "" : cc.map { |p| p.full_address }.join(", ")
       if date
