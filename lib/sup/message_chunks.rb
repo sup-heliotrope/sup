@@ -192,7 +192,7 @@ EOS
       end
     end
 
-    ## note that the path returnded from write_to_disk is
+    ## note that the path returned from write_to_disk is
     ## Shellwords.escaped and is intended to be used without single
     ## or double quotes. the use of either opens sup up for remote
     ## code injection in the file name.
