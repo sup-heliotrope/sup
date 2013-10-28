@@ -60,6 +60,8 @@ end
 module Redwood
 module Chunk
   class Attachment
+    ## please see note in write_to_disk on important usage
+    ## of quotes to avoid remote command injection.
     HookManager.register "mime-decode", <<EOS
 Decodes a MIME attachment into text form. The text will be displayed
 directly in Sup. For attachments that you wish to use a separate program
@@ -76,6 +78,9 @@ Return value:
   The decoded text of the attachment, or nil if not decoded.
 EOS
 
+
+    ## please see note in write_to_disk on important usage
+    ## of quotes to avoid remote command injection.
     HookManager.register "mime-view", <<EOS
 Views a non-text MIME attachment. This hook allows you to run
 third-party programs for attachments that require such a thing (e.g.
@@ -122,6 +127,8 @@ EOS
       when /^text\/plain\b/
         @raw_content
       else
+        ## please see note in write_to_disk on important usage
+        ## of quotes to avoid remote command injection.
         HookManager.run "mime-decode", :content_type => content_type,
                         :filename => lambda { write_to_disk },
                         :charset => encoded_content.charset,
@@ -159,11 +166,13 @@ EOS
     def initial_state; :open end
     def viewable?; @lines.nil? end
     def view_default! path
+      ## please see note in write_to_disk on important usage
+      ## of quotes to avoid remote command injection.
       case RbConfig::CONFIG['arch']
         when /darwin/
-          cmd = "open '#{path}'"
+          cmd = "open #{path}"
         else
-          cmd = "/usr/bin/run-mailcap --action=view '#{@content_type}:#{path}'"
+          cmd = "/usr/bin/run-mailcap --action=view #{@content_type}:#{path}"
       end
       debug "running: #{cmd.inspect}"
       BufferManager.shell_out(cmd)
@@ -171,6 +180,8 @@ EOS
     end
 
     def view!
+      ## please see note in write_to_disk on important usage
+      ## of quotes to avoid remote command injection.
       write_to_disk do |file|
 
         @@view_tempfiles.push file # make sure the tempfile is not garbage collected before sup stops
@@ -181,6 +192,10 @@ EOS
       end
     end
 
+    ## note that the path returned from write_to_disk is
+    ## Shellwords.escaped and is intended to be used without single
+    ## or double quotes. the use of either opens sup up for remote
+    ## code injection in the file name.
     def write_to_disk
       begin
         file = Tempfile.new(["sup", Shellwords.escape(@filename.gsub("/", "_")) || "sup-attachment"])
