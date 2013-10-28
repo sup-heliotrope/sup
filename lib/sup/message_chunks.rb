@@ -113,6 +113,11 @@ EOS
 
     def initialize content_type, filename, encoded_content, sibling_types
       @content_type = content_type.downcase
+      if Shellwords.escape(@content_type) != @content_type
+        warn "content_type #{@content_type} is not safe, changed to application/octet-stream"
+        @content_type = 'application/octet-stream'
+      end
+
       @filename = filename
       @quotable = false # changed to true if we can parse it through the
                         # mime-decode hook, or if it's plain text
@@ -129,7 +134,7 @@ EOS
       else
         ## please see note in write_to_disk on important usage
         ## of quotes to avoid remote command injection.
-        HookManager.run "mime-decode", :content_type => content_type,
+        HookManager.run "mime-decode", :content_type => @content_type,
                         :filename => lambda { write_to_disk },
                         :charset => encoded_content.charset,
                         :sibling_types => sibling_types
@@ -189,7 +194,7 @@ EOS
     ## note that the path returned from write_to_disk is
     ## Shellwords.escaped and is intended to be used without single
     ## or double quotes. the use of either opens sup up for remote
-    ## code injection in the file name.
+    ## code injection through the file name.
     def write_to_disk
       begin
         file = Tempfile.new(["sup", Shellwords.escape(@filename.gsub("/", "_")) || "sup-attachment"])
