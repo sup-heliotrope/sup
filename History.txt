@@ -42,6 +42,9 @@
 
 * Various encoding fixes and minor bug fixes
 
+== 0.14.1.1 / 2013-10-29
+
+* SBU1: security release
 * Tempfiles for attachments are persistent through the sup process to
   ensure that spawned processes have access to them.
 

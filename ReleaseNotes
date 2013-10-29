@@ -6,9 +6,9 @@ how to set it up.
 sup-sync-back has been moved to sup-sync-back-mbox, please make sure
 you make any needed changes.
 
-Shellwords.escape was used somewhat incorrectly which still allowed a
-potential remote command injection, please make sure your mime-view/mime-decode
-hooks have been updated (see wiki).
+Release 0.14.1.1:
+
+See 0.13.2.1.
 
 Release 0.13.2.1:
 
