@@ -45,8 +45,9 @@
 * Tempfiles for attachments are persistent through the sup process to
   ensure that spawned processes have access to them.
 
-* Fix incorrect use of Shellwords.escape to better prevent remote
-  command injection.
+== 0.13.2.1 / 2013-10-29
+
+* SBU1: security release
 
 == 0.14.1 / 2013-08-31
 
