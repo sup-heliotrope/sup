@@ -1,3 +1,7 @@
+== 0.13.2.1 / 2013-10-29
+
+* SBU1: security release
+
 == 0.13.2 / 2013-06-26
 
 * FreeBSD 10 comptability
