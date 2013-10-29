@@ -48,6 +48,10 @@ before-poll:
 
 
 mime-decode:
+  ## Please read:
+  https://github.com/sup-heliotrope/sup/wiki/Viewing-Attachments for
+  some security concerns on opening attachments.
+
   ## turn text/html attachments into plain text, unless they are part
   ## of a multipart/alternative pair
   require 'shellwords'
