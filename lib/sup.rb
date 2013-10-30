@@ -189,25 +189,32 @@ EOS
 Should I complain about this again? (Y/n)
 EOS
         File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write(Redwood::MAILDIR_SYNC_CHECK_SKIPPED) } if STDIN.gets.chomp.downcase == 'n'
-      elsif not $config[:sync_back_to_maildir] and File.exists? Redwood::SYNC_OK_FN
-        File.delete(Redwood::SYNC_OK_FN)
       end
+    elsif not $config[:sync_back_to_maildir] and File.exists? Redwood::SYNC_OK_FN
+      File.delete(Redwood::SYNC_OK_FN)
     end
   end
 
   def check_syncback_settings
-    active_sync_sources = File.readlines(Redwood::SYNC_OK_FN).collect { |s| s.strip }
+    # don't check if syncback was never performed
+    return unless File.exists? Redwood::SYNC_OK_FN
+    active_sync_sources = File.readlines(Redwood::SYNC_OK_FN).collect { |e| e.strip }.find_all { |e| not e.empty? }
     return if active_sync_sources.length == 1 and active_sync_sources[0] == Redwood::MAILDIR_SYNC_CHECK_SKIPPED
     sources = SourceManager.sources
     newly_synced = sources.select { |s| s.is_a? Maildir and s.sync_back_enabled? and not active_sync_sources.include? s.uri }
     unless newly_synced.empty?
-      Redwood.warn_syncback <<EOS
+
+      details =<<EOS
 It appears that the option "sync_back" of the following source(s)
 has been changed from false to true since the last execution of
 sup:
 
-#{newly_synced.join("\n")}
 EOS
+      newly_synced.each do |s|
+        details += "#{s} (usual: #{s.usual})\n"
+      end
+
+      Redwood.warn_syncback details
     end
   end
 
