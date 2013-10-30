@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
+
+$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'rubygems'
 require 'trollop'
@@ -55,7 +58,8 @@ index.load
 $config[:sync_back_to_maildir] = true
 
 begin
-  sync_performed = File.readlines Redwood::SYNC_OK_FN
+  sync_performed = []
+  sync_performed = File.readlines(Redwood::SYNC_OK_FN).collect { |e| e.strip }.find_all { |e| not e.empty? } if File.exists? Redwood::SYNC_OK_FN
   sources = []
 
   ## Try to find out sources given in parameters
