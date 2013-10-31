@@ -132,8 +132,6 @@ module RMail
     # Convert to ASCII before trying to match with regexp
     class Field
 
-      EXTRACT_FIELD_NAME_RE = /\A([^\x00-\x1f\x7f-\xff :]+):\s*/no
-
       class << self
         def parse(field)
           field = field.dup.to_s
