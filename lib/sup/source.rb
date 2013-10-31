@@ -54,7 +54,7 @@ class Source
   ## Examples for you to look at: mbox.rb and maildir.rb.
 
   bool_accessor :usual, :archived
-  attr_reader :uri, :syncable
+  attr_reader :uri, :syncable, :usual
   attr_accessor :id
 
   def initialize uri, usual=true, archived=false, id=nil
