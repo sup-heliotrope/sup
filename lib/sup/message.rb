@@ -572,7 +572,7 @@ private
   def inline_gpg_to_chunks body, encoding_to, encoding_from
     lines = body.split("\n")
 
-    # First case: Message is enclodsed between
+    # First case: Message is enclosed between
     #
     # -----BEGIN PGP SIGNED MESSAGE-----
     # and
