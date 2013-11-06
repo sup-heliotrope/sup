@@ -7,6 +7,8 @@ class SearchManager
 
   class ExpansionError < StandardError; end
 
+  attr_reader :predefined_searches
+
   def initialize fn
     @fn = fn
     @searches = {}
@@ -43,24 +45,40 @@ class SearchManager
 
   def add name, search_string
     return unless valid_name? name
+    if @predefined_searches.has_key? name
+      warn "cannot add search: #{name} is already taken by a predefined search"
+      return
+    end
     @searches[name] = search_string
     @modified = true
   end
 
   def rename old, new
     return unless @searches.has_key? old
+    if [old, new].any? { |x| @predefined_searches.has_key? x }
+      warn "cannot rename search: #{old} or #{new} is already taken by a predefined search"
+      return
+    end
     search_string = @searches[old]
     delete old if add new, search_string
   end
 
   def edit name, search_string
     return unless @searches.has_key? name
+    if @predefined_searches.has_key? name
+      warn "cannot edit predefined search: #{name}."
+      return
+    end
     @searches[name] = search_string
     @modified = true
   end
 
   def delete name
     return unless @searches.has_key? name
+    if @predefined_searches.has_key? name
+      warn "cannot delete predefined search: #{name}."
+      return
+    end
     @searches.delete name
     @modified = true
   end
