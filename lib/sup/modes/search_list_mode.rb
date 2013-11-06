@@ -145,6 +145,12 @@ protected
   def rename_selected_search
     old_name, num_unread = @searches[curpos]
     return unless old_name
+
+    if SearchManager.predefined_searches.has_key? old_name
+      BufferManager.flash "Cannot be edited: predefined search."
+      return
+    end
+
     new_name = BufferManager.ask :save_search, "Rename this saved search: ", old_name
     return unless new_name && new_name !~ /^\s*$/ && new_name != old_name
     new_name.strip!
@@ -163,6 +169,12 @@ protected
   def edit_selected_search
     name, num_unread = @searches[curpos]
     return unless name
+
+    if SearchManager.predefined_searches.has_key? name
+      BufferManager.flash "Cannot be edited: predefined search."
+      return
+    end
+
     old_search_string = SearchManager.search_string_for name
     new_search_string = BufferManager.ask :search, "Edit this saved search: ", (old_search_string + " ")
     return unless new_search_string && new_search_string !~ /^\s*$/ && new_search_string != old_search_string
