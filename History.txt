@@ -1,9 +1,9 @@
-== 0.14.2 /
+== 0.15.0 / 2013-11-07
 
 * Maildir Syncback has now been merged into main sup! This is a
   long-time waiting feature initially developed by Damien Leone,
   then picked up by Edward Z. Yang who continued development. Additionally
-  others have been contributing.
+  several others have been contributing.
 
   Eventually, recently, Eric Weikl has picked up this branch, modernized
   it to current sup, maintained it and gotten it ready for release.
