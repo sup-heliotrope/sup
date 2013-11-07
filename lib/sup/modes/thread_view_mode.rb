@@ -1,3 +1,5 @@
+require 'shellwords'
+
 module Redwood
 
 class ThreadViewMode < LineCursorMode
@@ -246,6 +248,8 @@ EOS
           sm.puts m.raw_message
         end
         raise SendmailCommandFailed, "Couldn't execute #{cmd}" unless $? == 0
+        m.add_label :forwarded
+        Index.save_message m
       rescue SystemCallError, SendmailCommandFailed => e
         warn "problem sending mail: #{e.message}"
         BufferManager.flash "Problem sending mail: #{e.message}"
@@ -359,8 +363,14 @@ EOS
     when Chunk::Attachment
       default_dir = $config[:default_attachment_save_dir]
       default_dir = ENV["HOME"] if default_dir.nil? || default_dir.empty?
-      default_fn = File.expand_path File.join(default_dir, chunk.filename)
-      fn = BufferManager.ask_for_filename :filename, "Save attachment to file: ", default_fn
+      default_fn = File.expand_path File.join(default_dir, Shellwords.escape(chunk.filename))
+      fn = BufferManager.ask_for_filename :filename, "Save attachment to file or directory: ", default_fn, true
+
+      # if user selects directory use file name from message
+      if fn and File.directory? fn
+        fn = File.join(fn, Shellwords.escape(chunk.filename))
+      end
+
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn
     else
       m = @message_lines[curpos]
@@ -382,7 +392,7 @@ EOS
     num_errors = 0
     m.chunks.each do |chunk|
       next unless chunk.is_a?(Chunk::Attachment)
-      fn = File.join(folder, chunk.filename)
+      fn = File.join(folder, Shellwords.escape(chunk.filename))
       num_errors += 1 unless save_to_file(fn, false) { |f| f.print chunk.raw_content }
       num += 1
     end
@@ -780,13 +790,13 @@ private
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
         [color,
-            "#{m.from ? m.from.mediumname : '?'} to #{m.recipients.map { |l| l.shortname }.join(', ')} #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})"]]]
+            "#{m.from ? m.from.mediumname.fix_encoding! : '?'} to #{m.recipients.map { |l| l.shortname.fix_encoding! }.join(', ')} #{m.date.to_nice_s.fix_encoding!} (#{m.date.to_nice_distance_s.fix_encoding!})"]]]
 
     when :closed
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
         [color,
-        "#{m.from ? m.from.mediumname : '?'}, #{m.date.to_nice_s} (#{m.date.to_nice_distance_s})  #{m.snippet}"]]]
+        "#{m.from ? m.from.mediumname.fix_encoding! : '?'}, #{m.date.to_nice_s.fix_encoding!} (#{m.date.to_nice_distance_s.fix_encoding!})  #{m.snippet ? m.snippet.fix_encoding! : ''}"]]]
 
     when :detailed
       @person_lines[start] = m.from

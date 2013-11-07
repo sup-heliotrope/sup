@@ -5,8 +5,8 @@ require 'sup/version'
 
 # Files
 SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump
-  sup-recover-sources sup-sync sup-sync-back sup-tweak-labels
-  sup-psych-ify-config-files)
+  sup-recover-sources sup-sync sup-sync-back-maildir sup-sync-back-mbox
+  sup-tweak-labels sup-psych-ify-config-files)
 SUP_EXTRA_FILES = %w(CONTRIBUTORS README.md LICENSE History.txt ReleaseNotes)
 SUP_FILES =
   SUP_EXTRA_FILES +
@@ -37,7 +37,7 @@ DESC
     # TODO: might want to add index migrating script here, too
     s.post_install_message = <<-EOF
 SUP: If you are upgrading Sup from before version 0.14.0: Please
-     run `sup-psych-ify-config-files` to migrate from 0.13 to 0.14.
+     run `sup-psych-ify-config-files` to migrate from 0.13.
 
      Check https://github.com/sup-heliotrope/sup/wiki/Migration-0.13-to-0.14
      for more detailed and up-to-date instructions.
@@ -49,7 +49,7 @@ SUP: If you are upgrading Sup from before version 0.14.0: Please
 
     s.add_runtime_dependency "xapian-ruby", "~> 1.2.15"
     s.add_runtime_dependency "ncursesw-sup", "~> 1.3.1"
-    s.add_runtime_dependency "rmail", ">= 0.17"
+    s.add_runtime_dependency "rmail-sup", "~> 1.0.1"
     s.add_runtime_dependency "highline"
     s.add_runtime_dependency "trollop", ">= 1.12"
     s.add_runtime_dependency "lockfile"

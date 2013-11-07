@@ -387,6 +387,12 @@ class ThreadSet
     m.refs.any? { |ref_id| @messages.member? ref_id }
   end
 
+  def delete_message message
+    el = @messages[message.id]
+    return unless el.message
+    el.message = nil
+  end
+
   ## the heart of the threading code
   def add_message message
     el = @messages[message.id]

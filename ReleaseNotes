@@ -1,3 +1,11 @@
+Release 0.15.0:
+
+Maildir Syncback has been included. Refer to the wiki for more information on
+how to set it up.
+
+sup-sync-back has been moved to sup-sync-back-mbox, please make sure
+you make any needed changes.
+
 Release 0.14.1.1:
 
 See 0.13.2.1.
