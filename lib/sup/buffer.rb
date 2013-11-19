@@ -84,10 +84,27 @@ module Ncurses
   end
 
   ## pretends ctrl-c's are ctrl-g's
-  def safe_nonblocking_getch
-    nonblocking_getch
-  rescue Interrupt
-    KEY_CANCEL
+  def safe_nonblocking_getch handle_interrupt=true
+    begin
+      c = CharCode.new nonblocking_getch
+      return nil if c.nil?
+      return c if c < 191 || c > 244
+      # Collect codes for a multibyte character and create
+      # CharCode object containing its code and a multibyte flag
+      # if UTF-8 was detected. Flagging in this phase is important
+      # since Ncurses keycodes may overlap with some UTF-8 character
+      # codes represented as decimal numbers.
+      wc = [ c.code ]
+      case c.code
+      when 194...223  then 1
+      when 224...239  then 2
+      when 240...244  then 3
+      end.times { wc << Ncurses.getch }
+      c.set_from_mb wc
+    rescue Interrupt => e
+      raise e unless handle_interrupt
+      CharCode.new KEY_CANCEL
+    end
   end
 
   module_function :rows, :cols, :curx, :nonblocking_getch, :safe_nonblocking_getch, :mutex, :sync
@@ -303,7 +320,7 @@ EOS
 
   def handle_input c
     if @focus_buf
-      if @focus_buf.mode.in_search? && c != CONTINUE_IN_BUFFER_SEARCH_KEY.ord
+      if @focus_buf.mode.in_search? && !c.is_keycode?(CONTINUE_IN_BUFFER_SEARCH_KEY.ord)
         @focus_buf.mode.cancel_search!
         @focus_buf.mark_dirty
       end
@@ -437,7 +454,7 @@ EOS
     until mode.done?
       c = Ncurses.safe_nonblocking_getch
       next unless c # getch timeout
-      break if c == Ncurses::KEY_CANCEL
+      break if c.is_keycode?(Ncurses::KEY_CANCEL)
       begin
         mode.handle_input c
       rescue InputSequenceAborted # do nothing
@@ -681,9 +698,9 @@ EOS
     done = false
     until done
       key = Ncurses.safe_nonblocking_getch or next
-      if key == Ncurses::KEY_CANCEL
+      if key.is_keycode?(Ncurses::KEY_CANCEL)
         done = true
-      elsif accept.nil? || accept.empty? || accept.member?(key)
+      elsif accept.nil? || accept.empty? || accept.member?(key.code)
         ret = key
         done = true
       end
