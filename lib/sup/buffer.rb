@@ -7,6 +7,43 @@ require 'ncursesw'
 
 if defined? Ncurses
 module Ncurses
+
+  # Helper class for storing keycodes
+  # and multibyte characters.
+  class CharCode
+    include Comparable
+    attr_reader :code
+    def initialize(code = nil, multibyte = false)
+      set(code, multibyte)
+    end
+    def set(code, multibyte = false)
+      @code = code
+      @multibyte = !!multibyte
+      self
+    end
+    # Reinitializes object with multibyte
+    # given as array of single keycodes (not codepoints!)
+    def set_from_mb(c)
+      @code = nil
+      if c
+        multibyte!
+        @code = c.pack('C*').force_encoding('utf-8').ord
+      end
+      self
+    end
+    def is_keycode?(c); !@multibyte && @code == c end   # Tests if keycode matches
+    def singlebyte    ; @multibyte ? nil : @code  end   # Returns code if not multibyte, nil otherwise
+    def multibyte     ; @multibyte ? @code : nil  end   # Returns code if multibyte, nil otherwise
+    def keycode       ; singlebyte                end   # Alias for singlebyte
+    def multibyte?    ; @multibyte                end   # Returns true if multibyte
+    def multibyte!    ; @multibyte = true         end   # Sets multibyte flag
+    def nil?          ; @code.nil?                end   # Proxy method
+    def ==(c)         ; @code == c                end   # Proxy method
+    def eql?(c)       ; @code.eql?(c)             end   # Proxy method
+    def <=>(c)        ; @code <=> c               end   # Proxy method
+    def coerce(c)     ; @code.coerce(c)           end   # Proxy method
+  end
+
   def rows
     lame, lamer = [], []
     stdscr.getmaxyx lame, lamer
