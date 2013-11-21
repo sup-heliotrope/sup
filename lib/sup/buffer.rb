@@ -27,8 +27,14 @@ module Ncurses
     ## pretends ctrl-c's are ctrl-g's
     def self.get handle_interrupt=true
       begin
-        status_code = nonblocking_getwch
-        new status_code.shift, status_code.pack("U")
+        status, code = nonblocking_getwch
+        begin
+          character = code.chr($encoding)
+        rescue RangeError, ArgumentError
+          character = [code].pack('U')
+          character.fix_encoding!
+        end
+        new status, character
       rescue Interrupt => e
         raise e unless handle_interrupt
         keycode Ncurses::KEY_CANCEL
