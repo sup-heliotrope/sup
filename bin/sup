@@ -236,14 +236,14 @@ begin
 
   until Redwood::exceptions.nonempty? || $die
     c = begin
-      Ncurses.nonblocking_getch
+      Ncurses::CharCode.get false
     rescue Interrupt
       raise if BufferManager.ask_yes_or_no "Die ungracefully now?"
       BufferManager.draw_screen
-      nil
+      CharCode.new
     end
 
-    if c.nil?
+    if c.empty?
       if BufferManager.sigwinch_happened?
         debug "redrawing screen on sigwinch"
         BufferManager.completely_redraw_screen
@@ -253,7 +253,7 @@ begin
 
     IdleManager.ping
 
-    if c == 410
+    if c.is_keycode? 410
       ## this is ncurses's way of telling us it's detected a refresh.
       ## since we have our own sigwinch handler, we don't do anything.
       next

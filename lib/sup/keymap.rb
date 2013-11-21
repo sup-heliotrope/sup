@@ -96,11 +96,11 @@ EOS
   end
 
   def action_for kc
-    action, help, keys = @map[kc.singlebyte]
+    action, help, keys = @map[kc.code]
     [action, help]
   end
 
-  def has_key? k; @map[k] end
+  def has_key? k; @map[k.code] end
 
   def keysyms; @map.values.map { |action, help, keys| keys }.flatten; end
 

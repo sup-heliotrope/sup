@@ -27,7 +27,7 @@ class Tagger
 
     unless action
       c = BufferManager.ask_getch "apply to #{num_tagged} tagged #{noun}:"
-      return if c.nil? # user cancelled
+      return if c.empty? # user cancelled
       action = @mode.resolve_input c
     end
 

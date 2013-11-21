@@ -63,7 +63,7 @@ class TextField
 
   def handle_input c
     ## short-circuit exit paths
-    case c.keycode
+    case c.code
     when Ncurses::KEY_ENTER # submit!
       @value = get_cursed_value
       @history.push @value unless @value =~ /^\s*$/
@@ -98,7 +98,7 @@ class TextField
     @value = nil
 
     d =
-      case c.keycode
+      case c.code
       when Ncurses::KEY_LEFT
         Ncurses::Form::REQ_PREV_CHAR
       when Ncurses::KEY_RIGHT

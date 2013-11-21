@@ -2,7 +2,6 @@
 
 require 'etc'
 require 'thread'
-
 require 'ncursesw'
 
 if defined? Ncurses
@@ -10,38 +9,65 @@ module Ncurses
 
   # Helper class for storing keycodes
   # and multibyte characters.
-  class CharCode
-    include Comparable
-    attr_reader :code
-    def initialize(code = nil, multibyte = false)
-      set(code, multibyte)
+  class CharCode < String
+    attr_reader :status
+
+    ## magically, this stuff seems to work now. i could swear it didn't
+    ## before. hm.
+    def self.nonblocking_getwch
+      # If we get input while we're shelled, we'll ignore it for the
+      # moment and use Ncurses.sync to wait until the shell_out is done.
+      Redwood::BufferManager.shelled? ? Ncurses.sync { nil } : Ncurses.get_wch
     end
-    def set(code, multibyte = false)
-      @code = code
-      @multibyte = !!multibyte
-      self
+
+    def self.keycode(c)
+      new Ncurses::KEY_CODE_YES, c
     end
-    # Reinitializes object with multibyte
-    # given as array of single keycodes (not codepoints!)
-    def set_from_mb(c)
-      @code = nil
-      if c
-        multibyte!
-        @code = c.pack('C*').force_encoding('utf-8').ord
+
+    ## pretends ctrl-c's are ctrl-g's
+    def self.get handle_interrupt=true
+      begin
+        status_code = nonblocking_getwch
+        new status_code.shift, status_code.pack("U")
+      rescue Interrupt => e
+        raise e unless handle_interrupt
+        keycode Ncurses::KEY_CANCEL
       end
-      self
     end
-    def is_keycode?(c); !@multibyte && @code == c end   # Tests if keycode matches
-    def singlebyte    ; @multibyte ? nil : @code  end   # Returns code if not multibyte, nil otherwise
-    def multibyte     ; @multibyte ? @code : nil  end   # Returns code if multibyte, nil otherwise
-    def keycode       ; singlebyte                end   # Alias for singlebyte
-    def multibyte?    ; @multibyte                end   # Returns true if multibyte
-    def multibyte!    ; @multibyte = true         end   # Sets multibyte flag
-    def nil?          ; @code.nil?                end   # Proxy method
-    def ==(c)         ; @code == c                end   # Proxy method
-    def eql?(c)       ; @code.eql?(c)             end   # Proxy method
-    def <=>(c)        ; @code <=> c               end   # Proxy method
-    def coerce(c)     ; @code.coerce(c)           end   # Proxy method
+
+    def initialize(status = nil, c = "")
+      @status = status.nil? ? Ncurses::OK : status
+      c = "" if c.nil?
+      return super("") if status == Ncurses::ERR
+      c = ( c.chr rescue c.chr('UTF-8') ) if c.is_a?(Fixnum)
+      super c[0,1]
+    end
+
+    def replace(c)
+      if c.is_a?(self.class)
+        @status =  c.status
+        super(c)
+      else
+        @status = Ncurses::OK
+        super(c.to_s[0,1])
+      end
+    end
+
+    def to_character    ; character? ? self : "<#{code}>"         end   # Returns character or code as a string
+    def to_keycode      ; keycode?   ? code : 0                   end   # Returns keycode or 0 if it's not a keycode
+    def code            ; ord                                     end   # Returns decimal representation of a character
+    def is_keycode?(c)  ; keycode?   &&  code == c                end   # Tests if keycode matches
+    def is_character?(c); character? &&  self == c                end   # Tests if character matches
+    def try_keycode     ; keycode?   ? code : nil                 end   # Returns dec. code if keycode, nil otherwise
+    def try_character   ; character? ? self : nil                 end   # Returns character if character, nil otherwise
+    def keycode         ; try_keycode                             end   # Alias for try_keycode
+    def character       ; try_character                           end   # Alias for try_character
+    def character?      ; @status == Ncurses::OK                  end   # Returns true if character
+    def character!      ; @status  = Ncurses::OK ; self           end   # Sets character flag
+    def keycode?        ; @status == Ncurses::KEY_CODE_YES        end   # Returns true if keycode
+    def keycode!        ; @status  = Ncurses::KEY_CODE_YES ; self end   # Sets keycode flag
+    def keycode=(c)     ; replace(c); keycode! ; self             end   # Sets keycode    
+    def present?        ; not empty?                              end   # Proxy method
   end
 
   def rows
@@ -65,49 +91,7 @@ module Ncurses
   def mutex; @mutex ||= Mutex.new; end
   def sync &b; mutex.synchronize(&b); end
 
-  ## magically, this stuff seems to work now. i could swear it didn't
-  ## before. hm.
-  def nonblocking_getch
-    ## INSANTIY
-    ## it is NECESSARY to wrap Ncurses.getch in a select() otherwise all
-    ## background threads will be BLOCKED. (except in very modern versions
-    ## of libncurses-ruby. the current one on ubuntu seems to work well.)
-    if IO.select([$stdin], nil, nil, 0.5)
-      if Redwood::BufferManager.shelled?
-        # If we get input while we're shelled, we'll ignore it for the
-        # moment and use Ncurses.sync to wait until the shell_out is done.
-        Ncurses.sync { nil }
-      else
-        Ncurses.getch
-      end
-    end
-  end
-
-  ## pretends ctrl-c's are ctrl-g's
-  def safe_nonblocking_getch handle_interrupt=true
-    begin
-      c = CharCode.new nonblocking_getch
-      return nil if c.nil?
-      return c if c < 191 || c > 244
-      # Collect codes for a multibyte character and create
-      # CharCode object containing its code and a multibyte flag
-      # if UTF-8 was detected. Flagging in this phase is important
-      # since Ncurses keycodes may overlap with some UTF-8 character
-      # codes represented as decimal numbers.
-      wc = [ c.code ]
-      case c.code
-      when 194...223  then 1
-      when 224...239  then 2
-      when 240...244  then 3
-      end.times { wc << Ncurses.getch }
-      c.set_from_mb wc
-    rescue Interrupt => e
-      raise e unless handle_interrupt
-      CharCode.new KEY_CANCEL
-    end
-  end
-
-  module_function :rows, :cols, :curx, :nonblocking_getch, :safe_nonblocking_getch, :mutex, :sync
+  module_function :rows, :cols, :curx, :mutex, :sync
 
   remove_const :KEY_ENTER
   remove_const :KEY_CANCEL
@@ -320,7 +304,7 @@ EOS
 
   def handle_input c
     if @focus_buf
-      if @focus_buf.mode.in_search? && !c.is_keycode?(CONTINUE_IN_BUFFER_SEARCH_KEY.ord)
+      if @focus_buf.mode.in_search? && c.code != CONTINUE_IN_BUFFER_SEARCH_KEY.ord
         @focus_buf.mode.cancel_search!
         @focus_buf.mark_dirty
       end
@@ -452,9 +436,9 @@ EOS
     draw_screen
 
     until mode.done?
-      c = Ncurses.safe_nonblocking_getch
-      next unless c # getch timeout
-      break if c.is_keycode?(Ncurses::KEY_CANCEL)
+      c = Ncurses::CharCode.get
+      next unless c.present? # getch timeout
+      break if c.is_keycode? Ncurses::KEY_CANCEL
       begin
         mode.handle_input c
       rescue InputSequenceAborted # do nothing
@@ -644,8 +628,8 @@ EOS
     end
 
     while true
-      c = Ncurses.safe_nonblocking_getch
-      next unless c # getch timeout
+      c = Ncurses::CharCode.get
+      next unless c.present? # getch timeout
       break unless tf.handle_input c # process keystroke
 
       if tf.new_completions?
@@ -697,8 +681,9 @@ EOS
     ret = nil
     done = false
     until done
-      key = Ncurses.safe_nonblocking_getch or next
-      if key.is_keycode?(Ncurses::KEY_CANCEL)
+      key = Ncurses::CharCode.get
+      next if key.empty?
+      if key.is_keycode? Ncurses::KEY_CANCEL
         done = true
       elsif accept.nil? || accept.empty? || accept.member?(key.code)
         ret = key
@@ -718,7 +703,7 @@ EOS
   ## returns true (y), false (n), or nil (ctrl-g / cancel)
   def ask_yes_or_no question
     case(r = ask_getch question, "ynYN")
-    when ?y.ord, ?Y.ord
+    when ?y, ?Y
       true
     when nil
       nil
@@ -737,7 +722,7 @@ EOS
     action, text = keymap.action_for c
     while action.is_a? Keymap # multi-key commands, prompt
       key = BufferManager.ask_getch text
-      unless key # user canceled, abort
+      unless key.empty? # user canceled, abort
         erase_flash
         raise InputSequenceAborted
       end
