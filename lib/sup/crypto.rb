@@ -261,7 +261,11 @@ EOS
       plain_data = nil
     else
       signed_text_data = nil
-      plain_data = GPGME::Data.empty
+      if GPGME::Data.respond_to?('empty')
+        plain_data = GPGME::Data.empty
+      else
+        plain_data = GPGME::Data.empty!
+      end
     end
     begin
       ctx.verify(sig_data, signed_text_data, plain_data)

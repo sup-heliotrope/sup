@@ -6,7 +6,10 @@ class Person
   def initialize name, email
     raise ArgumentError, "email can't be nil" unless email
 
+    email.fix_encoding!
+
     @name = if name
+      name.fix_encoding!
       name = name.strip.gsub(/\s+/, " ")
       name =~ /^(['"]\s*)(.*?)(\s*["'])$/ ? $2 : name
       name.gsub('\\\\', '\\')
