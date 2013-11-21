@@ -240,7 +240,7 @@ begin
     rescue Interrupt
       raise if BufferManager.ask_yes_or_no "Die ungracefully now?"
       BufferManager.draw_screen
-      CharCode.new
+      Ncurses::CharCode.new
     end
 
     if c.empty?
