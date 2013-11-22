@@ -97,20 +97,46 @@ class TextField
     reset_completion_state
     @value = nil
 
-    d =
-      case c.code
+    ctrl_c =
+      case c.keycode # only test for keycodes
       when Ncurses::KEY_LEFT
         Ncurses::Form::REQ_PREV_CHAR
       when Ncurses::KEY_RIGHT
         Ncurses::Form::REQ_NEXT_CHAR
       when Ncurses::KEY_DC
         Ncurses::Form::REQ_DEL_CHAR
-      when Ncurses::KEY_BACKSPACE, 127 # 127 is also a backspace keysym
+      when Ncurses::KEY_BACKSPACE
         Ncurses::Form::REQ_DEL_PREV
-      when ?\C-a.ord, Ncurses::KEY_HOME
+      when Ncurses::KEY_HOME
         nop
         Ncurses::Form::REQ_BEG_FIELD
-      when ?\C-e.ord, Ncurses::KEY_END
+      when Ncurses::KEY_END
+        Ncurses::Form::REQ_END_FIELD
+      when Ncurses::KEY_UP, Ncurses::KEY_DOWN
+        unless !@i || @history.empty?
+          value = get_cursed_value
+          #debug "history before #{@history.inspect}"
+          @i = @i + (c.is_keycode?(Ncurses::KEY_UP) ? -1 : 1)
+          @i = 0 if @i < 0
+          @i = @history.size if @i > @history.size
+          @value = @history[@i] || ''
+          #debug "history after #{@history.inspect}"
+          set_cursed_value @value
+          Ncurses::Form::REQ_END_FIELD
+        end
+      else
+        # return other keycode or nil if not a keycode
+        c.keycode
+      end
+
+    # handle keysyms
+    ctrl_c = case c
+      when ?\177                          # backspace (octal)
+        Ncurses::Form::REQ_DEL_PREV
+      when ?\C-a                          # home
+        nop
+        Ncurses::Form::REQ_BEG_FIELD
+      when ?\C-e.ord                      # end keysym
         Ncurses::Form::REQ_END_FIELD
       when ?\C-k.ord
         Ncurses::Form::REQ_CLR_EOF
@@ -125,23 +151,18 @@ class TextField
         end
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_PREV_CHAR
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_WORD
-      when Ncurses::KEY_UP, Ncurses::KEY_DOWN
-        unless !@i || @history.empty?
-          value = get_cursed_value
-          #debug "history before #{@history.inspect}"
-          @i = @i + (c.is_keycode?(Ncurses::KEY_UP) ? -1 : 1)
-          @i = 0 if @i < 0
-          @i = @history.size if @i > @history.size
-          @value = @history[@i] || ''
-          #debug "history after #{@history.inspect}"
-          set_cursed_value @value
-          Ncurses::Form::REQ_END_FIELD
-        end
-      else
-        c.code
-      end
+      end if ctrl_c.nil?
 
-    Ncurses::Form.form_driver @form, d if d
+    if ctrl_c
+      # it's a keycode or a keysym
+      Ncurses::Form.form_driver @form, ctrl_c
+    elsif c.present?
+      # it's a character to display
+      Ncurses::Form.form_driver @form, c.code
+      # TODO: handle displaying in a different way
+      #       since form_driver is broken
+      #       when it comes to multibyte
+    end
     true
   end
 
