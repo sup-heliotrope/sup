@@ -7,6 +7,8 @@ require 'rubygems'
 
 require 'ncursesw'
 
+require 'sup/util/ncurses'
+
 no_gpgme = false
 begin
   require 'gpgme'
@@ -240,7 +242,7 @@ begin
     rescue Interrupt
       raise if BufferManager.ask_yes_or_no "Die ungracefully now?"
       BufferManager.draw_screen
-      Ncurses::CharCode.new
+      Ncurses::CharCode.empty
     end
 
     if c.empty?

@@ -1,3 +1,5 @@
+require 'sup/util/ncurses'
+
 module Redwood
 
 class Tagger
