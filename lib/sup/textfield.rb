@@ -158,10 +158,7 @@ class TextField
       Ncurses::Form.form_driver @form, ctrl_c
     elsif c.present?
       # it's a character to display
-      Ncurses::Form.form_driver @form, c.code
-      # TODO: handle displaying in a different way
-      #       since form_driver is broken
-      #       when it comes to multibyte
+      Ncurses::Form.form_driver_w @form, c.status, c.code
     end
     true
   end
