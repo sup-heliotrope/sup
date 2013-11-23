@@ -7,6 +7,17 @@ require 'ncursesw'
 if defined? Ncurses
 module Ncurses
 
+  module Form
+    # Create replacement of form_driver_w()
+    # unless current version of ncurses defines it.
+    if not defined? form_driver_w
+      def form_driver_w form, status, c
+        form_driver form, c
+      end
+      module_function :form_driver_w
+    end
+  end
+
   # Helper class for storing keycodes
   # and multibyte characters.
   class CharCode < String
