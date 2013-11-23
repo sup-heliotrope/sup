@@ -60,6 +60,7 @@ module Ncurses
       super c[0,1]
     end
 
+    # Proxy method for String's replace
     def replace(c)
       if c.is_a?(self.class)
         @status =  c.status
@@ -105,16 +106,10 @@ module Ncurses
     lamer.first
   end
 
-  def curyx
-    lame, lamer = [], []
-    stdscr.getyx lame, lamer
-    [lame.first, lamer.first]
-  end
-
   def mutex; @mutex ||= Mutex.new; end
   def sync &b; mutex.synchronize(&b); end
 
-  module_function :rows, :cols, :curx, :curyx, :mutex, :sync
+  module_function :rows, :cols, :curx, :mutex, :sync
 
   remove_const :KEY_ENTER
   remove_const :KEY_CANCEL
