@@ -155,7 +155,19 @@ module Ncurses
       begin
         character = c.chr($encoding)
       rescue RangeError, ArgumentError
-        character = [c].pack('U')
+        begin
+          character = [c].pack('U')
+        rescue RangeError
+          begin
+            character = c.chr
+          rescue
+            begin
+              character = [c].pack('C')
+            rescue
+              character = " "
+            end
+          end
+        end
         character.fix_encoding!
       end
     end
