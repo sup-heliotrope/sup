@@ -130,7 +130,6 @@ class TextField
         end
       else
         # return other keycode or nil if it's not a keycode
-        c.keycode
         c.dumb? ? nil : c.keycode
       end
 
@@ -158,7 +157,6 @@ class TextField
         form_driver_key Ncurses::Form::REQ_DEL_WORD
       end if ctrl_c.nil?
 
-    c.replace(ctrl_c).keycode! if ctrl_c
     c.replace(ctrl_c).keycode! if ctrl_c  # no effect for dumb CharCode
     form_driver c if c.present?
     true
