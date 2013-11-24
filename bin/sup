@@ -138,6 +138,7 @@ def start_cursing
   Ncurses.use_default_colors
   Ncurses.curs_set 0
   Ncurses.start_color
+  Ncurses.prepare_form_driver
   $cursing = true
 end
 

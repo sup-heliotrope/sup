@@ -149,10 +149,29 @@ module Ncurses
     lamer.first
   end
 
+  ## Create replacement wrapper for form_driver_w (), which is not (yet) a standard
+  ## function in ncurses. Some systems (Mac OS X) does not have a working
+  ## form_driver that accepts wide chars. We are just falling back to form_driver, expect problems.
+  def prepare_form_driver
+    if not defined? Form.form_driver_w
+      msg = "Your Ncursesw does not have a form_driver_w function (wide char aware), " \
+            "non-ASCII chars may not work on your system."
+      warn  msg
+      print msg
+      sleep 3
+      Form.module_eval <<-FRM_DRV, __FILE__, __LINE__ + 1
+        def form_driver_w form, status, c
+          form_driver form, c
+        end
+        module_function :form_driver_w
+      FRM_DRV
+    end # if not defined? Form.form_driver_w
+  end
+
   def mutex; @mutex ||= Mutex.new; end
   def sync &b; mutex.synchronize(&b); end
 
-  module_function :rows, :cols, :curx, :mutex, :sync
+  module_function :rows, :cols, :curx, :mutex, :sync, :prepare_form_driver
 
   remove_const :KEY_ENTER
   remove_const :KEY_CANCEL
