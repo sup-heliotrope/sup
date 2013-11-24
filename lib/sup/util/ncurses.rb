@@ -24,15 +24,26 @@ module Ncurses
     end
 
     ## Creates new instance of CharCode
-    ## that keeps a given keycode
+    ## that keeps a given keycode.
     def self.keycode(c)
-      new c, Ncurses::KEY_CODE_YES
+      generate c, Ncurses::KEY_CODE_YES
     end
 
     ## Creates new instance of CharCode
-    ## that keeps a printable character
+    ## that keeps a printable character.
     def self.character(c)
-      new c
+      generate c, Ncurses::OK
+    end
+
+    ## Generates new object like new
+    ## but for empty or erroneous objects
+    ## it returns empty singleton.
+    def self.generate(c = "", status = Ncurses::OK)
+      if c.nil? || c === "" || c === Ncurses::ERR || status == Ncurses::ERR
+        empty 
+      else
+        new(c, status)
+      end
     end
 
     ## Gets character from input.
@@ -41,7 +52,7 @@ module Ncurses
       begin
         status, code = nonblocking_getwch
         return empty if status == Ncurses::ERR
-        new code, status
+        generate code, status
       rescue Interrupt => e
         raise e unless handle_interrupt
         keycode Ncurses::KEY_CANCEL
