@@ -168,5 +168,29 @@ module Ncurses
   KEY_ENTER = 10
   KEY_CANCEL = 7 # ctrl-g
   KEY_TAB = 9
-end
+
+  module Form
+    ## This module contains helpers that ease
+    ## using form_driver_ methods when @form is present.
+    module DriverHelpers
+      private
+
+      ## Ncurses::Form.form_driver_w wrapper for keycodes and control characters.
+      def form_driver_key c
+        Ncurses::Form.form_driver_w @form, Ncurses::KEY_CODE_YES, c
+      end
+
+      ## Ncurses::Form.form_driver_w wrapper for printable characters.
+      def form_driver_char c
+        Ncurses::Form.form_driver_w @form, Ncurses::OK, c.is_a?(Fixnum) ? c : c.ord
+      end
+
+      ## Ncurses::Form.form_driver_w wrapper for charcodes.
+      def form_driver c
+        Ncurses::Form.form_driver_w @form, c.status, c.code
+      end
+    end # module DriverHelpers
+  end # module Form
+
+end # module Ncurses
 end # if defined? Ncurses
