@@ -132,6 +132,11 @@ module Ncurses
       def self.dumb?
         superclass.dumb? or !!@dumb
       end
+
+      def self.empty
+        instance
+      end
+
       def initialize
         super("", Ncurses::ERR)
       end
