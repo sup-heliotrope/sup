@@ -4,7 +4,6 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'rubygems'
-
 require 'ncursesw'
 
 require 'sup/util/ncurses'

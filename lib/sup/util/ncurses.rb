@@ -46,8 +46,7 @@ module Ncurses
     ## printable characters and control codes.
     attr_reader :status
 
-    ## Magically, this stuff seems to work now. i could swear it didn't
-    ## before. hm.
+    ## Reads character from user input.
     def self.nonblocking_getwch
       # If we get input while we're shelled, we'll ignore it for the
       # moment and use Ncurses.sync to wait until the shell_out is done.
