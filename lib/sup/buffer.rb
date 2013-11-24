@@ -156,7 +156,7 @@ EOS
     @sigwinch_mutex = Mutex.new
   end
 
-  def sigwinch_happened!; @sigwinch_mutex.synchronize { @sigwinch_happened = true } end
+  def sigwinch_happened!; @sigwinch_mutex.synchronize { @sigwinch_happened = true ; Ncurses.ungetch(?\C-l.ord) } end
   def sigwinch_happened?; @sigwinch_mutex.synchronize { @sigwinch_happened } end
 
   def buffers; @name_map.to_a; end
