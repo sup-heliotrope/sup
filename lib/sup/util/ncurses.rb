@@ -203,8 +203,31 @@ module Ncurses
           form_driver form, c
         end
         module_function :form_driver_w
+        module DriverHelpers
+          def form_driver c
+            if !c.dumb? && c.printable?
+              c.each_byte do |code|
+                Ncurses::Form.form_driver @form, code
+              end
+            else
+              Ncurses::Form.form_driver @form, c.code
+            end
+          end
+        end
       FRM_DRV
     end # if not defined? Form.form_driver_w
+    if not defined? Ncurses.get_wch
+      warn "Your Ncursesw does not have a get_wch function (wide char aware), " \
+           "non-ASCII chars may not work on your system."
+      Ncurses.module_eval <<-GET_WCH, __FILE__, __LINE__ + 1
+        def get_wch
+          c = getch
+          c == Ncurses::ERR ? [c, ""] : [Ncurses::OK, c]
+        end
+        module_function :get_wch
+      GET_WCH
+      CharCode.dumb!
+    end # if not defined? Ncurses.get_wch
   end
 
   def mutex; @mutex ||= Mutex.new; end
