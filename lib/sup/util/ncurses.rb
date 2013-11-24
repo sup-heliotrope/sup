@@ -7,30 +7,6 @@ module Ncurses
   ## Helper class for storing keycodes
   ## and multibyte characters.
   class CharCode < String
-
-    # Empty singleton that
-    # keeps GC from going crazy.
-    class Empty < CharCode
-      include Singleton
-
-      ## Wrap methods that may change us
-      ## and generate new object instead.
-      [ :"[]=", :"<<", :replace, :insert, :prepend, :append, :concat, :force_encoding, :setbyte ].
-      select{ |m| public_method_defined?(m) }.
-      concat(public_instance_methods.grep(/!\z/)).
-      each do |m|
-        class_eval <<-EVAL
-          def #{m}(*args)
-            CharCode.new.#{m}(*args)
-          end
-        EVAL
-      end
-
-      def empty?    ; true  end   ## always true
-      def present?  ; false end   ## always false
-      def clear     ; self  end   ## always self
-    end # CharCode::Empty
-
     ## Status code allows us to detect
     ## printable characters and control codes.
     attr_reader :status
@@ -59,22 +35,13 @@ module Ncurses
       new c
     end
 
-    ## Tries to make external character right.
-    def self.enc_char(c)
-      begin
-        character = c.chr($encoding)
-      rescue RangeError, ArgumentError
-        character = [c].pack('U')
-        character.fix_encoding!
-      end
-    end
-
     ## Gets character from input.
     ## Pretends ctrl-c's are ctrl-g's.
     def self.get handle_interrupt=true
       begin
         status, code = nonblocking_getwch
-        new enc_char(code), status
+        return empty if status == Ncurses::ERR
+        new code, status
       rescue Interrupt => e
         raise e unless handle_interrupt
         keycode Ncurses::KEY_CANCEL
@@ -85,8 +52,8 @@ module Ncurses
       @status = status
       c = "" if c.nil?
       return super("") if status == Ncurses::ERR
-      c = self.class.enc_char(c) if c.is_a?(Fixnum)
-      super c[0,1]
+      c = enc_char(c) if c.is_a?(Fixnum)
+      super c.length > 1 ? c[0,1] : c
     end
 
     ## Proxy method for String's replace
@@ -97,8 +64,9 @@ module Ncurses
         super(c)
       else
         @status = Ncurses::OK
-        c = self.class.enc_char(c) if c.is_a?(Fixnum)
-        super(c.to_s[0,1])
+        c = "" if c.nil?
+        c = enc_char(c) if c.is_a?(Fixnum)
+        super c.length > 1 ? c[0,1] : c
       end
     end
 
@@ -118,6 +86,47 @@ module Ncurses
     def keycode=(c)     ; replace(c); keycode! ; self             end   ## Sets keycode    
     def present?        ; not empty?                              end   ## Proxy method
     def printable?      ; character?                              end   ## Alias for character?
+
+    # Empty singleton that
+    # keeps GC from going crazy.
+    class Empty < CharCode
+      include Singleton
+
+      ## Wrap methods that may change us
+      ## and generate new object instead.
+      [ :"[]=", :"<<", :replace, :insert, :prepend, :append, :concat, :force_encoding, :setbyte ].
+      select{ |m| public_method_defined?(m) }.
+      concat(public_instance_methods.grep(/!\z/)).
+      each do |m|
+        class_eval <<-EVAL
+          def #{m}(*args)
+            CharCode.new.#{m}(*args)
+          end
+        EVAL
+      end
+
+      def initialize
+        super("", Ncurses::ERR)
+      end
+
+      def empty?    ; true  end   ## always true
+      def present?  ; false end   ## always false
+      def clear     ; self  end   ## always self
+
+      self
+    end.init # CharCode::Empty
+
+    private
+
+    ## Tries to make external character right.
+    def enc_char(c)
+      begin
+        character = c.chr($encoding)
+      rescue RangeError, ArgumentError
+        character = [c].pack('U')
+        character.fix_encoding!
+      end
+    end
   end # class CharCode
 
   def rows
