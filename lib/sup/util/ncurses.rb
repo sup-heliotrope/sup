@@ -97,6 +97,7 @@ module Ncurses
         super(c)
       else
         @status = Ncurses::OK
+        c = self.class.enc_char(c) if c.is_a?(Fixnum)
         super(c.to_s[0,1])
       end
     end
