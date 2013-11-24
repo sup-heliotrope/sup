@@ -59,6 +59,16 @@ module Ncurses
       end
     end
 
+    ## Enables dumb mode for any new instance.
+    def self.dumb!
+      @dumb = true
+    end
+
+    ## Asks if dumb mode was set
+    def self.dumb?
+      !!@dumb
+    end
+
     def initialize(c = "", status = Ncurses::OK)
       @status = status
       c = "" if c.nil?
@@ -90,13 +100,14 @@ module Ncurses
     def try_character   ; character? ? self : nil                 end   ## Returns character if character, nil otherwise
     def keycode         ; try_keycode                             end   ## Alias for try_keycode
     def character       ; try_character                           end   ## Alias for try_character
-    def character?      ; @status == Ncurses::OK                  end   ## Returns true if character
     def character!      ; @status  = Ncurses::OK ; self           end   ## Sets character flag
-    def keycode?        ; @status == Ncurses::KEY_CODE_YES        end   ## Returns true if keycode
     def keycode!        ; @status  = Ncurses::KEY_CODE_YES ; self end   ## Sets keycode flag
     def keycode=(c)     ; replace(c); keycode! ; self             end   ## Sets keycode    
     def present?        ; not empty?                              end   ## Proxy method
     def printable?      ; character?                              end   ## Alias for character?
+    def character?      ; dumb? || @status == Ncurses::OK           end  ## Returns true if character
+    def keycode?        ; dumb? || @status == Ncurses::KEY_CODE_YES end  ## Returns true if keycode
+    def dumb?           ; self.class.dumb?                          end  ## True if we cannot distinguish keycodes from characters
 
     # Empty singleton that
     # keeps GC from going crazy.
@@ -116,6 +127,10 @@ module Ncurses
         EVAL
       end
 
+      ## proxy with class-level instance variable delegation
+      def self.dumb?
+        superclass.dumb? or !!@dumb
+      end
       def initialize
         super("", Ncurses::ERR)
       end

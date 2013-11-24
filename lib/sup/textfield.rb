@@ -131,6 +131,7 @@ class TextField
       else
         # return other keycode or nil if it's not a keycode
         c.keycode
+        c.dumb? ? nil : c.keycode
       end
 
     # handle keysyms
@@ -158,6 +159,7 @@ class TextField
       end if ctrl_c.nil?
 
     c.replace(ctrl_c).keycode! if ctrl_c
+    c.replace(ctrl_c).keycode! if ctrl_c  # no effect for dumb CharCode
     form_driver c if c.present?
     true
   end
