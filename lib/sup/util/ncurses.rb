@@ -51,7 +51,6 @@ module Ncurses
     def self.get handle_interrupt=true
       begin
         status, code = nonblocking_getwch
-        return empty if status == Ncurses::ERR
         generate code, status
       rescue Interrupt => e
         raise e unless handle_interrupt
@@ -164,7 +163,8 @@ module Ncurses
             begin
               character = [c].pack('C')
             rescue
-              character = " "
+              character = ""
+              @status = Ncurses::ERR
             end
           end
         end
