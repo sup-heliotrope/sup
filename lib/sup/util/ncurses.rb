@@ -66,7 +66,7 @@ module Ncurses
 
     ## Asks if dumb mode was set
     def self.dumb?
-      !!@dumb
+      defined?(@dumb) && @dumb
     end
 
     def initialize(c = "", status = Ncurses::OK)
