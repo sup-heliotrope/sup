@@ -138,16 +138,16 @@ class TextField
       when ?\C-a                          # home
         nop
         Ncurses::Form::REQ_BEG_FIELD
-      when ?\C-e.ord                      # end keysym
+      when ?\C-e                          # end keysym
         Ncurses::Form::REQ_END_FIELD
-      when ?\C-k.ord
+      when ?\C-k
         Ncurses::Form::REQ_CLR_EOF
-      when ?\C-u.ord
+      when ?\C-u
         set_cursed_value cursed_value_after_point
         Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
         nop
         Ncurses::Form::REQ_BEG_FIELD
-      when ?\C-w.ord
+      when ?\C-w
         while action = remove_extra_space
           Ncurses::Form.form_driver @form, action
         end
