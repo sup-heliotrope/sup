@@ -18,6 +18,8 @@ module Redwood
 ## in sup, completion support is implemented through BufferManager#ask
 ## and CompletionMode.
 class TextField
+  include Ncurses::Form::DriverHelpers
+
   def initialize
     @i = nil
     @history = []
@@ -50,8 +52,8 @@ class TextField
     @w.attrset Colormap.color_for(:none)
     @w.mvaddstr @y, 0, @question
     Ncurses.curs_set 1
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_NEXT_CHAR if @value && @value =~ / $/ # fucking RETARDED
+    form_driver_key Ncurses::Form::REQ_END_FIELD
+    form_driver_key Ncurses::Form::REQ_NEXT_CHAR if @value && @value =~ / $/ # fucking RETARDED
   end
 
   def deactivate
@@ -127,7 +129,7 @@ class TextField
           Ncurses::Form::REQ_END_FIELD
         end
       else
-        # return other keycode or nil if not a keycode
+        # return other keycode or nil if it's not a keycode
         c.keycode
       end
 
@@ -144,24 +146,19 @@ class TextField
         Ncurses::Form::REQ_CLR_EOF
       when ?\C-u
         set_cursed_value cursed_value_after_point
-        Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
+        form_driver_key Ncurses::Form::REQ_END_FIELD
         nop
         Ncurses::Form::REQ_BEG_FIELD
       when ?\C-w
         while action = remove_extra_space
-          Ncurses::Form.form_driver @form, action
+          form_driver_key action
         end
-        Ncurses::Form.form_driver @form, Ncurses::Form::REQ_PREV_CHAR
-        Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_WORD
+        form_driver_key Ncurses::Form::REQ_PREV_CHAR
+        form_driver_key Ncurses::Form::REQ_DEL_WORD
       end if ctrl_c.nil?
 
-    if ctrl_c
-      # it's a keycode or a keysym
-      Ncurses::Form.form_driver @form, ctrl_c
-    elsif c.present?
-      # it's a character to display
-      Ncurses::Form.form_driver_w @form, c.status, c.code
-    end
+    c.replace(ctrl_c).keycode! if ctrl_c
+    form_driver c if c.present?
     true
   end
 
@@ -179,7 +176,7 @@ private
     return nil unless @field
 
     x = Ncurses.curx
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_VALIDATION
+    form_driver_key Ncurses::Form::REQ_VALIDATION
     v = @field.field_buffer(0).gsub(/^\s+|\s+$/, "")
 
     ## cursor <= end of text
@@ -203,7 +200,7 @@ private
   def remove_extra_space
     return nil unless @field
 
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_VALIDATION
+    form_driver_key Ncurses::Form::REQ_VALIDATION
     x = Ncurses.curx
     v = @field.field_buffer(0).gsub(/^\s+|\s+$/, "")
     v_index = x - @question.length
@@ -246,8 +243,8 @@ private
   ## this is almost certainly unnecessary, but it's the only way
   ## i could get ncurses to remember my form's value
   def nop
-    Ncurses::Form.form_driver @form, " ".ord
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_PREV
+    form_driver_char " "
+    form_driver_key Ncurses::Form::REQ_DEL_PREV
   end
 end
 end
