@@ -2,6 +2,8 @@
 
 * Use the form_driver_w routine for inputing multibyte chars when
   available.
+* Add hidden_alternates configuration option: hidden aliases for the
+  account.
 
 == 0.15.1 / 2013-12-04
 
