@@ -143,8 +143,18 @@ say "Ok, your from header will look like this:"
 say "  From: #{name} <#{email}>"
 
 say "\nDo you have any alternate email addresses that also receive email?"
-say "If so, enter them now, separated by spaces."
+say "\nThey will be used to match your account and displayed in a top bar "
+say "when composing new messages. If you own addresses that shouldn't "
+say "be listed when composing (e.g. they are rarely used aliases "
+say "or refer to some old accounts) then do NOT enter them now."
+say "\nEnter the addresses separated by spaces or press ENTER."
 alts = axe("Alternate email addresses", account[:alternates].join(" ")).split(/\s+/)
+
+say "\nDo you have any alternate email addresses that should stay hidden?"
+say "\nThey will be used to match your account(s) but aren't displayed "
+say "when composing new messages."
+say "\nEnter the addresses separated by spaces or press ENTER."
+alts = axe("Alternate hidden addresses", account[:hidden_alternates].join(" ")).split(/\s+/)
 
 sigfn = axe "What file contains your signature?", account[:signature]
 editor = axe "What editor would you like to use?", $config[:editor]
