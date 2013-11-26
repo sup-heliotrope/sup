@@ -15,7 +15,11 @@ module Ncurses
     def self.nonblocking_getwch
       # If we get input while we're shelled, we'll ignore it for the
       # moment and use Ncurses.sync to wait until the shell_out is done.
-      Redwood::BufferManager.shelled? ? Ncurses.sync { nil } : Ncurses.get_wch
+      begin
+        s, c = Redwood::BufferManager.shelled? ? Ncurses.sync { nil } : Ncurses.get_wch
+        break if s != Ncurses::ERR
+      end until IO.select([$stdin], nil, nil, 2)
+      [s, c]
     end
 
     ## Returns empty singleton.
@@ -38,9 +42,9 @@ module Ncurses
     ## Generates new object like new
     ## but for empty or erroneous objects
     ## it returns empty singleton.
-    def self.generate(c = "", status = Ncurses::OK)
-      if c.nil? || c === "" || c === Ncurses::ERR || status == Ncurses::ERR
-        empty 
+    def self.generate(c = nil, status = Ncurses::OK)
+      if status == Ncurses::ERR || c.nil? || c === Ncurses::ERR
+        empty
       else
         new(c, status)
       end
@@ -222,7 +226,7 @@ module Ncurses
       Ncurses.module_eval <<-GET_WCH, __FILE__, __LINE__ + 1
         def get_wch
           c = getch
-          c == Ncurses::ERR ? [c, ""] : [Ncurses::OK, c]
+          c == Ncurses::ERR ? [c, 0] : [Ncurses::OK, c]
         end
         module_function :get_wch
       GET_WCH
