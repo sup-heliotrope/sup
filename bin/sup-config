@@ -154,7 +154,7 @@ say "\nDo you have any alternate email addresses that should stay hidden?"
 say "\nThey will be used to match your account(s) but aren't displayed "
 say "when composing new messages."
 say "\nEnter the addresses separated by spaces or press ENTER."
-alts = axe("Alternate hidden addresses", account[:hidden_alternates].join(" ")).split(/\s+/)
+hidden_alts = axe("Alternate hidden addresses", account[:hidden_alternates].join(" ")).split(/\s+/)
 
 sigfn = axe "What file contains your signature?", account[:signature]
 editor = axe "What editor would you like to use?", $config[:editor]
@@ -162,6 +162,7 @@ editor = axe "What editor would you like to use?", $config[:editor]
 $config[:accounts][:default][:name] = name
 $config[:accounts][:default][:email] = email
 $config[:accounts][:default][:alternates] = alts
+$config[:accounts][:default][:hidden_alternates] = hidden_alts
 $config[:accounts][:default][:signature] = sigfn
 $config[:editor] = editor
 
