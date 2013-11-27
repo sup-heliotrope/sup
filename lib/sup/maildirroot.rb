@@ -15,7 +15,8 @@ module Redwood
 # as well. Special sup labels like :attachment are ignored. The maildir files
 # are synced based on the file flag as in the regular maildir-syncback source.
 #
-# Where maildir flags and special folders overlap they are both synced.
+# Where maildir flags and special folders overlap they are both synced. When a
+# message is synced it is always added to archive if it is not already there.
 #
 # Files are copied using File.safe_link which means that they should not take
 # any extra space on disk if your file system and platform supports hard
@@ -533,7 +534,6 @@ class MaildirRoot < Source
 
       dirty = false
 
-      # todo: handle delete msgs
       # remove labels that do not have a corresponding maildir
       l = labels - (supported_labels? - folder_for_labels) - unsupported_labels
 
@@ -600,6 +600,12 @@ class MaildirRoot < Source
       debug "new existing_sources: #{existing_sources.inspect}"
 
       sources_to_add = label_sources - existing_sources
+
+      if not existing_sources.member? @archive
+        debug "message not in archive, adding."
+        sources_to_add.push @archive
+      end
+
       debug "sources to add: #{sources_to_add}"
 
       fail "nil in sources_to_add" if sources_to_add.select { |s| s == nil }.any?
@@ -610,10 +616,12 @@ class MaildirRoot < Source
       debug "sources to del: #{sources_to_del}"
       fail "nil in sources_to_del" if sources_to_del.select { |s| s == nil }.any?
 
-      if (existing_sources - sources_to_del + sources_to_add).empty?
-        warn "message no longer has any source, copying to archive."
-        sources_to_add.push @archive
-      end
+      ## this can no longer happen because @archive is always added to
+      ## sources_to_add
+      #if (existing_sources - sources_to_del + sources_to_add).empty?
+        #warn "message no longer has any source, copying to archive."
+        #sources_to_add.push @archive
+      #end
 
       sources_to_add.each do |s|
         # copy message to maildir
