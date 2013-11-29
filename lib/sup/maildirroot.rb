@@ -529,6 +529,9 @@ class MaildirRoot < Source
       return false
     end
 
+    # ensure message is in @archive maildirsub
+    msg = ensure_in_archive msg
+
     synchronize do
       debug "maildirroot: syncing id: #{id}, labels: #{labels.inspect}"
 
@@ -601,10 +604,10 @@ class MaildirRoot < Source
 
       sources_to_add = label_sources - existing_sources
 
-      if not existing_sources.member? @archive
-        debug "message not in archive, adding."
-        sources_to_add.push @archive
-      end
+      #if not existing_sources.member? @archive
+        #debug "message not in archive, adding."
+        #sources_to_add.push @archive
+      #end
 
       debug "sources to add: #{sources_to_add}"
 
@@ -669,6 +672,51 @@ class MaildirRoot < Source
     end
   end
 
+  # check if message also has a location in the archive (this should
+  # be done automatically by the GMail server). if not, add it and save
+  # it to the archive source.
+  def ensure_in_archive msg
+    check_enable_experimental
+
+    if @sync_back
+      fail "no valid archive maildir!" unless @archive.valid_maildir?
+
+      synchronize do
+        my_locations = msg.locations.select { |l| l.source.id == @id }
+        existing_sources = my_locations.map { |l| maildirsub_from_info l.info }
+
+        add = false
+
+        # testing existing @archive sources
+        add = true
+        existing_sources.each_with_index do |s,i|
+          if s == @archive
+            unless valid? my_locations[i].info
+              # possibly issue during update:
+              # - we add message to @archive
+              # - offlineimap renames it
+              # - we get an add, but not update? and think the existing location is invalid
+              debug "archive location invalid: #{my_locations[i].info}, deleting.."
+              msg.locations.delete my_locations[i]
+            else
+              debug "valid archive location existing."
+              add = false
+            end
+          end
+        end
+
+        if add
+          debug "no valid archive location present, adding."
+          new_info = @archive.store_message_from my_locations.first.info, msg
+          msg.locations.push Location.new(self, new_info)
+        end
+
+      end
+
+      msg
+    end
+  end
+
   # check if several sources indicate label and let poll know
   # if we really want a :deleted message to indicate a label
   # to be removed
@@ -705,6 +753,7 @@ class MaildirRoot < Source
   # todo: store drafts
 
   def labels; @labels; end
+
 
 private
   def maildirsub_from_info info

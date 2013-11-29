@@ -220,11 +220,12 @@ EOS
               m.labels += [:killed]
             end
 
+            if source.kind_of? MaildirRoot
+              m = source.ensure_in_archive m
+            end
+
             Index.sync_message m, true, false
 
-            # send message :added signal regardless since labels/locations
-            # might have changed and a message might need to be added to a
-            # listing.
             if old_m
               # if a message has been modified send the :updated signal
               # so that existing listed messages can be updated with
@@ -252,6 +253,7 @@ EOS
               old_m = Index.build_message m.id
               m.locations.delete Location.new(source, args[:old_info])
 
+              # for Maildirs and MaildirRoot (or other future sources that support it)
               if args.has_key? :new_info
                 # add new_info if it is provided: if it is not, a location
                 # has been removed and the message should be updated.
@@ -263,6 +265,8 @@ EOS
               m.labels -= source.supported_labels?
 
               debug "Updating #{args[:old_info]}, labels: #{m.labels.inspect}"
+
+              # for MaildirRoot (or other future sources that support it)
               if args.has_key? :remove_labels
                 debug "removing labels: #{args[:remove_labels]}"
                 # check if remove_labels should be applied, if another
@@ -286,6 +290,12 @@ EOS
                   Index.delete m.id
                   UpdateManager.relay self, :location_deleted, m
                   next
+                end
+              else
+                # since this is not a :delete, check if MaildirRoot and whether
+                # it is in archive:
+                if source.kind_of? MaildirRoot
+                  m = source.ensure_in_archive m
                 end
               end
 
