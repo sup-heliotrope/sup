@@ -672,10 +672,11 @@ class MaildirRoot < Source
     end
   end
 
-  # check if message also has a location in the archive (this should
-  # be done automatically by the GMail server). if not, add it and save
-  # it to the archive source.
+  # check if message also has a location in the archive (it should
+  # automatically be added to archive by GMail servers) if not, add to the
+  # archive source.
   def ensure_in_archive msg
+
     check_enable_experimental
 
     if @sync_back
@@ -684,8 +685,6 @@ class MaildirRoot < Source
       synchronize do
         my_locations = msg.locations.select { |l| l.source.id == @id }
         existing_sources = my_locations.map { |l| maildirsub_from_info l.info }
-
-        add = false
 
         # testing existing @archive sources
         add = true
