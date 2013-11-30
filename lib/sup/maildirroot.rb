@@ -706,8 +706,13 @@ class MaildirRoot < Source
 
         if add
           debug "no valid archive location present, adding."
-          new_info = @archive.store_message_from my_locations.first.info, msg
-          msg.locations.push Location.new(self, new_info)
+          valid_locations = my_locations.select { |l| valid? l.info }
+          unless valid_locations.empty?
+            new_info = @archive.store_message_from valid_locations.first.info, msg
+            msg.locations.push Location.new(self, new_info)
+          else
+            warn "no valid locations could be found, could not archive message!"
+          end
         end
 
       end
