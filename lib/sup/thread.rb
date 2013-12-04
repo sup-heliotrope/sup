@@ -172,7 +172,7 @@ class Container
 
   def each_with_stuff parent=nil
     yield self, 0, parent
-    @children.each do |c|
+    @children.sort_by(&:sort_key).each do |c|
       c.each_with_stuff(self) { |cc, d, par| yield cc, d + 1, par }
     end
   end
@@ -238,6 +238,10 @@ class Container
     f.puts "#{id} #{line}"#[0 .. (105 - indent)]
     indent += 3
     @children.each { |c| c.dump_recursive f, indent, false, self }
+  end
+
+  def sort_key
+    empty? ? [Time.now.to_i, ""] : [@message.date.to_i, @message.id]
   end
 end
 

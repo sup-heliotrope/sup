@@ -1,3 +1,7 @@
+Release 0.15.1:
+
+Sort threads last-activity-first and bug fix.
+
 Release 0.15.0:
 
 Maildir Syncback has been included. Refer to the wiki for more information on
