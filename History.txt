@@ -1,4 +1,4 @@
-==
+== 0.15.1 / 2013-12-04
 
 * Thread children are sorted last-activity latest (bottom).
 
