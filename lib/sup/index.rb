@@ -134,7 +134,7 @@ EOS
 
   def add_message m; sync_message m, true end
   def update_message m; sync_message m, true end
-  def update_message_state m; sync_message m, false end
+  def update_message_state m; sync_message m[0], false, m[1] end
 
   def save_index
     info "Flushing Xapian updates to disk. This may take a while..."
@@ -530,18 +530,18 @@ EOS
     query
   end
 
-  def save_message m
+  def save_message m, sync_back = true
     if @sync_worker
-      @sync_queue << m
+      @sync_queue << [m, sync_back]
     else
-      update_message_state m
+      update_message_state [m, sync_back]
     end
     m.clear_dirty
   end
 
-  def save_thread t
+  def save_thread t, sync_back = true
     t.each_dirty_message do |m|
-      save_message m
+      save_message m, sync_back
     end
   end
 
