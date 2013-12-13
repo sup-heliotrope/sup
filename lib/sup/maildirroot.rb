@@ -675,7 +675,14 @@ class MaildirRoot < Source
   # check if message also has a location in the archive (it should
   # automatically be added to archive by GMail servers) if not, add to the
   # archive source.
+  #
+  # If the message is in :spam or :deleted it should not be added.
   def ensure_in_archive msg
+
+    if msg.labels.member?(:spam) or msg.labels.member?(:deleted)
+      debug "message in spam or trash, not checking whether it is in archive"
+      return msg
+    end
 
     check_enable_experimental
 
