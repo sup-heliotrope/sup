@@ -48,7 +48,7 @@ SUP: If you are upgrading Sup from before version 0.14.0: Please
     s.required_ruby_version = '>= 1.9.2'
 
     s.add_runtime_dependency "xapian-ruby", "~> 1.2.15"
-    s.add_runtime_dependency "ncursesw-sup", "~> 1.3.1"
+    s.add_runtime_dependency "ncursesw", "~> 1.4.0"
     s.add_runtime_dependency "rmail-sup", "~> 1.0.1"
     s.add_runtime_dependency "highline"
     s.add_runtime_dependency "trollop", ">= 1.12"
