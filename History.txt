@@ -1,4 +1,4 @@
-== 0.15.2 /
+== 0.15.2 / 2013-12-20
 
 * Use the form_driver_w routine for inputing multibyte chars when
   available.
