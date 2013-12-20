@@ -2,67 +2,9 @@
 
 require 'etc'
 require 'thread'
-
 require 'ncursesw'
 
-if defined? Ncurses
-module Ncurses
-  def rows
-    lame, lamer = [], []
-    stdscr.getmaxyx lame, lamer
-    lame.first
-  end
-
-  def cols
-    lame, lamer = [], []
-    stdscr.getmaxyx lame, lamer
-    lamer.first
-  end
-
-  def curx
-    lame, lamer = [], []
-    stdscr.getyx lame, lamer
-    lamer.first
-  end
-
-  def mutex; @mutex ||= Mutex.new; end
-  def sync &b; mutex.synchronize(&b); end
-
-  ## magically, this stuff seems to work now. i could swear it didn't
-  ## before. hm.
-  def nonblocking_getch
-    ## INSANTIY
-    ## it is NECESSARY to wrap Ncurses.getch in a select() otherwise all
-    ## background threads will be BLOCKED. (except in very modern versions
-    ## of libncurses-ruby. the current one on ubuntu seems to work well.)
-    if IO.select([$stdin], nil, nil, 0.5)
-      if Redwood::BufferManager.shelled?
-        # If we get input while we're shelled, we'll ignore it for the
-        # moment and use Ncurses.sync to wait until the shell_out is done.
-        Ncurses.sync { nil }
-      else
-        Ncurses.getch
-      end
-    end
-  end
-
-  ## pretends ctrl-c's are ctrl-g's
-  def safe_nonblocking_getch
-    nonblocking_getch
-  rescue Interrupt
-    KEY_CANCEL
-  end
-
-  module_function :rows, :cols, :curx, :nonblocking_getch, :safe_nonblocking_getch, :mutex, :sync
-
-  remove_const :KEY_ENTER
-  remove_const :KEY_CANCEL
-
-  KEY_ENTER = 10
-  KEY_CANCEL = 7 # ctrl-g
-  KEY_TAB = 9
-end
-end
+require 'sup/util/ncurses'
 
 module Redwood
 
@@ -214,7 +156,14 @@ EOS
     @sigwinch_mutex = Mutex.new
   end
 
-  def sigwinch_happened!; @sigwinch_mutex.synchronize { @sigwinch_happened = true } end
+  def sigwinch_happened!
+    @sigwinch_mutex.synchronize do
+      return if @sigwinch_happened
+      @sigwinch_happened = true
+      Ncurses.ungetch ?\C-l.ord
+    end
+  end
+
   def sigwinch_happened?; @sigwinch_mutex.synchronize { @sigwinch_happened } end
 
   def buffers; @name_map.to_a; end
@@ -266,7 +215,7 @@ EOS
 
   def handle_input c
     if @focus_buf
-      if @focus_buf.mode.in_search? && c != CONTINUE_IN_BUFFER_SEARCH_KEY.ord
+      if @focus_buf.mode.in_search? && c != CONTINUE_IN_BUFFER_SEARCH_KEY
         @focus_buf.mode.cancel_search!
         @focus_buf.mark_dirty
       end
@@ -398,9 +347,9 @@ EOS
     draw_screen
 
     until mode.done?
-      c = Ncurses.safe_nonblocking_getch
-      next unless c # getch timeout
-      break if c == Ncurses::KEY_CANCEL
+      c = Ncurses::CharCode.get
+      next unless c.present? # getch timeout
+      break if c.is_keycode? Ncurses::KEY_CANCEL
       begin
         mode.handle_input c
       rescue InputSequenceAborted # do nothing
@@ -590,8 +539,8 @@ EOS
     end
 
     while true
-      c = Ncurses.safe_nonblocking_getch
-      next unless c # getch timeout
+      c = Ncurses::CharCode.get
+      next unless c.present? # getch timeout
       break unless tf.handle_input c # process keystroke
 
       if tf.new_completions?
@@ -643,10 +592,11 @@ EOS
     ret = nil
     done = false
     until done
-      key = Ncurses.safe_nonblocking_getch or next
-      if key == Ncurses::KEY_CANCEL
+      key = Ncurses::CharCode.get
+      next if key.empty?
+      if key.is_keycode? Ncurses::KEY_CANCEL
         done = true
-      elsif accept.nil? || accept.empty? || accept.member?(key)
+      elsif accept.nil? || accept.empty? || accept.member?(key.code)
         ret = key
         done = true
       end
@@ -664,7 +614,7 @@ EOS
   ## returns true (y), false (n), or nil (ctrl-g / cancel)
   def ask_yes_or_no question
     case(r = ask_getch question, "ynYN")
-    when ?y.ord, ?Y.ord
+    when ?y, ?Y
       true
     when nil
       nil
@@ -683,7 +633,7 @@ EOS
     action, text = keymap.action_for c
     while action.is_a? Keymap # multi-key commands, prompt
       key = BufferManager.ask_getch text
-      unless key # user canceled, abort
+      unless key.empty? # user canceled, abort
         erase_flash
         raise InputSequenceAborted
       end
