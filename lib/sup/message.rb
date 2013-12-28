@@ -498,11 +498,15 @@ private
       ## application/pgp. this handles that.
       ##
       ## TODO: unduplicate code between here and multipart_encrypted_to_chunks
+      ## lf TODO: this only tries to decrypt. it cannot handle inline PGP
       notice, sig, decryptedm = CryptoManager.decrypt m.body
       if decryptedm # managed to decrypt
         children = message_to_chunks decryptedm, true
         [notice, sig].compact + children
       else
+## try inline pgp signed 
+      	chunks = inline_gpg_to_chunks m.body, $encoding, (m.charset || $encoding)
+	return chunks if chunks
         [notice]
       end
     else
@@ -579,6 +583,7 @@ private
     # -----END PGP SIGNED MESSAGE-----
     #
     # In some cases, END PGP SIGNED MESSAGE doesn't appear
+    # lf: leaves strange -----BEGIN PGP SIGNATURE----- in that case?	
     gpg = lines.between(GPG_SIGNED_START, GPG_SIGNED_END)
     # between does not check if GPG_END actually exists
     # Reference: http://permalink.gmane.org/gmane.mail.sup.devel/641
