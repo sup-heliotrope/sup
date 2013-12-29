@@ -497,17 +497,21 @@ private
       ## they have no MIME multipart and just set the body content type to
       ## application/pgp. this handles that.
       ##
-      ## TODO: unduplicate code between here and multipart_encrypted_to_chunks
-      ## lf TODO: this only tries to decrypt. it cannot handle inline PGP
+      ## TODO 1: unduplicate code between here and
+      ##         multipart_encrypted_to_chunks
+      ## TODO 2: this only tries to decrypt. it cannot handle inline PGP
       notice, sig, decryptedm = CryptoManager.decrypt m.body
       if decryptedm # managed to decrypt
         children = message_to_chunks decryptedm, true
         [notice, sig].compact + children
       else
-## try inline pgp signed 
+        ## try inline pgp signed
       	chunks = inline_gpg_to_chunks m.body, $encoding, (m.charset || $encoding)
-	return chunks if chunks
-        [notice]
+        if chunks
+          chunks
+        else
+          [notice]
+        end
       end
     else
       filename =
@@ -583,7 +587,7 @@ private
     # -----END PGP SIGNED MESSAGE-----
     #
     # In some cases, END PGP SIGNED MESSAGE doesn't appear
-    # lf: leaves strange -----BEGIN PGP SIGNATURE----- in that case?	
+    # (and may leave strange -----BEGIN PGP SIGNATURE----- ?)
     gpg = lines.between(GPG_SIGNED_START, GPG_SIGNED_END)
     # between does not check if GPG_END actually exists
     # Reference: http://permalink.gmane.org/gmane.mail.sup.devel/641
