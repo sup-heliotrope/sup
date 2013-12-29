@@ -205,6 +205,7 @@ EOS
       begin
         file = Tempfile.new(["sup", Shellwords.escape(@filename.gsub("/", "_")) || "sup-attachment"])
         file.print @raw_content
+        file.flush
         yield file if block_given?
         return file.path
       ensure

@@ -1,3 +1,5 @@
+require 'sup/util/ncurses'
+
 module Redwood
 
 ## a fully-functional text field supporting completions, expansions,
@@ -16,6 +18,8 @@ module Redwood
 ## in sup, completion support is implemented through BufferManager#ask
 ## and CompletionMode.
 class TextField
+  include Ncurses::Form::DriverHelpers
+
   def initialize
     @i = nil
     @history = []
@@ -48,8 +52,8 @@ class TextField
     @w.attrset Colormap.color_for(:none)
     @w.mvaddstr @y, 0, @question
     Ncurses.curs_set 1
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_NEXT_CHAR if @value && @value =~ / $/ # fucking RETARDED
+    form_driver_key Ncurses::Form::REQ_END_FIELD
+    form_driver_key Ncurses::Form::REQ_NEXT_CHAR if @value && @value =~ / $/ # fucking RETARDED
   end
 
   def deactivate
@@ -63,7 +67,7 @@ class TextField
 
   def handle_input c
     ## short-circuit exit paths
-    case c
+    case c.code
     when Ncurses::KEY_ENTER # submit!
       @value = get_cursed_value
       @history.push @value unless @value =~ /^\s*$/
@@ -97,39 +101,27 @@ class TextField
     reset_completion_state
     @value = nil
 
-    d =
-      case c
+    # ctrl_c: control char
+    ctrl_c =
+      case c.keycode # only test for keycodes
       when Ncurses::KEY_LEFT
         Ncurses::Form::REQ_PREV_CHAR
       when Ncurses::KEY_RIGHT
         Ncurses::Form::REQ_NEXT_CHAR
       when Ncurses::KEY_DC
         Ncurses::Form::REQ_DEL_CHAR
-      when Ncurses::KEY_BACKSPACE, 127 # 127 is also a backspace keysym
+      when Ncurses::KEY_BACKSPACE
         Ncurses::Form::REQ_DEL_PREV
-      when ?\C-a.ord, Ncurses::KEY_HOME
+      when Ncurses::KEY_HOME
         nop
         Ncurses::Form::REQ_BEG_FIELD
-      when ?\C-e.ord, Ncurses::KEY_END
+      when Ncurses::KEY_END
         Ncurses::Form::REQ_END_FIELD
-      when ?\C-k.ord
-        Ncurses::Form::REQ_CLR_EOF
-      when ?\C-u.ord
-        set_cursed_value cursed_value_after_point
-        Ncurses::Form.form_driver @form, Ncurses::Form::REQ_END_FIELD
-        nop
-        Ncurses::Form::REQ_BEG_FIELD
-      when ?\C-w.ord
-        while action = remove_extra_space
-          Ncurses::Form.form_driver @form, action
-        end
-        Ncurses::Form.form_driver @form, Ncurses::Form::REQ_PREV_CHAR
-        Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_WORD
       when Ncurses::KEY_UP, Ncurses::KEY_DOWN
         unless !@i || @history.empty?
           value = get_cursed_value
           #debug "history before #{@history.inspect}"
-          @i = @i + (c == Ncurses::KEY_UP ? -1 : 1)
+          @i = @i + (c.is_keycode?(Ncurses::KEY_UP) ? -1 : 1)
           @i = 0 if @i < 0
           @i = @history.size if @i > @history.size
           @value = @history[@i] || ''
@@ -138,10 +130,37 @@ class TextField
           Ncurses::Form::REQ_END_FIELD
         end
       else
-        c
+        # return other keycode or nil if it's not a keycode
+        c.dumb? ? nil : c.keycode
       end
 
-    Ncurses::Form.form_driver @form, d if d
+    # handle keysyms
+    # ctrl_c: control char
+    ctrl_c = case c
+      when ?\177                          # backspace (octal)
+        Ncurses::Form::REQ_DEL_PREV
+      when ?\C-a                          # home
+        nop
+        Ncurses::Form::REQ_BEG_FIELD
+      when ?\C-e                          # end keysym
+        Ncurses::Form::REQ_END_FIELD
+      when ?\C-k
+        Ncurses::Form::REQ_CLR_EOF
+      when ?\C-u
+        set_cursed_value cursed_value_after_point
+        form_driver_key Ncurses::Form::REQ_END_FIELD
+        nop
+        Ncurses::Form::REQ_BEG_FIELD
+      when ?\C-w
+        while action = remove_extra_space
+          form_driver_key action
+        end
+        form_driver_key Ncurses::Form::REQ_PREV_CHAR
+        form_driver_key Ncurses::Form::REQ_DEL_WORD
+      end if ctrl_c.nil?
+
+    c.replace(ctrl_c).keycode! if ctrl_c  # no effect for dumb CharCode
+    form_driver c if c.present?
     true
   end
 
@@ -159,7 +178,7 @@ private
     return nil unless @field
 
     x = Ncurses.curx
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_VALIDATION
+    form_driver_key Ncurses::Form::REQ_VALIDATION
     v = @field.field_buffer(0).gsub(/^\s+|\s+$/, "")
 
     ## cursor <= end of text
@@ -175,7 +194,7 @@ private
     # system locale and also hopefully the terminal/input encoding. an
     # incorrectly configured terminal encoding (not matching the system
     # encoding) will produce erronous results, but will also do that for
-    # a log of other programs since it is impossible to detect which is
+    # a lot of other programs since it is impossible to detect which is
     # which and what encoding the inputted byte chars are supposed to have.
     v.force_encoding($encoding).fix_encoding!
   end
@@ -183,7 +202,7 @@ private
   def remove_extra_space
     return nil unless @field
 
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_VALIDATION
+    form_driver_key Ncurses::Form::REQ_VALIDATION
     x = Ncurses.curx
     v = @field.field_buffer(0).gsub(/^\s+|\s+$/, "")
     v_index = x - @question.length
@@ -226,8 +245,8 @@ private
   ## this is almost certainly unnecessary, but it's the only way
   ## i could get ncurses to remember my form's value
   def nop
-    Ncurses::Form.form_driver @form, " ".ord
-    Ncurses::Form.form_driver @form, Ncurses::Form::REQ_DEL_PREV
+    form_driver_char " "
+    form_driver_key Ncurses::Form::REQ_DEL_PREV
   end
 end
 end

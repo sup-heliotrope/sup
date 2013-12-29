@@ -1,5 +1,10 @@
-Release       :
+Release 0.15.2:
 
+Use form_driver_w when available. New hidden_alternates option.
+
+Release 0.15.1:
+
+Sort threads last-activity-first and bug fix.
 
 Release 0.15.0:
 
