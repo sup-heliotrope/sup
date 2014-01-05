@@ -149,7 +149,7 @@ class Maildir < Source
     added.each_with_index do |id,i|
       yield :add,
       :info => id,
-      :labels => @labels + maildir_labels(id) + [:inbox],
+      :labels => @labels + maildir_labels(id),
       :progress => i.to_f/total_size
     end
 
@@ -173,13 +173,46 @@ class Maildir < Source
     maildir_labels id
   end
 
+  def headers_labels id
+    header = load_header(id)["x-keywords"]
+    if not header then
+      return []
+    end
+    labels = header.split(', ')
+    if labels.member? '\Sent' then
+      labels -= ['\Sent' ]
+      labels += [ 'sent' ]
+    end
+    if labels.member? '\Inbox' then
+      labels -= [ '\Inbox' ]
+      labels += [ 'inbox' ]
+    end
+
+    if labels.member? '\Important' then
+      labels -= [ '\Important' ]
+      labels += [ 'important' ]
+    end
+    if labels.member? '\Starred' then
+      labels -= [ '\Starred' ]
+      labels += [ 'starred' ]
+    end
+    if labels.member? '\Todo' then
+      labels -= [ '\Todo' ]
+      labels += [ 'TODO' ]
+    end
+    labels = labels.map{ |s| s.to_sym }
+    labels
+  end
+
+
   def maildir_labels id
     (seen?(id) ? [] : [:unread]) +
       (trashed?(id) ?  [:deleted] : []) +
       (flagged?(id) ? [:starred] : []) +
       (passed?(id) ? [:forwarded] : []) +
       (replied?(id) ? [:replied] : []) +
-      (draft?(id) ? [:draft] : [])
+      (draft?(id) ? [:draft] : []) +
+      headers_labels(id)
   end
 
   def draft? id; maildir_data(id)[2].include? "D"; end
