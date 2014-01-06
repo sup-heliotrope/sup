@@ -1,5 +1,4 @@
 require 'time'
-
 module Redwood
 
 ## a Message is what's threaded.
@@ -205,12 +204,15 @@ class Message
 
   def has_label? t; @labels.member? t; end
   def add_label l
+    debug "XKEY adding label #{l}"
     l = l.to_sym
     return if @labels.member? l
     @labels << l
+    debug "XKEY adding label #{l}"
     @dirty = true
   end
   def remove_label l
+    debug "XKEY removing label #{l}"
     l = l.to_sym
     return unless @labels.member? l
     @labels.delete l
@@ -226,6 +228,7 @@ class Message
     raise ArgumentError, "not a set of labels" unless l.all? { |ll| ll.is_a?(Symbol) }
     return if @labels == l
     @labels = l
+    location.update_xkeywords @id, l
     @dirty = true
   end
 
@@ -772,6 +775,12 @@ class Location
     source.respond_to? :sync_back and $config[:sync_back_to_maildir] and source.sync_back_enabled?
   end
 
+  def update_xkeywords id, labels
+    puts "XKEY #{id} #{info}"
+    source.update_xkeywords info, labels
+    # sync_back labels raw_message ???
+  end
+
   ## much faster than raw_message
   def each_raw_message_line &b
     source.each_raw_message_line info, &b
@@ -779,6 +788,7 @@ class Location
 
   def parsed_message
     source.load_message info
+    # debug "XKEY: rereading message!"
   end
 
   def valid?
