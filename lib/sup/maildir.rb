@@ -3,6 +3,13 @@ require 'set'
 
 module Redwood
 
+#class Set
+  #def to_s
+    #to_a.join(', ')
+  #end
+#end
+
+
 class Maildir < Source
   include SerializeLabelsNicely
   MYHOSTNAME = Socket.gethostname
@@ -68,6 +75,20 @@ class Maildir < Source
     stored
   end
 
+  def rewrite_message fn
+    stored = false
+    Dir.chdir(@dir) do |d|
+      File.open(fn, 'wb') do |f|
+        yield f #provide a writable interface for the caller
+        f.fsync
+      end
+    end
+
+    stored = true
+
+    stored
+  end
+
   def each_raw_message_line id
     with_file_for(id) do |f|
       until f.eof?
@@ -100,10 +121,6 @@ class Maildir < Source
       end
     end
     ret
-  end
-
-  def raw_message id
-    with_file_for(id) { |f| f.read }
   end
 
   ## XXX use less memory
@@ -204,6 +221,60 @@ class Maildir < Source
     labels
   end
 
+  def update_xkeywords id, labels
+
+    labels = labels.map { |l| l.to_s }
+
+    if labels.member? 'sent' then
+      labels -= ['sent']
+      labels += ['\Sent']
+    end
+    if labels.member? 'inbox' then
+      labels -= ['inbox']
+      labels += ['\Inbox']
+    end
+    if labels.member? 'important' then
+      labels -= ['important']
+      labels += ['\Important']
+    end
+    if labels.member? 'starred' then
+      labels -= ['starred']
+      labels += ['\Starred']
+    end
+    if labels.member? 'TODO' then
+      labels -= ['TODO']
+      labels += ['\Todo']
+    end
+    if labels.member? 'deleted' then
+      labels -= ['deleted']
+      labels += ['\Trash']
+    end
+    if labels.member? 'unread' then
+      labels -= ['unread']
+    end
+    
+    labels = labels.sort
+    header = Set.new(load_header(id)['x-keywords'].split(', ')).sort
+    debug "XKEY update keywords #{header} -> #{labels}"
+    return if labels == header
+
+    header = labels.to_a.join(', ')
+    debug "XKEY: header should now be #{header}"
+    
+    full_header = load_header(id)
+    full_header['x-keywords'] = header
+    
+    full_body = load_message(id)
+
+    rewrite_message(id) do |f|
+      f.puts(full_header)
+      f.puts('\n')
+      f.puts(full_body)
+    end
+    
+
+  end
+
 
   def maildir_labels id
     (seen?(id) ? [] : [:unread]) +
@@ -242,6 +313,24 @@ private
     end
   end
 
+  def with_file_write id
+    fn = File.join(@dir, id)
+    begin
+      File.open(fn, 'wb') { |f| yield f }
+    rescue SystemCallError, IOError => e
+      raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
+    end
+  end
+
+  def update_message id
+    fn = File.join(@dir, id)
+    begin
+      File.open(fn, 'wb') { |f| yield f }
+    rescue SystemCallError, IOError => e
+      raise FatalSourceError, "Problem writing file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
+    end
+  end
+
   def maildir_data id
     id = File.basename id
     # Flags we recognize are DFPRST
@@ -271,7 +360,7 @@ private
       md_base, md_ver, md_flags = maildir_data orig_path
 
       return if md_flags == flags
-
+      debug "XKEY changing flags from #{md_flags} to #{flags}"
       new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
       orig_path = File.join @dir, orig_path
       new_path  = File.join @dir, new_loc

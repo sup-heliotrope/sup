@@ -610,8 +610,10 @@ EOS
     threads.each do |t|
       user_labels.each do |(l, to_remove)|
         if to_remove
+          debug "XKEY in thread_index_mode remove label #{l}"
           t.remove_label l
         else
+          debug "XKEY in thread_index_mode apply label #{l}"
           t.apply_label l
           LabelManager << l
         end
