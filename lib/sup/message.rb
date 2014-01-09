@@ -761,7 +761,7 @@ class Location
     synced = false
     return synced unless sync_back_enabled? and valid?
     source.synchronize do
-      new_info = source.sync_back(@info, labels)
+      new_info = source.sync_back(@info, labels, message)
       if new_info
         @info = new_info
         Index.sync_message message, true
@@ -776,9 +776,11 @@ class Location
   end
 
   def update_xkeywords id, labels
-    puts "XKEY #{id} #{info}"
-    source.update_xkeywords info, labels
-    # sync_back labels raw_message ???
+    if source.respond_to? :update_xkeywords then
+      puts "XKEY #{id} #{info}"
+      source.update_xkeywords info, labels
+      # sync_back labels raw_message ???
+    end
   end
 
   ## much faster than raw_message
