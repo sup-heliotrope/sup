@@ -105,12 +105,25 @@ class Maildir < Source
     with_file_for(id) { |f| RMail::Parser.read f }
   end
 
-  def sync_back id, labels
+  def sync_back id, labels, message
+    result = false
     synchronize do
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
-      maildir_mark_file id, flags
+      result = maildir_mark_file id, flags
+      result = id if !result
+      
+      msg = maildir_reconcile_keywords result, labels, message
+      
+      # maildir_reconcile_keywords will return false
+      # if the message was not rewritten to the filesystem
+      if msg then
+        # Index.sync_message takes message, overwrite, sync_back
+        Index.sync_message msg, true, false
+      end
+            
     end
+    # debug "XKEY maildir_mark_file says #{result}"
   end
 
   def raw_header id
@@ -221,7 +234,7 @@ class Maildir < Source
     labels
   end
 
-  def update_xkeywords id, labels
+  def maildir_reconcile_keywords id, labels, message
 
     labels = labels.map { |l| l.to_s }
 
@@ -256,22 +269,28 @@ class Maildir < Source
     labels = labels.sort
     header = Set.new(load_header(id)['x-keywords'].split(', ')).sort
     debug "XKEY update keywords #{header} -> #{labels}"
-    return if labels == header
+    
+    # If the labels didn't change, then bail out
+    return false if labels == header
 
+    # we need to somehow update the root Message object
+    # with the new header, then write the Message back out
     header = labels.to_a.join(', ')
     debug "XKEY: header should now be #{header}"
     
-    full_header = load_header(id)
-    full_header['x-keywords'] = header
-    
-    full_body = load_message(id)
+    # I'm still not sure how to do this
+    # full_header = load_header(id)
+    # full_header['x-keywords'] = header
+    # binding.pry
+    # full_body = load_message(id)
 
-    rewrite_message(id) do |f|
-      f.puts(full_header)
-      f.puts('\n')
-      f.puts(full_body)
-    end
+    # rewrite_message(id) do |f|
+    #   f.puts(full_header)
+    #   f.puts('\n')
+    #   f.puts(full_body)
+    # end
     
+    return message
 
   end
 
@@ -359,7 +378,7 @@ private
       new_base = (flags.include?("S")) ? "cur" : "new"
       md_base, md_ver, md_flags = maildir_data orig_path
 
-      return if md_flags == flags
+      return false if md_flags == flags
       debug "XKEY changing flags from #{md_flags} to #{flags}"
       new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
       orig_path = File.join @dir, orig_path
@@ -371,7 +390,7 @@ private
       File.safe_link tmp_path, new_path
       File.unlink tmp_path
 
-      new_loc
+      return new_loc
     end
   end
 end
