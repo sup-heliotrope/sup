@@ -765,6 +765,7 @@ class Location
     return synced unless sync_back_enabled? and valid?
     source.synchronize do
       if source.sync_back(@info, labels, msg) then
+        msg.load_from_source!
         Index.sync_message msg, true, false
         synced = true
       end

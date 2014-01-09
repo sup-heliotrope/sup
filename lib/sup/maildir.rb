@@ -116,9 +116,14 @@ class Maildir < Source
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
       result = maildir_mark_file id, flags
-      result = id if !result
-      
-      updated = maildir_reconcile_keywords result, labels, message
+      # maildir_mark_file returns false if the filename did not change
+      if result then
+        message.locations.delete Location.new(self, id)
+        message.locations.push   Location.new(self, result)
+      else
+        result = id
+      end
+      updated = maildir_reconcile_keywords result, labels, message || updated
             
     end
     # debug "XKEY maildir_mark_file says #{result}"
@@ -302,8 +307,8 @@ class Maildir < Source
                 end
               end
               f.fsync()
+              f.close()
             end
-  
             File.safe_link tmp_path, id
             stored = true
           ensure
