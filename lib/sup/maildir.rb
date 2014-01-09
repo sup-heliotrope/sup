@@ -3,13 +3,6 @@ require 'set'
 
 module Redwood
 
-#class Set
-  #def to_s
-    #to_a.join(', ')
-  #end
-#end
-
-
 class Maildir < Source
   include SerializeLabelsNicely
   MYHOSTNAME = Socket.gethostname
@@ -78,13 +71,25 @@ class Maildir < Source
   def rewrite_message fn
     stored = false
     Dir.chdir(@dir) do |d|
-      File.open(fn, 'wb') do |f|
-        yield f #provide a writable interface for the caller
-        f.fsync
-      end
-    end
+      tmp_path = File.join(@dir, 'tmp', fn.sub(/cur\/|tmp\/|new\/(.*)$/, "\1"))
+      begin
+        sleep 2 if File.stat(tmp_path)
 
-    stored = true
+        File.stat(tmp_path)
+      rescue Errno::ENOENT #this is what we want.
+        begin
+          File.open(tmp_path, 'wb') do |f|
+            yield f #provide a writable interface for the caller
+            f.fsync
+          end
+
+          File.safe_link tmp_path, fn
+          stored = true
+        ensure
+          File.unlink tmp_path if File.exists? tmp_path
+        end
+      end #rescue Errno...
+    end #Dir.chdir
 
     stored
   end
@@ -106,24 +111,18 @@ class Maildir < Source
   end
 
   def sync_back id, labels, message
-    result = false
+    updated = false
     synchronize do
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
       result = maildir_mark_file id, flags
       result = id if !result
       
-      msg = maildir_reconcile_keywords result, labels, message
-      
-      # maildir_reconcile_keywords will return false
-      # if the message was not rewritten to the filesystem
-      if msg then
-        # Index.sync_message takes message, overwrite, sync_back
-        Index.sync_message msg, true, false
-      end
+      updated = maildir_reconcile_keywords result, labels, message
             
     end
     # debug "XKEY maildir_mark_file says #{result}"
+    return updated
   end
 
   def raw_header id
@@ -261,11 +260,16 @@ class Maildir < Source
     if labels.member? 'deleted' then
       labels -= ['deleted']
       labels += ['\Trash']
+      # dumb for message to be in \Inbox and \Trash
+      labels -= ['\Inbox'] if labels.member? '\Inbox'
     end
     if labels.member? 'unread' then
       labels -= ['unread']
     end
     
+    if labels.member? 'attachment' then
+      labels -= ['attachment']
+    end
     labels = labels.sort
     header = Set.new(load_header(id)['x-keywords'].split(', ')).sort
     debug "XKEY update keywords #{header} -> #{labels}"
@@ -277,21 +281,40 @@ class Maildir < Source
     # with the new header, then write the Message back out
     header = labels.to_a.join(', ')
     debug "XKEY: header should now be #{header}"
-    
-    # I'm still not sure how to do this
-    # full_header = load_header(id)
-    # full_header['x-keywords'] = header
     # binding.pry
-    # full_body = load_message(id)
-
-    # rewrite_message(id) do |f|
-    #   f.puts(full_header)
-    #   f.puts('\n')
-    #   f.puts(full_body)
-    # end
     
-    return message
+    stored = false
+    tmp_path = File.join(@dir, 'tmp', id[4..-1])
+    
+    Dir.chdir(@dir) do |d|
+      begin
+        sleep 2 if File.stat(tmp_path)
 
+        File.stat(tmp_path)
+        rescue Errno::ENOENT #this is what we want.
+          begin
+            File.open(tmp_path, 'wb') do |f|
+              each_raw_message_line(id) do |m|
+                if m =~ /^X-Keywords: .*\n/ then
+                  f.puts("X-Keywords: #{header}\n")
+                else
+                  f.puts(m)
+                end
+              end
+              f.fsync()
+            end
+  
+            File.safe_link tmp_path, id
+            stored = true
+          ensure
+            File.unlink tmp_path if File.exists? tmp_path
+          end
+      end #rescue Errno...
+    end #Dir.chdir
+
+    message.load_from_source!
+    return message
+    
   end
 
 

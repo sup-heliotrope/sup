@@ -209,6 +209,7 @@ class Message
     return if @labels.member? l
     @labels << l
     debug "XKEY adding label #{l}"
+    location.update_xkeywords @id, l
     @dirty = true
   end
   def remove_label l
@@ -216,6 +217,7 @@ class Message
     l = l.to_sym
     return unless @labels.member? l
     @labels.delete l
+    location.update_xkeywords @id, l
     @dirty = true
   end
 
@@ -293,6 +295,7 @@ EOS
   def each_raw_message_line &b
     location.each_raw_message_line &b
   end
+  
 
   def sync_back
     @locations.map { |l| l.sync_back @labels, self }.any? do
@@ -757,14 +760,12 @@ class Location
     source.raw_message info
   end
 
-  def sync_back labels, message
+  def sync_back labels, msg
     synced = false
     return synced unless sync_back_enabled? and valid?
     source.synchronize do
-      new_info = source.sync_back(@info, labels, message)
-      if new_info
-        @info = new_info
-        Index.sync_message message, true
+      if source.sync_back(@info, labels, msg) then
+        Index.sync_message msg, true, false
         synced = true
       end
     end
@@ -777,7 +778,7 @@ class Location
 
   def update_xkeywords id, labels
     if source.respond_to? :update_xkeywords then
-      puts "XKEY #{id} #{info}"
+      debug "XKEY #{id} #{info}"
       source.update_xkeywords info, labels
       # sync_back labels raw_message ???
     end
