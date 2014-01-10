@@ -486,12 +486,6 @@ protected
 
     acct = AccountManager.account_for(from_email) || AccountManager.default_account
     BufferManager.flash "Sending..."
-    sendmailcmd = acct.sendmail
-    
-    if sendmailcmd =~ /.*-f$/ then
-      sendmailcmd += " #{from_email}"
-    end
-    
 
     begin
       date = Time.now
@@ -503,8 +497,8 @@ protected
               return false
         end
       else
-        IO.popen(sendmailcmd, "w:UTF-8") { |p| p.puts m }
-        raise SendmailCommandFailed, "Couldn't execute #{sendmailcmd}" unless $? == 0
+        IO.popen(acct.sendmail, "w:UTF-8") { |p| p.puts m }
+        raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
       end
 
       SentManager.write_sent_message(date, from_email) { |f| f.puts sanitize_body(m.to_s) }

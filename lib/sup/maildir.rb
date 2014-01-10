@@ -268,13 +268,37 @@ class Maildir < Source
       # dumb for message to be in \Inbox and \Trash
       labels -= ['\Inbox'] if labels.member? '\Inbox'
     end
+    
+    # unread label is handled by the Maildir 'S' flag (seen)
     if labels.member? 'unread' then
       labels -= ['unread']
     end
     
+    # attachment flag is not synced back and forth
     if labels.member? 'attachment' then
       labels -= ['attachment']
     end
+    
+    # replied label is handled by the Maildir R flag
+    if labels.member? 'replied' then
+      labels -= ['replied']
+    end
+    
+    # forwarded label is handled by the Maildir P (passed) flag
+    if labels.member? 'forwarded' then
+      labels -= ['forwarded']
+    end
+    
+    # starred label is handled by the Maildir F (flagged) flag
+    if labels.member? 'starred' then
+      labels -= ['starred']
+    end
+    
+    # draft label is handled by the Maildir D flag
+    if labels.member? 'draft' then
+      labels -= ['draft']
+    end
+    
     labels = labels.sort
     header = Set.new(load_header(id)['x-keywords'].split(', ')).sort
     debug "XKEY update keywords #{header} -> #{labels}"
