@@ -31,8 +31,6 @@ class AccountManager
 
   def initialize accounts
     @email_map = {}
-    @hidden_email_map = {}
-    @email_map_dirty = false
     @accounts = {}
     @regexen = {}
     @default_account = nil
@@ -42,7 +40,7 @@ class AccountManager
   end
 
   def user_accounts; @accounts.keys; end
-  def user_emails(type = :all); email_map(type).keys.select { |e| String === e }; end
+  def user_emails; @email_map.keys.select { |e| String === e }; end
 
   ## must be called first with the default account. fills in missing
   ## values from the default account.
@@ -52,9 +50,7 @@ class AccountManager
       [:name, :sendmail, :signature, :gpgkey].each { |k| hash[k] ||= @default_account.send(k) }
     end
     hash[:alternates] ||= []
-    hash[:hidden_alternates] ||= []
     fail "alternative emails are not an array: #{hash[:alternates]}" unless hash[:alternates].kind_of? Array
-    fail "hidden alternative emails are not an array: #{hash[:hidden_alternates]}" unless hash[:hidden_alternates].kind_of? Array
 
     [:name, :signature].each { |x| hash[x] ? hash[x].fix_encoding! : nil }
 
@@ -67,11 +63,8 @@ class AccountManager
     end
 
     ([hash[:email]] + hash[:alternates]).each do |email|
-      add_email_to_map(:shown, email, a)
-    end
-
-    hash[:hidden_alternates].each do |email|
-      add_email_to_map(:hidden, email, a)
+      next if @email_map.member? email
+      @email_map[email] = a
     end
 
     hash[:regexen].each do |re|
@@ -79,44 +72,19 @@ class AccountManager
     end if hash[:regexen]
   end
 
-  def is_account? p;    is_account_email? p.email       end
+  def is_account? p; is_account_email? p.email end
   def is_account_email? email; !account_for(email).nil? end
-
   def account_for email
-    a = email_map[email]
-    a.nil? ? @regexen.argfind { |re, a| re =~ email && a } : a
+    if(a = @email_map[email])
+      a
+    else
+      @regexen.argfind { |re, a| re =~ email && a }
+    end
   end
-
   def full_address_for email
     a = account_for email
     Person.full_address a.name, email
   end
-
-  private
-
-  def add_email_to_map(type, email, acc)
-    type = :shown if type != :hidden
-    m = email_map(type)
-    unless m.member? email
-      m[email] = acc
-      @email_map_dirty = true
-    end
-  end
-
-  def email_map(type = nil)
-    case type
-    when :shown, :public  then @email_map
-    when :hidden          then @hidden_email_map
-    else
-      if @email_map_dirty
-        @email_map_all = @hidden_email_map.merge(@email_map)
-        if @email_map_all.count != @email_map.count + @hidden_email_map.count
-          @hidden_email_map.reject! { |m| @email_map.member? m }
-        end
-      end
-      @email_map_all ||= {}
-    end
-  end
-end # class AccountManager
+end
 
 end
