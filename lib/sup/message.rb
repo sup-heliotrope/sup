@@ -263,9 +263,9 @@ class Message
         message_to_chunks rmsg
       rescue SourceError, SocketError, RMail::EncodingUnsupportedError => e
         warn "problem reading message #{id}"
-        [Chunk::Text.new(error_message.split("\n"))]
-
         debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
+
+        [Chunk::Text.new(error_message.split("\n"))]
       end
   end
 
