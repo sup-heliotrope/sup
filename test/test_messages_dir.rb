@@ -26,7 +26,7 @@ end
 
 module Redwood
 
-class TestMessage < ::Minitest::Unit::TestCase
+class TestMessagesDir < ::Minitest::Unit::TestCase
 
   def setup
     @path = Dir.mktmpdir
