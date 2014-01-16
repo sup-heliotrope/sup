@@ -1,3 +1,7 @@
+Release 0.15.3:
+
+Revert non-functioning hidden_alternates option.
+
 Release 0.15.2:
 
 Use form_driver_w when available. New hidden_alternates option.
