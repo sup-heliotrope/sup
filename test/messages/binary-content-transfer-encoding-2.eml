@@ -1,0 +1,21 @@
+From: foo@example.org
+MIME-Version: 1.0
+Content-type: multipart/report; boundary="======11647==82899======"; report-type="spam-notification"
+Subject: Important
+
+This is a multi-part message in MIME format...
+
+--======11647==82899======
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+
+--======11647==82899======
+Content-Type: message/rfc822
+Content-Disposition: attachment
+Content-Transfer-Encoding: binary
+
+
+--======11647==82899======--
+
