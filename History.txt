@@ -1,6 +1,6 @@
-== 0.15.3 /
+== 0.15.3 / 2014-01-27
 
-* Revert non-functioning hidden_alternates
+* Revert non-functioning hidden_alternates and fix some bugs.
 
 == 0.15.2 / 2013-12-20
 
