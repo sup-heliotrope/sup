@@ -253,7 +253,7 @@ EOS
 
     managers.each { |x| x.deinstantiate! if x.instantiated? }
 
-    @log_io.close
+    @log_io.close if @log_io
     @log_io = nil
     $config = nil
   end
