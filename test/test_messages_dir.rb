@@ -1,4 +1,5 @@
 #!/usr/bin/ruby
+# encoding: utf-8
 
 require 'test_helper'
 require 'sup'
@@ -139,6 +140,49 @@ class TestMessagesDir < ::Minitest::Unit::TestCase
     badline = lines[0]
     assert (badline.display_length > 0), "The length of this line should greater than 0: #{badline}"
 
+  end
+  def test_weird_header_encoding
+    require 'sup/util'
+    message = ''
+    File.open 'test/messages/weird-encoding-in-header-field.eml', "r:UTF-8" do |f|
+      message = f.read
+    end
+
+    #message.force_encoding 'UTF-8'
+
+    source = DummySource.new("sup-test://test_messages")
+    source.messages = [ message ]
+    source_info = 0
+
+
+    sup_message = Message.build_from_source(source, source_info)
+    sup_message.load_from_source!
+
+    from = sup_message.from
+    # "from" is just a simple person item
+
+    assert_equal("foo@example.org", from.email)
+    #assert_equal("Fake Sender", from.name)
+
+    to = sup_message.to[0]
+    test_to = "tesæt@example.org"
+
+    assert_equal(test_to, to.email)
+
+    subj = sup_message.subj
+    test_subj = "here comes a weird char: õ"
+    assert_equal(test_subj, subj)
+
+    chunks = sup_message.load_from_source!
+    indexable_chunks = sup_message.indexable_chunks
+
+    # there should be only one chunk
+    #assert_equal(1, chunks.length)
+
+    lines = chunks[0].lines
+
+    # check if body content includes some of the expected text
+    assert (lines.join.include? "check out: "), "Body message does not match expected value"
   end
 end
 

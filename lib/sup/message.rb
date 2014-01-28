@@ -72,7 +72,9 @@ class Message
     return v unless v.is_a? String
     return unless v.size < MAX_HEADER_VALUE_SIZE # avoid regex blowup on spam
     d = v.dup
-    d = d.transcode($encoding, 'ASCII')
+    # no need to transcode field when it is not converted to ascii
+    # in RMail
+    #d = d.transcode($encoding, 'ASCII')
     Rfc2047.decode_to $encoding, d
   end
 

@@ -1,0 +1,7 @@
+From: foo@example.org
+To: tesæt@example.org
+Subject: here comes a weird char: õ
+
+
+check out: https://github.com/sup-heliotrope/sup/issues/205
+
