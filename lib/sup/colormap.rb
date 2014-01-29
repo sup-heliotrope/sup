@@ -160,7 +160,7 @@ class Colormap
       Ncurses.init_pair id, fg, bg or raise ArgumentError,
         "couldn't initialize curses color pair #{fg}, #{bg} (key #{id})"
 
-      cp = @color_pairs[[fg, bg]] = Ncurses.color_pair(id)
+      cp = @color_pairs[[fg, bg]] = Ncurses.COLOR_PAIR(id)
       ## delete the old mapping, if it exists
       if @users[cp]
         @users[cp].each do |usym|
