@@ -253,7 +253,7 @@ EOS
 
     managers.each { |x| x.deinstantiate! if x.instantiated? }
 
-    @log_io.close
+    @log_io.close if @log_io
     @log_io = nil
     $config = nil
   end
@@ -357,7 +357,6 @@ EOM
             :name => name.dup.fix_encoding!,
             :email => email.dup.fix_encoding!,
             :alternates => [],
-            :hidden_alternates => [],
             :sendmail => "/usr/sbin/sendmail -oem -ti",
             :signature => File.join(ENV["HOME"], ".signature"),
             :gpgkey => ""
