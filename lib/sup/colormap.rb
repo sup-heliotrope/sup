@@ -1,4 +1,4 @@
-module Curses
+module Ncurses
   COLOR_DEFAULT = -1
 
   NUM_COLORS = `tput colors`.to_i
@@ -9,9 +9,9 @@ module Curses
   end
 
   ## numeric colors
-  Curses::NUM_COLORS.times { |x| color! x, x }
+  Ncurses::NUM_COLORS.times { |x| color! x, x }
 
-  if Curses::NUM_COLORS == 256
+  if Ncurses::NUM_COLORS == 256
     ## xterm 6x6x6 color cube
     6.times { |x| 6.times { |y| 6.times { |z| color! "c#{x}#{y}#{z}", 16 + z + 6*y + 36*x } } }
 
@@ -71,7 +71,7 @@ class Colormap
   def initialize
     raise "only one instance can be created" if @@instance
     @@instance = self
-    @color_pairs = {[Curses::COLOR_WHITE, Curses::COLOR_BLACK] => 0}
+    @color_pairs = {[Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK] => 0}
     @users = []
     @next_id = 0
     reset
@@ -81,15 +81,15 @@ class Colormap
   def reset
     @entries = {}
     @highlights = { :none => highlight_sym(:none)}
-    @entries[highlight_sym(:none)] = highlight_for(Curses::COLOR_WHITE,
-                                                   Curses::COLOR_BLACK,
+    @entries[highlight_sym(:none)] = highlight_for(Ncurses::COLOR_WHITE,
+                                                   Ncurses::COLOR_BLACK,
                                                    []) + [nil]
   end
 
   def add sym, fg, bg, attr=nil, highlight=nil
     raise ArgumentError, "color for #{sym} already defined" if @entries.member? sym
-    raise ArgumentError, "color '#{fg}' unknown" unless (-1...Curses::NUM_COLORS).include? fg
-    raise ArgumentError, "color '#{bg}' unknown" unless (-1...Curses::NUM_COLORS).include? bg
+    raise ArgumentError, "color '#{fg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? fg
+    raise ArgumentError, "color '#{bg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? bg
     attrs = [attr].flatten.compact
 
     @entries[sym] = [fg, bg, attrs, nil]
@@ -109,33 +109,33 @@ class Colormap
   def highlight_for fg, bg, attrs
     hfg =
       case fg
-      when Curses::COLOR_BLUE
-        Curses::COLOR_WHITE
-      when Curses::COLOR_YELLOW, Curses::COLOR_GREEN
+      when Ncurses::COLOR_BLUE
+        Ncurses::COLOR_WHITE
+      when Ncurses::COLOR_YELLOW, Ncurses::COLOR_GREEN
         fg
       else
-        Curses::COLOR_BLACK
+        Ncurses::COLOR_BLACK
       end
 
     hbg =
       case bg
-      when Curses::COLOR_CYAN
-        Curses::COLOR_YELLOW
-      when Curses::COLOR_YELLOW
-        Curses::COLOR_BLUE
+      when Ncurses::COLOR_CYAN
+        Ncurses::COLOR_YELLOW
+      when Ncurses::COLOR_YELLOW
+        Ncurses::COLOR_BLUE
       else
-        Curses::COLOR_CYAN
+        Ncurses::COLOR_CYAN
       end
 
     attrs =
-      if fg == Curses::COLOR_WHITE && attrs.include?(Curses::A_BOLD)
-        [Curses::A_BOLD]
+      if fg == Ncurses::COLOR_WHITE && attrs.include?(Ncurses::A_BOLD)
+        [Ncurses::A_BOLD]
       else
         case hfg
-        when Curses::COLOR_BLACK
+        when Ncurses::COLOR_BLACK
           []
         else
-          [Curses::A_BOLD]
+          [Ncurses::A_BOLD]
         end
       end
     [hfg, hbg, attrs]
@@ -143,7 +143,7 @@ class Colormap
 
   def color_for sym, highlight=false
     sym = @highlights[sym] if highlight
-    return Curses::COLOR_BLACK if sym == :none
+    return Ncurses::COLOR_BLACK if sym == :none
     raise ArgumentError, "undefined color #{sym}" unless @entries.member? sym
 
     ## if this color is cached, return it
@@ -153,14 +153,14 @@ class Colormap
     if(cp = @color_pairs[[fg, bg]])
       ## nothing
     else ## need to get a new colorpair
-      @next_id = (@next_id + 1) % Curses::MAX_PAIRS
+      @next_id = (@next_id + 1) % Ncurses::MAX_PAIRS
       @next_id += 1 if @next_id == 0 # 0 is always white on black
       id = @next_id
       debug "colormap: for color #{sym}, using id #{id} -> #{fg}, #{bg}"
-      Curses.init_pair id, fg, bg or raise ArgumentError,
+      Ncurses.init_pair id, fg, bg or raise ArgumentError,
         "couldn't initialize curses color pair #{fg}, #{bg} (key #{id})"
 
-      cp = @color_pairs[[fg, bg]] = Curses.color_pair(id)
+      cp = @color_pairs[[fg, bg]] = Ncurses.color_pair(id)
       ## delete the old mapping, if it exists
       if @users[cp]
         @users[cp].each do |usym|
@@ -192,22 +192,22 @@ class Colormap
 
     Colormap::DEFAULT_COLORS.merge(user_colors||{}).each_pair do |k, v|
       fg = begin
-        Curses.const_get "COLOR_#{v[:fg].to_s.upcase}"
+        Ncurses.const_get "COLOR_#{v[:fg].to_s.upcase}"
       rescue NameError
         warn "there is no color named \"#{v[:fg]}\""
-        Curses::COLOR_GREEN
+        Ncurses::COLOR_GREEN
       end
 
       bg = begin
-        Curses.const_get "COLOR_#{v[:bg].to_s.upcase}"
+        Ncurses.const_get "COLOR_#{v[:bg].to_s.upcase}"
       rescue NameError
         warn "there is no color named \"#{v[:bg]}\""
-        Curses::COLOR_RED
+        Ncurses::COLOR_RED
       end
 
       attrs = (v[:attrs]||[]).map do |a|
         begin
-          Curses.const_get "A_#{a.upcase}"
+          Ncurses.const_get "A_#{a.upcase}"
         rescue NameError
           warn "there is no attribute named \"#{a}\", using fallback."
           nil

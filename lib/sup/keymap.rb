@@ -19,19 +19,19 @@ EOS
 
   def self.keysym_to_keycode k
     case k
-    when :down then Curses::KEY_DOWN
-    when :up then Curses::KEY_UP
-    when :left then Curses::KEY_LEFT
-    when :right then Curses::KEY_RIGHT
-    when :page_down then Curses::KEY_NPAGE
-    when :page_up then Curses::KEY_PPAGE
-    when :backspace then Curses::KEY_BACKSPACE
-    when :home then Curses::KEY_HOME
-    when :end then Curses::KEY_END
+    when :down then Ncurses::KEY_DOWN
+    when :up then Ncurses::KEY_UP
+    when :left then Ncurses::KEY_LEFT
+    when :right then Ncurses::KEY_RIGHT
+    when :page_down then Ncurses::KEY_NPAGE
+    when :page_up then Ncurses::KEY_PPAGE
+    when :backspace then Ncurses::KEY_BACKSPACE
+    when :home then Ncurses::KEY_HOME
+    when :end then Ncurses::KEY_END
     when :ctrl_l then "\f".ord
     when :ctrl_g then "\a".ord
     when :tab then "\t".ord
-    when :enter, :return then 10 #Curses::KEY_ENTER
+    when :enter, :return then 10 #Ncurses::KEY_ENTER
     else
       if k.is_a?(String) && k.length == 1
         k.ord
@@ -56,7 +56,7 @@ EOS
     when :tab then "tab"
     when " " then "<space>"
     else
-      Curses::keyname(keysym_to_keycode(k))
+      Ncurses::keyname(keysym_to_keycode(k))
     end
   end
 
