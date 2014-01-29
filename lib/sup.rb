@@ -7,7 +7,7 @@ require 'zlib'
 require 'thread'
 require 'fileutils'
 require 'locale'
-require 'curses'
+require 'ncursesw'
 require 'rmail'
 begin
   require 'fastthread'
