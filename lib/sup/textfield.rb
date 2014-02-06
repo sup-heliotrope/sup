@@ -234,6 +234,7 @@ private
   end
 
   def set_cursed_value v
+    v = "" if v.nil?
     @field.set_field_buffer 0, v
   end
 

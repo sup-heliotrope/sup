@@ -633,7 +633,7 @@ EOS
     action, text = keymap.action_for c
     while action.is_a? Keymap # multi-key commands, prompt
       key = BufferManager.ask_getch text
-      unless key.empty? # user canceled, abort
+      unless key # user canceled, abort
         erase_flash
         raise InputSequenceAborted
       end
