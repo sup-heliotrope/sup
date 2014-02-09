@@ -123,7 +123,9 @@ class Maildir < Source
       else
         result = id
       end
-      updated = maildir_reconcile_keywords result, labels, message || updated
+      if $config[:sync_labels_to_xkeywords] then
+        updated = maildir_reconcile_keywords result, labels, message || updated
+      end
             
     end
     # debug "XKEY maildir_mark_file says #{result}"
