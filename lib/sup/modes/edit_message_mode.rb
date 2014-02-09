@@ -520,7 +520,7 @@ protected
 
   def build_message date
     m = RMail::Message.new
-    m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
+    m.header["Content-Type"] = "text/plain; charset=#{$encoding}; format=\"flowed\""
     m.body = @body.join("\n")
     m.body += "\n" + sig_lines.join("\n") unless @sig_edited
     ## body must end in a newline or GPG signatures will be WRONG!
