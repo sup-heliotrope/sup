@@ -520,7 +520,7 @@ protected
 
   def build_message date
     m = RMail::Message.new
-    if $config['format_flowed'] then
+    if $config[:format_flowed] then
       m.header["Content-Type"] = "text/plain; charset=#{$encoding}; format=\"flowed\""
     else
       m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
