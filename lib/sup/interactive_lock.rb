@@ -79,7 +79,7 @@ EOS
         true
       end
       stream.puts "Sorry, couldn't unlock the index."
-      false
+      return false
     end
     true
   end
