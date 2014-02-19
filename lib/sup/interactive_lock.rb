@@ -68,14 +68,14 @@ EOS
           stream.puts "The lockfile doesn't exists. We continue."
         end
         stream.puts "Let's try that one more time."
-          begin
-            Index.lock
-          rescue Index::LockError => e
-          end
-          true
+        begin
+          Index.lock
+        rescue Index::LockError => e
+        end
+        true
       end
-        stream.puts "Sorry, couldn't unlock the index."
-        false
+      stream.puts "Sorry, couldn't unlock the index."
+      false
     end
     true
   end
