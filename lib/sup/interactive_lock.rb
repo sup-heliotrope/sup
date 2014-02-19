@@ -55,6 +55,8 @@ EOS
               begin
                 Index.lock
               rescue Index::LockError => e
+                stream.puts "I couldn't unlock the index."
+                return false
               end
               true
             end
@@ -71,6 +73,8 @@ EOS
         begin
           Index.lock
         rescue Index::LockError => e
+          stream.puts "I couldn't unlock the index."
+          return false
         end
         true
       end
