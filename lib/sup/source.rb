@@ -68,7 +68,7 @@ class Source
     @poll_lock = Monitor.new
   end
 
-  ## overwrite me if you have a disk incarnation (currently used only for sup-sync-back-mbox)
+  ## overwrite me if you have a disk incarnation
   def file_path; nil end
 
   def to_s; @uri.to_s; end

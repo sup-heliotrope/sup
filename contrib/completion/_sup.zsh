@@ -1,8 +1,8 @@
-#compdef sup sup-add sup-config sup-dump sup-sync sup-sync-back-mbox sup-tweak-labels sup-recover-sources
+#compdef sup sup-add sup-config sup-dump sup-sync sup-tweak-labels sup-recover-sources
 # vim: set et sw=2 sts=2 ts=2 ft=zsh :
 
 # TODO: sources completion: maildir://some/dir, mbox://some/file, ...
-#       for sup-add, sup-sync, sup-sync-back-mbox, sup-tweak-labels
+#       for sup-add, sup-sync, sup-tweak-labels
 
 (( ${+functions[_sup_cmd]} )) ||
 _sup_cmd()
