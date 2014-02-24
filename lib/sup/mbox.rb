@@ -119,8 +119,6 @@ class MBox < Source
   ## we're just moving messages around on disk, than reading things
   ## into memory with raw_message.
   ##
-  ## i hoped never to have to move shit around on disk but
-  ## sup-sync-back-mbox has to do it.
   def each_raw_message_line offset
     @mutex.synchronize do
       ensure_open
