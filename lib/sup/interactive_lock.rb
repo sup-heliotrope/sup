@@ -71,6 +71,7 @@ EOS
         end
         stream.puts "Let's try that one more time."
         begin
+          sleep DELAY
           Index.lock
         rescue Index::LockError => e
           stream.puts "I couldn't unlock the index."
