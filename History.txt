@@ -1,6 +1,7 @@
 == **
 
 * sup-sync-back-mbox removed.
+* safer mime-view attachment file name handling
 
 == 0.15.4 / 2014-02-06
 
