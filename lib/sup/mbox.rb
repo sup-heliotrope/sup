@@ -120,7 +120,7 @@ class MBox < Source
   ## into memory with raw_message.
   ##
   ## i hoped never to have to move shit around on disk but
-  ## sup-sync-back has to do it.
+  ## sup-sync-back-mbox has to do it.
   def each_raw_message_line offset
     @mutex.synchronize do
       ensure_open
@@ -161,7 +161,7 @@ class MBox < Source
   ## TODO optimize this by iterating over allterms list backwards or
   ## storing source_info negated
   def last_indexed_message
-    benchmark(:mbox_read_index) { Enumerator.new(Index.instance, :each_source_info, self.id).map(&:to_i).max }
+    benchmark(:mbox_read_index) { Index.instance.enum_for(:each_source_info, self.id).map(&:to_i).max }
   end
 
   ## offset of first new message or nil

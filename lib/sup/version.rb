@@ -1,3 +1,3 @@
 module Redwood
-  VERSION = "0.14.1.1"
+  VERSION = "0.15.4"
 end

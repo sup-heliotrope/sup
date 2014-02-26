@@ -1,3 +1,27 @@
+Release 0.15.4:
+
+Bugfixes.
+
+Release 0.15.3:
+
+Revert non-functioning hidden_alternates option and fix bugs.
+
+Release 0.15.2:
+
+Use form_driver_w when available. New hidden_alternates option.
+
+Release 0.15.1:
+
+Sort threads last-activity-first and bug fix.
+
+Release 0.15.0:
+
+Maildir Syncback has been included. Refer to the wiki for more information on
+how to set it up.
+
+sup-sync-back has been moved to sup-sync-back-mbox, please make sure
+you make any needed changes.
+
 Release 0.14.1.1:
 
 See 0.13.2.1.

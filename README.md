@@ -18,12 +18,16 @@ Features:
 * [Ruby-programmable hooks][hooks]
 * Automatically tracking recent contacts
 
-Current limitations which will be fixed:
+Current limitations:
 
-* [Doesn't run on Ruby 2.0][ruby20]
+* [Ruby 2.0 support][ruby20] is very fresh, consider it experimental. Patches
+  are welcome
 
-* Sup doesn't play nicely with other mail clients. Changes in Sup won't be
-  synced back to mail source.
+* Sup does in general not play nicely with other mail clients, not all
+  changes can be synced back to the mail source. Refer to [Maildir Syncback][maildir-syncback]
+  in the wiki for this recently included feature. Maildir Syncback
+  allows you to sync back flag changes in messages and to write messages
+  to maildir sources.
 
 * Unix-centrism in MIME attachment handling and in sendmail invocation.
 
@@ -68,3 +72,4 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 [ruby20]: https://github.com/sup-heliotrope/sup/wiki/Development#sup-014
 [sup-talk]: http://rubyforge.org/mailman/listinfo/sup-talk
 [sup-devel]: http://rubyforge.org/mailman/listinfo/sup-devel
+[maildir-syncback]: https://github.com/sup-heliotrope/sup/wiki/Using-sup-with-other-clients

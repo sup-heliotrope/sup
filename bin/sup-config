@@ -88,6 +88,8 @@ def add_source
     usual = axe_yes "Does this source ever receive new messages?", "y"
     archive = usual ? axe_yes("Should new messages be automatically archived? (I.e. not appear in your inbox, though still be accessible via search.)") : false
 
+    sync_back = (type == :maildir) ? axe_yes("Should the original Maildir messages be modified to reflect changes like read status, starred messages, etc.?", "y") : false
+
     labels_str = axe("Enter any labels to be automatically added to all messages from this source, separated by spaces (or 'none')", default_labels.join(","))
 
     labels = if labels_str =~ /^\s*none\s*$/i
@@ -99,6 +101,7 @@ def add_source
     cmd = build_cmd "sup-add"
     cmd += " --unusual" unless usual
     cmd += " --archive" if archive
+    cmd += " --no-sync-back" unless sync_back
     cmd += " --labels=#{labels.join(',')}" if labels && !labels.empty?
     cmd += " #{uri}"
 

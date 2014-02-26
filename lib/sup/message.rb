@@ -263,9 +263,9 @@ class Message
         message_to_chunks rmsg
       rescue SourceError, SocketError, RMail::EncodingUnsupportedError => e
         warn "problem reading message #{id}"
-        [Chunk::Text.new(error_message.split("\n"))]
-
         debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
+
+        [Chunk::Text.new(error_message.split("\n"))]
       end
   end
 
@@ -289,6 +289,32 @@ EOS
 
   def each_raw_message_line &b
     location.each_raw_message_line &b
+  end
+
+  def sync_back
+    @locations.map { |l| l.sync_back @labels, self }.any? do
+      UpdateManager.relay self, :updated, self
+    end
+  end
+
+  def merge_labels_from_locations merge_labels
+    ## Get all labels from all locations
+    location_labels = Set.new([])
+
+    @locations.each do |l|
+      if l.valid?
+        location_labels = location_labels.union(l.labels?)
+      end
+    end
+
+    ## Add to the message labels the intersection between all location
+    ## labels and those we want to merge
+    location_labels = location_labels.intersection(merge_labels.to_set)
+
+    if not location_labels.empty?
+      @labels = @labels.union(location_labels)
+      @dirty = true
+    end
   end
 
   ## returns all the content from a message that will be indexed
@@ -471,13 +497,21 @@ private
       ## they have no MIME multipart and just set the body content type to
       ## application/pgp. this handles that.
       ##
-      ## TODO: unduplicate code between here and multipart_encrypted_to_chunks
+      ## TODO 1: unduplicate code between here and
+      ##         multipart_encrypted_to_chunks
+      ## TODO 2: this only tries to decrypt. it cannot handle inline PGP
       notice, sig, decryptedm = CryptoManager.decrypt m.body
       if decryptedm # managed to decrypt
         children = message_to_chunks decryptedm, true
         [notice, sig].compact + children
       else
-        [notice]
+        ## try inline pgp signed
+      	chunks = inline_gpg_to_chunks m.body, $encoding, (m.charset || $encoding)
+        if chunks
+          chunks
+        else
+          [notice]
+        end
       end
     else
       filename =
@@ -545,10 +579,19 @@ private
   ## (and possible signed) inline GPG messages
   def inline_gpg_to_chunks body, encoding_to, encoding_from
     lines = body.split("\n")
+
+    # First case: Message is enclosed between
+    #
+    # -----BEGIN PGP SIGNED MESSAGE-----
+    # and
+    # -----END PGP SIGNED MESSAGE-----
+    #
+    # In some cases, END PGP SIGNED MESSAGE doesn't appear
+    # (and may leave strange -----BEGIN PGP SIGNATURE----- ?)
     gpg = lines.between(GPG_SIGNED_START, GPG_SIGNED_END)
     # between does not check if GPG_END actually exists
     # Reference: http://permalink.gmane.org/gmane.mail.sup.devel/641
-    if !gpg.empty? && !lines.index(GPG_END).nil?
+    if !gpg.empty?
       msg = RMail::Message.new
       msg.body = gpg.join("\n")
 
@@ -560,13 +603,20 @@ private
       before = startidx != 0 ? lines[0 .. startidx-1] : []
       after = endidx ? lines[endidx+1 .. lines.size] : []
 
+      # sig contains BEGIN PGP SIGNED MESSAGE and END PGP SIGNATURE, so
+      # we ditch them. sig may also contain the hash used by PGP (with a
+      # newline), so we also skip them
+      sig_start = sig[1].match(/^Hash:/) ? 3 : 1
+      sig_end = sig.size-2
       payload = RMail::Message.new
-      payload.body = sig[1, sig.size-2].join("\n")
+      payload.body = sig[sig_start, sig_end].join("\n")
       return [text_to_chunks(before, false),
               CryptoManager.verify(nil, msg, false),
               message_to_chunks(payload),
               text_to_chunks(after, false)].flatten.compact
     end
+
+    # Second case: Message is encrypted
 
     gpg = lines.between(GPG_START, GPG_END)
     # between does not check if GPG_END actually exists
@@ -704,6 +754,24 @@ class Location
     source.raw_message info
   end
 
+  def sync_back labels, message
+    synced = false
+    return synced unless sync_back_enabled? and valid?
+    source.synchronize do
+      new_info = source.sync_back(@info, labels)
+      if new_info
+        @info = new_info
+        Index.sync_message message, true
+        synced = true
+      end
+    end
+    synced
+  end
+
+  def sync_back_enabled?
+    source.respond_to? :sync_back and $config[:sync_back_to_maildir] and source.sync_back_enabled?
+  end
+
   ## much faster than raw_message
   def each_raw_message_line &b
     source.each_raw_message_line info, &b
@@ -715,6 +783,10 @@ class Location
 
   def valid?
     source.valid? info
+  end
+
+  def labels?
+    source.labels? info
   end
 
   def == o
