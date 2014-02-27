@@ -239,7 +239,7 @@ EOS
           else hookcmd
           end + ' ' + to.map { |t| t.email }.join(' ')
 
-    bt = to.size > 1 ? "#{to.size} recipients" : to.to_s
+    bt = to.size > 1 ? "#{to.size} recipients" : to[0].to_s
 
     if BufferManager.ask_yes_or_no "Really bounce to #{bt}?"
       debug "bounce command: #{cmd}"

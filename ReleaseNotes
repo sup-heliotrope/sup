@@ -1,3 +1,14 @@
+Release *:
+
+Removed unfinished and abandoned sup-sync-back-mbox.
+
+Safer mime-view attachment file name handling, a temp file name is used
+while the extension is only used if it is alphanumeric.
+
+Release 0.15.4:
+
+Bugfixes.
+
 Release 0.15.3:
 
 Revert non-functioning hidden_alternates option and fix bugs.
