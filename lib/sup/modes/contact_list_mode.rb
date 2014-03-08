@@ -130,7 +130,7 @@ protected
   def text_for_contact p
     aalias = ContactManager.alias_for(p) || ""
     [[:tagged_color, @tags.tagged?(p) ? ">" : " "],
-     [:none, sprintf("%-#{@awidth}s %-#{@nwidth}s %s", aalias, p.name, p.email)]]
+     [:text_color, sprintf("%-#{@awidth}s %-#{@nwidth}s %s", aalias, p.name, p.email)]]
   end
 
   def regen_text
