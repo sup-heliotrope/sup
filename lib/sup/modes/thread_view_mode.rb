@@ -692,6 +692,15 @@ EOS
     end
   end
 
+
+  def status
+    user_labels = @thread.labels.to_a.map do |l|
+      l.to_s if LabelManager.user_defined_labels.member?(l)
+    end.compact.join(",")
+    user_labels = (user_labels.empty? and "" or "<#{user_labels}>")
+    [user_labels, super].join(" -- ")
+  end
+
 private
 
   def initial_state_for m
