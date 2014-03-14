@@ -54,7 +54,7 @@ class Source
   ## Examples for you to look at: mbox.rb and maildir.rb.
 
   bool_accessor :usual, :archived
-  attr_reader :uri, :usual
+  attr_reader :uri, :syncable, :usual
   attr_accessor :id
 
   def initialize uri, usual=true, archived=false, id=nil
@@ -64,6 +64,11 @@ class Source
     @usual = usual
     @archived = archived
     @id = id
+
+    # is the message state updated in the source (meaning that we can trust the
+    # message state that comes back from the source). in case a message exists
+    # in several locations they might interfere with each other.
+    @syncable = false
 
     @poll_lock = Monitor.new
   end

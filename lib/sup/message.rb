@@ -292,8 +292,48 @@ EOS
   end
 
   def sync_back
-    @locations.map { |l| l.sync_back @labels, self }.any? do
-      UpdateManager.relay self, :updated, self
+    debug "message: syncing back: #{@id}"
+
+    source_ids_done = [] # we only want to sync one location from each maildirroot
+                         # source for this message.
+
+    if $config[:sync_back_to_maildir]
+      syncable_locations = @locations.select { |l| l.source.syncable }
+      dirty = false
+
+      syncable_locations.each do |l|
+        debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
+
+        unless @locations.member? l
+          debug "message: location no longer exists for message, skipping."
+          next
+        end
+
+        if l.source.kind_of? MaildirRoot
+          if source_ids_done.member? l.source.id
+            debug "message: already synced for this source."
+            next
+          end
+          source_ids_done << l.source.id
+        else
+          fail "not supported!"
+        end
+
+        if l.valid?
+          locations = l.sync_back @labels, self
+          if locations != false
+            @locations = locations
+            debug "message: new locations: #{@locations.inspect}"
+            dirty = true
+          end
+        end
+
+      end
+
+      if dirty
+        Index.sync_message self, true, false
+        UpdateManager.relay self, :updated, self
+      end
     end
   end
 
@@ -755,17 +795,11 @@ class Location
   end
 
   def sync_back labels, message
-    synced = false
-    return synced unless sync_back_enabled? and valid?
+    locations = false
     source.synchronize do
-      new_info = source.sync_back(@info, labels)
-      if new_info
-        @info = new_info
-        Index.sync_message message, true
-        synced = true
-      end
+      locations = source.sync_back(@info, labels, message)
     end
-    synced
+    return locations
   end
 
   def sync_back_enabled?

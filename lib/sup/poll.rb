@@ -171,7 +171,7 @@ EOS
                 numi += 1
               end
             end
-          else fail
+          else fail "unknown action"
           end
         end
         msg += "Found #{num} messages, #{numi} to inbox. " unless num == 0
@@ -208,45 +208,99 @@ EOS
             m.labels.delete :unread if source.read?
             m.labels.delete :unread if m.source_marked_read? # preserve read status if possible
             m.labels.each { |l| LabelManager << l }
-            m.labels = old_m.labels + (m.labels - [:unread, :inbox]) if old_m
+
+            # syncable sources need to handle special labels
+            m.labels = old_m.labels + (m.labels - (source.syncable ? [] : [:unread, :inbox])) if old_m
+
             m.locations = old_m.locations + m.locations if old_m
             HookManager.run "before-add-message", :message => m
             yield :add, m, old_m, args[:progress] if block_given?
-            Index.sync_message m, true
 
             if Index.message_joining_killed? m
               m.labels += [:killed]
-              Index.sync_message m, true
             end
 
-            ## We need to add or unhide the message when it either did not exist
-            ## before at all or when it was updated. We do *not* add/unhide when
-            ## the same message was found at a different location
+            if source.kind_of? MaildirRoot
+              m = source.ensure_in_archive m
+            end
+
+            Index.sync_message m, true, false
+
             if old_m
+              # if a message has been modified send the :updated signal
+              # so that existing listed messages can be updated with
+              # new labels, etc.
               UpdateManager.relay self, :updated, m
-            elsif !old_m or not old_m.locations.member? m.location
+            else
               UpdateManager.relay self, :added, m
             end
+
           when :delete
             Index.each_message({:location => [source.id, args[:info]]}, false) do |m|
               m.locations.delete Location.new(source, args[:info])
-              Index.sync_message m, false
+              Index.sync_message m, false, false
+
+              # if all locations have been removed delete message from index
               if m.locations.size == 0
                 yield :delete, m, [source,args[:info]], args[:progress] if block_given?
                 Index.delete m.id
                 UpdateManager.relay self, :location_deleted, m
               end
             end
+
           when :update
             Index.each_message({:location => [source.id, args[:old_info]]}, false) do |m|
               old_m = Index.build_message m.id
               m.locations.delete Location.new(source, args[:old_info])
-              m.locations.push Location.new(source, args[:new_info])
-              ## Update labels that might have been modified remotely
+
+              # for Maildirs and MaildirRoot (or other future sources that support it)
+              if args.has_key? :new_info
+                # add new_info if it is provided: if it is not, a location
+                # has been removed and the message should be updated.
+                m.locations.push Location.new(source, args[:new_info])
+              end
+
+              # update labels that might have been modified remotely
+              # and has been re-calculated (maildir flags).
               m.labels -= source.supported_labels?
+
+              debug "Updating #{args[:old_info]}, labels: #{m.labels.inspect}"
+
+              # for MaildirRoot (or other future sources that support it)
+              if args.has_key? :remove_labels
+                debug "removing labels: #{args[:remove_labels]}"
+                # check if remove_labels should be applied, if another
+                # source says it should stay we leave it
+                args[:remove_labels].each do |label_to_remove|
+                  if source.really_remove? m, label_to_remove
+                    m.labels.delete label_to_remove
+                  else
+                    debug "#{args[:old_info]}: another source for: #{label_to_remove} exists, we will not remove label."
+                  end
+                end
+              end
+
               m.labels += args[:labels]
+
+              # :update's that should be :delete's
+              if m.locations.size == 0
+                if source.really_delete? m
+                  debug ":update: no more locations, deleting message."
+                  yield :delete, m, [source,args[:old_info]] if block_given?
+                  Index.delete m.id
+                  UpdateManager.relay self, :location_deleted, m
+                  next
+                end
+              else
+                # since this is not a :delete, check if MaildirRoot and whether
+                # it is in archive:
+                if source.kind_of? MaildirRoot
+                  m = source.ensure_in_archive m
+                end
+              end
+
               yield :update, m, old_m if block_given?
-              Index.sync_message m, true
+              Index.sync_message m, true, false
               UpdateManager.relay self, :updated, m
             end
           end

@@ -26,6 +26,10 @@ For Maildir folders, use the form:
     maildir:<path to Maildir directory>; or
     maildir://<path to Maildir directory>
 
+For Maildir root folders, use:
+    maildirroot:<path to Maildir root directory>; or
+    maildirroot://<path to Maildir root directory>
+
 Options are:
 EOS
   opt :archive, "Automatically archive all new messages from these sources."
@@ -100,7 +104,9 @@ begin
     source =
       case parsed_uri.scheme
       when "maildir"
-        Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], $opts[:sync_back], nil, labels
+        Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], nil, labels
+      when "maildirroot"
+        Redwood::MaildirRoot.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when "mbox"
         Redwood::MBox.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when nil

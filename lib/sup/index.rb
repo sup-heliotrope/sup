@@ -132,6 +132,7 @@ EOS
     @enquire.docid_order = Xapian::Enquire::ASCENDING
   end
 
+  # aliases for sync_message
   def add_message m; sync_message m, true end
   def update_message m; sync_message m, true end
   def update_message_state m; sync_message m[0], false, m[1] end
@@ -541,6 +542,7 @@ EOS
 
   def save_thread t, sync_back = true
     t.each_dirty_message do |m|
+      debug "index: saving message: #{m.id}"
       save_message m, sync_back
     end
   end

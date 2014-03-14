@@ -12,6 +12,7 @@ class Maildir < Source
   def initialize uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
+    @syncable     = true
     uri = URI(@expanded_uri)
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
@@ -84,11 +85,21 @@ class Maildir < Source
     with_file_for(id) { |f| RMail::Parser.read f }
   end
 
-  def sync_back id, labels
+  def sync_back id, labels, msg
+    return false unless $config[:sync_back_to_maildir] and valid? id
     synchronize do
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
-      maildir_mark_file id, flags
+      new_info = maildir_mark_file id, flags
+
+      if new_info
+        msg.locations.delete Location.new(self, id)
+        msg.locations.push   Location.new(self, new_info)
+        return msg.locations
+      else
+        return false
+      end
+
     end
   end
 
