@@ -92,7 +92,7 @@ protected
 
   def cursor_down
     call_load_more_callbacks buffer.content_height if @curpos >= lines - [buffer.content_height/2,1].max
-    return false unless @curpos < lines - 3
+    return false unless @curpos < lines - 1
 
     if @curpos == botline - 3
       # load more lines, one at a time.
