@@ -94,9 +94,16 @@ protected
     call_load_more_callbacks buffer.content_height if @curpos >= lines - [buffer.content_height/2,1].max
     return false unless @curpos < lines - 1
 
-    if @curpos >= botline - 1
-      page_down
-      set_cursor_pos topline
+    if @curpos == botline - 3
+      # load more lines, one at a time.
+      jump_to_line topline + 1
+      @curpos += 1
+      unless buffer.dirty?
+        draw_line @curpos - 1
+        draw_line @curpos
+        set_status
+        buffer.commit
+      end
     else
       @curpos += 1
       unless buffer.dirty?
@@ -111,10 +118,15 @@ protected
 
   def cursor_up
     return false unless @curpos > @cursor_top
-    if @curpos == topline
-      old_topline = topline
-      page_up
-      set_cursor_pos [old_topline - 1, topline].max
+    if @curpos == topline + 3
+      jump_to_line topline - 1
+      @curpos -= 1
+      unless buffer.dirty?
+        draw_line @curpos + 1
+        draw_line @curpos
+        set_status
+        buffer.commit
+      end
     else
       @curpos -= 1
       unless buffer.dirty?
