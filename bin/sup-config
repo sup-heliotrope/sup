@@ -48,6 +48,7 @@ def add_source
     menu.prompt = "What type of mail source is it? "
     menu.choice("mbox file") { type = :mbox }
     menu.choice("maildir directory") { type = :maildir }
+    menu.choice("maildirroot directory") { type = :maildirroot }
     menu.choice("Get me out of here!") { return }
   end
 
@@ -57,20 +58,46 @@ def add_source
     default_labels, components = case type
     when :mbox
       $last_fn ||= ENV["MAIL"]
-      fn = axe "What's the full path to the mbox file?", $last_fn
-      return if fn.nil? || fn.empty?
+
+      while true do
+        fn = axe "What's the full path to the mbox file?", $last_fn
+        return if fn.nil? || fn.empty?
+        break if File.exists?(fn)
+        say "#{fn} doesn't seem to exist. Care to try that again?"
+      end
 
       $last_fn = fn
       [Redwood::MBox.suggest_labels_for(fn),
        { :scheme => "mbox", :path => fn }]
     when :maildir
       $last_fn ||= ENV["MAIL"]
-      fn = axe "What's the full path to the maildir directory?", $last_fn
-      return if fn.nil? || fn.empty?
+
+      while true do
+        fn = axe "What's the full path to the maildir file?", $last_fn
+        return if fn.nil? || fn.empty?
+        break if File.directory?(fn)
+        say "#{fn} doesn't seem to exist. Care to try that again?"
+      end
 
       $last_fn = fn
       [Redwood::Maildir.suggest_labels_for(fn),
        { :scheme => "maildir", :path => fn }]
+
+    when :maildirroot
+      $last_fn ||= ENV["MAIL"]
+
+      while true do
+        fn = axe "What's the full path to the maildir-root file?", $last_fn
+        return if fn.nil? || fn.empty?
+        break if File.directory?(fn)
+        say "#{fn} doesn't seem to exist. Care to try that again?"
+      end
+
+
+      $last_fn = fn
+      [Redwood::MaildirRoot.suggest_labels_for(fn),
+       { :scheme => "maildirroot", :path => fn }]
+
     end
 
     uri = begin
