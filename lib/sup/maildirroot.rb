@@ -196,9 +196,13 @@ class MaildirRoot < Source
         next if prev_ctime >= ctime
         @ctimes[d] = ctime
 
-        old_ids = benchmark(:maildirsub_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, File.join(@label.to_s,d,'/')).to_a }
+        old_ids = benchmark(:maildirsub_read_index) do
+          Index.instance.enum_for(:each_source_info, @maildirroot.id, File.join(@label.to_s,d,'/')).to_a
+        end
 
-        new_ids = benchmark(:maildirsub_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s, d, File.basename(x)) }.sort }
+        new_ids = benchmark(:maildirsub_read_dir) do
+          Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s, d, File.basename(x)) }.sort
+        end
 
         #debug "old_ids: #{old_ids.inspect}"
         #debug "new_ids: #{new_ids.inspect}"
