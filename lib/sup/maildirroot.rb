@@ -103,7 +103,8 @@ class MaildirRoot < Source
     Dir.new(@root).entries.select { |e|
       File.directory? File.join(@root,e) and e != '.' and e != '..' and !@all_special_folders.member? e
     }.each { |d|
-      @maildirs.push MaildirSub.new(self, @root, d, :generic)
+      maybe_maildir = MaildirSub.new(self, @root, d, :generic)
+      @maildirs.push maybe_maildir if maybe_maildir.valid_maildir?
     }
 
     @special_maildirs  = [@inbox, @sent, @drafts, @spam, @trash]
