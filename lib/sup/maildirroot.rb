@@ -127,6 +127,8 @@ class MaildirRoot < Source
       #       a disk representation.
       @label  = (@type == :generic) ? dir.to_sym : @type.to_sym
 
+      ensure_maildir unless @type == :generic
+
       # todo: some folders in the gmail case are synced remotely
       #       automatically. specifically the 'starred' where it
       #       suffices to add the 'F' flag to the maildir file.
@@ -142,6 +144,15 @@ class MaildirRoot < Source
 
     def to_s
       "MaildirSub (#{@label})"
+    end
+
+    def ensure_maildir
+      return if File.directory? @dir
+      Dir.mkdir_p @dir, 0700
+      ['cur', 'new', 'tmp'].each do |sub|
+        next if File.directory?(File.join(@dir, sub))
+        Dir.mkdir(File.join(@dir, sub), 0700)
+      end
     end
 
     def valid_maildir?
