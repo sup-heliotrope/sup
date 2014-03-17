@@ -272,7 +272,7 @@ class Message
 
         parse_header rmsg
         message_to_chunks rmsg
-      rescue SourceError, SocketError => e
+      rescue SourceError, SocketError, Mail::UnknownEncodingType => e
         warn "problem reading message #{id}"
         debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
 
