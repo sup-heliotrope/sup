@@ -15,7 +15,7 @@ class Person
       name.gsub('\\\\', '\\')
     end
 
-    @email = email.strip.gsub(/\s+/, " ").downcase
+    @email = email.strip.gsub(/\s+/, " ")
   end
 
   def to_s; "#@name <#@email>" end
