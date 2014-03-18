@@ -1,6 +1,7 @@
 language: ruby
 
 rvm:
+  - 2.1.1
   - 2.1.0
   - 2.0.0
   - 1.9.3
@@ -10,7 +11,3 @@ before_install:
   - sudo apt-get install -qq uuid-dev uuid libncursesw5-dev libncursesw5 gnupg2
 
 script: bundle exec rake travis
-
-matrix:
-  allow_failures:
-    - rvm: 2.1.0
