@@ -3,7 +3,7 @@ require "test_helper"
 require "sup"
 require "psych"
 
-if RUBY_VERSION <= "2.1"
+if RUBY_VERSION < "2.1"
 describe "Sup's YAML util" do
   describe "Module#yaml_properties" do
     def build_class_with_name name, &b
