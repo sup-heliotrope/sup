@@ -392,6 +392,7 @@ class MaildirRoot < Source
   def valid? id
     return false if id == nil
     id = get_real_id id
+    return false if id == nil
     fn = File.join(@root, id)
     File.exists? fn
   end
@@ -435,6 +436,7 @@ class MaildirRoot < Source
   # return id with label translated to real path of id
   def get_real_id id
     m  = maildirsub_from_info id
+    return unless m
     id = id.gsub(/^#{m.label.to_s}/, m.basedir)
   end
 
