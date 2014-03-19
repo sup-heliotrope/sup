@@ -5,6 +5,9 @@ Removed unfinished and abandoned sup-sync-back-mbox.
 Safer mime-view attachment file name handling, a temp file name is used
 while the extension is only used if it is alphanumeric.
 
+The migration script for YAML documents is now deprecated for ruby > 2.1
+and will be removed in the future.
+
 Release 0.15.4:
 
 Bugfixes.
