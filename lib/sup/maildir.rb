@@ -119,7 +119,6 @@ class Maildir < Source
       next if prev_ctime >= ctime
       @ctimes[d] = ctime
 
-      debug subdir
       old_ids = benchmark(:maildir_read_index) { Index.instance.enum_for(:each_source_info, self.id, "#{d}/").to_a }
       new_ids = benchmark(:maildir_read_dir) {
         Dir.new("#{subdir}").entries.flat_map { |x| 
