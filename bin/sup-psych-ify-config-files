@@ -5,6 +5,11 @@ $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 require "sup"
 require "fileutils"
 
+if RUBY_VERSION >= "2.1"
+  puts "YAML migration is deprecated by Ruby 2.1 and newer."
+  exit
+end
+
 Redwood.start
 
 fn = Redwood::SOURCE_FN

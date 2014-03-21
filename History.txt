@@ -1,3 +1,11 @@
+== 0.16.0 / 2014-03-21
+
+* sup-sync-back-mbox removed.
+* safer mime-view attachment file name handling
+* show thread labels in thread-view-mode
+* remove lock file if there is no sup alive
+* deprecate migration script on ruby > 2.1
+
 == 0.15.4 / 2014-02-06
 
 * Various bugfixes
