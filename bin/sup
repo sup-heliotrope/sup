@@ -4,8 +4,9 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'rubygems'
-
 require 'ncursesw'
+
+require 'sup/util/ncurses'
 
 no_gpgme = false
 begin
@@ -136,6 +137,7 @@ def start_cursing
   Ncurses.use_default_colors
   Ncurses.curs_set 0
   Ncurses.start_color
+  Ncurses.prepare_form_driver
   $cursing = true
 end
 
@@ -153,6 +155,7 @@ Index.lock_interactively or exit
 begin
   Redwood::start
   Index.load
+  Redwood::check_syncback_settings
   Index.start_sync_worker unless $opts[:no_threads]
 
   $die = false
@@ -235,14 +238,14 @@ begin
 
   until Redwood::exceptions.nonempty? || $die
     c = begin
-      Ncurses.nonblocking_getch
+      Ncurses::CharCode.get false
     rescue Interrupt
       raise if BufferManager.ask_yes_or_no "Die ungracefully now?"
       BufferManager.draw_screen
-      nil
+      Ncurses::CharCode.empty
     end
 
-    if c.nil?
+    if c.empty?
       if BufferManager.sigwinch_happened?
         debug "redrawing screen on sigwinch"
         BufferManager.completely_redraw_screen
@@ -252,7 +255,7 @@ begin
 
     IdleManager.ping
 
-    if c == 410
+    if c.is_keycode? 410
       ## this is ncurses's way of telling us it's detected a refresh.
       ## since we have our own sigwinch handler, we don't do anything.
       next
@@ -293,7 +296,7 @@ begin
       b.mode.load_in_background if new
     when :search
       completions = LabelManager.all_labels.map { |l| "label:#{LabelManager.string_for l}" }
-      completions = completions.each { |l| l.fix_encoding }
+      completions = completions.each { |l| l.fix_encoding! }
       completions += Index::COMPL_PREFIXES
       query = BufferManager.ask_many_with_completions :search, "Search all messages (enter for saved searches): ", completions
       unless query.nil?
@@ -307,7 +310,7 @@ begin
       SearchResultsMode.spawn_from_query "is:unread"
     when :list_labels
       labels = LabelManager.all_labels.map { |l| LabelManager.string_for l }
-      labels = labels.each { |l| l.fix_encoding }
+      labels = labels.each { |l| l.fix_encoding! }
 
       user_label = bm.ask_with_completions :label, "Show threads with label (enter for listing): ", labels
       unless user_label.nil?
@@ -375,7 +378,7 @@ ensure
     Index.stop_lock_update_thread
   end
 
-  HookManager.run "shutdown"
+  HookManager.run "shutdown" if HookManager.instantiated?
 
   Index.stop_sync_worker
   Redwood::finish

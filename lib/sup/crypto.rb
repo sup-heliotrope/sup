@@ -129,7 +129,6 @@ EOS
     gpg_opts.merge!(gen_sign_user_opts(from))
     gpg_opts = HookManager.run("gpg-options",
                                {:operation => "sign", :options => gpg_opts}) || gpg_opts
-
     begin
       if GPGME.respond_to?('detach_sign')
         sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
@@ -262,7 +261,11 @@ EOS
       plain_data = nil
     else
       signed_text_data = nil
-      plain_data = GPGME::Data.empty
+      if GPGME::Data.respond_to?('empty')
+        plain_data = GPGME::Data.empty
+      else
+        plain_data = GPGME::Data.empty!
+      end
     end
     begin
       ctx.verify(sig_data, signed_text_data, plain_data)
@@ -341,7 +344,7 @@ EOS
       msg = RMail::Parser.read output
       if msg.header.content_type =~ %r{^multipart/} && !msg.multipart?
         output = "MIME-Version: 1.0\n" + output
-        output.fix_encoding
+        output.fix_encoding!
         msg = RMail::Parser.read output
       end
     end
@@ -440,16 +443,18 @@ private
   # if    gpgkey set for this account, then use that
   # elsif only one account,            then leave blank so gpg default will be user
   # else                                    set --local-user from_email_address
+  # NOTE: multiple signers doesn't seem to work with gpgme (2.0.2, 1.0.8)
+  #       
   def gen_sign_user_opts from
     account = AccountManager.account_for from
     account ||= AccountManager.default_account
     if !account.gpgkey.nil?
-      opts = {:signers => account.gpgkey}
+      opts = {:signer => account.gpgkey}
     elsif AccountManager.user_emails.length == 1
       # only one account
       opts = {}
     else
-      opts = {:signers => from}
+      opts = {:signer => from}
     end
     opts
   end

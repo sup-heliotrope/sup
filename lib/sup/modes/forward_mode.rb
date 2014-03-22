@@ -69,6 +69,14 @@ protected
       m.quotable_header_lines + [""] + m.quotable_body_lines +
       ["--- End forwarded message ---"]
   end
+
+  def send_message
+    return unless super # super returns true if the mail has been sent
+    if @m
+      @m.add_label :forwarded
+      Index.save_message @m
+    end
+  end
 end
 
 end

@@ -2,6 +2,7 @@
 
 require 'tempfile'
 require 'rbconfig'
+require 'shellwords'
 
 ## Here we define all the "chunks" that a message is parsed
 ## into. Chunks are used by ThreadViewMode to render a message. Chunks
@@ -77,6 +78,7 @@ Return value:
   The decoded text of the attachment, or nil if not decoded.
 EOS
 
+
     HookManager.register "mime-view", <<EOS
 Views a non-text MIME attachment. This hook allows you to run
 third-party programs for attachments that require such a thing (e.g.
@@ -102,8 +104,18 @@ EOS
     attr_reader :content_type, :filename, :lines, :raw_content
     bool_reader :quotable
 
+    ## store tempfile objects as class variables so that they
+    ## are not removed when the viewing process returns. they
+    ## should be garbage collected when the class variable is removed.
+    @@view_tempfiles = []
+
     def initialize content_type, filename, encoded_content, sibling_types
       @content_type = content_type.downcase
+      if Shellwords.escape(@content_type) != @content_type
+        warn "content_type #{@content_type} is not safe, changed to application/octet-stream"
+        @content_type = 'application/octet-stream'
+      end
+
       @filename = filename
       @quotable = false # changed to true if we can parse it through the
                         # mime-decode hook, or if it's plain text
@@ -113,15 +125,21 @@ EOS
       when /^text\/plain\b/
         @raw_content
       else
-        HookManager.run "mime-decode", :content_type => content_type,
+        HookManager.run "mime-decode", :content_type => @content_type,
                         :filename => lambda { write_to_disk },
                         :sibling_types => sibling_types
       end
 
       @lines = nil
       if text
-        text = text.transcode(encoded_content.encoding || $encoding, text.encoding)
-        @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+        text = text.transcode(encoded_content.charset || $encoding, text.encoding)
+        begin
+          @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+        rescue Encoding::CompatibilityError
+          @lines = text.fix_encoding!.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+          debug "error while decoding message text, falling back to default encoding, expect errors in encoding: #{text.fix_encoding!}"
+        end
+
         @quotable = true
       end
     end
@@ -145,9 +163,9 @@ EOS
     def view_default! path
       case RbConfig::CONFIG['arch']
         when /darwin/
-          cmd = "open '#{path}'"
+          cmd = "open #{path}"
         else
-          cmd = "/usr/bin/run-mailcap --action=view '#{@content_type}:#{path}'"
+          cmd = "/usr/bin/run-mailcap --action=view #{@content_type}:#{path}"
       end
       debug "running: #{cmd.inspect}"
       BufferManager.shell_out(cmd)
@@ -155,17 +173,36 @@ EOS
     end
 
     def view!
-      path = write_to_disk
-      ret = HookManager.run "mime-view", :content_type => @content_type,
-                                         :filename => path
-      ret || view_default!(path)
+      write_to_disk do |path|
+        ret = HookManager.run "mime-view", :content_type => @content_type,
+                                           :filename => path
+        ret || view_default!(path)
+      end
     end
 
     def write_to_disk
-      file = Tempfile.new(["sup", @filename.gsub("/", "_") || "sup-attachment"])
-      file.print @raw_content
-      file.close
-      file.path
+      begin
+        # Add the original extension to the generated tempfile name only if the
+        # extension is "safe" (won't be interpreted by the shell).  Since
+        # Tempfile.new always generates safe file names this should prevent
+        # attacking the user with funny attachment file names.
+        tempname = if (File.extname @filename) =~ /^\.[[:alnum:]]+$/ then
+                     ["sup-attachment", File.extname(@filename)]
+                   else
+                     "sup-attachment"
+                   end
+
+        file = Tempfile.new(tempname)
+        file.print @raw_content
+        file.flush
+
+        @@view_tempfiles.push file # make sure the tempfile is not garbage collected before sup stops
+
+        yield file.path if block_given?
+        return file.path
+      ensure
+        file.close
+      end
     end
 
     ## used when viewing the attachment as text
@@ -225,7 +262,7 @@ EOS
   class EnclosedMessage
     attr_reader :lines
     def initialize from, to, cc, date, subj
-      @from = from ? "unknown sender" : from.full_adress
+      @from = from ? "unknown sender" : from.full_address
       @to = to ? "" : to.map { |p| p.full_address }.join(", ")
       @cc = cc ? "" : cc.map { |p| p.full_address }.join(", ")
       if date

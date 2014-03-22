@@ -174,7 +174,7 @@ class Container
 
   def each_with_stuff parent=nil
     yield self, 0, parent
-    @children.each do |c|
+    @children.sort_by(&:sort_key).each do |c|
       c.each_with_stuff(self) { |cc, d, par| yield cc, d + 1, par }
     end
   end
@@ -240,6 +240,10 @@ class Container
     f.puts "#{id} #{line}"#[0 .. (105 - indent)]
     indent += 3
     @children.each { |c| c.dump_recursive f, indent, false, self }
+  end
+
+  def sort_key
+    empty? ? [Time.now.to_i, ""] : [@message.date.to_i, @message.id]
   end
 end
 
@@ -387,6 +391,12 @@ class ThreadSet
 
   def is_relevant? m
     m.refs.any? { |ref_id| @messages.member? ref_id }
+  end
+
+  def delete_message message
+    el = @messages[message.id]
+    return unless el.message
+    el.message = nil
   end
 
   ## the heart of the threading code

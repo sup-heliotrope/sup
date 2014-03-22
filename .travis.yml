@@ -10,6 +10,3 @@ before_install:
 
 script: bundle exec rake travis
 
-matrix:
-  allow_failures:
-    - rvm: 2.0.0

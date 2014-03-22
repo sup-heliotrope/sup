@@ -8,6 +8,7 @@ require 'set'
 require 'enumerator'
 require 'benchmark'
 require 'unicode'
+require 'fileutils'
 
 module Mail
   class Message
@@ -75,6 +76,17 @@ class Lockfile
   def touch_yourself; touch path end
 end
 
+class File
+  # platform safe file.link which attempts a copy if hard-linking fails
+  def self.safe_link src, dest
+    begin
+      File.link src, dest
+    rescue
+      FileUtils.copy src, dest
+    end
+  end
+end
+
 class Pathname
   def human_size
     s =
@@ -91,6 +103,99 @@ class Pathname
       ctime.strftime("%Y-%m-%d %H:%M")
     rescue SystemCallError
       "?"
+    end
+  end
+end
+
+## more monkeypatching!
+module RMail
+  class EncodingUnsupportedError < StandardError; end
+
+  class Message
+    def self.make_file_attachment fn
+      bfn = File.basename fn
+      t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first
+      make_attachment IO.read(fn), t.content_type, t.encoding, bfn.to_s
+    end
+
+    def charset
+      if header.field?("content-type") && header.fetch("content-type") =~ /charset="?(.*?)"?(;|$)/i
+        $1
+      end
+    end
+
+    def self.make_attachment payload, mime_type, encoding, filename
+      a = Message.new
+      a.header.add "Content-Disposition", "attachment; filename=#{filename.inspect}"
+      a.header.add "Content-Type", "#{mime_type}; name=#{filename.inspect}"
+      a.header.add "Content-Transfer-Encoding", encoding if encoding
+      a.body =
+        case encoding
+        when "base64"
+          [payload].pack "m"
+        when "quoted-printable"
+          [payload].pack "M"
+        when "7bit", "8bit", nil
+          payload
+        else
+          raise EncodingUnsupportedError, encoding.inspect
+        end
+      a
+    end
+  end
+
+  class Serialize
+    ## Don't add MIME-Version headers on serialization. Sup sometimes want's to serialize
+    ## message parts where these headers are not needed and messing with the message on
+    ## serialization breaks gpg signatures. The commented section shows the original RMail
+    ## code.
+    def calculate_boundaries(message)
+      calculate_boundaries_low(message, [])
+      # unless message.header['MIME-Version']
+      #   message.header['MIME-Version'] = "1.0"
+      # end
+    end
+  end
+
+  class Header
+
+    # Convert to ASCII before trying to match with regexp
+    class Field
+
+      class << self
+        def parse(field)
+          field = field.dup.to_s
+          field = field.fix_encoding!.ascii
+          if field =~ EXTRACT_FIELD_NAME_RE
+            [ $1, $'.chomp ]
+          else
+            [ "", Field.value_strip(field) ]
+          end
+        end
+      end
+    end
+
+    ## Be more cautious about invalid content-type headers
+    ## the original RMail code calls
+    ## value.strip.split(/\s*;\s*/)[0].downcase
+    ## without checking if split returned an element
+
+    # This returns the full content type of this message converted to
+    # lower case.
+    #
+    # If there is no content type header, returns the passed block is
+    # executed and its return value is returned.  If no block is passed,
+    # the value of the +default+ argument is returned.
+    def content_type(default = nil)
+      if value = self['content-type'] and ct = value.strip.split(/\s*;\s*/)[0]
+        return ct.downcase
+      else
+        if block_given?
+          yield
+        else
+          default
+        end
+      end
     end
   end
 end
@@ -191,7 +296,7 @@ end
 
 class String
   def display_length
-    @display_length ||= Unicode.width(self, false)
+    @display_length ||= Unicode.width(self.fix_encoding!, false)
   end
 
   def slice_by_display_length len
@@ -301,7 +406,7 @@ class String
   # user encoding.
   #
   # Not Ruby 1.8 compatible
-  def fix_encoding
+  def fix_encoding!
     # first try to encode to utf-8 from whatever current encoding
     encode!('UTF-8', :invalid => :replace, :undef => :replace)
 
@@ -337,7 +442,7 @@ class String
 
     rescue Encoding::ConverterNotFoundError
       debug "Encoding converter not found for #{from_encoding.inspect} or #{to_encoding.inspect}, fixing string: '#{self.to_s}', but expect weird characters."
-      fix_encoding
+      fix_encoding!
     end
 
     fail "Could not create valid #{to_encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
@@ -346,7 +451,7 @@ class String
   end
 
   def normalize_whitespace
-    fix_encoding
+    fix_encoding!
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
 
@@ -388,7 +493,7 @@ class String
         out << b.chr
       end
     end
-    out = out.fix_encoding # this should now be an utf-8 string of ascii
+    out = out.fix_encoding! # this should now be an utf-8 string of ascii
                            # compat chars.
   end
 

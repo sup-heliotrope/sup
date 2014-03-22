@@ -1,3 +1,64 @@
+Release *:
+
+Removed unfinished and abandoned sup-sync-back-mbox.
+
+Safer mime-view attachment file name handling, a temp file name is used
+while the extension is only used if it is alphanumeric.
+
+Release 0.15.4:
+
+Bugfixes.
+
+Release 0.15.3:
+
+Revert non-functioning hidden_alternates option and fix bugs.
+
+Release 0.15.2:
+
+Use form_driver_w when available. New hidden_alternates option.
+
+Release 0.15.1:
+
+Sort threads last-activity-first and bug fix.
+
+Release 0.15.0:
+
+Maildir Syncback has been included. Refer to the wiki for more information on
+how to set it up.
+
+sup-sync-back has been moved to sup-sync-back-mbox, please make sure
+you make any needed changes.
+
+Release 0.14.1.1:
+
+See 0.13.2.1.
+
+Release 0.13.2.1:
+
+Security advisory (#SBU1) for Sup
+
+We have been notified of an potential exploit in the somewhat careless
+way Sup treats attachment metadata in received e-mails. The issues
+should now be fixed and I have released Sup 0.13.2.1 and 0.14.1.1 which
+incorporates these fixes. Please upgrade immediately and also ensure
+that your mime-decode or mime-view hooks are secure [0], [1].
+
+This is specifically related to using quotes (',") around filename or
+content_type which is already escaped using Ruby Shellwords.escape -
+this means that the string (content_type, filename) is intended to be
+used _without_ any further quotes. Please make sure that if you use
+.mailcap (non OSX systems), you do not quote the string.
+
+Credit goes to: joernchen of Phenoelit (http://phenoelit.de) who
+discovered and suggested fixes for these issues.
+
+[0] https://github.com/sup-heliotrope/sup/wiki/Viewing-Attachments
+[1] https://github.com/sup-heliotrope/sup/wiki/Secure-usage-of-Sup
+
+Release 0.14.1:
+
+Service release to 0.14.0 plus a predefined 'All mail' search.
+
 Release 0.14.0:
 
 CJK-compatability, Psych usage, thread safety, GPGME 2.0 support. Sup is now
