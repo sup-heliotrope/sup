@@ -45,7 +45,7 @@ SUP: If you are upgrading Sup from before version 0.14.0: Please
     s.files = SUP_FILES
     s.executables = SUP_EXECUTABLES
 
-    s.required_ruby_version = '>= 1.9.2'
+    s.required_ruby_version = '>= 1.9.3'
 
     s.add_runtime_dependency "xapian-ruby", "~> 1.2.15"
     s.add_runtime_dependency "ncursesw", "~> 1.4.0"
