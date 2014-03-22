@@ -103,7 +103,8 @@ class MaildirRoot < Source
     Dir.new(@root).entries.select { |e|
       File.directory? File.join(@root,e) and e != '.' and e != '..' and !@all_special_folders.member? e
     }.each { |d|
-      @maildirs.push MaildirSub.new(self, @root, d, :generic)
+      maybe_maildir = MaildirSub.new(self, @root, d, :generic)
+      @maildirs.push maybe_maildir if maybe_maildir.valid_maildir?
     }
 
     @special_maildirs  = [@inbox, @sent, @drafts, @spam, @trash]
@@ -127,6 +128,8 @@ class MaildirRoot < Source
       #       a disk representation.
       @label  = (@type == :generic) ? dir.to_sym : @type.to_sym
 
+      ensure_maildir unless @type == :generic
+
       # todo: some folders in the gmail case are synced remotely
       #       automatically. specifically the 'starred' where it
       #       suffices to add the 'F' flag to the maildir file.
@@ -142,6 +145,19 @@ class MaildirRoot < Source
 
     def to_s
       "MaildirSub (#{@label})"
+    end
+
+    def ensure_maildir
+      return if File.directory? @dir
+
+      check_enable_experimental
+      return unless @maildir_creation_allowed
+
+      Dir.mkdir_p @dir, 0700
+      ['cur', 'new', 'tmp'].each do |sub|
+        next if File.directory?(File.join(@dir, sub))
+        Dir.mkdir(File.join(@dir, sub), 0700)
+      end
     end
 
     def valid_maildir?
@@ -196,9 +212,13 @@ class MaildirRoot < Source
         next if prev_ctime >= ctime
         @ctimes[d] = ctime
 
-        old_ids = benchmark(:maildirsub_read_index) { Enumerator.new(Index.instance, :each_source_info, @maildirroot.id, File.join(@label.to_s,d,'/')).to_a }
+        old_ids = benchmark(:maildirsub_read_index) do
+          Index.instance.enum_for(:each_source_info, @maildirroot.id, File.join(@label.to_s,d,'/')).to_a
+        end
 
-        new_ids = benchmark(:maildirsub_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s, d, File.basename(x)) }.sort }
+        new_ids = benchmark(:maildirsub_read_dir) do
+          Dir.glob("#{subdir}/*").map { |x| File.join(@label.to_s, d, File.basename(x)) }.sort
+        end
 
         #debug "old_ids: #{old_ids.inspect}"
         #debug "new_ids: #{new_ids.inspect}"
@@ -376,6 +396,7 @@ class MaildirRoot < Source
   def valid? id
     return false if id == nil
     id = get_real_id id
+    return false if id == nil
     fn = File.join(@root, id)
     File.exists? fn
   end
@@ -419,6 +440,7 @@ class MaildirRoot < Source
   # return id with label translated to real path of id
   def get_real_id id
     m  = maildirsub_from_info id
+    return unless m
     id = id.gsub(/^#{m.label.to_s}/, m.basedir)
   end
 
