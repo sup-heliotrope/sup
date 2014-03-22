@@ -105,7 +105,7 @@ EOS
     begin
       hostname = File.open("/etc/mailname", "r").gets.chomp
     rescue
-        nil
+      nil
     end
     hostname = Socket.gethostname if hostname.nil? or hostname.empty?
 

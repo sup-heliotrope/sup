@@ -2,7 +2,6 @@
 
 require 'rubygems'
 require 'yaml'
-YAML::ENGINE.yamler = 'psych'
 require 'zlib'
 require 'thread'
 require 'fileutils'
