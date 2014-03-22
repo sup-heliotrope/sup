@@ -342,7 +342,7 @@ EOS
   end
 
   def indexable_body
-    indexable_chunks.map { |c| c.lines.each { |l| l.fix_encoding} }.flatten.compact.join " "
+    indexable_chunks.map { |c| c.lines.each { |l| l.fix_encoding!} }.flatten.compact.join " "
   end
 
   def indexable_chunks
