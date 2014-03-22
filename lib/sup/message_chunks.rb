@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require 'tempfile'
 require 'rbconfig'
 require 'shellwords'
