@@ -297,6 +297,14 @@ end
 class String
   def display_length
     @display_length ||= Unicode.width(self.fix_encoding!, false)
+
+    # if Unicode.width fails and returns -1, fall back to
+    # regular String#length, see pull-request: #256.
+    if @display_length < 0
+      @display_length = self.length
+    end
+
+    @display_length
   end
 
   def slice_by_display_length len

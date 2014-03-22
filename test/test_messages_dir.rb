@@ -105,6 +105,41 @@ class TestMessagesDir < ::Minitest::Unit::TestCase
     # lines should contain an error message
     assert (lines.join.include? "An error occurred while loading this message."), "This message should not load successfully"
   end
+
+  def test_missing_line
+    message = ''
+    File.open 'test/messages/missing-line.eml' do |f|
+      message = f.read
+    end
+
+    source = DummySource.new("sup-test://test_messages")
+    source.messages = [ message ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+    sup_message.load_from_source!
+
+    from = sup_message.from
+    # "from" is just a simple person item
+
+    assert_equal("foo@aol.com", from.email)
+    #assert_equal("Fake Sender", from.name)
+
+    subj = sup_message.subj
+    assert_equal("Encoding bug", subj)
+
+    chunks = sup_message.load_from_source!
+    indexable_chunks = sup_message.indexable_chunks
+
+    # there should be only one chunk
+    #assert_equal(1, chunks.length)
+
+    lines = chunks[0].lines
+
+    badline = lines[0]
+    assert (badline.display_length > 0), "The length of this line should greater than 0: #{badline}"
+
+  end
 end
 
 end

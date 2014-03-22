@@ -20,9 +20,6 @@ Features:
 
 Current limitations:
 
-* [Ruby 2.0 support][ruby20] is very fresh, consider it experimental. Patches
-  are welcome
-
 * Sup does in general not play nicely with other mail clients, not all
   changes can be synced back to the mail source. Refer to [Maildir Syncback][maildir-syncback]
   in the wiki for this recently included feature. Maildir Syncback
