@@ -93,6 +93,30 @@ def add_source
         say "#{fn} doesn't seem to exist. Care to try that again?"
       end
 
+      say <<-EOS
+The maildir-root source requires some folders be present, because they are mapped to special values. These are:
+  - 'inbox': used for mails with the 'inbox' label
+  - 'sent': used for mails with the 'sent' label
+  - 'drafts': used for mails with the 'draft' label (note the plural!)
+  - 'trash': used for mails with the 'trash' label
+  - 'archive': all mails end up in this folder, whatever the label they have.
+      EOS
+
+      special_folders = ['inbox', 'sent', 'drafts', 'trash', 'archive']
+      existing_special = Dir.entries(fn).collect {|n| special_folders.include? n }
+      missing_special = special_folders - existing_special
+
+
+      unless missing_special.empty?
+        missing_special_s = case missing_special.length
+                            when 1; missing_special[0]
+                            when 2; "#{missing_special[0]} and #{missing_special[1]}"
+                            else; "#{missing_special[0..-2].join(", ")} and #{missing_special[-1]}"
+                            end
+
+
+        return unless axe_yes "Oops, looks like you're missing #{missing_special_s} folders. Should I create them for you ?"
+      end
 
       $last_fn = fn
       [Redwood::MaildirRoot.suggest_labels_for(fn),
