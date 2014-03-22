@@ -149,6 +149,10 @@ class MaildirRoot < Source
 
     def ensure_maildir
       return if File.directory? @dir
+
+      check_enable_experimental
+      return unless @maildir_creation_allowed
+
       Dir.mkdir_p @dir, 0700
       ['cur', 'new', 'tmp'].each do |sub|
         next if File.directory?(File.join(@dir, sub))
