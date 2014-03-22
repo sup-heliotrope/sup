@@ -632,7 +632,7 @@ end
 ## classes that inherit this can define initialize. however, you cannot call
 ## .new on the class. To get the instance of the class, call .instance;
 ## to create the instance, call init.
-module Singleton
+module SupSingleton
   module ClassMethods
     def instance; @instance; end
     def instantiated?; defined?(@instance) && !@instance.nil?; end
