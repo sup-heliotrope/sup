@@ -25,7 +25,7 @@ class Account < Person
 end
 
 class AccountManager
-  include Singleton
+  include SupSingleton
 
   attr_accessor :default_account
 

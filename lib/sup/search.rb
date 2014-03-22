@@ -3,7 +3,7 @@
 module Redwood
 
 class SearchManager
-  include Singleton
+  include SupSingleton
 
   class ExpansionError < StandardError; end
 

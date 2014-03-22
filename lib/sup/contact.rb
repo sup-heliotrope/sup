@@ -3,7 +3,7 @@
 module Redwood
 
 class ContactManager
-  include Singleton
+  include SupSingleton
 
   def initialize fn
     @fn = fn
