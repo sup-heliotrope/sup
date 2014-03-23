@@ -94,7 +94,7 @@ protected
     call_load_more_callbacks buffer.content_height if @curpos >= lines - [buffer.content_height/2,1].max
     return false unless @curpos < lines - 1
 
-    if @curpos == botline - 3 and @curpos < lines - 3 and $config[:continuous_scroll]
+    if $config[:continuous_scroll] and (@curpos == botline - 3 and @curpos < lines - 3)
       # load more lines, one at a time.
       jump_to_line topline + 1
       @curpos += 1
@@ -122,7 +122,7 @@ protected
   def cursor_up
     return false unless @curpos > @cursor_top
 
-    if @curpos == topline + 2 and $config[:continuous_scroll]
+    if $config[:continuous_scroll] and (@curpos == topline + 2)
       jump_to_line topline - 1
       @curpos -= 1
       unless buffer.dirty?
