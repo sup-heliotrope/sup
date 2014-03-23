@@ -192,7 +192,7 @@ module SerializeLabelsNicely
 end
 
 class SourceManager
-  include Singleton
+  include SupSingleton
 
   def initialize
     @sources = {}

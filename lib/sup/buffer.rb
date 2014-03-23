@@ -99,7 +99,7 @@ class Buffer
 end
 
 class BufferManager
-  include Singleton
+  include SupSingleton
 
   attr_reader :focus_buf
 
