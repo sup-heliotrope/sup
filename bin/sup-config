@@ -48,6 +48,7 @@ def add_source
     menu.prompt = "What type of mail source is it? "
     menu.choice("mbox file") { type = :mbox }
     menu.choice("maildir directory") { type = :maildir }
+    menu.choice("maildirroot directory") { type = :maildirroot }
     menu.choice("Get me out of here!") { return }
   end
 
@@ -57,20 +58,70 @@ def add_source
     default_labels, components = case type
     when :mbox
       $last_fn ||= ENV["MAIL"]
-      fn = axe "What's the full path to the mbox file?", $last_fn
-      return if fn.nil? || fn.empty?
+
+      while true do
+        fn = axe "What's the full path to the mbox file?", $last_fn
+        return if fn.nil? || fn.empty?
+        break if File.exists?(fn)
+        say "#{fn} doesn't seem to exist. Care to try that again?"
+      end
 
       $last_fn = fn
       [Redwood::MBox.suggest_labels_for(fn),
        { :scheme => "mbox", :path => fn }]
     when :maildir
       $last_fn ||= ENV["MAIL"]
-      fn = axe "What's the full path to the maildir directory?", $last_fn
-      return if fn.nil? || fn.empty?
+
+      while true do
+        fn = axe "What's the full path to the maildir file?", $last_fn
+        return if fn.nil? || fn.empty?
+        break if File.directory?(fn)
+        say "#{fn} doesn't seem to exist. Care to try that again?"
+      end
 
       $last_fn = fn
       [Redwood::Maildir.suggest_labels_for(fn),
        { :scheme => "maildir", :path => fn }]
+
+    when :maildirroot
+      $last_fn ||= ENV["MAIL"]
+
+      while true do
+        fn = axe "What's the full path to the maildir-root file?", $last_fn
+        return if fn.nil? || fn.empty?
+        break if File.directory?(fn)
+        say "#{fn} doesn't seem to exist. Care to try that again?"
+      end
+
+      say <<-EOS
+The maildir-root source requires some folders be present, because they are mapped to special values. These are:
+  - 'inbox': used for mails with the 'inbox' label
+  - 'sent': used for mails with the 'sent' label
+  - 'drafts': used for mails with the 'draft' label (note the plural!)
+  - 'trash': used for mails with the 'trash' label
+  - 'archive': all mails end up in this folder, whatever the label they have.
+      EOS
+
+      special_folders = ['inbox', 'sent', 'drafts', 'trash', 'archive']
+      existing_special = Dir.entries(fn).collect {|n| special_folders.include? n }
+      missing_special = special_folders - existing_special
+
+
+      unless missing_special.empty?
+        missing_special_s = case missing_special.length
+                            when 1; missing_special[0]
+                            when 2; "#{missing_special[0]} and #{missing_special[1]}"
+                            else; "#{missing_special[0..-2].join(", ")} and #{missing_special[-1]}"
+                            end
+
+
+        return unless axe_yes "Oops, looks like you're missing #{missing_special_s} folders. Should I create them for you ?"
+      end
+
+      $last_fn = fn
+      [Redwood::MaildirRoot.suggest_labels_for(fn),
+       { :scheme => "maildirroot", :path => fn }]
+
     end
 
     uri = begin
