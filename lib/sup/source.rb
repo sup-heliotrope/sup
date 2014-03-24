@@ -187,7 +187,7 @@ module SerializeLabelsNicely
 end
 
 class SourceManager
-  include SupSingleton
+  include Redwood::Singleton
 
   def initialize
     @sources = {}
