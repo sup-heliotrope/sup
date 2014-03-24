@@ -3,7 +3,7 @@ require 'thread'
 module Redwood
 
 class IdleManager
-  include SupSingleton
+  include Singleton
 
   IDLE_THRESHOLD = 60
 

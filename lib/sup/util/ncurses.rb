@@ -1,5 +1,6 @@
 require 'ncursesw'
 require 'sup/util'
+require 'sup/singleton'
 
 if defined? Ncurses
 module Ncurses
@@ -116,7 +117,7 @@ module Ncurses
     # Empty singleton that
     # keeps GC from going crazy.
     class Empty < CharCode
-      include SupSingleton
+      include Redwood::Singleton
 
       ## Wrap methods that may change us
       ## and generate new object instead.

@@ -8,7 +8,7 @@ module Redwood
 ## undo the archival action
 
 class UndoManager
-  include SupSingleton
+  include Singleton
 
   def initialize
     @@actionlist = []

@@ -69,7 +69,7 @@ class HookManager
     end
   end
 
-  include SupSingleton
+  include Singleton
 
   @descs = {}
 
