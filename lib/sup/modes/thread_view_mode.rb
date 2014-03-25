@@ -58,6 +58,15 @@ EOS
     state:   either :open or :close (default)
 EOS
 
+  HookManager.register "thread-view-opened", <<EOS
+  Executed when a thread is opened
+
+  Variables:
+    thread: thread object with messages (where they exist)
+  Return value:
+    None.
+EOS
+
   register_keymap do |k|
     k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
@@ -129,6 +138,7 @@ EOS
 
   def initialize thread, hidden_labels=[], index_mode=nil
     super :slip_rows => $config[:slip_rows]
+    HookManager.run "thread-view-opened", :thread => thread
     @thread = thread
     @hidden_labels = hidden_labels
 
