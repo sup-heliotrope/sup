@@ -1,5 +1,3 @@
-require 'shellwords'
-
 module Redwood
 
 class ThreadViewMode < LineCursorMode
@@ -363,12 +361,12 @@ EOS
     when Chunk::Attachment
       default_dir = $config[:default_attachment_save_dir]
       default_dir = ENV["HOME"] if default_dir.nil? || default_dir.empty?
-      default_fn = File.expand_path File.join(default_dir, Shellwords.escape(chunk.filename))
+      default_fn = File.expand_path File.join(default_dir, chunk.filename)
       fn = BufferManager.ask_for_filename :filename, "Save attachment to file or directory: ", default_fn, true
 
       # if user selects directory use file name from message
       if fn and File.directory? fn
-        fn = File.join(fn, Shellwords.escape(chunk.filename))
+        fn = File.join(fn, chunk.filename)
       end
 
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn
@@ -392,7 +390,7 @@ EOS
     num_errors = 0
     m.chunks.each do |chunk|
       next unless chunk.is_a?(Chunk::Attachment)
-      fn = File.join(folder, Shellwords.escape(chunk.filename))
+      fn = File.join(folder, chunk.filename)
       num_errors += 1 unless save_to_file(fn, false) { |f| f.print chunk.raw_content }
       num += 1
     end
