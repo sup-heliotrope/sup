@@ -3,7 +3,7 @@
 module Redwood
 
 class LabelManager
-  include SupSingleton
+  include Redwood::Singleton
 
   ## labels that have special semantics. user will be unable to
   ## add/remove these via normal label mechanisms.
