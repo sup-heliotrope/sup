@@ -55,7 +55,7 @@ EOS
     def method_missing m; @h[m.to_s] end
   end
 
-  include SupSingleton
+  include Redwood::Singleton
 
   def initialize dir=BASE_DIR
     @dir = dir
