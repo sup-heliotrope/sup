@@ -1,3 +1,7 @@
+== 0.**
+
+* add continuous scrolling to thread view
+
 == 0.16.0 / 2014-03-21
 
 * sup-sync-back-mbox removed.
