@@ -6,7 +6,7 @@ end
 module Redwood
 
 class CryptoManager
-  include SupSingleton
+  include Singleton
 
   class Error < StandardError; end
 
