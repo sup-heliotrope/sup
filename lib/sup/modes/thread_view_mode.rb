@@ -352,7 +352,7 @@ EOS
     m = @message_lines[curpos] or return
     mode = ComposeMode.new(:body => m.quotable_body_lines, :to => m.to, :cc => m.cc, :subj => m.subj, :bcc => m.bcc, :refs => m.refs, :replytos => m.replytos)
     BufferManager.spawn "edit as new", mode
-    mode.edit_message
+    mode.default_edit_message
   end
 
   def save_to_disk
@@ -421,7 +421,7 @@ EOS
       mode = ResumeMode.new m
       BufferManager.spawn "Edit message", mode
       BufferManager.kill_buffer self.buffer
-      mode.edit_message
+      mode.default_edit_message
     else
       BufferManager.flash "Not a draft message!"
     end
