@@ -119,7 +119,7 @@ class Person
 
   def self.from_address_list ss
     return [] if ss.nil?
-    ss.split_on_commas.map { |s| self.from_address s }
+    ss.dup.split_on_commas.map { |s| self.from_address s }
   end
 
   ## see comments in self.from_address

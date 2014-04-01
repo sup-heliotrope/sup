@@ -333,7 +333,8 @@ EOM
       :col_jump => 2,
       :stem_language => "english",
       :sync_back_to_maildir => false,
-      :continuous_scroll => false
+      :continuous_scroll => false,
+      :always_edit_async => false,
     }
     if File.exists? filename
       config = Redwood::load_yaml_obj filename

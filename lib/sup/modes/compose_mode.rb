@@ -16,7 +16,7 @@ class ComposeMode < EditMessageMode
     super :header => header, :body => (opts[:body] || [])
   end
 
-  def edit_message
+  def default_edit_message
     edited = super
     BufferManager.kill_buffer self.buffer unless edited
     edited
@@ -31,7 +31,7 @@ class ComposeMode < EditMessageMode
 
     mode = ComposeMode.new :from => from, :to => to, :cc => cc, :bcc => bcc, :subj => subj
     BufferManager.spawn "New Message", mode
-    mode.edit_message
+    mode.default_edit_message
   end
 end
 

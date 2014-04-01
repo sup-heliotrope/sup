@@ -223,7 +223,7 @@ begin
     to = Person.from_address_list $opts[:compose]
     mode = ComposeMode.new :to => to, :subj => $opts[:subject]
     BufferManager.spawn "New Message", mode
-    mode.edit_message
+    mode.default_edit_message
   end
 
   unless $opts[:no_threads]
@@ -337,7 +337,7 @@ begin
         Index.each_id_by_date(:label => :draft) { |mid, builder| m = builder.call }
         r = ResumeMode.new(m)
         BufferManager.spawn "Edit message", r
-        r.edit_message
+        r.default_edit_message
       else
         b, new = BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
         b.mode.load_threads :num => b.content_height if new
