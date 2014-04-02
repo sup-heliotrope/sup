@@ -386,7 +386,7 @@ class String
   # Not Ruby 1.8 compatible
   def fix_encoding!
     # first try to encode to utf-8 from whatever current encoding
-    encode!('UTF-8', :invalid => :replace, :undef => :replace)
+    encode('UTF-8', :invalid => :replace, :undef => :replace)
 
     # do this anyway in case string is set to be UTF-8, encoding to
     # something else (UTF-16 which can fully represent UTF-8) and back
