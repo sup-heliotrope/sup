@@ -106,7 +106,7 @@ begin
       when "maildir"
         Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when "maildirroot"
-        Redwood::MaildirRoot.new uri, !$opts[:unusual], $opts[:archive], nil, labels
+        Redwood::MaildirRoot.new uri, !$opts[:unusual], $opts[:archive], nil, labels, false, true, true
       when "mbox"
         Redwood::MBox.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when nil
