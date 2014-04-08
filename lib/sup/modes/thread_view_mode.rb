@@ -454,13 +454,15 @@ EOS
     m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
     return unless m
 
+    nextm = @layout[m].next
+    return unless nextm
+
     if @layout[m].toggled_state == true
       @layout[m].state = :closed
       @layout[m].toggled_state = false
       update
     end
 
-    nextm = @layout[m].next
     if @layout[nextm].state == :closed
       @layout[nextm].state = :open
       @layout[nextm].toggled_state = true
@@ -491,13 +493,15 @@ EOS
     m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] }
     return unless m
 
+    nextm = @layout[m].prev
+    return unless nextm
+
     if @layout[m].toggled_state == true
       @layout[m].state = :closed
       @layout[m].toggled_state = false
       update
     end
 
-    nextm = @layout[m].prev
     if @layout[nextm].state == :closed
       @layout[nextm].state = :open
       @layout[nextm].toggled_state = true
