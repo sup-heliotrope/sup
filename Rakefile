@@ -33,7 +33,7 @@ task :doc do
   end
 
   # test if wiki is cloned
-  unless File.exist? 'doc/wiki/man/manpage.md'
+  unless Dir.exist? 'doc/wiki/man'
     puts "wiki git repository is not cloned in doc/wiki, try: git submodule update --init."
     return
   end
@@ -44,7 +44,8 @@ task :doc do
 
   SUP_MANPAGES.split.each do |m|
     puts "generating manpage for: #{m}.."
-    system "pandoc -s -f markdown -t man #{m} -o man/#{File.basename(m).gsub(".md","")}.1"
+    md = "doc/wiki/#{m}.md"
+    system "pandoc -s -f markdown -t man #{md} -o #{m}"
   end
 end
 
