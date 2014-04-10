@@ -41,8 +41,7 @@ task :doc do
     Dir.mkdir 'man'
   end
 
-  manpages = FileList.new('doc/wiki/man/*.md')
-  manpages.each do |m|
+  SUP_MANPAGES.split.each do |m|
     puts "generating manpage for: #{m}.."
     system "pandoc -s -f markdown -t man #{m} -o man/#{File.basename(m).gsub(".md","")}.1"
   end
