@@ -352,7 +352,7 @@ EOS
     m = @message_lines[curpos] or return
     mode = ComposeMode.new(:body => m.quotable_body_lines, :to => m.to, :cc => m.cc, :subj => m.subj, :bcc => m.bcc, :refs => m.refs, :replytos => m.replytos)
     BufferManager.spawn "edit as new", mode
-    mode.edit_message
+    mode.default_edit_message
   end
 
   def save_to_disk
@@ -421,7 +421,7 @@ EOS
       mode = ResumeMode.new m
       BufferManager.spawn "Edit message", mode
       BufferManager.kill_buffer self.buffer
-      mode.edit_message
+      mode.default_edit_message
     else
       BufferManager.flash "Not a draft message!"
     end
@@ -454,13 +454,15 @@ EOS
     m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
     return unless m
 
+    nextm = @layout[m].next
+    return unless nextm
+
     if @layout[m].toggled_state == true
       @layout[m].state = :closed
       @layout[m].toggled_state = false
       update
     end
 
-    nextm = @layout[m].next
     if @layout[nextm].state == :closed
       @layout[nextm].state = :open
       @layout[nextm].toggled_state = true
@@ -491,13 +493,15 @@ EOS
     m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] }
     return unless m
 
+    nextm = @layout[m].prev
+    return unless nextm
+
     if @layout[m].toggled_state == true
       @layout[m].state = :closed
       @layout[m].toggled_state = false
       update
     end
 
-    nextm = @layout[m].prev
     if @layout[nextm].state == :closed
       @layout[nextm].state = :open
       @layout[nextm].toggled_state = true
