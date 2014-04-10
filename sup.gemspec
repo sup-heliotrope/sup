@@ -8,7 +8,7 @@ SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump
   sup-recover-sources sup-sync sup-sync-back-maildir sup-tweak-labels
   sup-psych-ify-config-files)
 SUP_EXTRA_FILES = %w(CONTRIBUTORS README.md LICENSE History.txt ReleaseNotes)
-SUP_MANPAGES = %(man/manpage.1)
+SUP_MANPAGES = %(man/sup.1)
 SUP_FILES =
   SUP_EXTRA_FILES +
   SUP_EXECUTABLES.map { |f| "bin/#{f}" } +
