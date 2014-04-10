@@ -1,5 +1,6 @@
 require 'uri'
 require 'set'
+require 'fileutils'
 
 module Redwood
 
@@ -43,6 +44,8 @@ module Redwood
 
 class MaildirRoot < Source
   include SerializeLabelsNicely
+
+  attr_reader :confirm_enable_experimental, :maildir_creation_allowed
 
   ## remind me never to use inheritance again.
   yaml_properties :uri, :usual, :archived, :id, :labels, :sync_back,
@@ -150,13 +153,12 @@ class MaildirRoot < Source
     def ensure_maildir
       return if File.directory? @dir
 
-      check_enable_experimental
-      return unless @maildir_creation_allowed
+      @maildirroot.check_enable_experimental
+      return unless @maildirroot.maildir_creation_allowed
 
-      Dir.mkdir_p @dir, 0700
       ['cur', 'new', 'tmp'].each do |sub|
         next if File.directory?(File.join(@dir, sub))
-        Dir.mkdir(File.join(@dir, sub), 0700)
+        FileUtils.mkdir_p(File.join(@dir, sub))
       end
     end
 
