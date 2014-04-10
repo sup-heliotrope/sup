@@ -34,7 +34,7 @@ task :doc do
 
   # test if wiki is cloned
   unless File.exist? 'doc/wiki/man/manpage.md'
-    puts "wiki git repository is not cloned in doc/wiki."
+    puts "wiki git repository is not cloned in doc/wiki, try: git submodule update --init."
     return
   end
 
