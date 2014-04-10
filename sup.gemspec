@@ -31,6 +31,7 @@ SUP: please note that our old mailing lists have been shut down,
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
+  s.extra_rdoc_files = s.files.grep(%r{^man/.*\.1$})
 
   s.required_ruby_version = '>= 1.9.3'
 

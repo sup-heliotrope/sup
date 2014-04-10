@@ -7,6 +7,6 @@ rvm:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq uuid-dev uuid libncursesw5-dev libncursesw5 gnupg2
+  - sudo apt-get install -qq uuid-dev uuid libncursesw5-dev libncursesw5 gnupg2 pandoc
 
 script: bundle exec rake travis
