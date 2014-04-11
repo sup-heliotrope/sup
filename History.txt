@@ -1,9 +1,9 @@
-== 0.**
+== 0.17.0 / 2014-04-11
 
 * add continuous scrolling to thread view
 * add option for always editing in async mode
 * bugfix: fix completion char
-* bugsfix: dont close message when its first or last
+* bugfix: thread-view: dont close message when it is the first or last
 
 == 0.16.0 / 2014-03-21
 
