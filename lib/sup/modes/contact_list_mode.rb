@@ -71,7 +71,7 @@ class ContactListMode < LineCursorMode
     when :regular
       mode = ComposeMode.new :to => people
       BufferManager.spawn "new message", mode
-      mode.edit_message
+      mode.default_edit_message
     end
   end
 

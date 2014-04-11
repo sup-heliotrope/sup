@@ -1,3 +1,5 @@
+# encoding: UTF-8
+#
 ## Herein lies all the code responsible for threading messages. It's
 ## basically an online version of the JWZ threading algorithm:
 ## http://www.jwz.org/doc/threading.html

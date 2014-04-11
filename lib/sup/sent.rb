@@ -1,7 +1,7 @@
 module Redwood
 
 class SentManager
-  include Singleton
+  include Redwood::Singleton
 
   attr_reader :source, :source_uri
 

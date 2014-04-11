@@ -79,8 +79,8 @@ EOS
     k.add :edit_to, "Edit To:", 't'
     k.add :edit_cc, "Edit Cc:", 'c'
     k.add :edit_subject, "Edit Subject", 's'
-    k.add :edit_message, "Edit message", :enter
-    k.add :edit_message_async, "Edit message asynchronously", 'E'
+    k.add :default_edit_message, "Edit message (default)", :enter
+    k.add :alternate_edit_message, "Edit message (alternate, asynchronously)", 'E'
     k.add :save_as_draft, "Save as draft", 'P'
     k.add :attach_file, "Attach a file", 'a'
     k.add :delete_attachment, "Delete an attachment", 'd'
@@ -105,7 +105,7 @@ EOS
     begin
       hostname = File.open("/etc/mailname", "r").gets.chomp
     rescue
-        nil
+      nil
     end
     hostname = Socket.gethostname if hostname.nil? or hostname.empty?
 
@@ -182,7 +182,7 @@ EOS
     if lines > curpos
       return
     elsif (curpos - lines) >= @header_lines.length
-      edit_message
+      default_edit_message
     else
       edit_field @header_lines[curpos - lines]
     end
@@ -223,6 +223,22 @@ EOS
       else
         @sig_edited = true
       end
+    end
+  end
+
+  def default_edit_message
+    if $config[:always_edit_async]
+      return edit_message_async
+    else
+      return edit_message
+    end
+  end
+
+  def alternate_edit_message
+    if $config[:always_edit_async]
+      return edit_message
+    else
+      return edit_message_async
     end
   end
 

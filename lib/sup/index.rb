@@ -55,7 +55,7 @@ EOS
     def method_missing m; @h[m.to_s] end
   end
 
-  include Singleton
+  include Redwood::Singleton
 
   def initialize dir=BASE_DIR
     @dir = dir
@@ -98,9 +98,9 @@ EOS
     end
   end
 
-  def load
+  def load failsafe=false
     SourceManager.load_sources
-    load_index
+    load_index failsafe
   end
 
   def save
@@ -110,7 +110,11 @@ EOS
     save_index
   end
 
-  def load_index
+  def get_xapian
+    @xapian
+  end
+
+  def load_index failsafe=false
     path = File.join(@dir, 'xapian')
     if File.exists? path
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
@@ -329,7 +333,7 @@ EOS
     synchronize { get_entry(id)[:source_id] }
   end
 
-  ## Yields each tearm in the index that starts with prefix
+  ## Yields each term in the index that starts with prefix
   def each_prefixed_term prefix
     term = @xapian._dangerous_allterms_begin prefix
     lastTerm = @xapian._dangerous_allterms_end prefix

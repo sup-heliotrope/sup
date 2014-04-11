@@ -1,3 +1,8 @@
+Release 0.17.0:
+
+Bugfixes and new option for continous scrolling as well as an option for
+always editing messages in async mode.
+
 Release 0.16.0:
 
 Removed unfinished and abandoned sup-sync-back-mbox.

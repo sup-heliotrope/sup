@@ -3,7 +3,7 @@ require 'thread'
 module Redwood
 
 class PollManager
-  include Singleton
+  include Redwood::Singleton
 
   HookManager.register "before-add-message", <<EOS
 Executes immediately before a message is added to the index.

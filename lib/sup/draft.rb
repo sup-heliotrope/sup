@@ -1,7 +1,7 @@
 module Redwood
 
 class DraftManager
-  include Singleton
+  include Redwood::Singleton
 
   attr_accessor :source
   def initialize dir

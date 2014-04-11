@@ -3,7 +3,7 @@ require 'thread'
 module Redwood
 
 class IdleManager
-  include Singleton
+  include Redwood::Singleton
 
   IDLE_THRESHOLD = 60
 

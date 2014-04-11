@@ -25,7 +25,7 @@ class Account < Person
 end
 
 class AccountManager
-  include Singleton
+  include Redwood::Singleton
 
   attr_accessor :default_account
 

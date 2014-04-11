@@ -99,7 +99,7 @@ class Buffer
 end
 
 class BufferManager
-  include Singleton
+  include Redwood::Singleton
 
   attr_reader :focus_buf
 
@@ -547,7 +547,7 @@ EOS
         kill_buffer completion_buf if completion_buf
 
         shorts = tf.completions.map { |full, short| short }
-        prefix_len = shorts.shared_prefix.length
+        prefix_len = shorts.shared_prefix(caseless=true).length
 
         mode = CompletionMode.new shorts, :header => "Possible completions for \"#{tf.value}\": ", :prefix_len => prefix_len
         completion_buf = spawn "<completions>", mode, :height => 10

@@ -1,5 +1,3 @@
-require 'shellwords'
-
 module Redwood
 
 class ThreadViewMode < LineCursorMode
@@ -354,7 +352,7 @@ EOS
     m = @message_lines[curpos] or return
     mode = ComposeMode.new(:body => m.quotable_body_lines, :to => m.to, :cc => m.cc, :subj => m.subj, :bcc => m.bcc, :refs => m.refs, :replytos => m.replytos)
     BufferManager.spawn "edit as new", mode
-    mode.edit_message
+    mode.default_edit_message
   end
 
   def save_to_disk
@@ -363,12 +361,12 @@ EOS
     when Chunk::Attachment
       default_dir = $config[:default_attachment_save_dir]
       default_dir = ENV["HOME"] if default_dir.nil? || default_dir.empty?
-      default_fn = File.expand_path File.join(default_dir, Shellwords.escape(chunk.filename))
+      default_fn = File.expand_path File.join(default_dir, chunk.filename)
       fn = BufferManager.ask_for_filename :filename, "Save attachment to file or directory: ", default_fn, true
 
       # if user selects directory use file name from message
       if fn and File.directory? fn
-        fn = File.join(fn, Shellwords.escape(chunk.filename))
+        fn = File.join(fn, chunk.filename)
       end
 
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn
@@ -392,7 +390,7 @@ EOS
     num_errors = 0
     m.chunks.each do |chunk|
       next unless chunk.is_a?(Chunk::Attachment)
-      fn = File.join(folder, Shellwords.escape(chunk.filename))
+      fn = File.join(folder, chunk.filename)
       num_errors += 1 unless save_to_file(fn, false) { |f| f.print chunk.raw_content }
       num += 1
     end
@@ -423,7 +421,7 @@ EOS
       mode = ResumeMode.new m
       BufferManager.spawn "Edit message", mode
       BufferManager.kill_buffer self.buffer
-      mode.edit_message
+      mode.default_edit_message
     else
       BufferManager.flash "Not a draft message!"
     end
@@ -456,13 +454,15 @@ EOS
     m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
     return unless m
 
+    nextm = @layout[m].next
+    return unless nextm
+
     if @layout[m].toggled_state == true
       @layout[m].state = :closed
       @layout[m].toggled_state = false
       update
     end
 
-    nextm = @layout[m].next
     if @layout[nextm].state == :closed
       @layout[nextm].state = :open
       @layout[nextm].toggled_state = true
@@ -493,13 +493,15 @@ EOS
     m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] }
     return unless m
 
+    nextm = @layout[m].prev
+    return unless nextm
+
     if @layout[m].toggled_state == true
       @layout[m].state = :closed
       @layout[m].toggled_state = false
       update
     end
 
-    nextm = @layout[m].prev
     if @layout[nextm].state == :closed
       @layout[nextm].state = :open
       @layout[nextm].toggled_state = true
