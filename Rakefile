@@ -12,7 +12,7 @@ require 'rubygems/package_task'
 # For those who don't have `rubygems-bundler` installed
 load 'sup.gemspec' unless defined? Redwood::Gemspec
 
-task :gem => [:doc]
+task :gem => [:man]
 
 Gem::PackageTask.new(Redwood::Gemspec) do |pkg|
   pkg.need_tar = true
@@ -24,7 +24,7 @@ def test_pandoc
   return system("pandoc -v > /dev/null 2>&1")
 end
 
-task :doc do
+task :man do
   puts "building manpages from wiki.."
   unless test_pandoc
     puts "no pandoc installed, needed for manpage generation."
@@ -49,7 +49,9 @@ task :doc do
 end
 
 task :clean do
-  FileUtils.rm_r 'man'
-  FileUtils.rm_r 'pkg'
+  ['man', 'pkg'].each do |d|
+    puts "cleaning #{d}.."
+    FileUtils.rm_r d if Dir.exist? d
+  end
 end
 
