@@ -169,9 +169,9 @@ EOS
     def view_default! path
       case RbConfig::CONFIG['arch']
         when /darwin/
-          cmd = "open #{path}"
+          cmd = "open \"#{path}\""
         else
-          cmd = "/usr/bin/run-mailcap --action=view #{@content_type}:#{path}"
+          cmd = "/usr/bin/run-mailcap --action=view #{@content_type}:\"#{path}\""
       end
       debug "running: #{cmd.inspect}"
       BufferManager.shell_out(cmd)
