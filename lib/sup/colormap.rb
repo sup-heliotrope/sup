@@ -50,6 +50,7 @@ class Colormap
     :quote => { :fg => "yellow", :bg => "default" },
     :sig => { :fg => "yellow", :bg => "default" },
     :to_me => { :fg => "green", :bg => "default" },
+    :with_attachment => { :fg => "green", :bg => "default" },
     :starred => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
     :starred_patina => { :fg => "yellow", :bg => "green", :attrs => ["bold"] },
     :alternate_starred_patina => { :fg => "yellow", :bg => "blue", :attrs => ["bold"] },
