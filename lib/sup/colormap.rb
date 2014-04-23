@@ -191,6 +191,11 @@ class Colormap
       Redwood::load_yaml_obj Redwood::COLOR_FN
     end
 
+    ## Set attachment sybmol to sane default for existing colorschemes
+    if user_colors and user_colors.has_key? :to_me 
+      user_colors[:with_attachment] = user_colors[:to_me] unless user_colors.has_key? :with_attachment
+    end
+
     Colormap::DEFAULT_COLORS.merge(user_colors||{}).each_pair do |k, v|
       fg = begin
         Ncurses.const_get "COLOR_#{v[:fg].to_s.upcase}"
