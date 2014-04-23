@@ -50,6 +50,7 @@ class Colormap
     :quote => { :fg => "yellow", :bg => "default" },
     :sig => { :fg => "yellow", :bg => "default" },
     :to_me => { :fg => "green", :bg => "default" },
+    :with_attachment => { :fg => "green", :bg => "default" },
     :starred => { :fg => "yellow", :bg => "default", :attrs => ["bold"] },
     :starred_patina => { :fg => "yellow", :bg => "green", :attrs => ["bold"] },
     :alternate_starred_patina => { :fg => "yellow", :bg => "blue", :attrs => ["bold"] },
@@ -188,6 +189,11 @@ class Colormap
     user_colors = if File.exists? Redwood::COLOR_FN
       debug "loading user colors from #{Redwood::COLOR_FN}"
       Redwood::load_yaml_obj Redwood::COLOR_FN
+    end
+
+    ## Set attachment sybmol to sane default for existing colorschemes
+    if user_colors and user_colors.has_key? :to_me 
+      user_colors[:with_attachment] = user_colors[:to_me] unless user_colors.has_key? :with_attachment
     end
 
     Colormap::DEFAULT_COLORS.merge(user_colors||{}).each_pair do |k, v|
