@@ -293,15 +293,15 @@ EOS
     location.each_raw_message_line &b
   end
 
-  def sync_back
+  def sync_back force_index_sync=false 
     debug "message: syncing back: #{@id}"
 
     source_ids_done = [] # we only want to sync one location from each maildirroot
                          # source for this message.
+    dirty = false
 
     if $config[:sync_back_to_maildir]
       syncable_locations = @locations.select { |l| l.source.syncable }
-      dirty = false
 
       syncable_locations.each do |l|
         debug "message: syncing back to location: #{l.source}, #{l.info.inspect}"
@@ -332,10 +332,11 @@ EOS
 
       end
 
-      if dirty
-        Index.sync_message self, true, false
-        UpdateManager.relay self, :updated, self
-      end
+    end ## if sync_back_to_maildir 
+
+    if dirty or force_index_sync
+      Index.sync_message self, true, false
+      UpdateManager.relay self, :updated, self
     end
   end
 
