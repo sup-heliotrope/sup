@@ -224,6 +224,8 @@ EOS
               m = source.ensure_in_archive m
             end
 
+            m.sync_back 
+
             Index.sync_message m, true, false
 
             if old_m
