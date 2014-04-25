@@ -6,6 +6,7 @@ require 'rubygems'
 require 'trollop'
 require "sup"
 
+
 class Float
   def to_s; sprintf '%.2f', self; end
    def to_time_s
@@ -51,6 +52,7 @@ EOS
   opt :very_verbose, "Print message names and subjects as they're processed."
   opt :all_sources, "Scan over all sources.", :short => :none
   opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
+  opt :sync_back, "Sync back maildir flags if enabled globally (important: source specific sync_back changes will be _ignored_.)"
   opt :version, "Show version information", :short => :none
 end
 opts[:verbose] = true if opts[:very_verbose]
@@ -63,6 +65,7 @@ Trollop::die "nothing to do: no labels to add or remove" if add_labels.empty? &&
 Redwood::start
 index = Redwood::Index.init
 index.lock_interactively or exit
+
 begin
   index.load
 
@@ -106,7 +109,8 @@ begin
       puts "From #{m.from}, subject: #{m.subj}" if opts[:very_verbose]
       puts "#{m.id}: {#{old_labels.to_a.join ','}} => {#{m.labels.to_a.join ','}}" if opts[:verbose]
       puts if opts[:very_verbose]
-      index.update_message_state m unless opts[:dry_run]
+      sync_back = $config[:sync_back_to_maildir] and opts[:sync_back]
+      index.update_message_state [m, sync_back] unless opts[:dry_run]
     end
 
     if Time.now - last_info_time > 60
