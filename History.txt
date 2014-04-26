@@ -1,3 +1,8 @@
+==
+
+* new color option, :with_attachment for defining colors for the
+  attachment character.
+
 == 0.17.0 / 2014-04-11
 
 * add continuous scrolling to thread view
