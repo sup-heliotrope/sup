@@ -224,7 +224,7 @@ EOS
               m = source.ensure_in_archive m
             end
 
-            Index.sync_message m, true, false
+            Index.sync_message m, true, !old_m 
 
             if old_m
               # if a message has been modified send the :updated signal
