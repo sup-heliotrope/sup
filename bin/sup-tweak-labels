@@ -6,7 +6,6 @@ require 'rubygems'
 require 'trollop'
 require "sup"
 
-
 class Float
   def to_s; sprintf '%.2f', self; end
    def to_time_s
