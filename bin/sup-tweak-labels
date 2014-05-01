@@ -51,7 +51,7 @@ EOS
   opt :very_verbose, "Print message names and subjects as they're processed."
   opt :all_sources, "Scan over all sources.", :short => :none
   opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
-  opt :sync_back, "Sync back to the original Maildir, if enabled."
+  opt :no_sync_back, "Do not sync back to the original Maildir."
   opt :version, "Show version information", :short => :none
 end
 opts[:verbose] = true if opts[:very_verbose]
@@ -102,15 +102,15 @@ begin
     m.labels += add_labels
     m.labels -= remove_labels
 
-    sync_back = $config[:sync_back_to_maildir] && opts[:sync_back] &&
-      m.source.sync_back_enabled?
-
     unless m.labels == old_labels
       num_changed += 1
       puts "From #{m.from}, subject: #{m.subj}" if opts[:very_verbose]
       puts "#{m.id}: {#{old_labels.to_a.join ','}} => {#{m.labels.to_a.join ','}}" if opts[:verbose]
       puts if opts[:very_verbose]
-      index.update_message_state [m, sync_back] unless opts[:dry_run]
+      unless opts[:dry_run]
+        index.update_message_state [m, false]
+        m.sync_back unless opts[:no_sync_back]
+      end
     end
 
     if Time.now - last_info_time > 60
