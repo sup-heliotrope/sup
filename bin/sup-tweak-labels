@@ -64,6 +64,7 @@ Trollop::die "nothing to do: no labels to add or remove" if add_labels.empty? &&
 Redwood::start
 index = Redwood::Index.init
 index.lock_interactively or exit
+
 begin
   index.load
 
