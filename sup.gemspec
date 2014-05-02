@@ -8,10 +8,12 @@ SUP_EXECUTABLES = %w(sup sup-add sup-config sup-dump sup-import-dump
   sup-recover-sources sup-sync sup-sync-back-maildir sup-tweak-labels
   sup-psych-ify-config-files)
 SUP_EXTRA_FILES = %w(CONTRIBUTORS README.md LICENSE History.txt ReleaseNotes)
+SUP_MANPAGES = %(man/sup.1)
 SUP_FILES =
   SUP_EXTRA_FILES +
   SUP_EXECUTABLES.map { |f| "bin/#{f}" } +
   Dir["lib/**/*.rb"]
+  SUP_MANPAGES
 
 
 module Redwood
@@ -44,6 +46,7 @@ SUP: If you are upgrading Sup from before version 0.14.0: Please
     EOF
     s.files = SUP_FILES
     s.executables = SUP_EXECUTABLES
+    s.extra_rdoc_files = SUP_MANPAGES
 
     s.required_ruby_version = '>= 1.9.3'
 
