@@ -9,4 +9,4 @@ Rake::TestTask.new(:test) do |test|
 end
 task :default => :test
 
-task :travis => [:test, :gem]
+task :travis => [:test, :build]
