@@ -51,6 +51,7 @@ EOS
   opt :very_verbose, "Print message names and subjects as they're processed."
   opt :all_sources, "Scan over all sources.", :short => :none
   opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
+  opt :no_sync_back, "Do not sync back to the original Maildir."
   opt :version, "Show version information", :short => :none
 end
 opts[:verbose] = true if opts[:very_verbose]
@@ -63,6 +64,7 @@ Trollop::die "nothing to do: no labels to add or remove" if add_labels.empty? &&
 Redwood::start
 index = Redwood::Index.init
 index.lock_interactively or exit
+
 begin
   index.load
 
@@ -106,7 +108,10 @@ begin
       puts "From #{m.from}, subject: #{m.subj}" if opts[:very_verbose]
       puts "#{m.id}: {#{old_labels.to_a.join ','}} => {#{m.labels.to_a.join ','}}" if opts[:verbose]
       puts if opts[:very_verbose]
-      index.update_message_state m unless opts[:dry_run]
+      unless opts[:dry_run]
+        index.update_message_state [m, false]
+        m.sync_back unless opts[:no_sync_back]
+      end
     end
 
     if Time.now - last_info_time > 60

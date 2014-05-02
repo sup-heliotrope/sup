@@ -236,6 +236,13 @@ EOS
     update
   end
 
+  def handle_killed_update sender, m
+    t = @ts_mutex.synchronize { @ts.thread_for m }
+    return unless t
+    hide_thread t
+    update
+  end
+
   def handle_spammed_update sender, m
     t = @ts_mutex.synchronize { @ts.thread_for m }
     return unless t
@@ -244,6 +251,10 @@ EOS
   end
 
   def handle_undeleted_update sender, m
+    add_or_unhide m
+  end
+
+  def handle_unkilled_update sender, m
     add_or_unhide m
   end
 
@@ -979,7 +990,7 @@ protected
       from +
       [
       [:size_widget_color, size_widget_text],
-      [:to_me_color, t.labels.member?(:attachment) ? "@" : " "],
+      [:with_attachment_color , t.labels.member?(:attachment) ? "@" : " "],
       [:to_me_color, directly_participated ? ">" : (participated ? '+' : " ")],
     ] +
       (t.labels - @hidden_labels).sort_by {|x| x.to_s}.map {

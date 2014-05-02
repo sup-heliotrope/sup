@@ -59,7 +59,7 @@ class ForwardMode < EditMessageMode
       end
 
     BufferManager.spawn title, mode
-    mode.edit_message
+    mode.default_edit_message
   end
 
 protected

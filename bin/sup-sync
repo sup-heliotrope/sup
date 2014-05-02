@@ -175,7 +175,7 @@ begin
           puts "Changing flags for #{source}##{m.source_info} from #{old_m.labels} to #{m.labels}" if opts[:verbose]
           num_updated += 1
         end
-      else fail
+      else fail "sup-sync cannot handle :update's"
       end
 
       if Time.now - last_info_time > PROGRESS_UPDATE_INTERVAL

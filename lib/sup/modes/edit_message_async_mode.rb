@@ -29,11 +29,12 @@ EOS
     @orig_mtime = File.mtime @file_path
 
     @text = ["ASYNC MESSAGE EDIT",
-             "", "Your message with subject:",  msg_subject, "is saved in a file:", "", @file_path, "", 
+             "", "Your message with subject:",  msg_subject, "is saved in a file:", "", @file_path, "",
              "You can edit your message in the editor of your choice and continue to",
              "use sup while you edit your message.", "",
              "Press <Enter> to have the file path copied to the clipboard.", "",
              "When you have finished editing, select this buffer and press 'E'.",]
+    run_async_hook()
     super()
   end
 
