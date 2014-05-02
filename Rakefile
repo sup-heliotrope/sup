@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'rake/testtask'
+require "bundler/gem_tasks"
 
 Rake::TestTask.new(:test) do |test|
   test.libs << 'test'
@@ -7,13 +8,5 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
 end
 task :default => :test
-
-require 'rubygems/package_task'
-# For those who don't have `rubygems-bundler` installed
-load 'sup.gemspec' unless defined? Redwood::Gemspec
-
-Gem::PackageTask.new(Redwood::Gemspec) do |pkg|
-  pkg.need_tar = true
-end
 
 task :travis => [:test, :gem]
