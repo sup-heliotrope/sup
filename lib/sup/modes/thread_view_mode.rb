@@ -78,11 +78,13 @@ EOS
 
     k.add :archive_and_next, "Archive this thread, kill buffer, and view next", 'a'
     k.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
+    k.add :kill_and_next, "Kill this thread, kill buffer, and view next", '&'
     k.add :toggle_wrap, "Toggle wrapping of text", 'w'
 
     k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read:", '.' do |kk|
       kk.add :archive_and_kill, "Archive this thread and kill buffer", 'a'
       kk.add :delete_and_kill, "Delete this thread and kill buffer", 'd'
+      kk.add :kill_and_kill, "Kill this thread and kill buffer", '&'
       kk.add :spam_and_kill, "Mark this thread as spam and kill buffer", 's'
       kk.add :unread_and_kill, "Mark this thread as unread and kill buffer", 'N'
       kk.add :do_nothing_and_kill, "Just kill this buffer", '.'
@@ -91,6 +93,7 @@ EOS
     k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ',' do |kk|
       kk.add :archive_and_next, "Archive this thread, kill buffer, and view next", 'a'
       kk.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
+      kk.add :kill_and_next, "Kill this thread, kill buffer, and view next", '&'
       kk.add :spam_and_next, "Mark this thread as spam, kill buffer, and view next", 's'
       kk.add :unread_and_next, "Mark this thread as unread, kill buffer, and view next", 'N'
       kk.add :do_nothing_and_next, "Kill buffer, and view next", 'n', ','
@@ -99,6 +102,7 @@ EOS
     k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ']' do |kk|
       kk.add :archive_and_prev, "Archive this thread, kill buffer, and view previous", 'a'
       kk.add :delete_and_prev, "Delete this thread, kill buffer, and view previous", 'd'
+      kk.add :kill_and_prev, "Kill this thread, kill buffer, and view previous", '&'
       kk.add :spam_and_prev, "Mark this thread as spam, kill buffer, and view previous", 's'
       kk.add :unread_and_prev, "Mark this thread as unread, kill buffer, and view previous", 'N'
       kk.add :do_nothing_and_prev, "Kill buffer, and view previous", 'n', ']'
@@ -352,7 +356,7 @@ EOS
     m = @message_lines[curpos] or return
     mode = ComposeMode.new(:body => m.quotable_body_lines, :to => m.to, :cc => m.cc, :subj => m.subj, :bcc => m.bcc, :refs => m.refs, :replytos => m.replytos)
     BufferManager.spawn "edit as new", mode
-    mode.edit_message
+    mode.default_edit_message
   end
 
   def save_to_disk
@@ -421,7 +425,7 @@ EOS
       mode = ResumeMode.new m
       BufferManager.spawn "Edit message", mode
       BufferManager.kill_buffer self.buffer
-      mode.edit_message
+      mode.default_edit_message
     else
       BufferManager.flash "Not a draft message!"
     end
@@ -454,13 +458,15 @@ EOS
     m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
     return unless m
 
+    nextm = @layout[m].next
+    return unless nextm
+
     if @layout[m].toggled_state == true
       @layout[m].state = :closed
       @layout[m].toggled_state = false
       update
     end
 
-    nextm = @layout[m].next
     if @layout[nextm].state == :closed
       @layout[nextm].state = :open
       @layout[nextm].toggled_state = true
@@ -491,13 +497,15 @@ EOS
     m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] }
     return unless m
 
+    nextm = @layout[m].prev
+    return unless nextm
+
     if @layout[m].toggled_state == true
       @layout[m].state = :closed
       @layout[m].toggled_state = false
       update
     end
 
-    nextm = @layout[m].prev
     if @layout[nextm].state == :closed
       @layout[nextm].state = :open
       @layout[nextm].toggled_state = true
@@ -577,18 +585,21 @@ EOS
   def archive_and_kill; archive_and_then :kill end
   def spam_and_kill; spam_and_then :kill end
   def delete_and_kill; delete_and_then :kill end
+  def kill_and_kill; kill_and_then :kill end
   def unread_and_kill; unread_and_then :kill end
   def do_nothing_and_kill; do_nothing_and_then :kill end
 
   def archive_and_next; archive_and_then :next end
   def spam_and_next; spam_and_then :next end
   def delete_and_next; delete_and_then :next end
+  def kill_and_next; kill_and_then :next end
   def unread_and_next; unread_and_then :next end
   def do_nothing_and_next; do_nothing_and_then :next end
 
   def archive_and_prev; archive_and_then :prev end
   def spam_and_prev; spam_and_then :prev end
   def delete_and_prev; delete_and_then :prev end
+  def kill_and_prev; kill_and_then :prev end
   def unread_and_prev; unread_and_then :prev end
   def do_nothing_and_prev; do_nothing_and_then :prev end
 
@@ -627,6 +638,19 @@ EOS
         @thread.remove_label :deleted
         Index.save_thread @thread
         UpdateManager.relay self, :undeleted, @thread.first
+      end
+    end
+  end
+
+  def kill_and_then op
+    dispatch op do
+      @thread.apply_label :killed
+      UpdateManager.relay self, :killed, @thread.first
+      Index.save_thread @thread
+      UndoManager.register "killed 1 thread" do
+        @thread.remove_label :killed
+        Index.save_thread @thread
+        UpdateManager.relay self, :unkilled, @thread.first
       end
     end
   end
