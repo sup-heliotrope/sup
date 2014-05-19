@@ -1,3 +1,11 @@
+== 0.18.0 / 2014-05-19
+
+* new color option, :with_attachment for defining colors for the
+  attachment character.
+* sup-tweak-labels works again (out of service since sync_back).
+* gem building is done through bundler
+* you can now kill a thread using & from thread_view
+
 == 0.17.0 / 2014-04-11
 
 * add continuous scrolling to thread view
