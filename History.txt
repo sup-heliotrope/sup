@@ -1,3 +1,7 @@
+== ***
+
+* new check-attachment hook
+
 == 0.18.0 / 2014-05-19
 
 * new color option, :with_attachment for defining colors for the
