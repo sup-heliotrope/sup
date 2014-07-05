@@ -38,7 +38,7 @@ Please report bugs to the [Github issue tracker](https://github.com/sup-heliotro
 * [Code repository](https://github.com/sup-heliotrope/sup)
 * [Wiki](https://github.com/sup-heliotrope/sup/wiki)
 * IRC: [#sup @ freenode.net](http://webchat.freenode.net/?channels=#sup)
-* Mailing list: supmua@googlegroups.com (subscribe: supmua+subscribe@googlegroups.com, archive: https://groups.google.com/d/forum/supmua
+* Mailing list: supmua@googlegroups.com (subscribe: supmua+subscribe@googlegroups.com, archive: https://groups.google.com/d/forum/supmua )
 
 ## License
 
