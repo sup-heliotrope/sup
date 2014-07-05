@@ -60,6 +60,8 @@ EOS
   end
 
   TO_NICE_S_MAX_LEN = 9 # e.g. "Yest.10am"
+
+  ## This is how a thread date is displayed in thread-index-mode
   def to_nice_s from=Time.now
     Redwood::HookManager.run("time-to-nice-string", :time => self, :from => from) || default_to_nice_s(from)
   end
@@ -71,13 +73,21 @@ EOS
       strftime "%b %e"
     else
       if is_the_same_day? from
-        strftime("%l:%M%p").downcase # emulate %P (missing on ruby 1.8 darwin)
+        format = $config[:time_mode] == "24h" ? "%k:%M" : "%l:%M%p"
+        strftime(format).downcase
       elsif is_the_day_before? from
-        "Yest."  + nearest_hour.strftime("%l%p").downcase # emulate %P
+        format = $config[:time_mode] == "24h" ? "%kh" : "%l%p"
+        "Yest." + nearest_hour.strftime(format).downcase
       else
         strftime "%b %e"
       end
     end
+  end
+
+  ## This is how a message date is displayed in thread-view-mode
+  def to_message_nice_s from=Time.now
+    format = $config[:time_mode] == "24h" ? "%B %e %Y %k:%M" : "%B %e %Y %l:%M%p"
+    strftime format
   end
 end
 

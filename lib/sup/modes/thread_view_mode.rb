@@ -10,7 +10,6 @@ class ThreadViewMode < LineCursorMode
     attr_accessor :state
   end
 
-  DATE_FORMAT = "%B %e %Y %l:%M%p"
   INDENT_SPACES = 2 # how many spaces to indent child messages
 
   HookManager.register "detailed-headers", <<EOS
@@ -849,7 +848,7 @@ private
       end
 
       headers = OrderedHash.new
-      headers["Date"] = "#{m.date.strftime DATE_FORMAT} (#{m.date.to_nice_distance_s})"
+      headers["Date"] = "#{m.date.to_message_nice_s} (#{m.date.to_nice_distance_s})"
       headers["Subject"] = m.subj
 
       show_labels = @thread.labels - LabelManager::HIDDEN_RESERVED_LABELS
@@ -857,7 +856,7 @@ private
         headers["Labels"] = show_labels.map { |x| x.to_s }.sort.join(', ')
       end
       if parent
-        headers["In reply to"] = "#{parent.from.mediumname}'s message of #{parent.date.strftime DATE_FORMAT}"
+        headers["In reply to"] = "#{parent.from.mediumname}'s message of #{parent.date.to_message_nice_s}"
       end
 
       HookManager.run "detailed-headers", :message => m, :headers => headers
