@@ -25,6 +25,16 @@ Return value:
   use the default signature, or :none for no signature.
 EOS
 
+  HookManager.register "check-attachment", <<EOS
+Do checks on the attachment filename
+Variables:
+	filename: the name of the attachment
+Return value:
+    A String (single line) containing a message why this attachment is not optimal
+    to be attached.
+    If it is ok just return an empty string or nil
+EOS
+
   HookManager.register "before-edit", <<EOS
 Modifies message body and headers before editing a new message. Variables
 should be modified in place.
@@ -331,6 +341,12 @@ EOS
   def attach_file
     fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
     return unless fn
+    if HookManager.enabled? "check-attachment"
+        reason = HookManager.run("check-attachment", :filename => fn)
+        if reason
+            return unless BufferManager.ask_yes_or_no("#{reason} Attach anyway?")
+        end
+    end
     begin
       Dir[fn].each do |f|
         @attachments << RMail::Message.make_file_attachment(f)
