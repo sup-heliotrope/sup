@@ -1,6 +1,8 @@
-Release       :
+Release 0.19.0:
 
-New hook: check-attachment.
+New hook: check-attachment and a new option to shows dates in 24h format.
+
+Our old mailinglists have been closed with the shut down of Rubyforge. Please subscribe to our new list: supmua@googlegroups.com.
 
 Release 0.18.0:
 
