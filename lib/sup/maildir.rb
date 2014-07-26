@@ -193,6 +193,10 @@ class Maildir < Source
     File.exists? File.join(@dir, id)
   end
 
+  def fn_for_offset offset
+    return File.join(@dir, offset)
+  end
+
 private
 
   def new_maildir_basefn
