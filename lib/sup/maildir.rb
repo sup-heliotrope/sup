@@ -88,7 +88,9 @@ class Maildir < Source
     synchronize do
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
-      maildir_reconcile_keywords id, labels, load_message(id)
+      if $config[:sync_labels_to_xkeywords]
+        maildir_reconcile_keywords id, labels, load_message(id)
+      end
       maildir_mark_file id, flags
     end
   end
@@ -147,13 +149,23 @@ class Maildir < Source
     debug "#{added.size} added, #{deleted.size} deleted, #{updated.size} updated"
     total_size = added.size+deleted.size+updated.size
 
-    # NOTE testing removing :inbox from the labels below
-    # and getting the :inbox label only from X-Keywords
-    added.each_with_index do |id,i|
-      yield :add,
-      :info => id,
-      :labels => @labels + maildir_labels(id),
-      :progress => i.to_f/total_size
+
+    if $config[:sync_labels_to_xkeywords]
+      # NOTE testing removing :inbox from the labels below
+      # and getting the :inbox label only from X-Keywords
+      added.each_with_index do |id,i|
+        yield :add,
+        :info => id,
+        :labels => @labels + maildir_labels(id),
+        :progress => i.to_f/total_size
+      end
+    else
+      added.each_with_index do |id,i|
+        yield :add,
+        :info => id,
+        :labels => @labels + maildir_labels(id) + [:inbox],
+        :progress => i.to_f/total_size
+      end
     end
 
     deleted.each_with_index do |id,i|
@@ -218,7 +230,7 @@ class Maildir < Source
       (passed?(id) ? [:forwarded] : []) +
       (replied?(id) ? [:replied] : []) +
       (draft?(id) ? [:draft] : []) +
-      headers_labels(id)
+      ($config[:sync_labels_to_xkeywords] ? headers_labels(id) : [])
   end
 
   def draft? id; maildir_data(id)[2].include? "D"; end
@@ -346,7 +358,7 @@ class Maildir < Source
     # message.load_from_source!
     return message
 
-  end      
+  end
 
 private
 
@@ -380,16 +392,20 @@ private
       if labels.member? :forwarded then new_flags.add?( "P" ) else new_flags.delete?( "P" ) end
       if labels.member? :replied then new_flags.add?( "R" ) else new_flags.delete?( "R" ) end
       if not labels.member? :unread then new_flags.add?( "S" ) else new_flags.delete?( "S" ) end
-      # This used to look like
-      # if labels.member? :deleted or labels.member? :killed or labels.member? '\Trash' then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
-      # But this would set the 'T' flag on the maildir file, which
-      # would cause offlineimap to actually delete the message totally
-      # on both local and remote.  This isn't really what we want
-      # as Gmail will tidy our Trash label for us.  It also means
-      # that LOTS of threads in sup would show pieces of thread as
-      # 'An Unreceived Message'
-      # Now let's just make sure that there isn't a 'T' flag
-      if not (labels.member? :deleted or labels.member? :killed or labels.member? '\Trash') then new_flags.delete?( "T" ) end
+      if $config[:sync_labels_to_xkeywords]
+        # When syncing back labels to X-Keywords in gmail
+        # we don't want to set the 'T' flag on the maildir file
+        # when deleting a message.
+        # This would cause offlineimap to actually delete the message totally
+        # on both local and remote.  This isn't really what we want
+        # as Gmail will tidy our Trash label for us.  It also means
+        # that LOTS of threads in sup would show pieces of thread as
+        # 'An Unreceived Message'
+        # Now let's just make sure that there isn't a 'T' flag
+        if not (labels.member? :deleted or labels.member? :killed or labels.member? '\Trash') then new_flags.delete?( "T" ) end
+      else
+        if labels.member? :deleted or labels.member? :killed or labels.member? '\Trash' then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
+      end
 
       ## Flags must be stored in ASCII order according to Maildir
       ## documentation
