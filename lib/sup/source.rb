@@ -140,7 +140,7 @@ class Source
       when /^(X-Keywords|x-keywords):\s*(.*?)\s*$/i;
         if header.has_key?($1.downcase)
           debug "XKEY: More than one X-Keywords header!"
-          header[$1.downcase] = header[$1.downcase] + ',' + $2
+          header[$1.downcase] = header[$1.downcase] + ', ' + $2
         else
           header[$1.downcase] = $2
         end
