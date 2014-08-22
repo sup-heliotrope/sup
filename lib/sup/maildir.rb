@@ -151,8 +151,7 @@ class Maildir < Source
 
 
     if $config[:sync_labels_to_xkeywords]
-      # NOTE testing removing :inbox from the labels below
-      # and getting the :inbox label only from X-Keywords
+      # Get the :inbox label only from X-Keywords
       added.each_with_index do |id,i|
         yield :add,
         :info => id,
@@ -392,20 +391,7 @@ private
       if labels.member? :forwarded then new_flags.add?( "P" ) else new_flags.delete?( "P" ) end
       if labels.member? :replied then new_flags.add?( "R" ) else new_flags.delete?( "R" ) end
       if not labels.member? :unread then new_flags.add?( "S" ) else new_flags.delete?( "S" ) end
-      if $config[:sync_labels_to_xkeywords]
-        # When syncing back labels to X-Keywords in gmail
-        # we don't want to set the 'T' flag on the maildir file
-        # when deleting a message.
-        # This would cause offlineimap to actually delete the message totally
-        # on both local and remote.  This isn't really what we want
-        # as Gmail will tidy our Trash label for us.  It also means
-        # that LOTS of threads in sup would show pieces of thread as
-        # 'An Unreceived Message'
-        # Now let's just make sure that there isn't a 'T' flag
-        new_flags.delete?( "T" )
-      else
-        if labels.member? :deleted or labels.member? :killed or labels.member? '\Trash' then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
-      end
+      if labels.member? :deleted or labels.member? :killed or labels.member? '\Trash' then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
 
       ## Flags must be stored in ASCII order according to Maildir
       ## documentation
