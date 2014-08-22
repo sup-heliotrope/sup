@@ -402,7 +402,7 @@ private
         # that LOTS of threads in sup would show pieces of thread as
         # 'An Unreceived Message'
         # Now let's just make sure that there isn't a 'T' flag
-        if not (labels.member? :deleted or labels.member? :killed or labels.member? '\Trash') then new_flags.delete?( "T" ) end
+        new_flags.delete?( "T" )
       else
         if labels.member? :deleted or labels.member? :killed or labels.member? '\Trash' then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
       end
