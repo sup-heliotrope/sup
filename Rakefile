@@ -42,10 +42,10 @@ task :man do
     Dir.mkdir 'man'
   end
 
-  Dir.glob("doc/wiki/man/*.1").split.each do |m|
+  Dir.glob("doc/wiki/man/*.md").each do |md|
+    m = /^.*\/(?<manpage>[^\/]*)\.md$/.match(md)[:manpage]
     puts "generating manpage for: #{m}.."
-    md = "doc/wiki/#{m}.md"
-    system "pandoc -s -f markdown -t man #{md} -o #{m}"
+    system "pandoc -s -f markdown -t man #{md} -o man/#{m}"
   end
 end
 
