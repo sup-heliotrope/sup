@@ -9,17 +9,8 @@ Rake::TestTask.new(:test) do |test|
 end
 task :default => :test
 
-require 'rubygems/package_task'
-# For those who don't have `rubygems-bundler` installed
-load 'sup.gemspec' unless defined? Redwood::Gemspec
-
-task :gem => [:man]
-
-Gem::PackageTask.new(Redwood::Gemspec) do |pkg|
-  pkg.need_tar = true
-end
-
-task :travis => [:test, :gem]
+task :build => [:man]
+task :travis => [:test, :build]
 
 def test_pandoc
   return system("pandoc -v > /dev/null 2>&1")
@@ -45,7 +36,12 @@ task :man do
   Dir.glob("doc/wiki/man/*.md").each do |md|
     m = /^.*\/(?<manpage>[^\/]*)\.md$/.match(md)[:manpage]
     puts "generating manpage for: #{m}.."
-    system "pandoc -s -f markdown -t man #{md} -o man/#{m}"
+    r = system "pandoc -s -f markdown -t man #{md} -o man/#{m}"
+
+    unless r
+      puts "failed to generate manpage: #{m}."
+      return
+    end
   end
 end
 
