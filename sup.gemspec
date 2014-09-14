@@ -35,6 +35,11 @@ SUP: please note that our old mailing lists have been shut down,
 
   s.required_ruby_version = '>= 1.9.3'
 
+  # this is here to support skipping the xapian-ruby installation on OpenBSD
+  # because the xapian-ruby gem doesn't install on OpenBSD, you must install
+  # xapian-core and xapian-bindings manually on OpenBSD
+  # see https://github.com/sup-heliotrope/sup/wiki/Installation%3A-OpenBSD
+  # and https://en.wikibooks.org/wiki/Ruby_Programming/RubyGems#How_to_install_different_versions_of_gems_depending_on_which_version_of_ruby_the_installee_is_using
   s.extensions = 'ext/mkrf_conf.rb'
 
   s.add_runtime_dependency "ncursesw", "~> 1.4.0"
