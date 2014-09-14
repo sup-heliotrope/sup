@@ -1,6 +1,7 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 require 'sup/version'
+require 'rbconfig'
 
 Gem::Specification.new do |s|
   s.name = "sup"
@@ -35,7 +36,7 @@ SUP: please note that our old mailing lists have been shut down,
 
   s.required_ruby_version = '>= 1.9.3'
 
-  s.add_runtime_dependency "xapian-ruby", "~> 1.2.15"
+  s.add_runtime_dependency "xapian-ruby", "~> 1.2.15" if !RbConfig::CONFIG['arch'].include?('openbsd')
   s.add_runtime_dependency "ncursesw", "~> 1.4.0"
   s.add_runtime_dependency "rmail-sup", "~> 1.0.1"
   s.add_runtime_dependency "highline"

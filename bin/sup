@@ -114,6 +114,7 @@ module LibC
     when /darwin/; "libc.dylib"
     when /cygwin/; "cygwin1.dll"
     when /freebsd/; "libc.so.7"
+    when /openbsd/; `ls /usr/lib/libc.so.*`.strip.split("\n").first.split('/').last
     else; "libc.so.6"
   end
 
