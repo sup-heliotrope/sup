@@ -22,7 +22,7 @@ class Maildir < Source
     # sync by default if not specified
     @sync_back = true if @sync_back.nil?
 
-    @dir = uri.path
+    @dir = URI.decode uri.path
     @labels = Set.new(labels || [])
     @mutex = Mutex.new
     @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
@@ -120,7 +120,7 @@ class Maildir < Source
       @ctimes[d] = ctime
 
       old_ids = benchmark(:maildir_read_index) { Index.instance.enum_for(:each_source_info, self.id, "#{d}/").to_a }
-      new_ids = benchmark(:maildir_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(d,File.basename(x)) }.sort }
+      new_ids = benchmark(:maildir_read_dir) { Dir.open("#{subdir}").map { |x| File.join(d,File.basename(x)) }.sort }
       added += new_ids - old_ids
       deleted += old_ids - new_ids
       debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
