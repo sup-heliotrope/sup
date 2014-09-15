@@ -10,10 +10,7 @@ end
 
 inst = Gem::DependencyInstaller.new
 begin
-  if RbConfig::CONFIG['arch'].include?('openbsd')
-    # TODO: in theory, we could put the OpenBSD install steps here
-    # see https://github.com/sup-heliotrope/sup/wiki/Installation%3A-OpenBSD
-  else
+  if !RbConfig::CONFIG['arch'].include?('openbsd')
     inst.install "xapian-ruby", "~> 1.2.15"
  end
 rescue
