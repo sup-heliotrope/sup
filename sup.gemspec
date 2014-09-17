@@ -60,4 +60,7 @@ SUP: please note that our old mailing lists have been shut down,
   s.add_development_dependency "minitest", "~> 4.7"
   s.add_development_dependency "rr", "~> 1.0.5"
   s.add_development_dependency "gpgme", ">= 2.0.2"
+
+  s.post_install_message = "If your operating system is OpenBSD you have some additional, manual steps to do before Sup will work--see https://github.com/sup-heliotrope/sup/wiki/Installation%3A-OpenBSD. For everyone else, you are ready to go!"
+
 end
