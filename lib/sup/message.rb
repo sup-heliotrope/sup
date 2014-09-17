@@ -268,6 +268,14 @@ class Message
         debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
 
         [Chunk::Text.new(error_message.split("\n"))]
+
+      rescue Exception => e
+
+        warn "problem reading message #{id}"
+        debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
+
+        raise e
+
       end
   end
 
