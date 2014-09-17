@@ -42,6 +42,28 @@ Return value:
   None.
 EOS
 
+  HookManager.register "message-initial-state", <<EOS
+  Executed when determining whether a message should be open
+  or closed when rendering a thread.
+
+  The default behaviour is that :unread and :starred messages
+  are open.
+
+  Variables:
+    message: message to be rendered
+  Return value:
+    state:   either :open or :close (default)
+EOS
+
+  HookManager.register "thread-view-opened", <<EOS
+  Executed when a thread is opened
+
+  Variables:
+    thread: thread object with messages (where they exist)
+  Return value:
+    None.
+EOS
+
   register_keymap do |k|
     k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
@@ -117,6 +139,7 @@ EOS
 
   def initialize thread, hidden_labels=[], index_mode=nil
     super :slip_rows => $config[:slip_rows]
+    HookManager.run "thread-view-opened", :thread => thread
     @thread = thread
     @hidden_labels = hidden_labels
 
@@ -725,10 +748,15 @@ EOS
 private
 
   def initial_state_for m
-    if m.has_label?(:starred) || m.has_label?(:unread)
-      :open
+    state = HookManager.run "message-initial-state", :message => m
+    if state != :open and state != :close
+      if m.has_label?(:starred) || m.has_label?(:unread)
+        :open
+      else
+        :closed
+      end
     else
-      :closed
+      state
     end
   end
 
