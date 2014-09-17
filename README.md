@@ -38,7 +38,7 @@ Please report bugs to the [Github issue tracker](https://github.com/sup-heliotro
 * [Code repository](https://github.com/sup-heliotrope/sup)
 * [Wiki](https://github.com/sup-heliotrope/sup/wiki)
 * IRC: [#sup @ freenode.net](http://webchat.freenode.net/?channels=#sup)
-* Mailing list: [sup-talk] and [sup-devel]
+* Mailing list: supmua@googlegroups.com (subscribe: supmua+subscribe@googlegroups.com, archive: https://groups.google.com/d/forum/supmua )
 
 ## License
 
@@ -67,6 +67,4 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 [search]: https://github.com/sup-heliotrope/sup/wiki/Searching-your-mail
 [Installation]: https://github.com/sup-heliotrope/sup/wiki#installation
 [ruby20]: https://github.com/sup-heliotrope/sup/wiki/Development#sup-014
-[sup-talk]: http://rubyforge.org/mailman/listinfo/sup-talk
-[sup-devel]: http://rubyforge.org/mailman/listinfo/sup-devel
 [maildir-syncback]: https://github.com/sup-heliotrope/sup/wiki/Using-sup-with-other-clients
