@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version = ENV["REL"] || (::Redwood::VERSION == "git" ? "999" : ::Redwood::VERSION)
   s.date = Time.now.strftime "%Y-%m-%d"
   s.authors = ["William Morgan", "Gaute Hope", "Hamish Downer", "Matthieu Rakotojaona"]
-  s.email   = "sup-talk@rubyforge.org"
+  s.email   = "supmua@googlegroups.com"
   s.summary = "A console-based email client with the best features of GMail, mutt and Emacs"
   s.homepage = "http://supmua.org"
   s.license = 'GPL-2'
@@ -22,17 +22,16 @@ Gem::Specification.new do |s|
     * Automatically tracking recent contacts
 DESC
   s.post_install_message = <<-EOF
-SUP: If you are upgrading Sup from before version 0.14.0: Please
-   run `sup-psych-ify-config-files` to migrate from 0.13.
-
-   Check https://github.com/sup-heliotrope/sup/wiki/Migration-0.13-to-0.14
-   for more detailed and up-to-date instructions.
+SUP: please note that our old mailing lists have been shut down,
+     re-subscribe to supmua@googlegroups.com to discuss and follow
+     updates on sup (send email to: supmua+subscribe@googlegroups.com).
   EOF
 
   s.files         = `git ls-files -z`.split("\x0")
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
+  s.extra_rdoc_files = Dir.glob("man/*")
 
   s.required_ruby_version = '>= 1.9.3'
 

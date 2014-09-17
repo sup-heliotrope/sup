@@ -1,4 +1,10 @@
-==
+== 0.19.0 / 2014-07-05
+
+* new check-attachment hook
+* configure times to be seen in 24h format
+* new mailinglist: supmua@googlegroups.com
+
+== 0.18.0 / 2014-05-19
 
 * new color option, :with_attachment for defining colors for the
   attachment character.

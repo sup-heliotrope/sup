@@ -4,6 +4,7 @@
 *~
 # artifact
 pkg/
+man/
 *.gem
 # i have accidently added this one one too many times
 sup-exception-log.txt

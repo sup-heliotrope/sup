@@ -200,11 +200,14 @@ alts = axe("Alternate email addresses", account[:alternates].join(" ")).split(/\
 sigfn = axe "What file contains your signature?", account[:signature]
 editor = axe "What editor would you like to use?", $config[:editor]
 
+time_mode = axe "Would like to display time in 12h (type 12h) or in 24h (type 24h)?", $config[:time_mode]
+
 $config[:accounts][:default][:name] = name
 $config[:accounts][:default][:email] = email
 $config[:accounts][:default][:alternates] = alts
 $config[:accounts][:default][:signature] = sigfn
 $config[:editor] = editor
+$config[:time_mode] = time_mode
 
 done = false
 until done
