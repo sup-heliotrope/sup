@@ -40,7 +40,10 @@ SUP: please note that our old mailing lists have been shut down,
   # xapian-core and xapian-bindings manually on OpenBSD
   # see https://github.com/sup-heliotrope/sup/wiki/Installation%3A-OpenBSD
   # and https://en.wikibooks.org/wiki/Ruby_Programming/RubyGems#How_to_install_different_versions_of_gems_depending_on_which_version_of_ruby_the_installee_is_using
-  s.extensions = 'ext/mkrf_conf.rb'
+  s.extensions = %w[ext/mkrf_conf_xapian.rb]
+
+  ## remember to update the xapian dependency in
+  ## ext/mkrf_conf_xapian.rb.
 
   s.add_runtime_dependency "ncursesw", "~> 1.4.0"
   s.add_runtime_dependency "rmail-sup", "~> 1.0.1"
