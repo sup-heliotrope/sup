@@ -24,11 +24,11 @@ class MBox < Source
       raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
       raise ArgumentError, "mbox URI must have a path component" unless uri.path
       @f = nil
-      @path = uri.path
+      @path = URI.decode uri.path
     else
       @f = uri_or_fp
       @path = uri_or_fp.path
-      @expanded_uri = "mbox://#{@path}"
+      @expanded_uri = "mbox://#{URI.encode @path}"
     end
 
     super uri_or_fp, usual, archived, id
