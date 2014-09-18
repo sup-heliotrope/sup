@@ -14,14 +14,15 @@ inst = Gem::DependencyInstaller.new
 begin
 
   if !RbConfig::CONFIG['arch'].include?('openbsd')
+    # update version in Gemfile as well
     name    = "xapian-ruby"
     version = "~> 1.2.15"
 
     begin
       # try to load gem
 
-      STDERR.puts "xapian: already installed."
       gem name, version
+      STDERR.puts "xapian: already installed."
 
     rescue Gem::LoadError
 
