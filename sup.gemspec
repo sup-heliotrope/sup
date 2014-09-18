@@ -43,7 +43,7 @@ SUP: please note that our old mailing lists have been shut down,
   s.extensions = %w[ext/mkrf_conf_xapian.rb]
 
   ## remember to update the xapian dependency in
-  ## ext/mkrf_conf_xapian.rb.
+  ## ext/mkrf_conf_xapian.rb and Gemfile.
 
   s.add_runtime_dependency "ncursesw", "~> 1.4.0"
   s.add_runtime_dependency "rmail-sup", "~> 1.0.1"
