@@ -64,12 +64,11 @@ class TestMessagesDir < ::Minitest::Unit::TestCase
     indexable_chunks = sup_message.indexable_chunks
 
     # there should be only one chunk
-    #assert_equal(1, chunks.length)
-
+    assert_equal(1, chunks.length)
     lines = chunks[0].lines
 
     # lines should contain an error message
-    assert (lines.join.include? "An error occurred while loading this message."), "This message should not load successfully"
+    assert (lines.join ==  "test"), "The message could not be loaded successfully"
   end
 
   def test_bad_content_transfer_encoding

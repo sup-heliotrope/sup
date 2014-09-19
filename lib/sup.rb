@@ -7,7 +7,7 @@ require 'thread'
 require 'fileutils'
 require 'locale'
 require 'ncursesw'
-require 'rmail'
+require 'mail'
 begin
   require 'fastthread'
 rescue LoadError

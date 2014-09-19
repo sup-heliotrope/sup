@@ -57,6 +57,7 @@ EOS
     @mutex = Mutex.new
 
     @not_working_reason = nil
+    @not_working_reason = "The crypto code needs to be ported to use Mail not RMail"
 
     # test if the gpgme gem is available
     @gpgme_present =

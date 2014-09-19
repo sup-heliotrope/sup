@@ -123,8 +123,9 @@ EOS
       if false
         info "Upgrading index format #{db_version} to #{INDEX_VERSION}"
         @xapian.set_metadata 'version', INDEX_VERSION
+
       elsif db_version != INDEX_VERSION
-        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{path} out of the way, and run sup-sync --restore."
+        fail "This Sup version expects a v#{INDEX_VERSION} index, but you have an existing v#{db_version} index. Please run sup-dump to save your labels, move #{path} out of the way, and run sup-sync --restore." unless failsafe
       end
     else
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_CREATE)

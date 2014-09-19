@@ -10,6 +10,36 @@ require 'benchmark'
 require 'unicode'
 require 'fileutils'
 
+module Mail
+  class Message
+    # a common interface that matches all the field
+    # IMPORTANT: if not existing, it must return nil
+    def fetch_header field
+      sym = field.to_sym
+      begin
+        self[sym] ? self[sym].to_s : nil
+      rescue
+        info "Error while fetching header field: #{field}."
+        nil
+      end
+    end
+
+    # make sure the message has valid message ids for the message, and
+    # fetch them
+    def fetch_message_ids field
+      if self[field]
+        begin
+          self[field].message_ids || []
+        rescue
+          []
+        end
+      else
+        []
+      end
+    end
+  end
+end
+
 ## time for some monkeypatching!
 class Symbol
   unless method_defined? :to_proc

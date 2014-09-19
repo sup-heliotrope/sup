@@ -1,6 +1,8 @@
 # encoding: UTF-8
 
 require 'time'
+require 'uri'
+
 
 module Redwood
 
@@ -62,88 +64,94 @@ class Message
 
     ## we need to initialize this. see comments in parse_header as to
     ## why.
+    @date = nil # may or may not have been set when the message was loaded
+                # or discovered for the first time.
+    @id   = nil # same as @date for invalid ids
     @refs = []
 
     #parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
-  def decode_header_field v
-    return unless v
-    return v unless v.is_a? String
-    return unless v.size < MAX_HEADER_VALUE_SIZE # avoid regex blowup on spam
-    d = v.dup
-    d = d.transcode($encoding, 'ASCII')
-    Rfc2047.decode_to $encoding, d
-  end
+  def parse_header m
+    # load
+    # @id   sanitized message id
+    # @from
+    # @date
+    # @subj
+    # @to
+    # @cc
+    # @bcc
+    # @refs
+    # @replyto
+    # @replytos
+    # @list_address
+    # @receipient_email
+    # @source_marked_read
+    # @list_subscribe
+    # @list_unsubscribe
 
-  def parse_header encoded_header
-    header = SavingHash.new { |k| decode_header_field encoded_header[k] }
-
-    @id = ''
-    if header["message-id"]
-      mid = header["message-id"] =~ /<(.+?)>/ ? $1 : header["message-id"]
-      @id = sanitize_message_id mid
+    unless m.message_id
+      m.message_id =  @id || "<#{Time.now.to_i}-defaulted-#{Digest::MD5.hexdigest m.header.to_s}@sup-faked>"
+      debug "Using fake id (newly created or existing): #{id} for message located at: #{location.inspect}."
     end
-    if (not @id.include? '@') || @id.length < 6
-      @id = "sup-faked-" + Digest::MD5.hexdigest(raw_header)
-      #from = header["from"]
-      #debug "faking non-existent message-id for message from #{from}: #{id}"
-    end
 
-    @from = Person.from_address(if header["from"]
-      header["from"]
-    else
-      name = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
-      #debug "faking non-existent sender for message #@id: #{name}"
-      name
-    end)
+    @id = sanitize_message_id m.message_id
 
-    @date = case(date = header["date"])
-    when Time
-      date
-    when String
-      begin
-        Time.parse date
-      rescue ArgumentError => e
-        #debug "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
-        Time.now
+    @from = Person.from_address m.fetch_header(:from)
+    @from = Person.from_address "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>" unless @from
+    @sender = Person.from_address m.fetch_header(:sender)
+
+    begin
+      if m.date
+        @date = m.date.to_time
+      else
+        warn "Invalid date for message #{@id}, using 'now' or previously fake 'now'."
+        BufferManager.flash "Invalid date for message #{@id}, using 'now' or previously fake 'now'." if BufferManager.instantiated?
+        @date = @date || Time.now.to_time
       end
-    else
-      #debug "faking non-existent date header for #{@id}"
-      Time.now
+    rescue NoMethodError
+      # TODO: remove this rescue once mail/#564 is fixed
+      warn "Invalid date for message #{@id}, using 'now' or previously fake 'now'."
+      BufferManager.flash "Invalid date for message #{@id}, using 'now' or previously fake 'now'." if BufferManager.instantiated?
+      @date = (@date || Time.now.to_time)
     end
 
-    subj = header["subject"]
-    subj = subj ? subj.fix_encoding! : nil
-    @subj = subj ? subj.gsub(/\s+/, " ").gsub(/\s+$/, "") : DEFAULT_SUBJECT
-    @to = Person.from_address_list header["to"]
-    @cc = Person.from_address_list header["cc"]
-    @bcc = Person.from_address_list header["bcc"]
+    @to = Person.from_address_list (m.fetch_header (:to))
+    @cc = Person.from_address_list (m.fetch_header (:cc))
+    @bcc = Person.from_address_list (m.fetch_header (:bcc))
+
+    @subj = (m.subject || DEFAULT_SUBJECT)
+    @replyto = Person.from_address (m.fetch_header (:reply_to))
 
     ## before loading our full header from the source, we can actually
     ## have some extra refs set by the UI. (this happens when the user
     ## joins threads manually). so we will merge the current refs values
     ## in here.
-    refs = (header["references"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
-    @refs = (@refs + refs).uniq
-    @replytos = (header["in-reply-to"] || "").scan(/<(.+?)>/).map { |x| sanitize_message_id x.first }
-
-    @replyto = Person.from_address header["reply-to"]
-    @list_address = if header["list-post"]
-      address = if header["list-post"] =~ /mailto:(.*?)[>\s$]/
-        $1
-      elsif header["list-post"] =~ /@/
-        header["list-post"] # just try the whole fucking thing
-      end
-      address && Person.from_address(address)
-    elsif header["x-mailing-list"]
-      Person.from_address header["x-mailing-list"]
+    begin
+      @refs += m.fetch_message_ids(:references)
+      @replytos = m.fetch_message_ids(:in_reply_to)
+    rescue Mail::Field::FieldError => e
+      raise InvalidMessageError, e.message
     end
+    @refs += @replytos unless @refs.member?(@replytos.first)
+    @refs = @refs.uniq # user may have set some refs manually
 
-    @recipient_email = header["envelope-to"] || header["x-original-to"] || header["delivered-to"]
-    @source_marked_read = header["status"] == "RO"
-    @list_subscribe = header["list-subscribe"]
-    @list_unsubscribe = header["list-unsubscribe"]
+    @recipient_email = (m.fetch_header(:Envelope_to) || m.fetch_header(:x_original_to) || m.fetch_header(:delivered_to))
+
+    @list_subscribe = m.fetch_header(:list_subscribe)
+    @list_unsubscribe = m.fetch_header(:list_unsubscribe)
+    @list_address = Person.from_address(get_email_from_mailto(m.fetch_header(:list_post) || m.fetch_header(:x_mailing_list)))
+
+    @source_marked_read = m.fetch_header(:status) == 'RO'
+  end
+
+  # get to field from mailto:example@example uri
+  def get_email_from_mailto field
+    return nil if field.nil?
+    u = URI
+    k = u.extract field, 'mailto'
+    a = u.parse k[0]
+    return a.to
   end
 
   ## Expected index entry format:
@@ -261,9 +269,10 @@ class Message
         ## actually, it's also the differentiation between to/cc/bcc,
         ## so i will keep this.
         rmsg = location.parsed_message
-        parse_header rmsg.header
+
+        parse_header rmsg
         message_to_chunks rmsg
-      rescue SourceError, SocketError, RMail::EncodingUnsupportedError => e
+      rescue SourceError, SocketError, Mail::UnknownEncodingType => e
         warn "problem reading message #{id}"
         debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
 
@@ -341,7 +350,7 @@ EOS
   end
 
   def indexable_body
-    indexable_chunks.map { |c| c.lines }.flatten.compact.join " "
+    indexable_chunks.map { |c| c.lines.each { |l| l.fix_encoding!} }.flatten.compact.join " "
   end
 
   def indexable_chunks
@@ -409,14 +418,14 @@ private
     end
 
     ## this probably will never happen
-    if payload.header.content_type && payload.header.content_type.downcase == "application/pgp-signature"
-      warn "multipart/signed with payload content type #{payload.header.content_type}"
+    if payload.content_type && payload.content_type.downcase == "application/pgp-signature"
+      warn "multipart/signed with payload content type #{payload.content_type}"
       return
     end
 
-    if signature.header.content_type && signature.header.content_type.downcase != "application/pgp-signature"
+    if signature.content_type && signature.content_type.downcase != "application/pgp-signature"
       ## unknown signature type; just ignore.
-      #warn "multipart/signed with signature content type #{signature.header.content_type}"
+      #warn "multipart/signed with signature content type #{signature.content_type}"
       return
     end
 
@@ -435,13 +444,13 @@ private
       return
     end
 
-    if payload.header.content_type && payload.header.content_type.downcase != "application/octet-stream"
-      warn "multipart/encrypted with payload content type #{payload.header.content_type}"
+    if payload.content_type && payload.content_type.downcase != "application/octet-stream"
+      warn "multipart/encrypted with payload content type #{payload.content_type}"
       return
     end
 
-    if control.header.content_type && control.header.content_type.downcase != "application/pgp-encrypted"
-      warn "multipart/encrypted with control content type #{signature.header.content_type}"
+    if control.content_type && control.content_type.downcase != "application/pgp-encrypted"
+      warn "multipart/encrypted with control content type #{signature.content_type}"
       return
     end
 
@@ -454,135 +463,267 @@ private
     end
   end
 
-  ## takes a RMail::Message, breaks it into Chunk:: classes.
+  ## takes Mail and breaks it into Chunk::s
   def message_to_chunks m, encrypted=false, sibling_types=[]
-    if m.multipart?
-      chunks =
-        case m.header.content_type.downcase
-        when "multipart/signed"
-          multipart_signed_to_chunks m
-        when "multipart/encrypted"
-          multipart_encrypted_to_chunks m
-        end
+    if encrypted
+      info "Encrypted message not implemented, skipping."
+      return []
+      #raise NotImplementedError
+    end
 
-      unless chunks
-        sibling_types = m.body.map { |p| p.header.content_type }
-        chunks = m.body.map { |p| message_to_chunks p, encrypted, sibling_types }.flatten.compact
-      end
+    preferred_type = "text/plain" # TODO: im just gonna assume this is preferred
 
-      chunks
-    elsif m.header.content_type && m.header.content_type.downcase == "message/rfc822"
-      encoding = m.header["Content-Transfer-Encoding"]
-      if m.body
-        body =
-        case encoding
-        when "base64"
-          m.body.unpack("m")[0]
-        when "quoted-printable"
-          m.body.unpack("M")[0]
-        when "7bit", "8bit", nil
-          m.body
-        else
-          raise RMail::EncodingUnsupportedError, encoding.inspect
-        end
-        body = body.normalize_whitespace
-        payload = RMail::Parser.read(body)
-        from = payload.header.from.first ? payload.header.from.first.format : ""
-        to = payload.header.to.map { |p| p.format }.join(", ")
-        cc = payload.header.cc.map { |p| p.format }.join(", ")
-        subj = decode_header_field(payload.header.subject) || DEFAULT_SUBJECT
-        subj = Message.normalize_subj(subj.gsub(/\s+/, " ").gsub(/\s+$/, ""))
-        msgdate = payload.header.date
-        from_person = from ? Person.from_address(decode_header_field(from)) : nil
-        to_people = to ? Person.from_address_list(decode_header_field(to)) : nil
-        cc_people = cc ? Person.from_address_list(decode_header_field(cc)) : nil
-        [Chunk::EnclosedMessage.new(from_person, to_people, cc_people, msgdate, subj)] + message_to_chunks(payload, encrypted)
+    chunks = []
+
+    mime_parts(m, preferred_type).each do |type, filename, id, content|
+      if type == "message/rfc822"
+        info "RFC822 messages not implemented, skipping."
+        next
+        #raise NotImplementedError
+      elsif type == "application/pgp"
+        info "Encrypted PGP message not implemented, skipping."
+        next
+        #raise NotImplementedError
       else
-        debug "no body for message/rfc822 enclosure; skipping"
-        []
-      end
-    elsif m.header.content_type && m.header.content_type.downcase == "application/pgp" && m.body
-      ## apparently some versions of Thunderbird generate encryped email that
-      ## does not follow RFC3156, e.g. messages with X-Enigmail-Version: 0.95.0
-      ## they have no MIME multipart and just set the body content type to
-      ## application/pgp. this handles that.
-      ##
-      ## TODO 1: unduplicate code between here and
-      ##         multipart_encrypted_to_chunks
-      ## TODO 2: this only tries to decrypt. it cannot handle inline PGP
-      notice, sig, decryptedm = CryptoManager.decrypt m.body
-      if decryptedm # managed to decrypt
-        children = message_to_chunks decryptedm, true
-        [notice, sig].compact + children
-      else
-        ## try inline pgp signed
-      	chunks = inline_gpg_to_chunks m.body, $encoding, (m.charset || $encoding)
-        if chunks
-          chunks
+        ## if there is a filename, we'll treat it as an attachment
+        if filename
+          @attachments.push filename.downcase unless filename =~ /^sup-attachment-/
+          add_label :attachment unless filename =~ /^sup-attachment-/
+
+          chunks << Chunk::Attachment.new(type, filename, content, sibling_types)
+
         else
-          [notice]
+          body = content
+
+          # check for inline PGP
+          #ch = inline_gpg_to_chunks body, $encoding, 'UTF-8'
+          #chunks << ch if ch
+
+          text_to_chunks(body.normalize_whitespace.split("\n"), encrypted).each do |tc|
+            chunks << tc
+          end
         end
-      end
-    else
-      filename =
-        ## first, paw through the headers looking for a filename.
-        ## RFC 2183 (Content-Disposition) specifies that disposition-parms are
-        ## separated by ";". So, we match everything up to " and ; (if present).
-        if m.header["Content-Disposition"] && m.header["Content-Disposition"] =~ /filename="?(.*?[^\\])("|;|\z)/m
-          $1
-        elsif m.header["Content-Type"] && m.header["Content-Type"] =~ /name="?(.*?[^\\])("|;|\z)/im
-          $1
-
-        ## haven't found one, but it's a non-text message. fake
-        ## it.
-        ##
-        ## TODO: make this less lame.
-        elsif m.header["Content-Type"] && m.header["Content-Type"] !~ /^text\/plain/i
-          extension =
-            case m.header["Content-Type"]
-            when /text\/html/ then "html"
-            when /image\/(.*)/ then $1
-            end
-
-          ["sup-attachment-#{Time.now.to_i}-#{rand 10000}", extension].join(".")
-        end
-
-      ## if there's a filename, we'll treat it as an attachment.
-      if filename
-        ## filename could be 2047 encoded
-        filename = Rfc2047.decode_to $encoding, filename
-        # add this to the attachments list if its not a generated html
-        # attachment (should we allow images with generated names?).
-        # Lowercase the filename because searches are easier that way
-        @attachments.push filename.downcase unless filename =~ /^sup-attachment-/
-        add_label :attachment unless filename =~ /^sup-attachment-/
-        content_type = (m.header.content_type || "application/unknown").downcase # sometimes RubyMail gives us nil
-        [Chunk::Attachment.new(content_type, filename, m, sibling_types)]
-
-      ## otherwise, it's body text
-      else
-        ## Decode the body, charset conversion will follow either in
-        ## inline_gpg_to_chunks (for inline GPG signed messages) or
-        ## a few lines below (messages without inline GPG)
-        body = m.body ? m.decode : ""
-
-        ## Check for inline-PGP
-        chunks = inline_gpg_to_chunks body, $encoding, (m.charset || $encoding)
-        return chunks if chunks
-
-        if m.body
-          ## if there's no charset, use the current encoding as the charset.
-          ## this ensures that the body is normalized to avoid non-displayable
-          ## characters
-          body = m.decode.transcode($encoding, m.charset)
-        else
-          body = ""
-        end
-
-        text_to_chunks(body.normalize_whitespace.split("\n"), encrypted)
       end
     end
+
+    chunks
+
   end
+
+  def mime_parts m, preferred_type
+    decode_mime_parts m, preferred_type
+  end
+
+  def mime_part_types part
+    ptype = part.fetch_header(:content_type)
+    [ptype] + (part.multipart? ? part.body.parts.map { |sub| mime_part_types sub } : [])
+  end
+
+  ## unnests all the mime stuff and returns a list of [type, filename, content]
+  ## tuples.
+  ##
+  ## for multipart/alternative parts, will only return the subpart that matches
+  ## preferred_type. if none of them, will only return the first subpart.
+  def decode_mime_parts part, preferred_type, level=0
+    if part.multipart?
+      if mime_type_for(part) =~ /multipart\/alternative/
+        target = part.body.parts.find { |p| mime_type_for(p).index(preferred_type) } || part.body.parts.first
+        if target # this can be nil
+          decode_mime_parts target, preferred_type, level + 1
+        else
+          []
+        end
+      else # decode 'em all
+        part.body.parts.compact.map { |subpart| decode_mime_parts subpart, preferred_type, level + 1 }.flatten 1
+      end
+    else
+      type = mime_type_for part
+      filename = mime_filename_for part
+      id = mime_id_for part
+      content = mime_content_for part, preferred_type
+      [[type, filename, id, content]]
+    end
+  end
+
+  def mime_type_for part
+    (part.fetch_header(:content_type) || "text/plain").gsub(/\s+/, " ").strip.downcase
+  end
+
+  def mime_id_for part
+    header = part.fetch_header(:content_id)
+    case header
+      when /<(.+?)>/; $1
+      else header
+    end
+  end
+
+  ## a filename, or nil
+  def mime_filename_for part
+    cd = part.fetch_header(:content_disposition)
+    ct = part.fetch_header(:content_type)
+
+    ## RFC 2183 (Content-Disposition) specifies that disposition-parms are
+    ## separated by ";". So, we match everything up to " and ; (if present).
+    filename = if ct && ct =~ /name="?(.*?[^\\])("|;|\z)/im # find in content-type
+      $1
+    elsif cd && cd =~ /filename="?(.*?[^\\])("|;|\z)/m # find in content-disposition
+      $1
+    end
+  end
+
+
+  #CONVERSIONS = {
+    #["text/html", "text/plain"] => :html_to_text
+  #}
+
+  def mime_content_for mime_part, preferred_type
+    return "" unless mime_part.body # sometimes this happens. not sure why.
+
+    content_type = mime_part.fetch_header(:content_type) || "text/plain"
+    source_charset = mime_part.charset || "UTF-8"
+
+    content = mime_part.decoded
+    #converted_content, converted_charset = if(converter = CONVERSIONS[[content_type, preferred_type]])
+      #send converter, content, source_charset
+    #else
+      #[content, source_charset]
+    #end
+
+    # decode
+    #if content_type =~ /^text\//
+      #Decoder.transcode "utf-8", converted_charset, converted_content
+    #else
+      #converted_content
+    #end
+    content
+  end
+
+  def has_attachment? m
+    m.has_attachments?
+  end
+
+  ## takes a RMail::Message, breaks it into Chunk:: classes.
+  #def _message_to_chunks m, encrypted=false, sibling_types=[]
+    #if m.multipart?
+      #chunks =
+        #case m.content_type.downcase
+        #when "multipart/signed"
+          #multipart_signed_to_chunks m
+        #when "multipart/encrypted"
+          #multipart_encrypted_to_chunks m
+        #end
+
+      #unless chunks
+        #sibling_types = m.body.map { |p| p.content_type }
+        #chunks = m.body.map { |p| message_to_chunks p, encrypted, sibling_types }.flatten.compact
+      #end
+
+      #chunks
+    #elsif m[:content_type] && m.fetch_header(:content_type).downcase == "message/rfc822"
+      #encoding = m.header["Content-Transfer-Encoding"]
+      #if m.body
+        #body =
+        #case encoding
+        #when "base64"
+          #m.body.unpack("m")[0]
+        #when "quoted-printable"
+          #m.body.unpack("M")[0]
+        #when "7bit", "8bit", nil
+          #m.body
+        #else
+          #raise RMail::EncodingUnsupportedError, encoding.inspect
+        #end
+        #body = body.normalize_whitespace
+        #payload = RMail::Parser.read(body)
+        #from = payload.header.from.first ? payload.header.from.first.format : ""
+        #to = payload.header.to.map { |p| p.format }.join(", ")
+        #cc = payload.header.cc.map { |p| p.format }.join(", ")
+        #subj = decode_header_field(payload.header.subject) || DEFAULT_SUBJECT
+        #subj = Message.normalize_subj(subj.gsub(/\s+/, " ").gsub(/\s+$/, ""))
+        #msgdate = payload.header.date
+        #from_person = from ? Person.from_address(decode_header_field(from)) : nil
+        #to_people = to ? Person.from_address_list(decode_header_field(to)) : nil
+        #cc_people = cc ? Person.from_address_list(decode_header_field(cc)) : nil
+        #[Chunk::EnclosedMessage.new(from_person, to_people, cc_people, msgdate, subj)] + message_to_chunks(payload, encrypted)
+      #else
+        #debug "no body for message/rfc822 enclosure; skipping"
+        #[]
+      #end
+    #elsif m[:content_type] && m.fetch_header(:content_type).downcase == "application/pgp" && m.body
+      ### apparently some versions of Thunderbird generate encryped email that
+      ### does not follow RFC3156, e.g. messages with X-Enigmail-Version: 0.95.0
+      ### they have no MIME multipart and just set the body content type to
+      ### application/pgp. this handles that.
+      ###
+      ### TODO: unduplicate code between here and multipart_encrypted_to_chunks
+      #notice, sig, decryptedm = CryptoManager.decrypt m.body
+      #if decryptedm # managed to decrypt
+        #children = message_to_chunks decryptedm, true
+        #[notice, sig].compact + children
+      #else
+        #[notice]
+      #end
+    #else
+      #filename =
+        ### first, paw through the headers looking for a filename.
+        ### RFC 2183 (Content-Disposition) specifies that disposition-parms are
+        ### separated by ";". So, we match everything up to " and ; (if present).
+        #if m.header["Content-Disposition"] && m.header["Content-Disposition"] =~ /filename="?(.*?[^\\])("|;|\z)/m
+          #$1
+        #elsif m.header["Content-Type"] && m.header["Content-Type"] =~ /name="?(.*?[^\\])("|;|\z)/im
+          #$1
+
+        ### haven't found one, but it's a non-text message. fake
+        ### it.
+        ###
+        ### TODO: make this less lame.
+        #elsif m.header["Content-Type"] && m.header["Content-Type"] !~ /^text\/plain/i
+          #extension =
+            #case m.header["Content-Type"]
+            #when /text\/html/ then "html"
+            #when /image\/(.*)/ then $1
+            #end
+
+          #["sup-attachment-#{Time.now.to_i}-#{rand 10000}", extension].join(".")
+        #end
+
+      ### if there's a filename, we'll treat it as an attachment.
+      #if filename
+        ### filename could be 2047 encoded
+        #filename = Rfc2047.decode_to $encoding, filename
+        ## add this to the attachments list if its not a generated html
+        ## attachment (should we allow images with generated names?).
+        ## Lowercase the filename because searches are easier that way
+        #@attachments.push filename.downcase unless filename =~ /^sup-attachment-/
+        #add_label :attachment unless filename =~ /^sup-attachment-/
+        #content_type = (m.content_type || "application/unknown").downcase # sometimes RubyMail gives us nil
+        #[Chunk::Attachment.new(content_type, filename, m, sibling_types)]
+
+      ### otherwise, it's body text
+      #else
+        ### Decode the body, charset conversion will follow either in
+        ### inline_gpg_to_chunks (for inline GPG signed messages) or
+        ### a few lines below (messages without inline GPG)
+        #body = m.body ? m.decoded : ""
+
+        ### Check for inline-PGP
+        #chunks = inline_gpg_to_chunks body, $encoding, (m.charset || $encoding)
+        #return chunks if chunks
+
+        #if m.body
+          ### if there's no charset, use the current encoding as the charset.
+          ### this ensures that the body is normalized to avoid non-displayable
+          ### characters
+          ##body = Iconv.easy_decode($encoding, m.charset || $encoding, m.decoded)
+          #body = m.body.decoded
+        #else
+          #body = ""
+        #end
+
+        #text_to_chunks(body.normalize_whitespace.split("\n"), encrypted)
+      #end
+    #end
+  #end
 
   ## looks for gpg signed (but not encrypted) inline  messages inside the
   ## message body (there is no extra header for inline GPG) or for encrypted

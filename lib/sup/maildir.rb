@@ -81,7 +81,13 @@ class Maildir < Source
   end
 
   def load_message id
-    with_file_for(id) { |f| RMail::Parser.read f }
+    with_file_for(id) do |f|
+      begin
+        Mail.read_from_string f.read
+      rescue
+        raise SourceError
+      end
+    end
   end
 
   def sync_back id, labels
