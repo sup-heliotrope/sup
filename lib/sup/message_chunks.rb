@@ -164,6 +164,7 @@ EOS
     ## something we can display inline. otherwise, it's viewable.
     def inlineable?; false end
     def expandable?; !viewable? end
+    def indexable?; expandable? end
     def initial_state; :open end
     def viewable?; @lines.nil? end
     def view_default! path
@@ -229,6 +230,7 @@ EOS
     def inlineable?; true end
     def quotable?; true end
     def expandable?; false end
+    def indexable?; true end
     def viewable?; false end
     def color; :text_color end
   end
@@ -242,6 +244,7 @@ EOS
     def inlineable?; @lines.length == 1 end
     def quotable?; true end
     def expandable?; !inlineable? end
+    def indexable?; expandable? end
     def viewable?; false end
 
     def patina_color; :quote_patina_color end
@@ -258,6 +261,7 @@ EOS
     def inlineable?; @lines.length == 1 end
     def quotable?; false end
     def expandable?; !inlineable? end
+    def indexable?; expandable? end
     def viewable?; false end
 
     def patina_color; :sig_patina_color end
@@ -291,6 +295,7 @@ EOS
     def inlineable?; false end
     def quotable?; false end
     def expandable?; true end
+    def indexable?; true end
     def initial_state; :closed end
     def viewable?; false end
 
@@ -322,6 +327,7 @@ EOS
     def inlineable?; false end
     def quotable?; false end
     def expandable?; !@lines.empty? end
+    def indexable?; false end
     def viewable?; false end
   end
 end
