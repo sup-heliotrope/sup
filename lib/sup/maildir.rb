@@ -12,7 +12,15 @@ class Maildir < Source
   def initialize uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
-    uri = URI(@expanded_uri)
+    parts = @expanded_uri.match /^([a-zA-Z0-9]*:(\/\/)?)(.*)/
+    if parts
+      prefix = parts[1]
+      @path = parts[3]
+      uri = URI(prefix + URI.encode(@path, URI_ENCODE_CHARS))
+    else
+      uri = URI(URI.encode @expanded_uri, URI_ENCODE_CHARS)
+      @path = uri.path
+    end
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
