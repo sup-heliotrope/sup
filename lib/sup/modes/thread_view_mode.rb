@@ -733,7 +733,7 @@ EOS
   end
 
   def goto_uri
-    return unless (chunk = @chunk_lines[curpos]) && chunk.is_a?(Chunk::Text)
+    return unless (chunk = @chunk_lines[curpos])
     return unless HookManager.enabled? "goto"
 
     # @text is a list of lines with this format:
@@ -761,6 +761,7 @@ EOS
 
       rescue URI::InvalidURIError => e
         debug "not a uri: #{e}"
+        BufferManager.flash "No URL found"
         # Do nothing, this is an ok flow
       end
     end
