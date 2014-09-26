@@ -5,19 +5,13 @@ class TestMaildir < Minitest::Test
   def setup
     @path = Dir.mktmpdir
 
-
     @test_message_1 = <<EOS
 From sup-talk-bounces@rubyforge.org Mon Apr 27 12:56:18 2009
 From: Bob <bob@bob.com>
 To: a dear friend
 
 Hello there friend. How are you? Blah is blah blah.
-
-From bob@bob.com Mon Apr 27 12:56:19 2009
-From: Bob <bob@bob.com>
-To: a dear friend
-
-Hello again! Would you like to buy my products?
+Wow. Maildir FTW, am I right?
 EOS
 
   end
@@ -48,7 +42,6 @@ EOS
     SourceManager.instance.instance_eval '@sources = {}'
     SourceManager.instance.add_source source
     PollManager.poll_from source
-    Index.save
   end
 
   # and now, let the tests begin!
@@ -61,6 +54,7 @@ EOS
 
     messages_in_index = []
     Index.instance.each_message {|a| messages_in_index << a}
+    refute_empty messages_in_index, 'There are no messages in the index'
     assert_equal(messages_in_index.first.raw_message, @test_message_1)
 
   end
@@ -73,6 +67,7 @@ EOS
 
     messages_in_index = []
     Index.instance.each_message {|a| messages_in_index << a}
+    refute_empty messages_in_index, 'There are no messages in the index'
     assert_equal(messages_in_index.first.raw_message, @test_message_1)
 
   end
