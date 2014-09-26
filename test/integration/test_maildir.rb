@@ -6,7 +6,6 @@ class TestMaildir < MiniTest::Unit::TestCase
     @path = Dir.mktmpdir
 
     @test_message_1 = <<EOS
-From sup-talk-bounces@rubyforge.org Mon Apr 27 12:56:18 2009
 From: Bob <bob@bob.com>
 To: a dear friend
 
