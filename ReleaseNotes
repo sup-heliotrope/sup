@@ -1,3 +1,8 @@
+Release       :
+
+We've got man pages! We've got OpenBSD support! A few long standing bugs
+have been fixed, and new GPG keys have been made for the tests.
+
 Release 0.19.0:
 
 New hook: check-attachment and a new option to shows dates in 24h format.

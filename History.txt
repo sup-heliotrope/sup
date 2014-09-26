@@ -1,3 +1,12 @@
+==
+
+* add man-pages (generated from wiki)!
+* fix long-standing getlocal bug
+* OpenBSD support!
+* output message id and locations on all load_from_source failures
+* make new test GPG keys (old ones expired), valid for one year, script
+  now available in devel/ for making new ones.
+
 == 0.19.0 / 2014-07-05
 
 * new check-attachment hook

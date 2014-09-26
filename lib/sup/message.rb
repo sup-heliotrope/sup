@@ -268,6 +268,14 @@ class Message
         debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
 
         [Chunk::Text.new(error_message.split("\n"))]
+
+      rescue Exception => e
+
+        warn "problem reading message #{id}"
+        debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
+
+        raise e
+
       end
   end
 
@@ -327,17 +335,17 @@ EOS
       to.map { |p| p.indexable_content },
       cc.map { |p| p.indexable_content },
       bcc.map { |p| p.indexable_content },
-      indexable_chunks.map { |c| c.lines },
+      indexable_chunks.map { |c| c.lines.map { |l| l.fix_encoding! } },
       indexable_subject,
     ].flatten.compact.join " "
   end
 
   def indexable_body
-    indexable_chunks.map { |c| c.lines }.flatten.compact.join " "
+    indexable_chunks.map { |c| c.lines }.flatten.compact.map { |l| l.fix_encoding! }.join " "
   end
 
   def indexable_chunks
-    chunks.select { |c| c.is_a? Chunk::Text } || []
+    chunks.select { |c| c.indexable? } || []
   end
 
   def indexable_subject
