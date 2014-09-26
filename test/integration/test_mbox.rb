@@ -1,6 +1,6 @@
 require "test_helper"
 
-class TestMbox < Minitest::Test
+class TestMbox < MiniTest::Unit::TestCase
 
   def setup
     @path = Dir.mktmpdir
