@@ -1,7 +1,10 @@
 Release       :
 
-We've got man pages! We've got OpenBSD support! A few long standing bugs
-have been fixed, and new GPG keys have been made for the tests.
+We've got man pages! We've got OpenBSD support! It is now possible to get your 
+HTML emails indexed by setting up a mime-decode hook before you index!
+
+Also a few long standing bugs have been fixed, and new GPG keys have been made
+for the tests.
 
 Release 0.19.0:
 

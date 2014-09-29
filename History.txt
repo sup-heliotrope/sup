@@ -1,6 +1,8 @@
 ==
 
 * add man-pages (generated from wiki)!
+* HTML messages or messages that are decoded with the mime-decode hook
+  are now indexed if the mime-decode hook is set up.
 * fix long-standing getlocal bug
 * OpenBSD support!
 * output message id and locations on all load_from_source failures
