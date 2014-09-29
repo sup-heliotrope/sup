@@ -1,11 +1,11 @@
 ==
 
-* add man-pages (generated from wiki)!
+* add man-pages (generated from wiki) (Per Andersson)!
 * HTML messages or messages that are decoded with the mime-decode hook
-  are now indexed if the mime-decode hook is set up.
-* fix long-standing getlocal bug
-* OpenBSD support!
+  are now indexed if the mime-decode hook is set up (Scott Bonds).
+* OpenBSD support (Scott Bonds)!
 * output message id and locations on all load_from_source failures
+* fix long-standing getlocal bug
 * make new test GPG keys (old ones expired), valid for one year, script
   now available in devel/ for making new ones.
 

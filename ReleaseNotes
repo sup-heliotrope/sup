@@ -1,7 +1,8 @@
 Release       :
 
-We've got man pages! We've got OpenBSD support! It is now possible to get your 
-HTML emails indexed by setting up a mime-decode hook before you index!
+We've got man pages (Mr. Andersson)! We've got OpenBSD support (Scott Bonds)!
+It is now possible to get your HTML emails indexed by setting up a mime-decode
+hook before you index (Scott Bonds)!
 
 Also a few long standing bugs have been fixed, and new GPG keys have been made
 for the tests.
