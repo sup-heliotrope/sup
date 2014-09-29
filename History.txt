@@ -4,6 +4,7 @@
 * HTML messages or messages that are decoded with the mime-decode hook
   are now indexed if the mime-decode hook is set up (Scott Bonds).
 * OpenBSD support (Scott Bonds)!
+* support special charaters in source URIs (Scott Bonds).
 * output message id and locations on all load_from_source failures
 * fix long-standing getlocal bug
 * make new test GPG keys (old ones expired), valid for one year, script
