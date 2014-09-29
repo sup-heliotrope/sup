@@ -396,6 +396,18 @@ EOS
     end
   end
 
+  ## ask* functions. these functions display a one-line text field with
+  ## a prompt at the bottom of the screen. answers typed or choosen by
+  ## tab-completion
+  ##
+  ## common arguments are:
+  ##
+  ## domain:      token used as key for @textfields, which seems to be a
+  ##              dictionary of input field objects
+  ## question:    string used as prompt
+  ## completions: array of possible answers, that can be completed by using
+  ##              the tab key
+  ## default:     default value to return
   def ask_with_completions domain, question, completions, default=nil
     ask domain, question, default do |s|
       s.fix_encoding!
