@@ -733,8 +733,14 @@ EOS
   end
 
   def goto_uri
-    return unless (chunk = @chunk_lines[curpos]) && chunk.is_a?(Chunk::Text)
-    return unless HookManager.enabled? "goto"
+    unless (chunk = @chunk_lines[curpos])
+      BufferManager.flash "No URI found."
+      return
+    end
+    unless HookManager.enabled? "goto"
+      BufferManager.flash "You must add a goto.rb hook before you can goto a URI."
+      return
+    end
 
     # @text is a list of lines with this format:
     # [
@@ -746,7 +752,7 @@ EOS
       .take_while{|d| d[0] == :text_color and d[1].strip != ""} # Only take up to the first "" alone on its line
       .map{|d| d[1].strip}.join("").strip
 
-
+    found = false
     (linetext || "").scan(URI::regexp).each do |matches|
       begin
         link = $& # ruby magic: $& is the whole regexp match
@@ -758,12 +764,14 @@ EOS
         BufferManager.flash "Going to #{reallink} ..."
         HookManager.run "goto", :uri => reallink
         BufferManager.completely_redraw_screen
+        found = true
 
       rescue URI::InvalidURIError => e
         debug "not a uri: #{e}"
         # Do nothing, this is an ok flow
       end
     end
+    BufferManager.flash "No URI found." unless found
   end
 
 private
