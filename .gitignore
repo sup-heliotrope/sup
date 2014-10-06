@@ -4,6 +4,7 @@
 *~
 # artifact
 pkg/
+man/
 *.gem
 # i have accidently added this one one too many times
 sup-exception-log.txt
@@ -14,4 +15,5 @@ Gemfile.lock
 
 # generated file for gnupg test
 test/gnupg_test_home/random_seed
+test/gnupg_test_home/trustdb.gpg
 

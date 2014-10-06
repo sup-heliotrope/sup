@@ -856,6 +856,12 @@ protected
     need_update = false
 
     @mutex.synchronize do
+      # and certainly not sure why this happens..
+      #
+      # probably a race condition between thread modification and updating
+      # going on.
+      return if @threads[l].empty?
+
       @size_widgets[l] = size_widget_for_thread @threads[l]
       @date_widgets[l] = date_widget_for_thread @threads[l]
 

@@ -19,16 +19,24 @@ class MBox < Source
     case uri_or_fp
     when String
       @expanded_uri = Source.expand_filesystem_uri(uri_or_fp)
-      uri = URI(@expanded_uri)
+      parts = @expanded_uri.match /^([a-zA-Z0-9]*:(\/\/)?)(.*)/
+      if parts
+        prefix = parts[1]
+        @path = parts[3]
+        uri = URI(prefix + URI.encode(@path, URI_ENCODE_CHARS))
+      else
+        uri = URI(URI.encode @expanded_uri, URI_ENCODE_CHARS)
+        @path = uri.path
+      end
+
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
       raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
       raise ArgumentError, "mbox URI must have a path component" unless uri.path
       @f = nil
-      @path = uri.path
     else
       @f = uri_or_fp
       @path = uri_or_fp.path
-      @expanded_uri = "mbox://#{@path}"
+      @expanded_uri = "mbox://#{URI.encode @path, URI_ENCODE_CHARS}"
     end
 
     super uri_or_fp, usual, archived, id

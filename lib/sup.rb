@@ -8,6 +8,7 @@ require 'fileutils'
 require 'locale'
 require 'ncursesw'
 require 'rmail'
+require 'uri'
 begin
   require 'fastthread'
 rescue LoadError
@@ -64,6 +65,7 @@ module Redwood
   LEGACY_YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
   MAILDIR_SYNC_CHECK_SKIPPED = 'SKIPPED'
+  URI_ENCODE_CHARS = "!*'();:@&=+$,?#[] " # see https://en.wikipedia.org/wiki/Percent-encoding
 
   ## record exceptions thrown in threads nicely
   @exceptions = []
