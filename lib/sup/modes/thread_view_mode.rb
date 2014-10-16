@@ -224,10 +224,24 @@ EOS
 
   def unsubscribe_from_list
     m = @message_lines[curpos] or return
-    if m.list_unsubscribe && m.list_unsubscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
+    BufferManager.flash "Can't find List-Unsubscribe header for this message." unless m.list_unsubscribe
+
+    if m.list_unsubscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
       ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [Person.from_address($1)], :subj => ($3 || "unsubscribe")
-    else
-      BufferManager.flash "Can't find List-Unsubscribe header for this message."
+    elsif m.list_unsubscribe =~ /<(http.*)?>/
+      unless HookManager.enabled? "goto"
+        BufferManager.flash "You must add a goto.rb hook before you can goto an unsubscribe URI."
+        return
+      end
+
+      begin
+        u = URI.parse($1)
+      rescue URI::InvalidURIError => e
+        BufferManager.flash("Invalid unsubscribe link")
+        return
+      end
+
+      HookManager.run "goto", :uri => Shellwords.escape(u.to_s)
     end
   end
 
