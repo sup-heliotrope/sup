@@ -1,3 +1,8 @@
+==
+
+* You can now unsubscribe from mailinglists using an url, if you have
+  a goto-hook setup (Timon Vonk).
+
 == 0.20.0 / 2014-10-06
 
 * add man-pages (generated from wiki) (Per Andersson)!
