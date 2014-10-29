@@ -102,37 +102,42 @@ EOS
   end
 
   def pipe_to_process command
-    Open3.popen3(command) do |input, output, error|
-      err, data, * = IO.select [error], [input], nil
+    begin
+      Open3.popen3(command) do |input, output, error|
+        err, data, * = IO.select [error], [input], nil
 
-      unless err.empty?
-        message = err.first.read
-        if message =~ /^\s*$/
-          warn "error running #{command} (but no error message)"
-          BufferManager.flash "Error running #{command}!"
-        else
-          warn "error running #{command}: #{message}"
-          BufferManager.flash "Error: #{message}"
+        unless err.empty?
+          message = err.first.read
+          if message =~ /^\s*$/
+            warn "error running #{command} (but no error message)"
+            BufferManager.flash "Error running #{command}!"
+          else
+            warn "error running #{command}: #{message}"
+            BufferManager.flash "Error: #{message}"
+          end
+          return nil, false
         end
-        return
+
+        data = data.first
+        data.sync = false # buffer input
+
+        yield data
+        data.close # output will block unless input is closed
+
+        ## BUG?: shows errors or output but not both....
+        data, * = IO.select [output, error], nil, nil
+        data = data.first
+
+        if data.eof
+          BufferManager.flash "'#{command}' done!"
+          return nil, true
+        else
+          return data.read, true
+        end
       end
-
-      data = data.first
-      data.sync = false # buffer input
-
-      yield data
-      data.close # output will block unless input is closed
-
-      ## BUG?: shows errors or output but not both....
-      data, * = IO.select [output, error], nil, nil
-      data = data.first
-
-      if data.eof
-        BufferManager.flash "'#{command}' done!"
-        nil
-      else
-        data.read
-      end
+    rescue Errno::ENOENT
+      # If the command is invalid
+      return nil, false
     end
   end
 end

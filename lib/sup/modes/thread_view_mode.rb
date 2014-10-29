@@ -722,12 +722,17 @@ EOS
     command = BufferManager.ask(:shell, "pipe command: ")
     return if command.nil? || command.empty?
 
-    output = pipe_to_process(command) do |stream|
+    output, success = pipe_to_process(command) do |stream|
       if chunk
         stream.print chunk.raw_content
       else
         message.each_raw_message_line { |l| stream.print l }
       end
+    end
+
+    unless success
+      BufferManager.flash "Invalid command: '#{command}' is not an executable"
+      return
     end
 
     if output
