@@ -1,6 +1,17 @@
 module Redwood
 
 class ForwardMode < EditMessageMode
+
+  HookManager.register "forward-attribution", <<EOS
+Generates the attribution for the forwarded message
+(["--- Begin forwarded message from John Doe ---",
+  "--- End forwarded message ---"])
+Variables:
+  message: a message object representing the message being replied to
+    (useful values include message.from.mediumname and message.date)
+Return value:
+  A list containing two strings: the text of the begin line and the text of the end line
+EOS
   ## TODO: share some of this with reply-mode
   def initialize opts={}
     header = {
@@ -65,9 +76,17 @@ class ForwardMode < EditMessageMode
 protected
 
   def forward_body_lines m
-    ["--- Begin forwarded message from #{m.from.mediumname} ---"] +
-      m.quotable_header_lines + [""] + m.quotable_body_lines +
-      ["--- End forwarded message ---"]
+    attribution = HookManager.run("forward-attribution", :message => m) || default_attribution(m)
+    attribution[0,1] +
+    m.quotable_header_lines +
+    [""] +
+    m.quotable_body_lines +
+    attribution[1,1]
+  end
+
+  def default_attribution m
+    ["--- Begin forwarded message from #{m.from.mediumname} ---",
+     "--- End forwarded message ---"]
   end
 
   def send_message
