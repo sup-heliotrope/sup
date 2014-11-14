@@ -2,6 +2,8 @@
 
 * You can now unsubscribe from mailinglists using an url, if you have
   a goto-hook setup (Timon Vonk).
+* Forward attribution can be customized using the forward-attribution
+  hook (Ruthard Baudach)
 
 == 0.20.0 / 2014-10-06
 
