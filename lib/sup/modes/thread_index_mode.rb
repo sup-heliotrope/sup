@@ -1026,7 +1026,7 @@ private
   end
 
   def from_width
-    [(buffer.content_width.to_f * 0.2).to_i, MIN_FROM_WIDTH].max
+    [(buffer.content_width.to_f * 0.2).to_i, MIN_FROM_WIDTH].max if buffer else MIN_FROM_WIDTH
   end
 
   def initialize_threads
