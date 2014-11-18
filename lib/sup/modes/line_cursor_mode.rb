@@ -65,7 +65,7 @@ protected
   def set_cursor_pos p
     return if @curpos == p
     @curpos = p.clamp @cursor_top, lines
-    buffer.mark_dirty
+    buffer.mark_dirty if buffer
     set_status
   end
 
