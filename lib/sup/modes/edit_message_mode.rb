@@ -451,7 +451,7 @@ protected
     end
   end
 
-  def parse_file fn
+  def self.parse_file fn
     File.open(fn) do |f|
       header = Source.parse_raw_email_header(f).inject({}) { |h, (k, v)| h[k.capitalize] = v; h } # lousy HACK
       body = f.readlines.map { |l| l.chomp }
@@ -462,8 +462,9 @@ protected
       [header, body]
     end
   end
+  def parse_file fn; self.class.parse_file fn; end
 
-  def parse_header k, v
+  def self.parse_header k, v
     if MULTI_HEADERS.include?(k)
       v.split_on_commas.map do |name|
         (p = ContactManager.contact_for(name)) && p.full_address || name
@@ -472,6 +473,7 @@ protected
       v
     end
   end
+  def parse_header k,v; self.class.parse_header k,v; end
 
   def format_headers header
     header_lines = []
