@@ -61,6 +61,25 @@ module Redwood
   LOG_FN     = File.join(BASE_DIR, "log")
   SYNC_OK_FN = File.join(BASE_DIR, "sync-back-ok")
 
+  def load_constants base_dir
+    # we're cheating
+    warn "setting base directory to: #{base_dir}" if base_dir
+    BASE_DIR.replace base_dir || ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
+    CONFIG_FN.replace File.join(BASE_DIR, "config.yaml")
+    COLOR_FN.replace  File.join(BASE_DIR, "colors.yaml")
+    SOURCE_FN.replace File.join(BASE_DIR, "sources.yaml")
+    LABEL_FN.replace File.join(BASE_DIR, "labels.txt")
+    CONTACT_FN.replace File.join(BASE_DIR, "contacts.txt")
+    DRAFT_DIR.replace File.join(BASE_DIR, "drafts")
+    SENT_FN.replace File.join(BASE_DIR, "sent.mbox")
+    LOCK_FN.replace File.join(BASE_DIR, "lock")
+    SUICIDE_FN.replace File.join(BASE_DIR, "please-kill-yourself")
+    HOOK_DIR.replace File.join(BASE_DIR, "hooks")
+    SEARCH_FN.replace File.join(BASE_DIR, "searches.txt")
+    LOG_FN.replace File.join(BASE_DIR, "log")
+    SYNC_OK_FN.replace File.join(BASE_DIR, "sync-back-ok")
+  end
+
   YAML_DOMAIN = "supmua.org"
   LEGACY_YAML_DOMAIN = "masanjin.net"
   YAML_DATE = "2006-10-01"
