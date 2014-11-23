@@ -475,7 +475,7 @@ protected
   end
   def parse_header k,v; self.class.parse_header k,v; end
 
-  def format_headers header
+  def self.format_headers header
     header_lines = []
     headers = (FORCE_HEADERS + (header.keys - FORCE_HEADERS)).map do |h|
       lines = make_lines "#{h}:", header[h]
@@ -484,8 +484,9 @@ protected
     end.flatten.compact
     [headers, header_lines]
   end
+  def format_headers header; self.class.format_headers header; end
 
-  def make_lines header, things
+  def self.make_lines header, things
     case things
     when nil, []
       [header + " "]
@@ -506,6 +507,7 @@ protected
       end
     end
   end
+  def make_lines header, things; self.class.make_lines header, things; end
 
   def send_message
     return false if !edited? && !BufferManager.ask_yes_or_no("Message unedited. Really send?")
@@ -670,9 +672,10 @@ protected
 
 private
 
-  def sanitize_body body
+  def self.sanitize_body body
     body.gsub(/^From /, ">From ")
   end
+  def sanitize_body body; self.class.sanitize_body body; end
 
   def mentions_attachments?
     if HookManager.enabled? "mentions-attachments"
