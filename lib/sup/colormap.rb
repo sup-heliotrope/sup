@@ -17,6 +17,9 @@ module Ncurses
 
     ## xterm 24-shade grayscale
     24.times { |x| color! "g#{x}", (16+6*6*6) + x }
+  elsif Ncurses::NUM_COLORS == -1
+    ## Terminal emulator doesn't appear to support colors
+    raise ArgumentError, "sup must be run in a terminal with color support"
   end
 end
 
