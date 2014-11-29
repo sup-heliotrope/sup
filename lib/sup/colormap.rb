@@ -19,7 +19,7 @@ module Ncurses
     24.times { |x| color! "g#{x}", (16+6*6*6) + x }
   elsif Ncurses::NUM_COLORS == -1
     ## Terminal emulator doesn't appear to support colors
-    raise ArgumentError, "sup must be run in a terminal with color support"
+    fail "sup must be run in a terminal with color support, please check your TERM variable."
   end
 end
 
@@ -195,7 +195,7 @@ class Colormap
     end
 
     ## Set attachment sybmol to sane default for existing colorschemes
-    if user_colors and user_colors.has_key? :to_me 
+    if user_colors and user_colors.has_key? :to_me
       user_colors[:with_attachment] = user_colors[:to_me] unless user_colors.has_key? :with_attachment
     end
 
