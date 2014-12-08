@@ -391,7 +391,6 @@ EOS
       actually_toggle_archived(t) if archived = t.has_label?(:inbox)
       lambda do
         t.remove_label :deleted
-        t.apply_label :inbox if archived
         add_or_unhide t.first
         UpdateManager.relay self, :undeleted, t.first
         actually_toggle_archived(t) if archived
