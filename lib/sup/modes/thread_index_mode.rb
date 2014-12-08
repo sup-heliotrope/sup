@@ -386,12 +386,16 @@ EOS
       end
     else
       t.apply_label :deleted
+      t.remove_label :inbox if archived = t.has_label?(:inbox)
       hide_thread t
       UpdateManager.relay self, :deleted, t.first
+      UpdateManager.relay self, :archived, t.first if archived
       lambda do
         t.remove_label :deleted
+        t.apply_label :inbox if archived
         add_or_unhide t.first
         UpdateManager.relay self, :undeleted, t.first
+        UpdateManager.relay self, :unarchived, t.first if archived
       end
     end
   end
