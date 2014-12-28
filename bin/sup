@@ -168,6 +168,12 @@ begin
    end
   end
 
+  if Redwood::SourceManager.sources.empty?
+   debug "No sources found! - running sup-config"
+   exec("sup-config")
+   abort
+  end
+
   if(s = Redwood::SourceManager.source_for DraftManager.source_name)
     DraftManager.source = s
   else
@@ -432,5 +438,4 @@ EOS
     puts e.message, e.backtrace
   end
 end
-
 end
