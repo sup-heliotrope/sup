@@ -729,12 +729,6 @@ EOS
     myopts = @load_thread_opts.merge({ :when_done => (lambda do |num|
       opts[:when_done].call(num) if opts[:when_done]
 
-    if !BufferManager.ask_yes_or_no "Found #{num.pluralize 'thread'}. Do you want to load them?"
-      BufferManager.flash "No threads loaded."
-      return
-    end
-
-
       if num > 0
         BufferManager.flash "Found #{num.pluralize 'thread'}."
       else
