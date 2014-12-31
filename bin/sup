@@ -152,6 +152,7 @@ end
 module_function :start_cursing, :stop_cursing
 
 Index.init
+Index.lock_interactively or exit
 
 begin
   Redwood::start
@@ -159,11 +160,11 @@ begin
   
    if Redwood::SourceManager.sources.empty?
     debug "No sources found!"
+    Index.unlock
     exec("sup-config")
     abort 
   end  
 
-  Index.lock_interactively or exit
   Index.load
   Redwood::check_syncback_settings
   Index.start_sync_worker unless $opts[:no_threads]
