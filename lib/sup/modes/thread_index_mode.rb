@@ -731,6 +731,7 @@ EOS
 
     if !BufferManager.ask_yes_or_no "Found #{num.pluralize 'thread'}. Do you want to load them?"
       BufferManager.flash "No threads loaded."
+      return
     end
 
 
