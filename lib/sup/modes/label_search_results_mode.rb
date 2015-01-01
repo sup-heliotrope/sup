@@ -29,7 +29,8 @@ class LabelSearchResultsMode < ThreadIndexMode
     when :inbox
       BufferManager.raise_to_front InboxMode.instance.buffer
     else
-      b, new = BufferManager.spawn_unless_exists("All threads with label '#{label}'") { LabelSearchResultsMode.new [label] }
+      unread = (label == :unread)? total : Index.num_results_for(:labels => [label, :unread])
+      b, new = BufferManager.spawn_unless_exists("All threads with label '#{label}' - #{unread} unread") { LabelSearchResultsMode.new [label] }
       b.mode.load_threads :num => b.content_height if new
     end
   end
