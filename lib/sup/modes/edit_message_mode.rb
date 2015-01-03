@@ -342,6 +342,14 @@ EOS
   def attach_file
     fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
     return unless fn
+
+    # This code is being used to backslash special characters in file name
+    fn.gsub! "\\", "\\\\\\\\"
+    fn.gsub! ' ', '\ '
+    fn.gsub! '"', '\\\\"'
+    fn.gsub! "'", "\\\\'"
+    # End of this code
+    
     if HookManager.enabled? "check-attachment"
         reason = HookManager.run("check-attachment", :filename => fn)
         if reason
