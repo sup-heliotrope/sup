@@ -630,6 +630,30 @@ EOS
     Index.save_thread thread
   end
 
+  def multi_pure_labels threads
+  
+   speciall = (@hidden_labels + LabelManager::RESERVED_LABELS).uniq
+   threads.each do |thread|
+    old_labels = thread.labels
+    pos = curpos
+
+    keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
+    thread.labels = Set.new(keepl)
+
+    update_text_for_line curpos
+
+    UndoManager.register "labeling thread" do
+      thread.labels = old_labels
+      update_text_for_line pos
+      UpdateManager.relay self, :labeled, thread.first
+      Index.save_thread thread
+    end
+
+    UpdateManager.relay self, :labeled, thread.first
+    Index.save_thread thread
+   end
+  end
+
 
   def multi_edit_labels threads
     user_labels = BufferManager.ask_for_labels :labels, "Add/remove labels (use -label to remove): ", [], @hidden_labels
