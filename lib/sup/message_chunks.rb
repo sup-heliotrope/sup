@@ -258,14 +258,12 @@ EOS
       @lines = lines
     end
 
-    def inlineable?; @lines.length == 1 end
+    def inlineable?; true end
     def quotable?; false end
     def expandable?; !inlineable? end
     def indexable?; expandable? end
     def viewable?; false end
 
-    def patina_color; :sig_patina_color end
-    def patina_text; "(#{lines.length}-line signature)" end
     def color; :sig_color end
   end
 
