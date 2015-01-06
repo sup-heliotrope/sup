@@ -93,7 +93,7 @@ class Message
     @from = Person.from_address(if header["from"]
       header["from"]
     else
-      name = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
+      name = "Unknown sender"
       #debug "faking non-existent sender for message #@id: #{name}"
       name
     end)
