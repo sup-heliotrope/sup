@@ -287,10 +287,16 @@ EOS
 
     # from will have bogus values
     from = sup_message.from
-    # very basic email address check
-    assert_match(/\w+@\w+\.\w{2,4}/, from.email)
-    refute_nil(from.name)
-
+       
+		fromname = from.name
+   if not from.email == "Unknown sender"
+  	 assert_match(/\w+@\w+\.\w{2,4}/, from.email)
+   else
+    fromname = "Unknown sender"
+   end
+   
+  	refute_nil(fromname)	
+  		
   end
 
   def test_broken_message_2
