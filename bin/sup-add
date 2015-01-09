@@ -89,14 +89,18 @@ begin
 
   ARGV.each do |uri|
     labels = $opts[:labels] ? $opts[:labels].split(/\s*,\s*/).uniq : []
-
     if !$opts[:force_new] && Redwood::SourceManager.source_for(uri)
       say "Already know about #{uri}; skipping."
       next
     end
-
-    parsed_uri = URI(uri)
-
+    
+    #change unsafe characters to secure ones html codes
+    temp_uri = uri.dup
+    temp_uri.gsub! '%', '&#37;'
+    temp_uri.gsub! ' ', '&#32;'
+    
+    parsed_uri = URI(temp_uri)
+    
     source =
       case parsed_uri.scheme
       when "maildir"
