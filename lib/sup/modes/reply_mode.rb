@@ -146,7 +146,7 @@ EOS
       elsif @headers.member? :sender
         :sender
       else
-        :recipient
+        :user
       end)
 
     headers_full = {
