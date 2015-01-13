@@ -6,6 +6,7 @@
   hook (Ruthard Baudach)
 * Do a few more checks for buffer not nil in the hope to fix a few
   random crashes
+* Add bash completion (Per Andersson)
 
 == 0.20.0 / 2014-10-06
 
