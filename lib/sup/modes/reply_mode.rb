@@ -118,7 +118,7 @@ EOS
     @headers[:all] = {
       "To" => [to.full_address],
       "Cc" => not_me_ccs.map { |p| p.full_address },
-    } unless not_me_ccs.empty?
+    } unless not_me_ccs.empty? or AccountManager.is_account?(to)
 
     @headers[:list] = {
       "To" => [@m.list_address.full_address],
