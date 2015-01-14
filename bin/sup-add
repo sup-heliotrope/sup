@@ -94,12 +94,7 @@ begin
       next
     end
     
-    #change unsafe characters to secure ones html codes
-    temp_uri = uri.dup
-    temp_uri.gsub! '%', '&#37;'
-    temp_uri.gsub! ' ', '&#32;'
-    
-    parsed_uri = URI(temp_uri)
+    parsed_uri = URI(URI.escape(uri))
     
     source =
       case parsed_uri.scheme
