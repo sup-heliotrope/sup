@@ -159,6 +159,7 @@ EOS
         "Attachment: #{filename} (#{content_type}; #{@raw_content.size.to_human_size})"
       end
     end
+    def safe_filename; Shellwords.escape(@filename).gsub("/", "_") end
 
     ## an attachment is exapndable if we've managed to decode it into
     ## something we can display inline. otherwise, it's viewable.
