@@ -16,7 +16,8 @@ class Tagger
   def untag o; @tagged[o] = false; end
   def drop_all_tags; @tagged.clear; end
   def drop_tag_for o; @tagged.delete o; end
-
+  def number_of_tagged; @tagged.select_by_value.size; end
+  
   def apply_to_tagged action=nil
     targets = @tagged.select_by_value
     num_tagged = targets.size
