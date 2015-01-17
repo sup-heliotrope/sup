@@ -95,7 +95,7 @@ begin
       next
     end
 
-    parsed_uri = URI(uri)
+    parsed_uri = URI(URI.escape(uri))
 
     source =
       case parsed_uri.scheme
