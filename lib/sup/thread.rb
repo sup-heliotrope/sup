@@ -126,7 +126,17 @@ class Thread
   end
 
   def size; map { |m, *o| m ? 1 : 0 }.sum; end
-  def subj; argfind { |m, *o| m && m.subj }; end
+  
+  def find_last
+    ret = nil
+    find_all { |e| ret = yield(e) }
+    ret || nil
+  end  
+  
+  def subj
+   find_last { |m, *o| m && m.subj }
+  end
+  
   def labels; inject(Set.new) { |s, (m, *o)| m ? s | m.labels : s } end
   def labels= l
     raise ArgumentError, "not a set" unless l.is_a?(Set)
