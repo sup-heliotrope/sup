@@ -89,6 +89,7 @@ EOS
     k.add :toggle_wrap, "Toggle wrapping of text", 'w'
 
     k.add :goto_uri, "Goto uri under cursor", 'g'
+    k.add :fetch_and_verify, "Fetch the PGP key on poolserver and re-verify message", "v"
 
     k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read:", '.' do |kk|
       kk.add :archive_and_kill, "Archive this thread and kill buffer", 'a'
@@ -791,6 +792,27 @@ EOS
       end
     end
     BufferManager.flash "No URI found." unless found
+  end
+
+  def fetch_and_verify
+    message = @message_lines[curpos]
+    crypto_chunk = message.chunks.select {|chunk| chunk.is_a?(Chunk::CryptoNotice)}.first
+    return unless crypto_chunk
+    return unless crypto_chunk.unknown_fingerprint
+
+    BufferManager.flash "Retrieving key #{crypto_chunk.unknown_fingerprint} ..."
+
+    error = CryptoManager.retrieve crypto_chunk.unknown_fingerprint
+
+    if error
+      BufferManager.flash "Couldn't retrieve key: #{error.to_s}"
+    else
+      BufferManager.flash "Key #{crypto_chunk.unknown_fingerprint} successfully retrieved !"
+    end
+
+    # Re-trigger gpg verification
+    message.reload_from_source!
+    update
   end
 
 private

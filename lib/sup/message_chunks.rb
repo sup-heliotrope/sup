@@ -307,12 +307,13 @@ EOS
   end
 
   class CryptoNotice
-    attr_reader :lines, :status, :patina_text
+    attr_reader :lines, :status, :patina_text, :unknown_fingerprint
 
-    def initialize status, description, lines=[]
+    def initialize status, description, lines=[], unknown_fingerprint=nil
       @status = status
       @patina_text = description
       @lines = lines
+      @unknown_fingerprint = unknown_fingerprint
     end
 
     def patina_color
