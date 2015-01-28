@@ -16,6 +16,9 @@ class CryptoManager
     [:encrypt, "Encrypt only"]
   )
 
+  KEY_PATTERN = /(-----BEGIN PGP PUBLIC KEY BLOCK.*-----END PGP PUBLIC KEY BLOCK)/m
+  KEYSERVER_URL = "http://pool.sks-keyservers.net:11371/pks/lookup"
+
   HookManager.register "gpg-options", <<EOS
 Runs before gpg is called, allowing you to modify the options (most
 likely you would want to add something to certain commands, like
@@ -212,9 +215,10 @@ EOS
     unknown = false
     all_output_lines = []
     all_trusted = true
+    unknown_fingerprint = nil
 
     verify_result.signatures.each do |signature|
-      output_lines, trusted = sig_output_lines signature
+      output_lines, trusted, unknown_fingerprint = sig_output_lines signature
       all_output_lines << output_lines
       all_output_lines.flatten!
       all_trusted &&= trusted
@@ -242,6 +246,8 @@ EOS
       end
     elsif !unknown
       Chunk::CryptoNotice.new(:invalid, summary_line, all_output_lines)
+    elsif unknown_fingerprint
+      Chunk::CryptoNotice.new(:unknown_key, "Unable to determine validity of cryptographic signature", all_output_lines, unknown_fingerprint)
     else
       unknown_status all_output_lines
     end
@@ -351,6 +357,31 @@ EOS
     [notice, sig, msg]
   end
 
+  def retrieve fingerprint
+    require 'net/http'
+    uri = URI($config[:keyserver_url] || KEYSERVER_URL)
+    unless uri.scheme == "http" and not uri.host.nil?
+      return "Invalid url: #{uri}"
+    end
+
+    fingerprint = "0x" + fingerprint unless fingerprint[0..1] == "0x"
+    params = {op: "get", search: fingerprint}
+    uri.query = URI.encode_www_form(params)
+
+    begin
+      res = Net::HTTP.get_response(uri)
+    rescue SocketError # Host doesn't exist or we couldn't connect
+    end
+    return "Couldn't get key from keyserver at this address: #{uri}" unless res.is_a?(Net::HTTPSuccess)
+
+    match = KEY_PATTERN.match(res.body)
+    return "No key found" unless match && match.length > 0
+
+    GPGME::Key.import(match[0])
+
+    return nil
+  end
+
 private
 
   def unknown_status lines=[]
@@ -394,6 +425,7 @@ private
     rescue EOFError
       from_key = nil
       first_sig = "No public key available for #{signature.fingerprint}"
+      unknown_fpr = signature.fingerprint
     end
 
     time_line = "Signature made " + signature.timestamp.strftime("%a %d %b %Y %H:%M:%S %Z") +
@@ -422,7 +454,7 @@ private
       output_lines << HookManager.run("sig-output",
                                {:signature => signature, :from_key => from_key})
     end
-    return output_lines, trusted
+    return output_lines, trusted, unknown_fpr
   end
 
   def key_type key, fpr
