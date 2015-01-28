@@ -15,7 +15,7 @@ class LabelManager
   def initialize fn
     @fn = fn
     labels =
-      if File.exists? fn
+      if File.exist? fn
         IO.readlines(fn).map { |x| x.chomp.intern }
       else
         []

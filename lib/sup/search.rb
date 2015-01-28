@@ -12,7 +12,7 @@ class SearchManager
   def initialize fn
     @fn = fn
     @searches = {}
-    if File.exists? fn
+    if File.exist? fn
       IO.foreach(fn) do |l|
         l =~ /^([^:]*): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
         @searches[$1] = $2

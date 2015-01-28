@@ -83,7 +83,7 @@ class HookManager
     @contexts = {}
     @tags = {}
 
-    Dir.mkdir dir unless File.exists? dir
+    Dir.mkdir dir unless File.exist? dir
   end
 
   attr_reader :tags
