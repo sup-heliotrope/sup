@@ -359,13 +359,20 @@ EOS
 
   def retrieve fingerprint
     require 'net/http'
-    uri = URI(KEYSERVER_URL)
+    uri = URI($config[:keyserver_url] || KEYSERVER_URL)
+    unless uri.scheme == "http" and not uri.host.nil?
+      return "Invalid url: #{uri}"
+    end
+
     fingerprint = "0x" + fingerprint unless fingerprint[0..1] == "0x"
     params = {op: "get", search: fingerprint}
     uri.query = URI.encode_www_form(params)
 
-    res = Net::HTTP.get_response(uri)
-    return "Couldn't contact keyserver pool" unless res.is_a?(Net::HTTPSuccess)
+    begin
+      res = Net::HTTP.get_response(uri)
+    rescue SocketError # Host doesn't exist or we couldn't connect
+    end
+    return "Couldn't get key from keyserver at this address: #{uri}" unless res.is_a?(Net::HTTPSuccess)
 
     match = KEY_PATTERN.match(res.body)
     return "No key found" unless match && match.length > 0
