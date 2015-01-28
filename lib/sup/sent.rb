@@ -40,7 +40,7 @@ class SentLoader < MBox
 
   def initialize
     @filename = Redwood::SENT_FN
-    File.open(@filename, "w") { } unless File.exists? @filename
+    File.open(@filename, "w") { } unless File.exist? @filename
     super "mbox://" + @filename, true, $config[:archive_sent]
   end
 

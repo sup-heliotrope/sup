@@ -68,7 +68,7 @@ class Maildir < Source
           File.safe_link tmp_path, new_path
           stored = true
         ensure
-          File.unlink tmp_path if File.exists? tmp_path
+          File.unlink tmp_path if File.exist? tmp_path
         end
       end #rescue Errno...
     end #Dir.chdir
@@ -201,7 +201,7 @@ class Maildir < Source
   def trashed? id; maildir_data(id)[2].include? "T"; end
 
   def valid? id
-    File.exists? File.join(@dir, id)
+    File.exist? File.join(@dir, id)
   end
 
 private

@@ -189,7 +189,7 @@ class Colormap
   ## Try to use the user defined colors, in case of an error fall back
   ## to the default ones.
   def populate_colormap
-    user_colors = if File.exists? Redwood::COLOR_FN
+    user_colors = if File.exist? Redwood::COLOR_FN
       debug "loading user colors from #{Redwood::COLOR_FN}"
       Redwood::load_yaml_obj Redwood::COLOR_FN
     end

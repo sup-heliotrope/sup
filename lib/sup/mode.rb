@@ -83,7 +83,7 @@ EOS
 ### helper functions
 
   def save_to_file fn, talk=true
-    if File.exists? fn
+    if File.exist? fn
       unless BufferManager.ask_yes_or_no "File \"#{fn}\" exists. Overwrite?"
         info "Not overwriting #{fn}"
         return

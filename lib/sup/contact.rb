@@ -16,7 +16,7 @@ class ContactManager
     @a2p = {} # alias to person
     @e2p = {} # email to person
 
-    if File.exists? fn
+    if File.exist? fn
       IO.foreach(fn) do |l|
         l =~ /^([^:]*): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
         aalias, addr = $1, $2
