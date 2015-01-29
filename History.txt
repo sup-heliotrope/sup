@@ -1,5 +1,8 @@
 ==
 
+* Key binding to fetch GPG key from keyserver (Matthieu Rakotojaona)
+* Replace occurences of File.exists? with File.exist? (Zeger-Jan van de
+  Weg)
 * You can now unsubscribe from mailinglists using an url, if you have a
   goto-hook setup (Timon Vonk).
 * Forward attribution can be customized using the forward-attribution
