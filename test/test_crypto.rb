@@ -25,7 +25,7 @@ require 'tmpdir'
 
 module Redwood
 
-class TestCryptoManager < ::Minitest::Unit::TestCase
+class TestCryptoManager < Minitest::Test
 
     def setup
         @from_email = 'sup-test-1@foo.bar'

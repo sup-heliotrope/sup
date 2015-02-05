@@ -62,7 +62,7 @@ SUP: please note that our old mailing lists have been shut down,
 
   s.add_development_dependency "bundler", "~> 1.3"
   s.add_development_dependency "rake"
-  s.add_development_dependency "minitest", "~> 4.7"
+  s.add_development_dependency 'minitest', '~> 5.5.1'
   s.add_development_dependency "rr", "~> 1.0.5"
   s.add_development_dependency "gpgme", ">= 2.0.2"
 

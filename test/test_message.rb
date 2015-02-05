@@ -8,7 +8,7 @@ require 'dummy_source'
 
 module Redwood
 
-class TestMessage < ::Minitest::Unit::TestCase
+class TestMessage < Minitest::Test
 
   def setup
     @path = Dir.mktmpdir
