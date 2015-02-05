@@ -29,11 +29,13 @@ class ContactManager
   def contacts_with_aliases; @a2p.values.uniq end
 
   def update_alias person, aalias=nil
+    ## Deleting old data if it exists
     old_aalias = @p2a[person]
-    if(old_aalias != nil and old_aalias != "") # remove old alias
+    unless old_aalias.nil?
       @a2p.delete old_aalias
       @e2p.delete person.email
     end
+    ## Update with new data
     @p2a[person] = aalias
     unless aalias.nil? || aalias.empty?
       @a2p[aalias] = person

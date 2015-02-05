@@ -65,5 +65,6 @@ SUP: please note that our old mailing lists have been shut down,
   s.add_development_dependency 'minitest', '~> 5.5.1'
   s.add_development_dependency "rr", "~> 1.0.5"
   s.add_development_dependency "gpgme", ">= 2.0.2"
+  s.add_development_dependency "pry"
 
 end
