@@ -19,7 +19,7 @@ class Person
   end
 
   def to_s
-    if @name && @email
+    if @name
       "#@name <#@email>"
     else
       @email

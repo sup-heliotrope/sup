@@ -31,7 +31,7 @@ class ContactManager
   def update_alias person, aalias=nil
     ## Deleting old data if it exists
     old_aalias = @p2a[person]
-    unless old_aalias.nil?
+    if old_aalias
       @a2p.delete old_aalias
       @e2p.delete person.email
     end
