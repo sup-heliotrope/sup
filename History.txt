@@ -10,6 +10,8 @@
 * Do a few more checks for buffer not nil in the hope to fix a few
   random crashes
 * Add bash completion (Per Andersson)
+* Replace dl/import with Fiddle (Timon Vonk)
+* Drop support for ruby 1.9.3
 
 == 0.20.0 / 2014-10-06
 
