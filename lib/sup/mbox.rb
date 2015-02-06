@@ -180,7 +180,7 @@ class MBox < Source
     time = $1
     begin
       ## hack -- make Time.parse fail when trying to substitute values from Time.now
-      Time.parse time, 0
+      Time.parse time, Time.at(0)
       true
     rescue NoMethodError, ArgumentError
       warn "found invalid date in potential mbox split line, not splitting: #{l.inspect}"
