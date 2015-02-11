@@ -12,6 +12,7 @@
 * Add bash completion (Per Andersson)
 * Replace dl/import with Fiddle (Timon Vonk)
 * Drop support for ruby 1.9.3
+* Add tests for contact manager and persons (Zeger-Jan van de Weg)
 
 == 0.20.0 / 2014-10-06
 
