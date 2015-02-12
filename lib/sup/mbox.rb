@@ -115,7 +115,7 @@ class MBox < Source
   end
 
   def store_message date, from_email, &block
-    need_blank = File.exists?(@path) && !File.zero?(@path)
+    need_blank = File.exist?(@path) && !File.zero?(@path)
     File.open(@path, "ab") do |f|
       f.puts if need_blank
       f.puts "From #{from_email} #{date.asctime}"
@@ -180,7 +180,7 @@ class MBox < Source
     time = $1
     begin
       ## hack -- make Time.parse fail when trying to substitute values from Time.now
-      Time.parse time, 0
+      Time.parse time, Time.at(0)
       true
     rescue NoMethodError, ArgumentError
       warn "found invalid date in potential mbox split line, not splitting: #{l.inspect}"

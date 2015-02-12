@@ -105,7 +105,7 @@ EOS
 
   def save
     debug "saving index and sources..."
-    FileUtils.mkdir_p @dir unless File.exists? @dir
+    FileUtils.mkdir_p @dir unless File.exist? @dir
     SourceManager.save_sources
     save_index
   end
@@ -116,7 +116,7 @@ EOS
 
   def load_index failsafe=false
     path = File.join(@dir, 'xapian')
-    if File.exists? path
+    if File.exist? path
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
       db_version = @xapian.get_metadata 'version'
       db_version = '0' if db_version.empty?

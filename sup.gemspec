@@ -38,7 +38,7 @@ SUP: please note that our old mailing lists have been shut down,
   s.require_paths = ["lib"]
   s.extra_rdoc_files = Dir.glob("man/*")
 
-  s.required_ruby_version = '>= 1.9.3'
+  s.required_ruby_version = '>= 2.0.0'
 
   # this is here to support skipping the xapian-ruby installation on OpenBSD
   # because the xapian-ruby gem doesn't install on OpenBSD, you must install
@@ -62,8 +62,9 @@ SUP: please note that our old mailing lists have been shut down,
 
   s.add_development_dependency "bundler", "~> 1.3"
   s.add_development_dependency "rake"
-  s.add_development_dependency "minitest", "~> 4.7"
-  s.add_development_dependency "rr", "~> 1.0.5"
+  s.add_development_dependency 'minitest', '~> 5.5.1'
+  s.add_development_dependency "rr", "~> 1.1"
   s.add_development_dependency "gpgme", ">= 2.0.2"
+  s.add_development_dependency "pry"
 
 end

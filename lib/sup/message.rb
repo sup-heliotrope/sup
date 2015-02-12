@@ -279,6 +279,12 @@ class Message
       end
   end
 
+  def reload_from_source!
+    @chunks = nil
+    load_from_source!
+  end
+
+
   def error_message
     <<EOS
 #@snippet...

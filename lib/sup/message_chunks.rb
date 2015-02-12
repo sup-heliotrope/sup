@@ -159,6 +159,7 @@ EOS
         "Attachment: #{filename} (#{content_type}; #{@raw_content.size.to_human_size})"
       end
     end
+    def safe_filename; Shellwords.escape(@filename).gsub("/", "_") end
 
     ## an attachment is exapndable if we've managed to decode it into
     ## something we can display inline. otherwise, it's viewable.
@@ -306,12 +307,13 @@ EOS
   end
 
   class CryptoNotice
-    attr_reader :lines, :status, :patina_text
+    attr_reader :lines, :status, :patina_text, :unknown_fingerprint
 
-    def initialize status, description, lines=[]
+    def initialize status, description, lines=[], unknown_fingerprint=nil
       @status = status
       @patina_text = description
       @lines = lines
+      @unknown_fingerprint = unknown_fingerprint
     end
 
     def patina_color

@@ -16,7 +16,7 @@ class DraftManager
   def write_draft
     offset = @source.gen_offset
     fn = @source.fn_for_offset offset
-    File.open(fn, "w") { |f| yield f }
+    File.open(fn, "w:UTF-8") { |f| yield f }
     PollManager.poll_from @source
   end
 
@@ -33,7 +33,7 @@ class DraftLoader < Source
   yaml_properties
 
   def initialize dir=Redwood::DRAFT_DIR
-    Dir.mkdir dir unless File.exists? dir
+    Dir.mkdir dir unless File.exist? dir
     super DraftManager.source_name, true, false
     @dir = dir
     @cur_offset = 0
@@ -62,7 +62,7 @@ class DraftLoader < Source
 
   def gen_offset
     i = 0
-    while File.exists? fn_for_offset(i)
+    while File.exist? fn_for_offset(i)
       i += 1
     end
     i
@@ -75,7 +75,7 @@ class DraftLoader < Source
   end
 
   def load_message offset
-    raise SourceError, "Draft not found" unless File.exists? fn_for_offset(offset)
+    raise SourceError, "Draft not found" unless File.exist? fn_for_offset(offset)
     File.open fn_for_offset(offset) do |f|
       RMail::Mailbox::MBoxReader.new(f).each_message do |input|
         return RMail::Parser.read(input)
@@ -85,7 +85,7 @@ class DraftLoader < Source
 
   def raw_header offset
     ret = ""
-    File.open fn_for_offset(offset) do |f|
+    File.open(fn_for_offset(offset), "r:UTF-8") do |f|
       until f.eof? || (l = f.gets) =~ /^$/
         ret += l
       end
@@ -94,13 +94,13 @@ class DraftLoader < Source
   end
 
   def each_raw_message_line offset
-    File.open(fn_for_offset(offset)) do |f|
+    File.open(fn_for_offset(offset), "r:UTF-8") do |f|
       yield f.gets until f.eof?
     end
   end
 
   def raw_message offset
-    IO.read(fn_for_offset(offset))
+    IO.read(fn_for_offset(offset), :encoding => "UTF-8")
   end
 
   def start_offset; 0; end

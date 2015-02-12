@@ -89,6 +89,7 @@ EOS
     k.add :toggle_wrap, "Toggle wrapping of text", 'w'
 
     k.add :goto_uri, "Goto uri under cursor", 'g'
+    k.add :fetch_and_verify, "Fetch the PGP key on poolserver and re-verify message", "v"
 
     k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read:", '.' do |kk|
       kk.add :archive_and_kill, "Archive this thread and kill buffer", 'a'
@@ -224,10 +225,24 @@ EOS
 
   def unsubscribe_from_list
     m = @message_lines[curpos] or return
-    if m.list_unsubscribe && m.list_unsubscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
+    BufferManager.flash "Can't find List-Unsubscribe header for this message." unless m.list_unsubscribe
+
+    if m.list_unsubscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
       ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [Person.from_address($1)], :subj => ($3 || "unsubscribe")
-    else
-      BufferManager.flash "Can't find List-Unsubscribe header for this message."
+    elsif m.list_unsubscribe =~ /<(http.*)?>/
+      unless HookManager.enabled? "goto"
+        BufferManager.flash "You must add a goto.rb hook before you can goto an unsubscribe URI."
+        return
+      end
+
+      begin
+        u = URI.parse($1)
+      rescue URI::InvalidURIError => e
+        BufferManager.flash("Invalid unsubscribe link")
+        return
+      end
+
+      HookManager.run "goto", :uri => Shellwords.escape(u.to_s)
     end
   end
 
@@ -374,7 +389,7 @@ EOS
     when Chunk::Attachment
       default_dir = $config[:default_attachment_save_dir]
       default_dir = ENV["HOME"] if default_dir.nil? || default_dir.empty?
-      default_fn = File.expand_path File.join(default_dir, chunk.filename)
+      default_fn = File.expand_path File.join(default_dir, chunk.safe_filename)
       fn = BufferManager.ask_for_filename :filename, "Save attachment to file or directory: ", default_fn, true
 
       # if user selects directory use file name from message
@@ -403,7 +418,7 @@ EOS
     num_errors = 0
     m.chunks.each do |chunk|
       next unless chunk.is_a?(Chunk::Attachment)
-      fn = File.join(folder, chunk.filename)
+      fn = File.join(folder, chunk.safe_filename)
       num_errors += 1 unless save_to_file(fn, false) { |f| f.print chunk.raw_content }
       num += 1
     end
@@ -708,12 +723,17 @@ EOS
     command = BufferManager.ask(:shell, "pipe command: ")
     return if command.nil? || command.empty?
 
-    output = pipe_to_process(command) do |stream|
+    output, success = pipe_to_process(command) do |stream|
       if chunk
         stream.print chunk.raw_content
       else
         message.each_raw_message_line { |l| stream.print l }
       end
+    end
+
+    unless success
+      BufferManager.flash "Invalid command: '#{command}' is not an executable"
+      return
     end
 
     if output
@@ -772,6 +792,27 @@ EOS
       end
     end
     BufferManager.flash "No URI found." unless found
+  end
+
+  def fetch_and_verify
+    message = @message_lines[curpos]
+    crypto_chunk = message.chunks.select {|chunk| chunk.is_a?(Chunk::CryptoNotice)}.first
+    return unless crypto_chunk
+    return unless crypto_chunk.unknown_fingerprint
+
+    BufferManager.flash "Retrieving key #{crypto_chunk.unknown_fingerprint} ..."
+
+    error = CryptoManager.retrieve crypto_chunk.unknown_fingerprint
+
+    if error
+      BufferManager.flash "Couldn't retrieve key: #{error.to_s}"
+    else
+      BufferManager.flash "Key #{crypto_chunk.unknown_fingerprint} successfully retrieved !"
+    end
+
+    # Re-trigger gpg verification
+    message.reload_from_source!
+    update
   end
 
 private

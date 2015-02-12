@@ -18,11 +18,16 @@ class Person
     @email = email.strip.gsub(/\s+/, " ")
   end
 
-  def to_s; "#@name <#@email>" end
+  def to_s
+    if @name
+      "#@name <#@email>"
+    else
+      @email
+    end
+  end
 
 #   def == o; o && o.email == email; end
 #   alias :eql? :==
-#   def hash; [name, email].hash; end
 
   def shortname
     case @name
@@ -37,26 +42,10 @@ class Person
     end
   end
 
-  def longname
-    if @name && @email
-      "#@name <#@email>"
-    else
-      @email
-    end
-  end
-
   def mediumname; @name || @email; end
 
-  def Person.full_address name, email
-    if name && email
-      if name =~ /[",@]/
-        "#{name.inspect} <#{email}>" # escape quotes
-      else
-        "#{name} <#{email}>"
-      end
-    else
-      email
-    end
+  def longname
+    to_s
   end
 
   def full_address
@@ -79,56 +68,74 @@ class Person
     end.downcase
   end
 
-  ## return "canonical" person using contact manager or create one if
-  ## not found or contact manager not available
-  def self.from_name_and_email name, email
-    ContactManager.instantiated? && ContactManager.person_for(email) || Person.new(name, email)
-  end
+  def eql? o; email.eql? o.email end
+  def hash; email.hash end
 
-  def self.from_address s
-    return nil if s.nil?
-
-    ## try and parse an email address and name
-    name, email = case s
-      when /(.+?) ((\S+?)@\S+) \3/
-        ## ok, this first match cause is insane, but bear with me.  email
-        ## addresses are stored in the to/from/etc fields of the index in a
-        ## weird format: "name address first-part-of-address", i.e.  spaces
-        ## separating those three bits, and no <>'s. this is the output of
-        ## #indexable_content. here, we reverse-engineer that format to extract
-        ## a valid address.
-        ##
-        ## we store things this way to allow searches on a to/from/etc field to
-        ## match any of those parts. a more robust solution would be to store a
-        ## separate, non-indexed field with the proper headers. but this way we
-        ## save precious bits, and it's backwards-compatible with older indexes.
-        [$1, $2]
-      when /["'](.*?)["'] <(.*?)>/, /([^,]+) <(.*?)>/
-        a, b = $1, $2
-        [a.gsub('\"', '"'), b]
-      when /<((\S+?)@\S+?)>/
-        [$2, $1]
-      when /((\S+?)@\S+)/
-        [$2, $1]
-      else
-        [nil, s]
-      end
-
-    from_name_and_email name, email
-  end
-
-  def self.from_address_list ss
-    return [] if ss.nil?
-    ss.dup.split_on_commas.map { |s| self.from_address s }
-  end
 
   ## see comments in self.from_address
   def indexable_content
     [name, email, email.split(/@/).first].join(" ")
   end
 
-  def eql? o; email.eql? o.email end
-  def hash; email.hash end
+  class << self
+
+    def full_address name, email
+      if name && email
+        if name =~ /[",@]/
+          "#{name.inspect} <#{email}>" # escape quotes
+        else
+          "#{name} <#{email}>"
+        end
+      else
+        email
+      end
+    end
+
+    ## return "canonical" person using contact manager or create one if
+    ## not found or contact manager not available
+    def from_name_and_email name, email
+      ContactManager.instantiated? && ContactManager.person_for(email) || Person.new(name, email)
+    end
+
+    def from_address s
+      return nil if s.nil?
+
+      ## try and parse an email address and name
+      name, email = case s
+        when /(.+?) ((\S+?)@\S+) \3/
+          ## ok, this first match cause is insane, but bear with me.  email
+          ## addresses are stored in the to/from/etc fields of the index in a
+          ## weird format: "name address first-part-of-address", i.e.  spaces
+          ## separating those three bits, and no <>'s. this is the output of
+          ## #indexable_content. here, we reverse-engineer that format to extract
+          ## a valid address.
+          ##
+          ## we store things this way to allow searches on a to/from/etc field to
+          ## match any of those parts. a more robust solution would be to store a
+          ## separate, non-indexed field with the proper headers. but this way we
+          ## save precious bits, and it's backwards-compatible with older indexes.
+          [$1, $2]
+        when /["'](.*?)["'] <(.*?)>/, /([^,]+) <(.*?)>/
+          a, b = $1, $2
+          [a.gsub('\"', '"'), b]
+        when /<((\S+?)@\S+?)>/
+          [$2, $1]
+        when /((\S+?)@\S+)/
+          [$2, $1]
+        else
+          [nil, s]
+        end
+
+      from_name_and_email name, email
+    end
+
+    def from_address_list ss
+      return [] if ss.nil?
+      ss.dup.split_on_commas.map { |s| self.from_address s }
+    end
+
+  end
+
 end
 
 end

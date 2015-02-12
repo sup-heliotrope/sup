@@ -1,3 +1,19 @@
+== 0.21.0 / 2015-02-12
+
+* Key binding to fetch GPG key from keyserver (Matthieu Rakotojaona)
+* Replace occurences of File.exists? with File.exist? (Zeger-Jan van de
+  Weg)
+* You can now unsubscribe from mailinglists using an url, if you have a
+  goto-hook setup (Timon Vonk).
+* Forward attribution can be customized using the forward-attribution
+  hook (Ruthard Baudach)
+* Do a few more checks for buffer not nil in the hope to fix a few
+  random crashes
+* Add bash completion (Per Andersson)
+* Replace dl/import with Fiddle (Timon Vonk)
+* Drop support for ruby 1.9.3
+* Add tests for contact manager and persons (Zeger-Jan van de Weg)
+
 == 0.20.0 / 2014-10-06
 
 * add man-pages (generated from wiki) (Per Andersson)!

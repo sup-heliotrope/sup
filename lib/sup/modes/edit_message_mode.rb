@@ -699,7 +699,7 @@ private
     sigfn = (AccountManager.account_for(from_email) ||
              AccountManager.default_account).signature
 
-    if sigfn && File.exists?(sigfn)
+    if sigfn && File.exist?(sigfn)
       ["", "-- "] + File.readlines(sigfn).map { |l| l.chomp }
     else
       []

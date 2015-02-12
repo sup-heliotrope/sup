@@ -6,27 +6,9 @@ require 'stringio'
 
 require 'dummy_source'
 
-# override File.exists? to make it work with StringIO for testing.
-# FIXME: do aliasing to avoid breaking this when sup moves from
-# File.exists? to File.exist?
-
-class File
-
-  def File.exists? file
-    # puts "fake File::exists?"
-
-    if file.is_a?(StringIO)
-      return false
-    end
-    # use the different function
-    File.exist?(file)
-  end
-
-end
-
 module Redwood
 
-class TestMessagesDir < ::Minitest::Unit::TestCase
+class TestMessagesDir < ::Minitest::Test
 
   def setup
     @path = Dir.mktmpdir

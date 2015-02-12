@@ -6,7 +6,7 @@ require 'stringio'
 
 include Redwood
 
-class TestMBoxParsing < Minitest::Unit::TestCase
+class TestMBoxParsing < Minitest::Test
 
   def setup
     @path = Dir.mktmpdir

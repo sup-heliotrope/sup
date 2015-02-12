@@ -16,7 +16,7 @@ class ContactManager
     @a2p = {} # alias to person
     @e2p = {} # email to person
 
-    if File.exists? fn
+    if File.exist? fn
       IO.foreach(fn) do |l|
         l =~ /^([^:]*): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
         aalias, addr = $1, $2
@@ -29,11 +29,13 @@ class ContactManager
   def contacts_with_aliases; @a2p.values.uniq end
 
   def update_alias person, aalias=nil
+    ## Deleting old data if it exists
     old_aalias = @p2a[person]
-    if(old_aalias != nil and old_aalias != "") # remove old alias
+    if old_aalias
       @a2p.delete old_aalias
       @e2p.delete person.email
     end
+    ## Update with new data
     @p2a[person] = aalias
     unless aalias.nil? || aalias.empty?
       @a2p[aalias] = person
