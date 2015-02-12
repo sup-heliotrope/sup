@@ -1,3 +1,10 @@
+Release 0.21.0:
+
+Several small features as well as polishing (including fetching a GPG key with
+a shortcut and unsubscribing from mailinglist using an url). Several old
+deprecated parts of sup have been modernized. Support for Ruby 1.9.3 has been
+dropped. Have a look in History.txt for the details.
+
 Release 0.20.0:
 
 We've got man pages (Mr. Andersson)! We've got OpenBSD support (Scott Bonds)!

@@ -38,7 +38,7 @@ SUP: please note that our old mailing lists have been shut down,
   s.require_paths = ["lib"]
   s.extra_rdoc_files = Dir.glob("man/*")
 
-  s.required_ruby_version = '>= 1.9.3'
+  s.required_ruby_version = '>= 2.0.0'
 
   # this is here to support skipping the xapian-ruby installation on OpenBSD
   # because the xapian-ruby gem doesn't install on OpenBSD, you must install
