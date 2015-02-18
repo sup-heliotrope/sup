@@ -26,6 +26,9 @@ mv pubring.gpg receiver_pubring.gpg
 echo "generate sender key.."
 gpg --batch --gen-key key1.gen
 
+echo "generate ecc key.."
+gpg --batch --gen-key key_ecc.gen
+
 echo "import receiver key.."
 gpg --import sup-test-2@foo.bar.asc
 

@@ -467,6 +467,7 @@ private
     when GPGME::PK_DSA then "DSA "
     when GPGME::PK_ELG then "ElGamel "
     when GPGME::PK_ELG_E then "ElGamel "
+    else "unknown key type (#{subkey.pubkey_algo}) "
     end
   end
 
