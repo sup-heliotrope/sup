@@ -18,7 +18,40 @@ end
 
 require 'fileutils'
 require 'trollop'
-require "sup"
+
+# Automagicly move all files from ~/.sup toward XDG_CONFIG_HOME and
+# XDG_DATA_HOME if set, or their default values.
+# In the future, this is to be removed, probably if you never remember
+# sup being in the ~/.sup folder
+def xdg_config_dir
+  ENV['SUP_BASE'] if ENV['SUP_BASE']
+
+  dir = ENV['XDG_CONFIG_HOME'] || File.join(ENV['HOME'], '.config/')
+  File.join(dir, 'sup')
+end
+
+def xdg_data_dir
+  ENV['SUP_BASE'] if ENV['SUP_BASE']
+
+  dir = ENV['XDG_DATA_HOME'] || File.join(ENV['HOME'], '.local/share/')
+  File.join(dir, 'sup')
+end
+
+if Dir.exist?((old_sup_dir = File.join(ENV["HOME"], ".sup"))) && !ENV['SUP_BASE']
+  FileUtils.mkdir_p xdg_config_dir
+  FileUtils.mkdir_p xdg_data_dir
+
+  FileUtils.cd old_sup_dir do
+    files = Dir.entries old_sup_dir
+    %w(config.yaml sources.yaml colors.yaml).each do |file|
+      FileUtils.mv file, xdg_config_dir if files.include? file
+    end
+
+    FileUtils.mv Dir.glob("*"), xdg_data_dir
+  end
+  FileUtils.remove_dir old_sup_dir
+end
+require 'sup'
 
 if ENV['SUP_PROFILE']
   require 'ruby-prof'
@@ -395,7 +428,7 @@ ensure
 end
 
 unless Redwood::exceptions.empty?
-  File.open(File.join(BASE_DIR, "exception-log.txt"), "w") do |f|
+  File.open(File.join(DATA_DIR, "exception-log.txt"), "w") do |f|
     Redwood::exceptions.each do |e, name|
       f.puts "--- #{e.class.name} from thread: #{name}"
       f.puts e.message, e.backtrace
@@ -405,7 +438,7 @@ unless Redwood::exceptions.empty?
 ----------------------------------------------------------------
 We are very sorry. It seems that an error occurred in Sup. Please
 accept our sincere apologies. Please submit the contents of
-#{BASE_DIR}/exception-log.txt and a brief report of the
+#{DATA_DIR}/exception-log.txt and a brief report of the
 circumstances to https://github.com/sup-heliotrope/sup/issues so that
 we might address this problem. Thank you!
 
