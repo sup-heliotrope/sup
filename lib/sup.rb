@@ -45,20 +45,38 @@ class Module
 end
 
 module Redwood
-  BASE_DIR   = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
-  CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
-  COLOR_FN   = File.join(BASE_DIR, "colors.yaml")
-  SOURCE_FN  = File.join(BASE_DIR, "sources.yaml")
-  LABEL_FN   = File.join(BASE_DIR, "labels.txt")
-  CONTACT_FN = File.join(BASE_DIR, "contacts.txt")
-  DRAFT_DIR  = File.join(BASE_DIR, "drafts")
-  SENT_FN    = File.join(BASE_DIR, "sent.mbox")
-  LOCK_FN    = File.join(BASE_DIR, "lock")
-  SUICIDE_FN = File.join(BASE_DIR, "please-kill-yourself")
-  HOOK_DIR   = File.join(BASE_DIR, "hooks")
-  SEARCH_FN  = File.join(BASE_DIR, "searches.txt")
-  LOG_FN     = File.join(BASE_DIR, "log")
-  SYNC_OK_FN = File.join(BASE_DIR, "sync-back-ok")
+  def xdg_config_dir
+    ENV['SUP_BASE'] if ENV['SUP_BASE']
+
+    dir = ENV['XDG_CONFIG_HOME'] || File.join(ENV['HOME'], ".config")
+    File.join(dir, "sup")
+  end
+
+  def xdg_data_dir
+    ENV['SUP_BASE'] if ENV['SUP_BASE']
+
+    dir = ENV['XDG_DATA_DIR'] || File.join(ENV['HOME'], ".local/share")
+    File.join(dir, "sup")
+  end
+
+  module_function :xdg_config_dir, :xdg_data_dir
+
+  CONFIG_DIR = xdg_config_dir
+  DATA_DIR   = xdg_data_dir
+  CONFIG_FN  = File.join(CONFIG_DIR, "config.yaml")
+  COLOR_FN   = File.join(CONFIG_DIR, "colors.yaml")
+  SOURCE_FN  = File.join(CONFIG_DIR, "sources.yaml")
+
+  LABEL_FN   = File.join(DATA_DIR, "labels.txt")
+  CONTACT_FN = File.join(DATA_DIR, "contacts.txt")
+  DRAFT_DIR  = File.join(DATA_DIR, "drafts")
+  SENT_FN    = File.join(DATA_DIR, "sent.mbox")
+  LOCK_FN    = File.join(DATA_DIR, "lock")
+  SUICIDE_FN = File.join(DATA_DIR, "please-kill-yourself")
+  HOOK_DIR   = File.join(DATA_DIR, "hooks")
+  SEARCH_FN  = File.join(DATA_DIR, "searches.txt")
+  LOG_FN     = File.join(DATA_DIR, "log")
+  SYNC_OK_FN = File.join(DATA_DIR, "sync-back-ok")
 
   YAML_DOMAIN = "supmua.org"
   LEGACY_YAML_DOMAIN = "masanjin.net"
@@ -162,7 +180,9 @@ module Redwood
   def start bypass_sync_check = false
     managers.each { |x| fail "#{x} already instantiated" if x.instantiated? }
 
-    FileUtils.mkdir_p Redwood::BASE_DIR
+    FileUtils.mkdir_p Redwood::CONFIG_DIR
+    FileUtils.mkdir_p Redwood::DATA_DIR
+
     $config = load_config Redwood::CONFIG_FN
     @log_io = File.open(Redwood::LOG_FN, 'a')
     Redwood::Logger.add_sink @log_io
