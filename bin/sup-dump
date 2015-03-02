@@ -11,7 +11,7 @@ if ENV["SUP_BASE"]
   DATA_DIR    = ENV['SUP_BASE']
 else
   dir = ENV['XDG_DATA_HOME'] || File.join(ENV['HOME'], ".local/share")
-  DATA_DIR = File.join(dir, sup)
+  DATA_DIR = File.join(dir, 'sup')
 end
 
 $opts = Trollop::options do
