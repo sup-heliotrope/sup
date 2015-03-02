@@ -45,24 +45,22 @@ class Module
 end
 
 module Redwood
-  def xdg_config_dir
-    ENV['SUP_BASE'] if ENV['SUP_BASE']
-
-    dir = ENV['XDG_CONFIG_HOME'] || File.join(ENV['HOME'], ".config")
-    File.join(dir, "sup")
+  if ENV['SUP_BASE']
+    CONFIG_DIR = ENV['SUP_BASE']
+    DATA_DIR = ENV['SUP_BASE']
+  else
+   CONFIG_DIR = if ENV['XDG_CONFIG_HOME'] 
+		  File.join(ENV['XDG_CONFIG_DIR'], "sup")
+		else
+		  File.join(ENV['HOME'], ".config/sup")
+		end
+   DATA_DIR = 	if ENV['XDG_DATA_HOME']
+		  File.join(['XDG_DATA_HOME'], "sup")
+		else
+		  File.join(ENV['HOME'], ".local/share/sup")
+		end
   end
 
-  def xdg_data_dir
-    ENV['SUP_BASE'] if ENV['SUP_BASE']
-
-    dir = ENV['XDG_DATA_DIR'] || File.join(ENV['HOME'], ".local/share")
-    File.join(dir, "sup")
-  end
-
-  module_function :xdg_config_dir, :xdg_data_dir
-
-  CONFIG_DIR = xdg_config_dir
-  DATA_DIR   = xdg_data_dir
   CONFIG_FN  = File.join(CONFIG_DIR, "config.yaml")
   COLOR_FN   = File.join(CONFIG_DIR, "colors.yaml")
   SOURCE_FN  = File.join(CONFIG_DIR, "sources.yaml")
