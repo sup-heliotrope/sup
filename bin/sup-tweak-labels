@@ -1,22 +1,25 @@
 #!/usr/bin/env ruby
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w(.. lib))
 
 require 'rubygems'
 require 'trollop'
-require "sup"
+require 'sup'
 
 class Float
-  def to_s; sprintf '%.2f', self; end
-   def to_time_s
-     infinite? ? "unknown" : super
-   end
+  def to_s
+    sprintf '%.2f', self
+  end
+
+  def to_time_s
+    infinite? ? 'unknown' : super
+  end
 end
 
 class Numeric
   def to_time_s
     i = to_i
-    sprintf "%d:%02d:%02d", i / 3600, (i / 60) % 60, i % 60
+    sprintf '%d:%02d:%02d', i / 3600, (i / 60) % 60, i % 60
   end
 end
 
@@ -26,7 +29,7 @@ def time
   Time.now - startt
 end
 
-opts = Trollop::options do
+opts = Trollop.options do
   version "sup-tweak-labels (sup #{Redwood::VERSION})"
   banner <<EOS
 Batch modification of message state for messages already in the index.
@@ -39,9 +42,9 @@ be seen by running "sup-add --help".
 
 Options:
 EOS
-  opt :add, "One or more labels (comma-separated) to add to every message from the specified sources", :default => ""
-  opt :remove, "One or more labels (comma-separated) to remove from every message from the specified sources, if those labels are present", :default => ""
-  opt :query, "A Sup search query", :type => String
+  opt :add, 'One or more labels (comma-separated) to add to every message from the specified sources', default: ''
+  opt :remove, 'One or more labels (comma-separated) to remove from every message from the specified sources, if those labels are present', default: ''
+  opt :query, 'A Sup search query', type: String
 
   text <<EOS
 
@@ -49,19 +52,19 @@ Other options:
 EOS
   opt :verbose, "Print message ids as they're processed."
   opt :very_verbose, "Print message names and subjects as they're processed."
-  opt :all_sources, "Scan over all sources.", :short => :none
-  opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
-  opt :no_sync_back, "Do not sync back to the original Maildir."
-  opt :version, "Show version information", :short => :none
+  opt :all_sources, 'Scan over all sources.', short: :none
+  opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", short: '-n'
+  opt :no_sync_back, 'Do not sync back to the original Maildir.'
+  opt :version, 'Show version information', short: :none
 end
 opts[:verbose] = true if opts[:very_verbose]
 
-add_labels = opts[:add].to_set_of_symbols ","
-remove_labels = opts[:remove].to_set_of_symbols ","
+add_labels = opts[:add].to_set_of_symbols ','
+remove_labels = opts[:remove].to_set_of_symbols ','
 
-Trollop::die "nothing to do: no labels to add or remove" if add_labels.empty? && remove_labels.empty?
+Trollop.die 'nothing to do: no labels to add or remove' if add_labels.empty? && remove_labels.empty?
 
-Redwood::start
+Redwood.start
 index = Redwood::Index.init
 index.lock_interactively or exit
 
@@ -69,24 +72,24 @@ begin
   index.load
 
   source_ids = if opts[:all_sources]
-    Redwood::SourceManager.sources
-  else
-    ARGV.map do |uri|
-      Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
-    end
-  end.map { |s| s.id }
-  Trollop::die "nothing to do: no sources" if source_ids.empty?
+                 Redwood::SourceManager.sources
+               else
+                 ARGV.map do |uri|
+                   Redwood::SourceManager.source_for uri or Trollop.die "Unknown source: #{uri}. Did you add it with sup-add first?"
+                 end
+  end.map(&:id)
+  Trollop.die 'nothing to do: no sources' if source_ids.empty?
 
-  query = "(" + source_ids.map { |id| "source_id:#{id}" }.join(" OR ") + ")"
+  query = '(' + source_ids.map { |id| "source_id:#{id}" }.join(' OR ') + ')'
   if add_labels.empty?
     ## if all we're doing is removing labels, we can further restrict the
     ## query to only messages with those labels
-    query += " (" + remove_labels.map { |l| "label:#{l}" }.join(" OR ") + ")"
+    query += ' (' + remove_labels.map { |l| "label:#{l}" }.join(' OR ') + ')'
   end
   query += ' ' + opts[:query] if opts[:query]
 
   parsed_query = index.parse_query query
-  parsed_query.merge! :load_spam => true, :load_deleted => true, :load_killed => true
+  parsed_query.merge! load_spam: true, load_deleted: true, load_killed: true
   ids = index.to_enum(:each_id, parsed_query)
   num_total = index.num_results_for parsed_query
 
@@ -125,16 +128,15 @@ begin
   $stderr.puts "Scanned #{num_scanned} / #{num_total} messages and changed #{num_changed}."
 
   unless num_changed == 0
-    $stderr.puts "Optimizing index..."
+    $stderr.puts 'Optimizing index...'
     index.optimize unless opts[:dry_run]
   end
 
 rescue Exception => e
-  File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
+  File.open('sup-exception-log.txt', 'w') { |f| f.puts e.backtrace }
   raise
 ensure
   index.save
-  Redwood::finish
+  Redwood.finish
   index.unlock
 end
-

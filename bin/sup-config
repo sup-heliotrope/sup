@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w(.. lib))
 
 require 'rubygems'
 require 'highline/import'
 require 'trollop'
-require "sup"
+require 'sup'
 
-$opts = Trollop::options do
+$opts = Trollop.options do
   version "sup-config (sup #{Redwood::VERSION})"
   banner <<EOS
 Interactive configuration tool for Sup. Won't destroy existing
@@ -20,7 +20,7 @@ No options.
 EOS
 end
 
-def axe q, default=nil
+def axe(q, default = nil)
   question = if default && !default.empty?
                "#{q} (enter for \"#{default}\"): "
              else
@@ -30,96 +30,96 @@ def axe q, default=nil
   ans.empty? ? default : ans.to_s
 end
 
-def axe_yes q, default="n"
+def axe_yes(q, default = 'n')
   axe(q, default) =~ /^y|yes$/i
 end
 
-def build_cmd cmd
-  (ENV["RUBY_INVOCATION"] ? ENV["RUBY_INVOCATION"] + " " : "") + File.join(File.dirname($0), cmd)
+def build_cmd(cmd)
+  (ENV['RUBY_INVOCATION'] ? ENV['RUBY_INVOCATION'] + ' ' : '') + File.join(File.dirname($PROGRAM_NAME), cmd)
 end
 
 def add_source
-  require "sup/util/uri"
+  require 'sup/util/uri'
 
   type = nil
 
-  say "Ok, adding a new source."
+  say 'Ok, adding a new source.'
   choose do |menu|
-    menu.prompt = "What type of mail source is it? "
-    menu.choice("mbox file") { type = :mbox }
-    menu.choice("maildir directory") { type = :maildir }
-    menu.choice("Get me out of here!") { return }
+    menu.prompt = 'What type of mail source is it? '
+    menu.choice('mbox file') { type = :mbox }
+    menu.choice('maildir directory') { type = :maildir }
+    menu.choice('Get me out of here!') { return }
   end
 
-  while true do
-    say "Ok, now for the details."
+  loop do
+    say 'Ok, now for the details.'
 
     default_labels, components = case type
     when :mbox
-      $last_fn ||= ENV["MAIL"]
+      $last_fn ||= ENV['MAIL']
       fn = axe "What's the full path to the mbox file?", $last_fn
       return if fn.nil? || fn.empty?
 
       $last_fn = fn
       [Redwood::MBox.suggest_labels_for(fn),
-       { :scheme => "mbox", :path => fn }]
+       { scheme: 'mbox', path: fn }]
     when :maildir
-      $last_fn ||= ENV["MAIL"]
+      $last_fn ||= ENV['MAIL']
       fn = axe "What's the full path to the maildir directory?", $last_fn
       return if fn.nil? || fn.empty?
 
       $last_fn = fn
       [Redwood::Maildir.suggest_labels_for(fn),
-       { :scheme => "maildir", :path => fn }]
+       { scheme: 'maildir', path: fn }]
     end
 
     uri = begin
       Redwood::Util::Uri.build components
     rescue URI::Error => e
       say "Whoopsie! I couldn't build a URI from that: #{e.message}"
-      if axe_yes("Try again?") then next else return end
+      if axe_yes('Try again?') then next else return end
     end
 
     say "I'm going to add this source: #{uri}"
-    unless axe("Does that look right?", "y") =~ /^y|yes$/i
-      if axe_yes("Try again?") then next else return end
+    unless axe('Does that look right?', 'y') =~ /^y|yes$/i
+      if axe_yes('Try again?') then next else return end
     end
 
-    usual = axe_yes "Does this source ever receive new messages?", "y"
-    archive = usual ? axe_yes("Should new messages be automatically archived? (I.e. not appear in your inbox, though still be accessible via search.)") : false
+    usual = axe_yes 'Does this source ever receive new messages?', 'y'
+    archive = usual ? axe_yes('Should new messages be automatically archived? (I.e. not appear in your inbox, though still be accessible via search.)') : false
 
-    sync_back = (type == :maildir) ? axe_yes("Should the original Maildir messages be modified to reflect changes like read status, starred messages, etc.?", "y") : false
+    sync_back = (type == :maildir) ? axe_yes('Should the original Maildir messages be modified to reflect changes like read status, starred messages, etc.?', 'y') : false
 
-    labels_str = axe("Enter any labels to be automatically added to all messages from this source, separated by spaces (or 'none')", default_labels.join(","))
+    labels_str = axe("Enter any labels to be automatically added to all messages from this source, separated by spaces (or 'none')", default_labels.join(','))
 
     labels = if labels_str =~ /^\s*none\s*$/i
-      nil
-    else
-      labels_str.split(/\s+/)
+               nil
+             else
+               labels_str.split(/\s+/)
     end
 
-    cmd = build_cmd "sup-add"
-    cmd += " --unusual" unless usual
-    cmd += " --archive" if archive
-    cmd += " --no-sync-back" unless sync_back
+    cmd = build_cmd 'sup-add'
+    cmd += ' --unusual' unless usual
+    cmd += ' --archive' if archive
+    cmd += ' --no-sync-back' unless sync_back
     cmd += " --labels=#{labels.join(',')}" if labels && !labels.empty?
     cmd += " #{uri}"
 
     puts "Ok, trying to run \"#{cmd}\"..."
 
     system cmd
-    if $?.success?
-      say "Great! Added!"
+    if $CHILD_STATUS.success?
+      say 'Great! Added!'
       break
     else
-      say "Rats, that failed. You may have to do it manually."
-      if axe_yes("Try again?") then next else return end
+      say 'Rats, that failed. You may have to do it manually.'
+      if axe_yes('Try again?') then next else return end
     end
   end
 end
 
 $terminal.wrap_at = :auto
-Redwood::start
+Redwood.start
 index = Redwood::Index.init
 Redwood::SourceManager.load_sources
 
@@ -139,17 +139,17 @@ account = $config[:accounts][:default]
 name = axe "What's your name?", account[:name]
 email = axe "What's your (primary) email address?", account[:email]
 
-say "Ok, your from header will look like this:"
+say 'Ok, your from header will look like this:'
 say "  From: #{name} <#{email}>"
 
 say "\nDo you have any alternate email addresses that also receive email?"
-say "If so, enter them now, separated by spaces."
-alts = axe("Alternate email addresses", account[:alternates].join(" ")).split(/\s+/)
+say 'If so, enter them now, separated by spaces.'
+alts = axe('Alternate email addresses', account[:alternates].join(' ')).split(/\s+/)
 
-sigfn = axe "What file contains your signature?", account[:signature]
-editor = axe "What editor would you like to use?", $config[:editor]
+sigfn = axe 'What file contains your signature?', account[:signature]
+editor = axe 'What editor would you like to use?', $config[:editor]
 
-time_mode = axe "Would like to display time in 12h (type 12h) or in 24h (type 24h)?", $config[:time_mode]
+time_mode = axe 'Would like to display time in 12h (type 12h) or in 24h (type 24h)?', $config[:time_mode]
 
 $config[:accounts][:default][:name] = name
 $config[:accounts][:default][:email] = email
@@ -162,18 +162,18 @@ done = false
 until done
   say "\nNow, we'll tell Sup where to find all your email."
   Redwood::SourceManager.load_sources
-  say "Current sources:"
+  say 'Current sources:'
   if Redwood::SourceManager.sources.empty?
-    say "  No sources!"
+    say '  No sources!'
   else
     Redwood::SourceManager.sources.each { |s| puts "* #{s}" }
   end
 
   say "\n"
   choose do |menu|
-    menu.prompt = "Your wish? "
-    menu.choice("Add a new source.") { add_source }
-    menu.choice("Done adding sources!") { done = true }
+    menu.prompt = 'Your wish? '
+    menu.choice('Add a new source.') { add_source }
+    menu.choice('Done adding sources!') { done = true }
   end
 end
 
@@ -190,9 +190,9 @@ else
   have_sup_sent = false
 
   choose do |menu|
-    menu.prompt = "Store my sent mail in? "
+    menu.prompt = 'Store my sent mail in? '
 
-    menu.choice('Default (an mbox in ~/.sup, aka sup://sent)') { $config[:sent_source] = 'sup://sent'} unless have_sup_sent
+    menu.choice('Default (an mbox in ~/.sup, aka sup://sent)') { $config[:sent_source] = 'sup://sent' } unless have_sup_sent
 
     valid_sents = Redwood::SourceManager.sources.each do |s|
       have_sup_sent = true if s.to_s.eql?('sup://sent')
@@ -201,7 +201,7 @@ else
   end
 end
 
-Redwood::save_yaml_obj $config, Redwood::CONFIG_FN, false, true
+Redwood.save_yaml_obj $config, Redwood::CONFIG_FN, false, true
 
 say "Ok, I've saved you up a nice lil' #{Redwood::CONFIG_FN}."
 
@@ -213,17 +213,17 @@ quite a while.
 
 EOS
 
-if axe_yes "Run sup-sync to import all messages now?"
-  while true
-    cmd = build_cmd("sup-sync") + " --all-sources"
+if axe_yes 'Run sup-sync to import all messages now?'
+  loop do
+    cmd = build_cmd('sup-sync') + ' --all-sources'
     puts "Ok, trying to run \"#{cmd}\"..."
     system cmd
-    if $?.success?
-      say "Great! It worked!"
+    if $CHILD_STATUS.success?
+      say 'Great! It worked!'
       break
     else
-      say "Rats, that failed. You may have to do it manually."
-      if axe_yes("Try again?") then next else break end
+      say 'Rats, that failed. You may have to do it manually.'
+      if axe_yes('Try again?') then next else break end
     end
   end
 end
@@ -237,7 +237,7 @@ like you're ready to jack in to cyberspace there, cowboy.
 
 Just one last command:
 
-  #{build_cmd "sup"}
+  #{build_cmd 'sup'}
 
 Have fun!
 EOS

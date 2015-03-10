@@ -1,17 +1,16 @@
 #!/usr/bin/env ruby
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w(.. lib))
 
 require 'optparse'
 
 $opts = {
-  :unusual => false,
-  :archive => false,
-  :scan_num => 10,
+  unusual: false,
+  archive: false,
+  scan_num: 10
 }
 
-
-OPTIONPARSERSUCKS = "\n" + " " * 38
+OPTIONPARSERSUCKS = "\n" + ' ' * 38
 OptionParser.new do |opts|
   opts.banner = <<EOS
 Usage: sup-recover-sources [options] <source>+
@@ -35,23 +34,23 @@ doing this.
 Options include:
 EOS
 
-  opts.on("--unusual", "Mark sources as 'unusual'. Only usual#{OPTIONPARSERSUCKS}sources will be polled by hand. Default:#{OPTIONPARSERSUCKS}#{$opts[:unusual]}.") { $opts[:unusual] = true }
+  opts.on('--unusual', "Mark sources as 'unusual'. Only usual#{OPTIONPARSERSUCKS}sources will be polled by hand. Default:#{OPTIONPARSERSUCKS}#{$opts[:unusual]}.") { $opts[:unusual] = true }
 
-  opts.on("--archive", "Mark sources as 'archive'. New messages#{OPTIONPARSERSUCKS}from these sources will not appear in#{OPTIONPARSERSUCKS}the inbox. Default: #{$opts[:archive]}.") { $opts[:archive] = true }
+  opts.on('--archive', "Mark sources as 'archive'. New messages#{OPTIONPARSERSUCKS}from these sources will not appear in#{OPTIONPARSERSUCKS}the inbox. Default: #{$opts[:archive]}.") { $opts[:archive] = true }
 
-  opts.on("--scan-num N", Integer, "Number of messages to scan per source.#{OPTIONPARSERSUCKS}Default: #{$opts[:scan_num]}.") do |n|
+  opts.on('--scan-num N', Integer, "Number of messages to scan per source.#{OPTIONPARSERSUCKS}Default: #{$opts[:scan_num]}.") do |n|
     $opts[:scan_num] = n
   end
 
-  opts.on_tail("-h", "--help", "Show this message") do
+  opts.on_tail('-h', '--help', 'Show this message') do
     puts opts
     exit
   end
 end.parse(ARGV)
 
-require "sup"
-Redwood::start
-puts "loading index..."
+require 'sup'
+Redwood.start
+puts 'loading index...'
 index = Redwood::Index.init
 index.load
 puts "loaded index of #{index.size} messages"
@@ -64,8 +63,8 @@ ARGV.each do |fn|
 
   source_ids = Hash.new 0
   count = 0
-  source.each do |offset, labels|
-    m = Redwood::Message.new :source => source, :source_info => offset
+  source.each do |offset, _labels|
+    m = Redwood::Message.new source: source, source_info: offset
     m.load_from_source!
     source_id = Redwood::SourceManager.source_for_id m.id
     next unless source_id

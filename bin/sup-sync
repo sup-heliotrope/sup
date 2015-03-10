@@ -1,28 +1,35 @@
 #!/usr/bin/env ruby
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w(.. lib))
 
 require 'uri'
 require 'rubygems'
 require 'trollop'
-require "sup"
+require 'sup'
 
 PROGRESS_UPDATE_INTERVAL = 15 # seconds
 
 class Float
-  def to_s; sprintf '%.2f', self; end
-  def to_time_s; infinite? ? "unknown" : super end
+  def to_s
+    sprintf '%.2f', self
+  end
+
+  def to_time_s
+    infinite? ? 'unknown' : super
+  end
 end
 
 class Numeric
   def to_time_s
     i = to_i
-    sprintf "%d:%02d:%02d", i / 3600, (i / 60) % 60, i % 60
+    sprintf '%d:%02d:%02d', i / 3600, (i / 60) % 60, i % 60
   end
 end
 
 class Set
-  def to_s; to_a * ',' end
+  def to_s
+    to_a * ','
+  end
 end
 
 def time
@@ -31,7 +38,7 @@ def time
   Time.now - startt
 end
 
-opts = Trollop::options do
+opts = Trollop.options do
   version "sup-sync (sup #{Redwood::VERSION})"
   banner <<EOS
 Synchronizes the Sup index with one or more message sources by adding
@@ -57,43 +64,43 @@ by running "sup-add --help".
 
 Options controlling HOW message state is altered:
 EOS
-  opt :asis, "If the message is already in the index, preserve its state. Otherwise, use default source state. (Default.)", :short => :none
-  opt :restore, "Restore message state from a dump file created with sup-dump. If a message is not in this dumpfile, act as --asis.", :type => String, :short => :none
-  opt :discard, "Discard any message state in the index and use the default source state. Dangerous!", :short => :none
-  opt :archive, "When using the default source state, mark messages as archived.", :short => "-x"
-  opt :read, "When using the default source state, mark messages as read."
-  opt :extra_labels, "When using the default source state, also apply these user-defined labels (a comma-separated list)", :default => "", :short => :none
+  opt :asis, 'If the message is already in the index, preserve its state. Otherwise, use default source state. (Default.)', short: :none
+  opt :restore, 'Restore message state from a dump file created with sup-dump. If a message is not in this dumpfile, act as --asis.', type: String, short: :none
+  opt :discard, 'Discard any message state in the index and use the default source state. Dangerous!', short: :none
+  opt :archive, 'When using the default source state, mark messages as archived.', short: '-x'
+  opt :read, 'When using the default source state, mark messages as read.'
+  opt :extra_labels, 'When using the default source state, also apply these user-defined labels (a comma-separated list)', default: '', short: :none
 
-text <<EOS
+  text <<EOS
 
 Other options:
 EOS
   opt :verbose, "Print message ids as they're processed."
-  opt :optimize, "As the final operation, optimize the index."
-  opt :all_sources, "Scan over all sources.", :short => :none
-  opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
-  opt :version, "Show version information", :short => :none
+  opt :optimize, 'As the final operation, optimize the index.'
+  opt :all_sources, 'Scan over all sources.', short: :none
+  opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", short: '-n'
+  opt :version, 'Show version information', short: :none
 
   conflicts :asis, :restore, :discard
 end
 
 op = [:asis, :restore, :discard].find { |x| opts[x] } || :asis
 
-Redwood::start
+Redwood.start
 index = Redwood::Index.init
 
 restored_state = if opts[:restore]
-  dump = {}
-  puts "Loading state dump from #{opts[:restore]}..."
-  IO.foreach opts[:restore] do |l|
-    l =~ /^(\S+) \((.*?)\)$/ or raise "Can't read dump line: #{l.inspect}"
-    mid, labels = $1, $2
-    dump[mid] = labels.to_set_of_symbols
-  end
-  puts "Read #{dump.size} entries from dump file."
-  dump
-else
-  {}
+                   dump = {}
+                   puts "Loading state dump from #{opts[:restore]}..."
+                   IO.foreach opts[:restore] do |l|
+                     l =~ /^(\S+) \((.*?)\)$/ or fail "Can't read dump line: #{l.inspect}"
+                     mid, labels = Regexp.last_match(1), Regexp.last_match(2)
+                     dump[mid] = labels.to_set_of_symbols
+                   end
+                   puts "Read #{dump.size} entries from dump file."
+                   dump
+                 else
+                   {}
 end
 
 seen = {}
@@ -101,20 +108,20 @@ index.lock_interactively or exit
 begin
   index.load
 
-  if(s = Redwood::SourceManager.source_for Redwood::SentManager.source_uri)
+  if (s = Redwood::SourceManager.source_for Redwood::SentManager.source_uri)
     Redwood::SentManager.source = s
   else
     Redwood::SourceManager.add_source Redwood::SentManager.default_source
   end
 
   sources = if opts[:all_sources]
-    Redwood::SourceManager.sources
-  elsif ARGV.empty?
-    Redwood::SourceManager.usual_sources
-  else
-    ARGV.map do |uri|
-      Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
-    end
+              Redwood::SourceManager.sources
+            elsif ARGV.empty?
+              Redwood::SourceManager.usual_sources
+            else
+              ARGV.map do |uri|
+                Redwood::SourceManager.source_for uri or Trollop.die "Unknown source: #{uri}. Did you add it with sup-add first?"
+              end
   end
 
   sources.each do |source|
@@ -122,7 +129,7 @@ begin
     num_added = num_updated = num_deleted = num_scanned = num_restored = 0
     last_info_time = start_time = Time.now
 
-    Redwood::PollManager.poll_from source do |action,m,old_m,progress|
+    Redwood::PollManager.poll_from source do |action, m, old_m, progress|
       num_scanned += 1
       if action == :delete
         num_deleted += 1
@@ -133,7 +140,7 @@ begin
         ## tweak source labels according to commandline arguments if necessary
         m.labels.delete :inbox if opts[:archive]
         m.labels.delete :unread if opts[:read]
-        m.labels += opts[:extra_labels].to_set_of_symbols(",")
+        m.labels += opts[:extra_labels].to_set_of_symbols(',')
 
         ## decide what to do based on message labels and the operation we're performing
         dothis = case
@@ -195,16 +202,16 @@ begin
   index.save
 
   if opts[:optimize]
-    puts "Optimizing index..."
+    puts 'Optimizing index...'
     optt = time { index.optimize unless opts[:dry_run] }
     puts "Optimized index of size #{index.size} in #{optt}s."
   end
 rescue Redwood::FatalSourceError => e
   $stderr.puts "Sorry, I couldn't communicate with a source: #{e.message}"
 rescue Exception => e
-  File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
+  File.open('sup-exception-log.txt', 'w') { |f| f.puts e.backtrace }
   raise
 ensure
-  Redwood::finish
+  Redwood.finish
   index.unlock
 end

@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w(.. lib))
 
 require 'rubygems'
 require 'trollop'
-require "sup"
+require 'sup'
 
-opts = Trollop::options do
+opts = Trollop.options do
   version "sup-sync-back-maildir (sup #{Redwood::VERSION})"
   banner <<EOS
 Export Xapian entries to Maildir sources on disk.
@@ -39,18 +39,18 @@ sync back using the configuration parameter sync_back = false in sources.yaml.
 
 Options include:
 EOS
-  opt :no_confirm, "Don't ask for confirmation before synchronizing", :default => false, :short => "n"
-  opt :no_merge, "Don't merge new supported Maildir flags (R and P)", :default => false, :short => "m"
-  opt :list_sources, "List your Maildir sources and exit", :default => false, :short => "l"
-  opt :unusual_sources_too, "Sync unusual sources too if no specific source information is given", :default => false, :short => "u"
+  opt :no_confirm, "Don't ask for confirmation before synchronizing", default: false, short: 'n'
+  opt :no_merge, "Don't merge new supported Maildir flags (R and P)", default: false, short: 'm'
+  opt :list_sources, 'List your Maildir sources and exit', default: false, short: 'l'
+  opt :unusual_sources_too, 'Sync unusual sources too if no specific source information is given', default: false, short: 'u'
 end
 
-def die msg
+def die(msg)
   $stderr.puts "Error: #{msg}"
   exit(-1)
 end
 
-Redwood::start true
+Redwood.start true
 index = Redwood::Index.init
 index.lock_interactively or exit
 index.load
@@ -60,7 +60,7 @@ $config[:sync_back_to_maildir] = true
 
 begin
   sync_performed = []
-  sync_performed = File.readlines(Redwood::SYNC_OK_FN).collect { |e| e.strip }.find_all { |e| not e.empty? } if File.exist? Redwood::SYNC_OK_FN
+  sync_performed = File.readlines(Redwood::SYNC_OK_FN).collect(&:strip).find_all { |e| not e.empty? } if File.exist? Redwood::SYNC_OK_FN
   sources = []
 
   ## Try to find out sources given in parameters
@@ -98,8 +98,8 @@ begin
       infos = Enumerator.new(index, :each_source_info, s.id).to_a
       counter = 0
       infos.each do |info|
-        print "\rSynchronizing '#{s.uri}'... #{((counter += 1)/infos.size.to_f*100).to_i}%"
-        index.each_message({:location => [s.id, info]}, false) do |m|
+        print "\rSynchronizing '#{s.uri}'... #{((counter += 1) / infos.size.to_f * 100).to_i}%"
+        index.each_message({ location: [s.id, info] }, false) do |m|
           if opts[:no_merge] == false
             m.merge_labels_from_locations [:replied, :forwarded]
           end
@@ -115,13 +115,13 @@ begin
       sync_performed << s.uri
     end
     ## Write a flag file to tell sup that the synchronization has been performed
-    File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write(sync_performed.join("\n")) }
+    File.open(Redwood::SYNC_OK_FN, 'w') { |f| f.write(sync_performed.join("\n")) }
   end
 rescue Exception => e
-  File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
+  File.open('sup-exception-log.txt', 'w') { |f| f.puts e.backtrace }
   raise
 ensure
   index.save_index
-  Redwood::finish
+  Redwood.finish
   index.unlock
 end

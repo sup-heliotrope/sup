@@ -1,16 +1,16 @@
 #!/usr/bin/env ruby
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w(.. lib))
 
 require 'rubygems'
 require 'xapian'
 require 'trollop'
 require 'set'
 
-BASE_DIR = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
+BASE_DIR = ENV['SUP_BASE'] || File.join(ENV['HOME'], '.sup')
 
-$opts = Trollop::options do
-  version "sup-dump"
+$opts = Trollop.options do
+  version 'sup-dump'
   banner <<EOS
 Dumps all message state from the sup index to standard out. You can
 later use sup-sync --restored --restore <filename> to recover the index.
@@ -33,7 +33,7 @@ when '0'
   xapian.postlist('Kmail').each do |x|
     begin
       entry = Marshal.load(xapian.document(x.docid).data)
-      puts "#{entry[:message_id]} (#{entry[:labels].sort_by { |l| l.to_s } * ' '})"
+      puts "#{entry[:message_id]} (#{entry[:labels].sort_by(&:to_s) * ' '})"
     rescue
       $stderr.puts "failed to dump document #{x.docid}"
     end

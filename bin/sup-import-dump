@@ -1,18 +1,18 @@
 #!/usr/bin/env ruby
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w(.. lib))
 
 require 'uri'
 require 'rubygems'
 require 'trollop'
-require "sup"
+require 'sup'
 
 PROGRESS_UPDATE_INTERVAL = 15 # seconds
 
 class AbortExecution < SystemExit
 end
 
-opts = Trollop::options do
+opts = Trollop.options do
   version "sup-import-dump (sup #{Redwood::VERSION})"
   banner <<EOS
 Imports message state previously exported by sup-dump into the index.
@@ -28,21 +28,21 @@ Usage:
 Options:
 EOS
   opt :verbose, "Print message ids as they're processed."
-  opt :ignore_missing, "Silently skip over messages that are not in the index."
-  opt :warn_missing, "Warn about messages that are not in the index, but continue."
-  opt :abort_missing, "Abort on encountering messages that are not in the index. (default)"
-  opt :atomic, "Use transaction to apply all changes atomically."
-  opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", :short => "-n"
-  opt :version, "Show version information", :short => :none
+  opt :ignore_missing, 'Silently skip over messages that are not in the index.'
+  opt :warn_missing, 'Warn about messages that are not in the index, but continue.'
+  opt :abort_missing, 'Abort on encountering messages that are not in the index. (default)'
+  opt :atomic, 'Use transaction to apply all changes atomically.'
+  opt :dry_run, "Don't actually modify the index. Probably only useful with --verbose.", short: '-n'
+  opt :version, 'Show version information', short: :none
 
   conflicts :ignore_missing, :warn_missing, :abort_missing
 end
-Trollop::die "No dump file given" if ARGV.empty?
-Trollop::die "Extra arguments given" if ARGV.length > 1
+Trollop.die 'No dump file given' if ARGV.empty?
+Trollop.die 'Extra arguments given' if ARGV.length > 1
 dump_name = ARGV.shift
 missing_action = [:ignore_missing, :warn_missing, :abort_missing].find { |x| opts[x] } || :abort_missing
 
-Redwood::start
+Redwood.start
 index = Redwood::Index.init
 
 index.lock_interactively or exit
@@ -53,14 +53,14 @@ begin
   index.begin_transaction if opts[:atomic]
 
   IO.foreach dump_name do |l|
-    l =~ /^(\S+) \((.*?)\)$/ or raise "Can't read dump line: #{l.inspect}"
-    mid, labels = $1, $2
+    l =~ /^(\S+) \((.*?)\)$/ or fail "Can't read dump line: #{l.inspect}"
+    mid, labels = Regexp.last_match(1), Regexp.last_match(2)
     num_read += 1
 
     unless index.contains_id? mid
       if missing_action == :abort_missing
         $stderr.puts "Message #{mid} not found in index, aborting."
-        raise AbortExecution, 10
+        fail AbortExecution, 10
       elsif missing_action == :warn_missing
         $stderr.puts "Message #{mid} not found in index, skipping."
       end
@@ -92,10 +92,10 @@ rescue AbortExecution
   raise
 rescue Exception => e
   index.cancel_transaction if opts[:atomic]
-  File.open("sup-exception-log.txt", "w") { |f| f.puts e.backtrace }
+  File.open('sup-exception-log.txt', 'w') { |f| f.puts e.backtrace }
   raise
 ensure
   index.save_index unless opts[:atomic]
-  Redwood::finish
+  Redwood.finish
   index.unlock
 end

@@ -1,14 +1,14 @@
 #!/usr/bin/env ruby
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w(.. lib))
 
 require 'uri'
 require 'rubygems'
 require 'highline/import'
 require 'trollop'
-require "sup"
+require 'sup'
 
-$opts = Trollop::options do
+$opts = Trollop.options do
   version "sup-add (sup #{Redwood::VERSION})"
   banner <<EOS
 Adds a source to the Sup source list.
@@ -28,31 +28,31 @@ For Maildir folders, use the form:
 
 Options are:
 EOS
-  opt :archive, "Automatically archive all new messages from these sources."
-  opt :unusual, "Do not automatically poll these sources for new messages."
-  opt :sync_back, "Synchronize status flags back into messages, defaults to true (Maildir sources only).", :default => true
-  opt :labels, "A comma-separated set of labels to apply to all messages from this source", :type => String
-  opt :force_new, "Create a new account for this source, even if one already exists."
-  opt :force_account, "Reuse previously defined account user@hostname.", :type => String
+  opt :archive, 'Automatically archive all new messages from these sources.'
+  opt :unusual, 'Do not automatically poll these sources for new messages.'
+  opt :sync_back, 'Synchronize status flags back into messages, defaults to true (Maildir sources only).', default: true
+  opt :labels, 'A comma-separated set of labels to apply to all messages from this source', type: String
+  opt :force_new, 'Create a new account for this source, even if one already exists.'
+  opt :force_account, 'Reuse previously defined account user@hostname.', type: String
 end
 
-Trollop::die "require one or more sources" if ARGV.empty?
+Trollop.die 'require one or more sources' if ARGV.empty?
 
 ## for sources that require login information, prompt the user for
 ## that. also provide a list of previously-defined login info to
 ## choose from, if any.
-def get_login_info uri, sources
+def get_login_info(uri, sources)
   uri = URI(uri)
   accounts = sources.map do |s|
     next unless s.respond_to?(:username)
     suri = URI(s.uri)
     [suri.host, s.username, s.password]
-  end.compact.uniq.sort_by { |h, u, p| h == uri.host ? 0 : 1 }
+  end.compact.uniq.sort_by { |h, _u, _p| h == uri.host ? 0 : 1 }
 
   username, password = nil, nil
   unless accounts.empty? || $opts[:force_new]
     if $opts[:force_account]
-      host, username, password = accounts.find { |h, u, p| $opts[:force_account] == "#{u}@#{h}" }
+      host, username, password = accounts.find { |h, u, _p| $opts[:force_account] == "#{u}@#{h}" }
       unless username && password
         say "No previous account #{$opts[:force_account].inspect} found."
       end
@@ -62,14 +62,14 @@ def get_login_info uri, sources
         accounts.each do |host, olduser, oldpw|
           menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
         end
-        menu.choice("Use a new account") { }
-        menu.prompt = "Account selection? "
+        menu.choice('Use a new account') {}
+        menu.prompt = 'Account selection? '
       end
     end
   end
 
   unless username && password
-    username = ask("Username for #{uri.host}: ");
+    username = ask("Username for #{uri.host}: ")
     password = ask("Password for #{uri.host}: ") { |q| q.echo = false }
     puts # why?
   end
@@ -78,7 +78,7 @@ def get_login_info uri, sources
 end
 
 $terminal.wrap_at = :auto
-Redwood::start
+Redwood.start
 index = Redwood::Index.init
 index.load
 
@@ -99,14 +99,14 @@ begin
 
     source =
       case parsed_uri.scheme
-      when "maildir"
+      when 'maildir'
         Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], $opts[:sync_back], nil, labels
-      when "mbox"
+      when 'mbox'
         Redwood::MBox.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when nil
-        Trollop::die "Sources must be specified with an URI"
+        Trollop.die 'Sources must be specified with an URI'
       else
-        Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"
+        Trollop.die "Unknown source type #{parsed_uri.scheme.inspect}"
       end
     say "Adding #{source}..."
     Redwood::SourceManager.add_source source
@@ -114,5 +114,5 @@ begin
 ensure
   index.save
   index.unlock
-  Redwood::finish
+  Redwood.finish
 end

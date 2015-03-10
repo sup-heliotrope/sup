@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 
-$:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w(.. lib))
 
-require "sup"
-require "fileutils"
+require 'sup'
+require 'fileutils'
 
-if RUBY_VERSION >= "2.1"
-  puts "YAML migration is deprecated by Ruby 2.1 and newer."
+if RUBY_VERSION >= '2.1'
+  puts 'YAML migration is deprecated by Ruby 2.1 and newer.'
   exit
 end
 
