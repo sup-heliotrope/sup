@@ -1,16 +1,25 @@
 require 'rubygems'
 require 'rake/testtask'
 require "bundler/gem_tasks"
+require 'rubocop/rake_task'
 
-Rake::TestTask.new(:test) do |test|
+Rake::TestTask.new(:minitest) do |test|
   test.libs << 'test'
   test.test_files = FileList.new('test/**/test_*.rb')
   test.verbose = true
 end
-task :default => :test
+desc "Run tests"
 
-task :build => [:man]
-task :travis => [:test, :build]
+RuboCop::RakeTask.new(:rubocop) do |task|
+  task.patterns = ['lib/**/*.rb', 'bin/**/*.rb']
+end
+desc "Run Rubocop Linter"
+
+task test: [:minitest, :rubocop]
+task default: [:test]
+
+task build: [:man]
+task travis: [:test, :build]
 
 def test_pandoc
   return system("pandoc -v > /dev/null 2>&1")

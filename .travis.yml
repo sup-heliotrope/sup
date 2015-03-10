@@ -10,4 +10,4 @@ before_install:
   - sudo apt-get install -qq uuid-dev uuid libncursesw5-dev libncursesw5 gnupg2 pandoc
   - git submodule update --init --recursive
 
-script: bundle exec rake travis
+script: bundle exec rake travis test
