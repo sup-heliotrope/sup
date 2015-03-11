@@ -192,7 +192,7 @@ else
   choose do |menu|
     menu.prompt = "Store my sent mail in? "
 
-    menu.choice('Default (an mbox in ~/.sup, aka sup://sent)') { $config[:sent_source] = 'sup://sent'} unless have_sup_sent
+    menu.choice('Default (an mbox in $XDG_DATA_DIR, default ~/.local/share/sup, aka sup://sent)') { $config[:sent_source] = 'sup://sent'} unless have_sup_sent
 
     valid_sents = Redwood::SourceManager.sources.each do |s|
       have_sup_sent = true if s.to_s.eql?('sup://sent')
