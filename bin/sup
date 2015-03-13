@@ -40,7 +40,8 @@ Usage:
 Options are:
 EOS
   opt :list_hooks, 'List all hooks and descriptions, and quit.'
-  opt :no_threads, 'Turn off threading. Helps with debugging. (Necessarily disables background polling for new messages.)'
+  opt :no_threads, 'Turn off threading. Helps with debugging. \
+  (Necessarily disables background polling for new messages.)'
   opt :no_initial_poll, "Don't poll for new messages when starting."
   opt :search, 'Search for this query upon startup', type: String
   opt :compose, 'Compose message to this recipient upon startup', type: String
@@ -72,6 +73,7 @@ end
 Thread.abort_on_exception = true # make debugging possible
 Thread.current.priority = 1 # keep ui responsive
 
+## Main module
 module Redwood
   global_keymap = Keymap.new do |k|
     k.add :quit_ask, 'Quit Sup, but ask first', 'q'
@@ -137,7 +139,7 @@ module Redwood
   module_function :start_cursing, :stop_cursing
 
   Index.init
-  Index.lock_interactively or exit
+  Index.lock_interactively || exit
 
   begin
     Redwood.start
@@ -193,13 +195,13 @@ module Redwood
 
     bm.draw_screen
 
-    Redwood::SourceManager.usual_sources.each do |s|
-      next unless s.respond_to? :connect
-      reporting_thread("call #connect on #{s}") do
+    Redwood::SourceManager.usual_sources.each do |source|
+      next unless source.respond_to? :connect
+      reporting_thread("call #connect on #{source}") do
         begin
-          s.connect
+          source.connect
         rescue SourceError => e
-          error "fatal error loading from #{s}: #{e.message}"
+          error "fatal error loading from #{source}: #{e.message}"
         end
       end
     end unless $opts[:no_initial_poll]
@@ -219,9 +221,7 @@ module Redwood
       Index.start_lock_update_thread
     end
 
-    if $opts[:search]
-      SearchResultsMode.spawn_from_query $opts[:search]
-    end
+    SearchResultsMode.spawn_from_query $opts[:search] if $opts[:search]
 
     until Redwood.exceptions.nonempty? || $die
       c = begin
@@ -264,9 +264,7 @@ module Redwood
       when :quit_now
         break if bm.kill_all_buffers_safely
       when :quit_ask
-        if bm.ask_yes_or_no 'Really quit?'
-          break if bm.kill_all_buffers_safely
-        end
+        break if bm.ask_yes_or_no('Really quit?') && bm.kill_all_buffers_safely
       when :help
         curmode = bm.focus_buf.mode
         bm.spawn_unless_exists("<help for #{curmode.name}>") { HelpMode.new curmode, global_keymap }
@@ -285,7 +283,9 @@ module Redwood
         completions = LabelManager.all_labels.map { |l| "label:#{LabelManager.string_for l}" }
         completions = completions.each(&:fix_encoding!)
         completions += Index::COMPL_PREFIXES
-        query = BufferManager.ask_many_with_completions :search, 'Search all messages (enter for saved searches): ', completions
+        query = BufferManager.ask_many_with_completions(:search,
+                                                        'Search all messages (enter for saved searches): ',
+                                                        completions)
         unless query.nil?
           if query.empty?
             bm.spawn_unless_exists('Saved searches') { SearchListMode.new }
@@ -374,9 +374,7 @@ module Redwood
     Redwood::Logger.add_sink $stderr, false
     debug 'stopped cursing'
 
-    if $die
-      info "I've been ordered to commit seppuku. I obey!"
-    end
+    info "I've been ordered to commit seppuku. I obey!" if $die
 
     if Redwood.exceptions.empty?
       debug 'no fatal errors. good job, william.'
@@ -412,8 +410,8 @@ Sincerely,
 The Sup Developers
 ----------------------------------------------------------------
 EOS
-    Redwood.exceptions.each do |e, name|
-      puts "--- #{e.class.name} from thread: #{name}"
+    Redwood.exceptions.each do |ex, name|
+      puts "--- #{ex.class.name} from thread: #{name}"
       puts e.message, e.backtrace
     end
   end

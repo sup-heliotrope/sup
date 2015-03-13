@@ -6,3 +6,6 @@ AllCops:
 
 Metrics/LineLength:
   Max: 120
+
+Style/GlobalVars:
+  AllowedVariables: [$cursing, $die, $opts]
