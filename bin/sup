@@ -24,14 +24,14 @@ require 'trollop'
 # In the future, this is to be removed, probably if you never remember
 # sup being in the ~/.sup folder
 def xdg_config_dir
-  ENV['SUP_BASE'] if ENV['SUP_BASE']
+  return ENV['SUP_BASE'] if ENV['SUP_BASE']
 
   dir = ENV['XDG_CONFIG_HOME'] || File.join(ENV['HOME'], '.config/')
   File.join(dir, 'sup')
 end
 
 def xdg_data_dir
-  ENV['SUP_BASE'] if ENV['SUP_BASE']
+  return ENV['SUP_BASE'] if ENV['SUP_BASE']
 
   dir = ENV['XDG_DATA_HOME'] || File.join(ENV['HOME'], '.local/share/')
   File.join(dir, 'sup')
@@ -42,10 +42,11 @@ if Dir.exist?((old_sup_dir = File.join(ENV["HOME"], ".sup"))) && !ENV['SUP_BASE'
   FileUtils.mkdir_p xdg_data_dir
 
   FileUtils.cd old_sup_dir do
-    files = Dir.entries old_sup_dir
-    %w(config.yaml sources.yaml colors.yaml).each do |file|
-      FileUtils.mv file, xdg_config_dir if files.include? file
+    config_files = Dir.entries(old_sup_dir).select do |file| 
+      file =~ /(config|sources|colors)\.?\w*\.yaml(.bak)?/i
     end
+
+    config_files.each { |file| FileUtils.mv file, xdg_config_dir }
 
     FileUtils.mv Dir.glob("*"), xdg_data_dir
   end
