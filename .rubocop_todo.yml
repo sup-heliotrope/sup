@@ -97,12 +97,6 @@ Style/AccessorMethodName:
 Style/AlignArray:
   Enabled: false
 
-# Offense count: 121
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/AndOr:
-  Enabled: false
-
 # Offense count: 2
 Style/AsciiComments:
   Enabled: false

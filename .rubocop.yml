@@ -4,3 +4,6 @@ AllCops:
   Exclude:
     - 'tmp/**/*'
   DisplayCopNames: true
+
+Style/AndOr:
+  Enabled: false
