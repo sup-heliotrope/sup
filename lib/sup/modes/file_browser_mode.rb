@@ -97,8 +97,8 @@ protected
       [name, real_f]
       end
 
-    size_width = @files.max_of { |name, f| f.human_size.length }
-    time_width = @files.max_of { |name, f| f.human_time.length }
+    size_width = @files.max_of { |_name, f| f.human_size.length }
+    time_width = @files.max_of { |_name, f| f.human_time.length }
 
     @text = ["#{cwd}:"] + @files.map do |name, f|
       sprintf "%#{time_width}s %#{size_width}s %s", f.human_time, f.human_size, name

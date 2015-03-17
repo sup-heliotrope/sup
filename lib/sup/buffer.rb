@@ -558,7 +558,7 @@ EOS
       if tf.new_completions?
         kill_buffer completion_buf if completion_buf
 
-        shorts = tf.completions.map { |full, short| short }
+        shorts = tf.completions.map { |_full, short| short }
         prefix_len = shorts.shared_prefix(caseless=true).length
 
         mode = CompletionMode.new shorts, :header => "Possible completions for \"#{tf.value}\": ", :prefix_len => prefix_len

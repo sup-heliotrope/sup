@@ -143,7 +143,7 @@ EOS
 
         msg = ""
         num = numi = numu = numd = 0
-        poll_from source do |action,m,old_m,progress|
+        poll_from source do |action,m,old_m,_progress|
           if action == :delete
             yield "Deleting #{m.id}"
             loaded_labels.merge m.labels

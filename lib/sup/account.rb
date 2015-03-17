@@ -15,7 +15,7 @@ class Account < Person
   # Default sendmail command for bouncing mail,
   # deduced from #sendmail
   def bounce_sendmail
-    sendmail.sub(/\s(\-(ti|it|t))\b/) do |match|
+    sendmail.sub(/\s(\-(ti|it|t))\b/) do |_match|
       case $1
       when '-t' then ''
       else ' -i'

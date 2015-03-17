@@ -104,16 +104,16 @@ protected
     if HookManager.enabled? "search-list-filter"
       counts = HookManager.run "search-list-filter", :counted => counted
     else
-      counts = counted.sort_by { |n, s, t, u| n.downcase }
+      counts = counted.sort_by { |n, _s, _t, _u| n.downcase }
     end
 
-    n_width = counts.max_of { |n, s, t, u| n.length }
-    tmax    = counts.max_of { |n, s, t, u| t }
-    umax    = counts.max_of { |n, s, t, u| u }
-    s_width = counts.max_of { |n, s, t, u| s.length }
+    n_width = counts.max_of { |n, _s, _t, _u| n.length }
+    tmax    = counts.max_of { |_n, _s, t, _u| t }
+    umax    = counts.max_of { |_n, _s, _t, u| u }
+    s_width = counts.max_of { |_n, s, _t, _u| s.length }
 
     if @unread_only
-      counts.delete_if { | n, s, t, u | u == 0 }
+      counts.delete_if { | _n, _s, _t, u | u == 0 }
     end
 
     @searches = []

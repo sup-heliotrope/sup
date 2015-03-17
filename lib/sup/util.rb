@@ -545,7 +545,7 @@ class Hash
   end
 
   def select_by_value v=true
-    select { |k, vv| vv == v }.map { |x| x.first }
+    select { |_k, vv| vv == v }.map { |x| x.first }
   end
 end
 

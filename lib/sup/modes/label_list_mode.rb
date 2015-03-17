@@ -88,15 +88,15 @@ protected
     if HookManager.enabled? "label-list-filter"
       counts = HookManager.run "label-list-filter", :counted => counted
     else
-      counts = counted.sort_by { |l, s, t, u| s.downcase }
+      counts = counted.sort_by { |_l, s, _t, _u| s.downcase }
     end
 
-    width = counts.max_of { |l, s, t, u| s.length }
-    tmax  = counts.max_of { |l, s, t, u| t }
-    umax  = counts.max_of { |l, s, t, u| u }
+    width = counts.max_of { |_l, s, _t, _u| s.length }
+    tmax  = counts.max_of { |_l, _s, t, _u| t }
+    umax  = counts.max_of { |_l, _s, _t, u| u }
 
     if @unread_only
-      counts.delete_if { | l, s, t, u | u == 0 }
+      counts.delete_if { | _l, _s, _t, u | u == 0 }
     end
 
     @labels = []

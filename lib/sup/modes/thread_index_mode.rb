@@ -279,7 +279,7 @@ EOS
 
   def edit_message
     return unless(t = cursor_thread)
-    message, *_ = t.find { |m, *o| m.has_label? :draft }
+    message, *_ = t.find { |m, *_o| m.has_label? :draft }
     if message
       mode = ResumeMode.new message
       BufferManager.spawn "Edit message", mode
@@ -881,18 +881,18 @@ protected
 
   def regen_text
     threads = @mutex.synchronize { @threads }
-    @text = threads.map_with_index { |t, i| text_for_thread_at i }
+    @text = threads.map_with_index { |_t, i| text_for_thread_at i }
     @lines = threads.map_with_index { |t, i| [t, i] }.to_h
     buffer.mark_dirty if buffer
   end
 
-  def authors; map { |m, *o| m.from if m }.compact.uniq; end
+  def authors; map { |m, *_o| m.from if m }.compact.uniq; end
 
   ## preserve author order from the thread
   def author_names_and_newness_for_thread t, limit=nil
     new = {}
     seen = {}
-    authors = t.map do |m, *o|
+    authors = t.map do |m, *_o|
       next unless m && m.from
       new[m.from] ||= m.has_label?(:unread)
       next if seen[m.from]

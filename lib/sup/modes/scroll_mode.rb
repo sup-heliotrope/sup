@@ -161,7 +161,7 @@ protected
         return [i, match] if match
       when Array
         offset = 0
-        s.each do |color, string|
+        s.each do |_color, string|
           match = string =~ regex
           if match
             return [i, offset + match]

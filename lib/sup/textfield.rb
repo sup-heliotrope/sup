@@ -82,7 +82,7 @@ class TextField
         v = get_cursed_value
         c = @completion_block.call v
         if c.size > 0
-          @value = c.map { |full, short| full }.shared_prefix(true)
+          @value = c.map { |full, _short| full }.shared_prefix(true)
           set_cursed_value @value
           position_cursor
         end

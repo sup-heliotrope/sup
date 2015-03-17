@@ -29,7 +29,7 @@ module Rfc2047
   def Rfc2047.decode_to(target, from)
     from = from.gsub(WORDSEQ, '\1')
     out = from.gsub(WORD) do
-      |word|
+      |_word|
       charset, encoding, text = $1, $2, $3
 
       # B64 or QP decode, as necessary:

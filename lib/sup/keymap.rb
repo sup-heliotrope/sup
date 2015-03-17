@@ -104,7 +104,7 @@ EOS
 
   def has_key? k; @map[k.code] end
 
-  def keysyms; @map.values.map { |action, help, keys| keys }.flatten; end
+  def keysyms; @map.values.map { |_action, _help, keys| keys }.flatten; end
 
   def help_lines except_for={}, prefix=""
     lines = [] # :(
@@ -123,12 +123,12 @@ EOS
 
   def help_text except_for={}
     lines = help_lines except_for
-    llen = lines.max_of { |a, b| a.length }
+    llen = lines.max_of { |a, _b| a.length }
     lines.map { |a, b| sprintf " %#{llen}s : %s", a, b }.join("\n")
   end
 
   def self.run_hook global_keymap
-    modes = Hash[Mode.keymaps.map { |klass,keymap| [Mode.make_name(klass.name),klass] }]
+    modes = Hash[Mode.keymaps.map { |klass,_keymap| [Mode.make_name(klass.name),klass] }]
     locals = {
       :modes => modes,
       :global_keymap => global_keymap,

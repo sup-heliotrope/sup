@@ -141,7 +141,7 @@ EOS
     latest_date = nil
     altcolor = false
 
-    @thread.each do |m, d, p|
+    @thread.each do |m, _d, _p|
       next unless m
       earliest ||= m
       @layout[m].state = initial_state_for m
@@ -583,12 +583,12 @@ EOS
   def expand_all_messages
     @global_message_state ||= :closed
     @global_message_state = (@global_message_state == :closed ? :open : :closed)
-    @layout.each { |m, l| l.state = @global_message_state }
+    @layout.each { |_m, l| l.state = @global_message_state }
     update
   end
 
   def collapse_non_new_messages
-    @layout.each { |m, l| l.state = l.orig_new ? :open : :closed }
+    @layout.each { |_m, l| l.state = l.orig_new ? :open : :closed }
     update
   end
 
@@ -773,7 +773,7 @@ EOS
       .map{|d| d[1].strip}.join("").strip
 
     found = false
-    (linetext || "").scan(URI::regexp).each do |matches|
+    (linetext || "").scan(URI::regexp).each do |_matches|
       begin
         link = $& # ruby magic: $& is the whole regexp match
         u = URI.parse(link)

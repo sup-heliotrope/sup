@@ -86,22 +86,22 @@ class Thread
     end
   end
 
-  def first; each { |m, *o| return m if m }; nil; end
-  def has_message?; any? { |m, *o| m.is_a? Message }; end
-  def dirty?; any? { |m, *o| m && m.dirty? }; end
-  def date; map { |m, *o| m.date if m }.compact.max; end
+  def first; each { |m, *_o| return m if m }; nil; end
+  def has_message?; any? { |m, *_o| m.is_a? Message }; end
+  def dirty?; any? { |m, *_o| m && m.dirty? }; end
+  def date; map { |m, *_o| m.date if m }.compact.max; end
   def snippet
-    with_snippets = select { |m, *o| m && m.snippet && !m.snippet.empty? }
-    first_unread, * = with_snippets.select { |m, *o| m.has_label?(:unread) }.sort_by { |m, *o| m.date }.first
+    with_snippets = select { |m, *_o| m && m.snippet && !m.snippet.empty? }
+    first_unread, * = with_snippets.select { |m, *_o| m.has_label?(:unread) }.sort_by { |m, *_o| m.date }.first
     return first_unread.snippet if first_unread
-    last_read, * = with_snippets.sort_by { |m, *o| m.date }.last
+    last_read, * = with_snippets.sort_by { |m, *_o| m.date }.last
     return last_read.snippet if last_read
     ""
   end
-  def authors; map { |m, *o| m.from if m }.compact.uniq; end
+  def authors; map { |m, *_o| m.from if m }.compact.uniq; end
 
-  def apply_label t; each { |m, *o| m && m.add_label(t) }; end
-  def remove_label t; each { |m, *o| m && m.remove_label(t) }; end
+  def apply_label t; each { |m, *_o| m && m.add_label(t) }; end
+  def remove_label t; each { |m, *_o| m && m.remove_label(t) }; end
 
   def toggle_label label
     if has_label? label
@@ -113,24 +113,24 @@ class Thread
     end
   end
 
-  def set_labels l; each { |m, *o| m && m.labels = l }; end
-  def has_label? t; any? { |m, *o| m && m.has_label?(t) }; end
-  def each_dirty_message; each { |m, *o| m && m.dirty? && yield(m) }; end
+  def set_labels l; each { |m, *_o| m && m.labels = l }; end
+  def has_label? t; any? { |m, *_o| m && m.has_label?(t) }; end
+  def each_dirty_message; each { |m, *_o| m && m.dirty? && yield(m) }; end
 
   def direct_participants
-    map { |m, *o| [m.from] + m.to if m }.flatten.compact.uniq
+    map { |m, *_o| [m.from] + m.to if m }.flatten.compact.uniq
   end
 
   def participants
-    map { |m, *o| [m.from] + m.to + m.cc + m.bcc if m }.flatten.compact.uniq
+    map { |m, *_o| [m.from] + m.to + m.cc + m.bcc if m }.flatten.compact.uniq
   end
 
-  def size; map { |m, *o| m ? 1 : 0 }.sum; end
-  def subj; argfind { |m, *o| m && m.subj }; end
-  def labels; inject(Set.new) { |s, (m, *o)| m ? s | m.labels : s } end
+  def size; map { |m, *_o| m ? 1 : 0 }.sum; end
+  def subj; argfind { |m, *_o| m && m.subj }; end
+  def labels; inject(Set.new) { |s, (m, *_o)| m ? s | m.labels : s } end
   def labels= l
     raise ArgumentError, "not a set" unless l.is_a?(Set)
-    each { |m, *o| m && m.labels = l.dup }
+    each { |m, *_o| m && m.labels = l.dup }
   end
 
   def latest_message
@@ -316,7 +316,7 @@ class ThreadSet
   def prune_thread_of c
     return unless c.thread
     c.thread.drop c
-    @threads.delete_if { |k, v| v == c.thread } if c.thread.empty?
+    @threads.delete_if { |_k, v| v == c.thread } if c.thread.empty?
     c.thread = nil
   end
   private :prune_thread_of
@@ -332,7 +332,7 @@ class ThreadSet
     return unless @messages.member?(mid)
     c = @messages[mid]
     t = c.root.thread
-    @threads.delete_if { |key, thread| t == thread }
+    @threads.delete_if { |_key, thread| t == thread }
   end
 
   ## load in (at most) num number of threads from the index
@@ -360,7 +360,7 @@ class ThreadSet
   ## merges in a pre-loaded thread
   def add_thread t
     raise "duplicate" if @threads.values.member? t
-    t.each { |m, *o| add_message m }
+    t.each { |m, *_o| add_message m }
   end
 
   ## merges two threads together. both must be members of this threadset.

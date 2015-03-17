@@ -396,7 +396,7 @@ protected
   # "=?utf-8?q?b=C3=A6lammet_mitt?= <user@example.com>
   def mime_encode_address string
     return string if string.ascii_only?
-    string.sub(RE_ADDRESS) { |match| mime_encode($1) + $2 }
+    string.sub(RE_ADDRESS) { |_match| mime_encode($1) + $2 }
   end
 
   def move_cursor_left
@@ -456,7 +456,7 @@ protected
       header = Source.parse_raw_email_header(f).inject({}) { |h, (k, v)| h[k.capitalize] = v; h } # lousy HACK
       body = f.readlines.map { |l| l.chomp }
 
-      header.delete_if { |k, v| NON_EDITABLE_HEADERS.member? k }
+      header.delete_if { |k, _v| NON_EDITABLE_HEADERS.member? k }
       header.each { |k, v| header[k] = parse_header k, v }
 
       [header, body]

@@ -51,7 +51,7 @@ class Maildir < Source
   def store_message date, from_email, &block
     stored = false
     new_fn = new_maildir_basefn + ':2,S'
-    Dir.chdir(@dir) do |d|
+    Dir.chdir(@dir) do |_d|
       tmp_path = File.join(@dir, 'tmp', new_fn)
       new_path = File.join(@dir, 'new', new_fn)
       begin
