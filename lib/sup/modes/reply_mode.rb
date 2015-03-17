@@ -72,7 +72,7 @@ EOS
     ## this is for the case where mail is received from a mailing lists (so the
     ## To: is the list id itself). if the user subscribes via a particular
     ## alias, we want to use that alias in the reply.
-    elsif (b = (@m.to.collect { |t| t.email } + @m.cc.collect { |c| c.email } + [@m.recipient_email] ).find { |p| AccountManager.is_account_email? p })
+    elsif (b = (@m.to.collect { |t| t.email } + @m.cc.collect { |c| c.email } + [@m.recipient_email]).find { |p| AccountManager.is_account_email? p })
       a = AccountManager.account_for(b)
       Person.new a.name, b
     ## if all else fails, use the default
