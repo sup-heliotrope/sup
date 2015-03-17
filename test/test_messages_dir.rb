@@ -27,7 +27,7 @@ class TestMessagesDir < ::Minitest::Test
     end
 
     source = DummySource.new('sup-test://test_messages')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -61,7 +61,7 @@ class TestMessagesDir < ::Minitest::Test
     end
 
     source = DummySource.new('sup-test://test_messages')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -95,7 +95,7 @@ class TestMessagesDir < ::Minitest::Test
     end
 
     source = DummySource.new('sup-test://test_messages')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)

@@ -147,7 +147,7 @@ class Maildir < Source
     end
     added.each do |id_add|
         map[maildir_data(id_add)[0]].each do |id_del|
-          updated.push [ id_del, id_add ]
+          updated.push [id_del, id_add]
           add_to_delete.push id_add
           del_to_delete.push id_del
         end

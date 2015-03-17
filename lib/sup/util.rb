@@ -137,9 +137,9 @@ module RMail
           field = field.dup.to_s
           field = field.fix_encoding!.ascii
           if field =~ EXTRACT_FIELD_NAME_RE
-            [ $1, $'.chomp ]
+            [$1, $'.chomp]
           else
-            [ '', Field.value_strip(field) ]
+            ['', Field.value_strip(field)]
           end
         end
       end

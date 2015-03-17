@@ -56,7 +56,7 @@ Test message!
 EOS
 
     source = DummySource.new('sup-test://test_simple_message')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -206,7 +206,7 @@ bin/sup-sync-back
 --=-1197232418-506707-26079-6122-2-=--
 EOS
     source = DummySource.new('sup-test://test_multipart_message')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -256,7 +256,7 @@ Test message!
 EOS
 
     source = DummySource.new('sup-test://test_broken_message_1')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -302,7 +302,7 @@ User-Agent: Sup/0.3
 EOS
 
     source = DummySource.new('sup-test://test_broken_message_1')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -397,7 +397,7 @@ src=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0></ifra
 
 EOS
     source = DummySource.new('sup-test://test_multipart_message_2')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -485,7 +485,7 @@ Michael=
 EOS
 
     source = DummySource.new('sup-test://test_blank_header_lines')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -565,7 +565,7 @@ script: bundle exec rake travis
 EOS
 
     source = DummySource.new('sup-test://test_blank_header_lines')
-    source.messages = [ message ]
+    source.messages = [message]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)

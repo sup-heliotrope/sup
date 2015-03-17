@@ -35,13 +35,13 @@ EOS
     later_than = (self < from)
     diff = (self.to_i - from.to_i).abs.to_f
     text =
-      [ ['second', 60],
-        ['minute', 60],
-        ['hour', 24],
-        ['day', 7],
-        ['week', 4.345], # heh heh
-        ['month', 12],
-        ['year', nil]
+      [['second', 60],
+       ['minute', 60],
+       ['hour', 24],
+       ['day', 7],
+       ['week', 4.345], # heh heh
+       ['month', 12],
+       ['year', nil]
       ].argfind do |unit, size|
         if diff.round <= 1
           "one #{unit}"
