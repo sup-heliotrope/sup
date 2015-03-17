@@ -364,7 +364,7 @@ EOS
     'name' => {prefix: %w(FN TN), exclusive: false},
     'attachment' => {prefix: 'A', exclusive: false},
     'email_text' => {prefix: 'E', exclusive: false},
-    '' => {prefix: %w(S B FN TN A E), exclusive: false},
+    '' => {prefix: %w(S B FN TN A E), exclusive: false}
   }
 
   # Unstemmed
@@ -381,7 +381,7 @@ EOS
     'id' => {prefix: 'Q', exclusive: true},
     'thread' => {prefix: 'H', exclusive: false},
     'ref' => {prefix: 'R', exclusive: false},
-    'location' => {prefix: 'J', exclusive: false},
+    'location' => {prefix: 'J', exclusive: false}
   }
 
   PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
@@ -704,7 +704,7 @@ EOS
       bcc: m.bcc.map { |p| [p.email, p.name] },
       subject: m.subj,
       refs: m.refs.to_a,
-      replytos: m.replytos.to_a,
+      replytos: m.replytos.to_a
     }
 
     if do_index_static

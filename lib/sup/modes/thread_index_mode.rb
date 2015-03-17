@@ -991,20 +991,20 @@ EOS
     [
       [:tagged_color, @tags.tagged?(t) ? '>' : ' '],
       [:date_color, date_widget_text],
-      [:starred_color, (starred ? '*' : ' ')],
+      [:starred_color, (starred ? '*' : ' ')]
     ] +
       from +
       [
         [:size_widget_color, size_widget_text],
         [:with_attachment_color , t.labels.member?(:attachment) ? '@' : ' '],
-        [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')],
+        [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')]
       ] +
       (t.labels - @hidden_labels).sort_by {|x| x.to_s}.map {
             |label| [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]
       } +
       [
         [subj_color, t.subj + (t.subj.empty? ? '' : ' ')],
-        [:snippet_color, t.snippet],
+        [:snippet_color, t.snippet]
       ]
   end
 

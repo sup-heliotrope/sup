@@ -33,7 +33,7 @@ EOS
              'You can edit your message in the editor of your choice and continue to',
              'use sup while you edit your message.', '',
              'Press <Enter> to have the file path copied to the clipboard.', '',
-             "When you have finished editing, select this buffer and press 'E'.",]
+             "When you have finished editing, select this buffer and press 'E'."]
     run_async_hook()
     super()
   end

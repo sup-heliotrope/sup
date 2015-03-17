@@ -8,9 +8,9 @@ describe "Sup's String extension" do
   describe '#display_length' do
     let :data do
       [
-        ['some words', 10,],
-        ['中文', 4,],
-        ['ä', 1,],
+        ['some words', 10],
+        ['中文', 4],
+        ['ä', 1]
       ]
     end
 
@@ -26,7 +26,7 @@ describe "Sup's String extension" do
       [
         ['some words', 6, 'some w'],
         ['中文', 2, '中'],
-        ['älpha', 3, 'älp'],
+        ['älpha', 3, 'älp']
       ]
     end
 
@@ -44,7 +44,7 @@ describe "Sup's String extension" do
         ['some words', 80, ['some words']],
         ['中文', 2, %w(中 文)],
         ['中文', 5, ['中文']],
-        ['älpha', 3, %w(älp ha)],
+        ['älpha', 3, %w(älp ha)]
       ]
     end
 

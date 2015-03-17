@@ -98,7 +98,7 @@ EOS
     @headers = {}
     @headers[:recipient] = {
       'To' => cc.map { |p| p.full_address },
-      'Cc' => [],
+      'Cc' => []
     } if useful_recipient
 
     ## typically we don't want to have a reply-to-sender option if the sender
@@ -106,23 +106,23 @@ EOS
     ## ourselves, so for the lack of any other options, we'll add it.
     @headers[:sender] = {
       'To' => [to.full_address],
-      'Cc' => [],
+      'Cc' => []
     } if !AccountManager.is_account?(to) || !useful_recipient
 
     @headers[:user] = {
       'To' => [],
-      'Cc' => [],
+      'Cc' => []
     }
 
     not_me_ccs = cc.select { |p| !AccountManager.is_account?(p) }
     @headers[:all] = {
       'To' => [to.full_address],
-      'Cc' => not_me_ccs.map { |p| p.full_address },
+      'Cc' => not_me_ccs.map { |p| p.full_address }
     } unless not_me_ccs.empty?
 
     @headers[:list] = {
       'To' => [@m.list_address.full_address],
-      'Cc' => [],
+      'Cc' => []
     } if @m.is_list_message?
 
     refs = gen_references
@@ -150,7 +150,7 @@ EOS
       'Bcc' => [],
       'In-reply-to' => "<#{@m.id}>",
       'Subject' => Message.reify_subj(@m.subj),
-      'References' => refs,
+      'References' => refs
     }.merge @headers[@type_selector.val]
 
     HookManager.run 'before-edit', header: headers_full, body: body

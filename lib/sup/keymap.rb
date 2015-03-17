@@ -131,7 +131,7 @@ EOS
     modes = Hash[Mode.keymaps.map { |klass,_keymap| [Mode.make_name(klass.name),klass] }]
     locals = {
       modes: modes,
-      global_keymap: global_keymap,
+      global_keymap: global_keymap
     }
     HookManager.run 'keybindings', locals
   end

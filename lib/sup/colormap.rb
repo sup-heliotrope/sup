@@ -69,7 +69,7 @@ class Colormap
     regular_buf: { fg: 'white', bg: 'default' },
     modified_buffer: { fg: 'yellow', bg: 'default', attrs: ['bold'] },
     date: { fg: 'white', bg: 'default'},
-    size_widget: { fg: 'white', bg: 'default'},
+    size_widget: { fg: 'white', bg: 'default'}
   }
 
   def initialize

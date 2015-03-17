@@ -48,7 +48,7 @@ EOS
     variants = [
       "Subject:one two  three   end\n",
       "Subject:    one two  three   end\n",
-      "Subject:   one two  three   end    \n",
+      "Subject:   one two  three   end    \n"
     ]
     variants.each do |s|
       h = Source.parse_raw_email_header StringIO.new(s)
@@ -59,7 +59,7 @@ EOS
   def test_message_id_ignore_spacing
     variants = [
       "Message-Id:     <one@bob.com>       \n",
-      "Message-Id:<one@bob.com>       \n",
+      "Message-Id:<one@bob.com>       \n"
     ]
     variants.each do |s|
       h = Source.parse_raw_email_header StringIO.new(s)
@@ -75,7 +75,7 @@ EOS
   def test_empty_headers
     variants = [
       "Message-Id:       \n",
-      "Message-Id:\n",
+      "Message-Id:\n"
     ]
     variants.each do |s|
       h = Source.parse_raw_email_header StringIO.new(s)

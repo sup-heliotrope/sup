@@ -336,7 +336,7 @@ EOM
       stem_language: 'english',
       sync_back_to_maildir: false,
       continuous_scroll: false,
-      always_edit_async: false,
+      always_edit_async: false
     }
     if File.exist? filename
       config = Redwood::load_yaml_obj filename
@@ -364,7 +364,7 @@ EOM
             signature: File.join(ENV['HOME'], '.signature'),
             gpgkey: ''
           }
-        },
+        }
       }
       config.merge! default_config
       begin

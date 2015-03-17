@@ -41,7 +41,7 @@ EOS
         ['day', 7],
         ['week', 4.345], # heh heh
         ['month', 12],
-        ['year', nil],
+        ['year', nil]
       ].argfind do |unit, size|
         if diff.round <= 1
           "one #{unit}"

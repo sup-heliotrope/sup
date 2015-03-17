@@ -15,7 +15,7 @@ EOS
   ## TODO: share some of this with reply-mode
   def initialize opts={}
     header = {
-      'From' => AccountManager.default_account.full_address,
+      'From' => AccountManager.default_account.full_address
     }
 
     @m = opts[:message]

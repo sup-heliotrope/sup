@@ -220,7 +220,7 @@ class Container
   def to_s
     [ "<#{id}",
       (@parent.nil? ? nil : "parent=#{@parent.id}"),
-      (@children.empty? ? nil : "children=#{@children.map { |c| c.id }.inspect}"),
+      (@children.empty? ? nil : "children=#{@children.map { |c| c.id }.inspect}")
     ].compact.join(' ') + '>'
   end
 
