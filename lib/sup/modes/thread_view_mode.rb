@@ -778,7 +778,7 @@ EOS
         link = $& # ruby magic: $& is the whole regexp match
         u = URI.parse(link)
         next unless u.absolute?
-        next unless ["http", "https"].include?(u.scheme)
+        next unless %w(http https).include?(u.scheme)
 
         reallink = Shellwords.escape(u.to_s)
         BufferManager.flash "Going to #{reallink} ..."

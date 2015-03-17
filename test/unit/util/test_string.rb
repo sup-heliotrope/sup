@@ -40,11 +40,11 @@ describe "Sup's String extension" do
   describe "#wrap" do
     let :data do
       [
-        ['some words', 6, ['some', 'words']],
+        ['some words', 6, %w(some words)],
         ['some words', 80, ['some words']],
-        ['中文', 2, ['中', '文']],
+        ['中文', 2, %w(中 文)],
         ['中文', 5, ['中文']],
-        ['älpha', 3, ['älp', 'ha']],
+        ['älpha', 3, %w(älp ha)],
       ]
     end
 

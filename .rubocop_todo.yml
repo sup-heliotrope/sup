@@ -589,9 +589,3 @@ Style/WhenThen:
 # Configuration parameters: MaxLineLength.
 Style/WhileUntilModifier:
   Enabled: false
-
-# Offense count: 5
-# Cop supports --auto-correct.
-# Configuration parameters: WordRegex.
-Style/WordArray:
-  MinSize: 2

@@ -55,7 +55,7 @@ task :man do
 end
 
 task :clean do
-  ['man', 'pkg'].each do |d|
+  %w(man pkg).each do |d|
     puts "cleaning #{d}.."
     FileUtils.rm_r d if Dir.exist? d
   end
