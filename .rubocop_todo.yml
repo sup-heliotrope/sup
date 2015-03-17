@@ -70,7 +70,7 @@ Metrics/BlockNesting:
 # Offense count: 25
 # Configuration parameters: CountComments.
 Metrics/ClassLength:
-  Max: 841
+  Max: 1000
 
 # Offense count: 90
 Metrics/CyclomaticComplexity:
@@ -105,20 +105,9 @@ Style/AccessModifierIndentation:
 Style/AccessorMethodName:
   Enabled: false
 
-# Offense count: 1
-# Cop supports --auto-correct.
-Style/Alias:
-  Enabled: false
-
 # Offense count: 9
 # Cop supports --auto-correct.
 Style/AlignArray:
-  Enabled: false
-
-# Offense count: 4
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedHashRocketStyle, EnforcedColonStyle, EnforcedLastArgumentHashStyle, SupportedLastArgumentHashStyles.
-Style/AlignHash:
   Enabled: false
 
 # Offense count: 5

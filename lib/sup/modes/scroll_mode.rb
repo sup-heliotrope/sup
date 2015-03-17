@@ -228,7 +228,7 @@ protected
 
       if xpos + l < @leftcol
         buffer.write ln - @topline, 0, "", :color => color,
-                     :highlight => opts[:highlight]
+                                           :highlight => opts[:highlight]
       elsif xpos < @leftcol
         ## partial
         buffer.write ln - @topline, 0, text[(@leftcol - xpos) .. -1],

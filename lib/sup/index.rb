@@ -871,7 +871,7 @@ class Xapian::Document
     term_generator.index_text text, weight, prefix
   end
 
-  alias old_add_term add_term
+  alias_method :old_add_term, :add_term
   def add_term term
     if term.length <= Redwood::Index::MAX_TERM_LENGTH
       old_add_term term, 0
