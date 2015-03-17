@@ -63,7 +63,7 @@ EOS
 
   ## This is how a thread date is displayed in thread-index-mode
   def to_nice_s from=Time.now
-    Redwood::HookManager.run("time-to-nice-string", :time => self, :from => from) || default_to_nice_s(from)
+    Redwood::HookManager.run("time-to-nice-string", time: self, from: from) || default_to_nice_s(from)
   end
 
   def default_to_nice_s from=Time.now

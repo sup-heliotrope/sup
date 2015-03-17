@@ -8,7 +8,7 @@ class CompletionMode < ScrollMode
     @header = opts[:header]
     @prefix_len = opts[:prefix_len]
     @lines = nil
-    super :slip_rows => 1, :twiddles => false
+    super slip_rows: 1, twiddles: false
   end
 
   def lines

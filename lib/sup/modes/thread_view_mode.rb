@@ -127,7 +127,7 @@ EOS
   ## objects. @person_lines is a map from row #s to Person objects.
 
   def initialize thread, hidden_labels=[], index_mode=nil
-    super :slip_rows => $config[:slip_rows]
+    super slip_rows: $config[:slip_rows]
     @thread = thread
     @hidden_labels = hidden_labels
 
@@ -170,7 +170,7 @@ EOS
 
   def draw_line ln, opts={}
     if ln == curpos
-      super ln, :highlight => true
+      super ln, highlight: true
     else
       super
     end
@@ -217,7 +217,7 @@ EOS
   def subscribe_to_list
     m = @message_lines[curpos] or return
     if m.list_subscribe && m.list_subscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
-      ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [Person.from_address($1)], :subj => ($3 || "subscribe")
+      ComposeMode.spawn_nicely from: AccountManager.account_for(m.recipient_email), to: [Person.from_address($1)], subj: ($3 || "subscribe")
     else
       BufferManager.flash "Can't find List-Subscribe header for this message."
     end
@@ -228,7 +228,7 @@ EOS
     BufferManager.flash "Can't find List-Unsubscribe header for this message." unless m.list_unsubscribe
 
     if m.list_unsubscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
-      ComposeMode.spawn_nicely :from => AccountManager.account_for(m.recipient_email), :to => [Person.from_address($1)], :subj => ($3 || "unsubscribe")
+      ComposeMode.spawn_nicely from: AccountManager.account_for(m.recipient_email), to: [Person.from_address($1)], subj: ($3 || "unsubscribe")
     elsif m.list_unsubscribe =~ /<(http.*)?>/
       unless HookManager.enabled? "goto"
         BufferManager.flash "You must add a goto.rb hook before you can goto an unsubscribe URI."
@@ -242,15 +242,15 @@ EOS
         return
       end
 
-      HookManager.run "goto", :uri => Shellwords.escape(u.to_s)
+      HookManager.run "goto", uri: Shellwords.escape(u.to_s)
     end
   end
 
   def forward
     if(chunk = @chunk_lines[curpos]) && chunk.is_a?(Chunk::Attachment)
-      ForwardMode.spawn_nicely :attachments => [chunk]
+      ForwardMode.spawn_nicely attachments: [chunk]
     elsif(m = @message_lines[curpos])
-      ForwardMode.spawn_nicely :message => m
+      ForwardMode.spawn_nicely message: m
     end
   end
 
@@ -260,7 +260,7 @@ EOS
 
     defcmd = AccountManager.default_account.bounce_sendmail
 
-    cmd = case (hookcmd = HookManager.run "bounce-command", :from => m.from, :to => to)
+    cmd = case (hookcmd = HookManager.run "bounce-command", from: m.from, to: to)
           when nil, /^$/ then defcmd
           else hookcmd
           end + ' ' + to.map { |t| t.email }.join(' ')
@@ -294,13 +294,13 @@ EOS
     p = @person_lines[curpos] or return
     mode = PersonSearchResultsMode.new [p]
     BufferManager.spawn "Search for #{p.name}", mode
-    mode.load_threads :num => mode.buffer.content_height
+    mode.load_threads num: mode.buffer.content_height
   end
 
   def compose
     p = @person_lines[curpos]
     if p
-      ComposeMode.spawn_nicely :to_default => p
+      ComposeMode.spawn_nicely to_default: p
     else
       ComposeMode.spawn_nicely
     end
@@ -378,7 +378,7 @@ EOS
 
   def edit_as_new
     m = @message_lines[curpos] or return
-    mode = ComposeMode.new(:body => m.quotable_body_lines, :to => m.to, :cc => m.cc, :subj => m.subj, :bcc => m.bcc, :refs => m.refs, :replytos => m.replytos)
+    mode = ComposeMode.new(body: m.quotable_body_lines, to: m.to, cc: m.cc, subj: m.subj, bcc: m.bcc, refs: m.refs, replytos: m.replytos)
     BufferManager.spawn "edit as new", mode
     mode.default_edit_message
   end
@@ -437,7 +437,7 @@ EOS
   def publish
     chunk = @chunk_lines[curpos] or return
     if HookManager.enabled? "publish"
-      HookManager.run "publish", :chunk => chunk
+      HookManager.run "publish", chunk: chunk
     else
       BufferManager.flash "Publishing hook not defined."
     end
@@ -782,7 +782,7 @@ EOS
 
         reallink = Shellwords.escape(u.to_s)
         BufferManager.flash "Going to #{reallink} ..."
-        HookManager.run "goto", :uri => reallink
+        HookManager.run "goto", uri: reallink
         BufferManager.completely_redraw_screen
         found = true
 
@@ -952,7 +952,7 @@ EOS
         headers["In reply to"] = "#{parent.from.mediumname}'s message of #{parent.date.to_message_nice_s}"
       end
 
-      HookManager.run "detailed-headers", :message => m, :headers => headers
+      HookManager.run "detailed-headers", message: m, headers: headers
 
       from_line + (addressee_lines + headers.map { |k, v| "   #{k}: #{v}" }).map { |l| [[color, prefix + "  " + l]] }
     end

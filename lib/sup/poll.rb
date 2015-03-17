@@ -65,13 +65,13 @@ EOS
 
 
     if HookManager.enabled? "after-poll"
-      hook_args = { :num => num, :num_inbox => numi,
-                    :num_total => @running_totals[:num], :num_inbox_total => @running_totals[:numi],
-                    :num_updated => @running_totals[:numu],
-                    :num_deleted => @running_totals[:numd],
-                    :labels => @running_totals[:loaded_labels],
-                    :from_and_subj => from_and_subj, :from_and_subj_inbox => from_and_subj_inbox,
-                    :num_inbox_total_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] } }
+      hook_args = { num: num, num_inbox: numi,
+                    num_total: @running_totals[:num], num_inbox_total: @running_totals[:numi],
+                    num_updated: @running_totals[:numu],
+                    num_deleted: @running_totals[:numd],
+                    labels: @running_totals[:loaded_labels],
+                    from_and_subj: from_and_subj, from_and_subj_inbox: from_and_subj_inbox,
+                    num_inbox_total_unread: lambda { Index.num_results_for labels: [:inbox, :unread] } }
 
       HookManager.run("after-poll", hook_args)
     else
@@ -210,7 +210,7 @@ EOS
             m.labels.each { |l| LabelManager << l }
             m.labels = old_m.labels + (m.labels - [:unread, :inbox]) if old_m
             m.locations = old_m.locations + m.locations if old_m
-            HookManager.run "before-add-message", :message => m
+            HookManager.run "before-add-message", message: m
             yield :add, m, old_m, args[:progress] if block_given?
             Index.sync_message m, true
 
@@ -228,7 +228,7 @@ EOS
               UpdateManager.relay self, :added, m
             end
           when :delete
-            Index.each_message({:location => [source.id, args[:info]]}, false) do |m|
+            Index.each_message({location: [source.id, args[:info]]}, false) do |m|
               m.locations.delete Location.new(source, args[:info])
               Index.sync_message m, false
               if m.locations.size == 0
@@ -238,7 +238,7 @@ EOS
               end
             end
           when :update
-            Index.each_message({:location => [source.id, args[:old_info]]}, false) do |m|
+            Index.each_message({location: [source.id, args[:old_info]]}, false) do |m|
               old_m = Index.build_message m.id
               m.locations.delete Location.new(source, args[:old_info])
               m.locations.push Location.new(source, args[:new_info])
@@ -266,7 +266,7 @@ EOS
 
   def handle_idle_update _sender, _idle_since; @should_clear_running_totals = false; end
   def handle_unidle_update _sender, _idle_since; @should_clear_running_totals = true; clear_running_totals; end
-  def clear_running_totals; @running_totals = {:num => 0, :numi => 0, :numu => 0, :numd => 0, :loaded_labels => Set.new}; end
+  def clear_running_totals; @running_totals = {num: 0, numi: 0, numu: 0, numd: 0, loaded_labels: Set.new}; end
 end
 
 end

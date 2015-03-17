@@ -21,11 +21,11 @@ class SearchManager
     @modified = false
 
     @predefined_searches = { 'All mail' => 'Search all mail.' }
-    @predefined_queries  = { 'All mail'.to_sym => { :qobj => Xapian::Query.new('Kmail'),
-                                                    :load_spam => false,
-                                                    :load_deleted => false,
-                                                    :load_killed => false,
-                                                    :text => 'Search all mail.'}
+    @predefined_queries  = { 'All mail'.to_sym => { qobj: Xapian::Query.new('Kmail'),
+                                                    load_spam: false,
+                                                    load_deleted: false,
+                                                    load_killed: false,
+                                                    text: 'Search all mail.'}
     }
     @predefined_searches.each do |k,v|
       @searches[k] = v

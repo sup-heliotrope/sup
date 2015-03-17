@@ -18,7 +18,7 @@ class UndoManager
     actions = [*actions.flatten]
     actions << b if b
     raise ArgumentError, "need at least one action" unless actions.length > 0
-    @@actionlist.push :desc => desc, :actions => actions
+    @@actionlist.push desc: desc, actions: actions
   end
 
   def undo

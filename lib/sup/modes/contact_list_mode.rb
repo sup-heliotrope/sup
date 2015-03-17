@@ -69,7 +69,7 @@ class ContactListMode < LineCursorMode
   def multi_select people
     case @mode
     when :regular
-      mode = ComposeMode.new :to => people
+      mode = ComposeMode.new to: people
       BufferManager.spawn "new message", mode
       mode.default_edit_message
     end
@@ -83,7 +83,7 @@ class ContactListMode < LineCursorMode
   def multi_search people
     mode = PersonSearchResultsMode.new people
     BufferManager.spawn "search for #{people.map { |p| p.name }.join(', ')}", mode
-    mode.load_threads :num => mode.buffer.content_height
+    mode.load_threads num: mode.buffer.content_height
   end
 
   def search
@@ -110,7 +110,7 @@ class ContactListMode < LineCursorMode
     @user_contacts = ContactManager.contacts_with_aliases
     num = [@num - @user_contacts.length, 0].max
     BufferManager.say("Loading #{num} contacts from index...") do
-      recentc = Index.load_contacts AccountManager.user_emails, :num => num
+      recentc = Index.load_contacts AccountManager.user_emails, num: num
       @contacts = (@user_contacts + recentc).sort_by { |p| p.sort_by_me }.uniq
     end
   end

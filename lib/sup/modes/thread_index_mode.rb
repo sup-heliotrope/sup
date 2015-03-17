@@ -86,8 +86,8 @@ EOS
     @last_load_more_size = nil
     to_load_more do |size|
       next if @last_load_more_size == 0
-      load_threads :num => size,
-                   :when_done => lambda { |num| @last_load_more_size = num }
+      load_threads num: size,
+                   when_done: lambda { |num| @last_load_more_size = num }
     end
   end
 
@@ -100,7 +100,7 @@ EOS
     drop_all_threads
     UndoManager.clear
     BufferManager.draw_screen
-    load_threads :num => buffer.content_height
+    load_threads num: buffer.content_height
   end
 
   ## open up a thread view window
@@ -473,7 +473,7 @@ EOS
   ## you also want them to disappear immediately.
   def multi_toggle_spam threads
     undos = threads.map { |t| actually_toggle_spammed t }
-    threads.each { |t| HookManager.run("mark-as-spam", :thread => t) }
+    threads.each { |t| HookManager.run("mark-as-spam", thread: t) }
     UndoManager.register "marking/unmarking  #{threads.size.pluralize 'thread'} as spam",
                          undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
     regen_text
@@ -661,7 +661,7 @@ EOS
     m = t.latest_message
     return if m.nil? # probably won't happen
     m.load_from_source!
-    ForwardMode.spawn_nicely :message => m
+    ForwardMode.spawn_nicely message: m
   end
 
   def load_n_threads_background n=LOAD_MORE_THREAD_NUM, opts={}
@@ -716,7 +716,7 @@ EOS
   end
 
   def load_all_threads
-    load_threads :num => -1
+    load_threads num: -1
   end
 
   def load_threads opts={}
@@ -726,7 +726,7 @@ EOS
       n = opts[:num]
     end
 
-    myopts = @load_thread_opts.merge({ :when_done => (lambda do |num|
+    myopts = @load_thread_opts.merge({ when_done: (lambda do |num|
       opts[:when_done].call(num) if opts[:when_done]
 
       if num > 0
@@ -813,11 +813,11 @@ EOS
   end
 
   def size_widget_for_thread t
-    HookManager.run("index-mode-size-widget", :thread => t) || default_size_widget_for(t)
+    HookManager.run("index-mode-size-widget", thread: t) || default_size_widget_for(t)
   end
 
   def date_widget_for_thread t
-    HookManager.run("index-mode-date-widget", :thread => t) || default_date_widget_for(t)
+    HookManager.run("index-mode-date-widget", thread: t) || default_date_widget_for(t)
   end
 
   def cursor_thread; @mutex.synchronize { @threads[curpos] }; end

@@ -60,7 +60,7 @@ EOS
   def initialize dir=BASE_DIR
     @dir = dir
     FileUtils.mkdir_p @dir
-    @lock = Lockfile.new lockfile, :retries => 0, :max_age => nil
+    @lock = Lockfile.new lockfile, retries: 0, max_age: nil
     @sync_worker = nil
     @sync_queue = Queue.new
     @index_mutex = Monitor.new
@@ -242,9 +242,9 @@ EOS
       Location.new source, source_info
     end
 
-    m = Message.new :locations => locations,
-                    :labels => entry[:labels],
-                    :snippet => entry[:snippet]
+    m = Message.new locations: locations,
+                    labels: entry[:labels],
+                    snippet: entry[:snippet]
 
     # Try to find person from contacts before falling back to
     # generating it from the address.
@@ -268,7 +268,7 @@ EOS
   def load_contacts email_addresses, opts={}
     contacts = Set.new
     num = opts[:num] || 20
-    each_id_by_date :participants => email_addresses do |_id,b|
+    each_id_by_date participants: email_addresses do |_id,b|
       break if contacts.size >= num
       m = b.call
       ([m.from]+m.to+m.cc+m.bcc).compact.each { |p| contacts << [p.name, p.email] }
@@ -357,31 +357,31 @@ EOS
 
   # Stemmed
   NORMAL_PREFIX = {
-    'subject' => {:prefix => 'S', :exclusive => false},
-    'body' => {:prefix => 'B', :exclusive => false},
-    'from_name' => {:prefix => 'FN', :exclusive => false},
-    'to_name' => {:prefix => 'TN', :exclusive => false},
-    'name' => {:prefix => %w(FN TN), :exclusive => false},
-    'attachment' => {:prefix => 'A', :exclusive => false},
-    'email_text' => {:prefix => 'E', :exclusive => false},
-    '' => {:prefix => %w(S B FN TN A E), :exclusive => false},
+    'subject' => {prefix: 'S', exclusive: false},
+    'body' => {prefix: 'B', exclusive: false},
+    'from_name' => {prefix: 'FN', exclusive: false},
+    'to_name' => {prefix: 'TN', exclusive: false},
+    'name' => {prefix: %w(FN TN), exclusive: false},
+    'attachment' => {prefix: 'A', exclusive: false},
+    'email_text' => {prefix: 'E', exclusive: false},
+    '' => {prefix: %w(S B FN TN A E), exclusive: false},
   }
 
   # Unstemmed
   BOOLEAN_PREFIX = {
-    'type' => {:prefix => 'K', :exclusive => true},
-    'from_email' => {:prefix => 'FE', :exclusive => false},
-    'to_email' => {:prefix => 'TE', :exclusive => false},
-    'email' => {:prefix => %w(FE TE), :exclusive => false},
-    'date' => {:prefix => 'D', :exclusive => true},
-    'label' => {:prefix => 'L', :exclusive => false},
-    'source_id' => {:prefix => 'I', :exclusive => true},
-    'attachment_extension' => {:prefix => 'O', :exclusive => false},
-    'msgid' => {:prefix => 'Q', :exclusive => true},
-    'id' => {:prefix => 'Q', :exclusive => true},
-    'thread' => {:prefix => 'H', :exclusive => false},
-    'ref' => {:prefix => 'R', :exclusive => false},
-    'location' => {:prefix => 'J', :exclusive => false},
+    'type' => {prefix: 'K', exclusive: true},
+    'from_email' => {prefix: 'FE', exclusive: false},
+    'to_email' => {prefix: 'TE', exclusive: false},
+    'email' => {prefix: %w(FE TE), exclusive: false},
+    'date' => {prefix: 'D', exclusive: true},
+    'label' => {prefix: 'L', exclusive: false},
+    'source_id' => {prefix: 'I', exclusive: true},
+    'attachment_extension' => {prefix: 'O', exclusive: false},
+    'msgid' => {prefix: 'Q', exclusive: true},
+    'id' => {prefix: 'Q', exclusive: true},
+    'thread' => {prefix: 'H', exclusive: false},
+    'ref' => {prefix: 'R', exclusive: false},
+    'location' => {prefix: 'J', exclusive: false},
   }
 
   PREFIX = NORMAL_PREFIX.merge BOOLEAN_PREFIX
@@ -405,7 +405,7 @@ EOS
   def parse_query s
     query = {}
 
-    subs = HookManager.run("custom-search", :subs => s) || s
+    subs = HookManager.run("custom-search", subs: s) || s
     begin
       subs = SearchManager.expand subs
     rescue SearchManager::ExpansionError => e
@@ -480,7 +480,7 @@ EOS
     firstdate = 0
     subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
       field, datestr = $1, ($3 || $4)
-      realdate = Chronic.parse datestr, :guess => false, :context => :past
+      realdate = Chronic.parse datestr, guess: false, context: :past
       if realdate
         case field
         when "after"
@@ -693,18 +693,18 @@ EOS
     snippet = do_index_static ? m.snippet : old_entry[:snippet]
 
     entry = {
-      :message_id => m.id,
-      :locations => m.locations.map { |x| [x.source.id, x.info] },
-      :date => truncate_date(m.date),
-      :snippet => snippet,
-      :labels => m.labels.to_a,
-      :from => [m.from.email, m.from.name],
-      :to => m.to.map { |p| [p.email, p.name] },
-      :cc => m.cc.map { |p| [p.email, p.name] },
-      :bcc => m.bcc.map { |p| [p.email, p.name] },
-      :subject => m.subj,
-      :refs => m.refs.to_a,
-      :replytos => m.replytos.to_a,
+      message_id: m.id,
+      locations: m.locations.map { |x| [x.source.id, x.info] },
+      date: truncate_date(m.date),
+      snippet: snippet,
+      labels: m.labels.to_a,
+      from: [m.from.email, m.from.name],
+      to: m.to.map { |p| [p.email, p.name] },
+      cc: m.cc.map { |p| [p.email, p.name] },
+      bcc: m.bcc.map { |p| [p.email, p.name] },
+      subject: m.subj,
+      refs: m.refs.to_a,
+      replytos: m.replytos.to_a,
     }
 
     if do_index_static

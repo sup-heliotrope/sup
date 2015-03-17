@@ -53,9 +53,9 @@ class DraftLoader < Source
       if id >= @cur_offset
         @cur_offset = id + 1
         yield :add,
-          :info => id,
-          :labels => [:draft, :inbox],
-          :progress => 0.0
+          info: id,
+          labels: [:draft, :inbox],
+          progress: 0.0
       end
     end
   end
@@ -100,7 +100,7 @@ class DraftLoader < Source
   end
 
   def raw_message offset
-    IO.read(fn_for_offset(offset), :encoding => "UTF-8")
+    IO.read(fn_for_offset(offset), encoding: "UTF-8")
   end
 
   def start_offset; 0; end

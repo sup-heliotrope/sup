@@ -47,9 +47,9 @@ class LineCursorMode < ScrollMode
 
   def draw_line ln, opts={}
     if ln == @curpos
-      super ln, :highlight => true, :debug => opts[:debug], :color => :text_color
+      super ln, highlight: true, debug: opts[:debug], color: :text_color
     else
-      super ln, :color => :text_color
+      super ln, color: :text_color
     end
   end
 

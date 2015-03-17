@@ -147,9 +147,9 @@ class MBox < Source
     end_offset = File.size @f
     while offset and offset < end_offset
       yield :add,
-        :info => offset,
-        :labels => (labels + default_labels),
-        :progress => (offset - first_offset).to_f/end_offset
+        info: offset,
+        labels: (labels + default_labels),
+        progress: (offset - first_offset).to_f/end_offset
       offset = next_offset offset
     end
   end

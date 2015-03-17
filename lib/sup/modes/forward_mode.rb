@@ -37,7 +37,7 @@ EOS
         ["Note: #{opts[:attachments].size.pluralize 'attachment'}."]
       end
 
-    super :header => header, :body => body, :attachments => opts[:attachments]
+    super header: header, body: body, attachments: opts[:attachments]
   end
 
   def self.spawn_nicely opts={}
@@ -58,7 +58,7 @@ EOS
       attachment_hash[c.filename] = RMail::Message.make_attachment c.raw_content, mime_type.content_type, mime_type.encoding, c.filename
     end
 
-    mode = ForwardMode.new :message => opts[:message], :to => to, :cc => cc, :bcc => bcc, :attachments => attachment_hash
+    mode = ForwardMode.new message: opts[:message], to: to, cc: cc, bcc: bcc, attachments: attachment_hash
 
     title = "Forwarding " +
       if opts[:message]
@@ -76,7 +76,7 @@ EOS
   protected
 
   def forward_body_lines m
-    attribution = HookManager.run("forward-attribution", :message => m) || default_attribution(m)
+    attribution = HookManager.run("forward-attribution", message: m) || default_attribution(m)
     attribution[0,1] +
     m.quotable_header_lines +
     [""] +

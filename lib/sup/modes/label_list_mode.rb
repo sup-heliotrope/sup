@@ -80,13 +80,13 @@ EOS
 
     counted = labels.map do |label|
       string = LabelManager.string_for label
-      total = Index.num_results_for :label => label
-      unread = (label == :unread)? total : Index.num_results_for(:labels => [label, :unread])
+      total = Index.num_results_for label: label
+      unread = (label == :unread)? total : Index.num_results_for(labels: [label, :unread])
       [label, string, total, unread]
     end
 
     if HookManager.enabled? "label-list-filter"
-      counts = HookManager.run "label-list-filter", :counted => counted
+      counts = HookManager.run "label-list-filter", counted: counted
     else
       counts = counted.sort_by { |_l, s, _t, _u| s.downcase }
     end
@@ -114,7 +114,7 @@ EOS
         next
       end
 
-      fmt = HookManager.run "label-list-format", :width => width, :tmax => tmax, :umax => umax
+      fmt = HookManager.run "label-list-format", width: width, tmax: tmax, umax: umax
       if !fmt
         fmt = "%#{width + 1}s %5d %s, %5d unread"
       end

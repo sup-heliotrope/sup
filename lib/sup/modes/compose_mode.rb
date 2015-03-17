@@ -13,7 +13,7 @@ class ComposeMode < EditMessageMode
     header["References"] = opts[:refs].map { |r| "<#{r}>" }.join(" ") if opts[:refs]
     header["In-Reply-To"] = opts[:replytos].map { |r| "<#{r}>" }.join(" ") if opts[:replytos]
 
-    super :header => header, :body => (opts[:body] || [])
+    super header: header, body: (opts[:body] || [])
   end
 
   def default_edit_message
@@ -29,7 +29,7 @@ class ComposeMode < EditMessageMode
     bcc = opts[:bcc] || (BufferManager.ask_for_contacts(:people, "Bcc: ") or return if $config[:ask_for_bcc])
     subj = opts[:subj] || (BufferManager.ask(:subject, "Subject: ") or return if $config[:ask_for_subject])
 
-    mode = ComposeMode.new :from => from, :to => to, :cc => cc, :bcc => bcc, :subj => subj
+    mode = ComposeMode.new from: from, to: to, cc: cc, bcc: bcc, subj: subj
     BufferManager.spawn "New Message", mode
     mode.default_edit_message
   end

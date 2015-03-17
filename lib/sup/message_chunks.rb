@@ -130,10 +130,10 @@ EOS
       when /^text\/plain\b/
         @raw_content
       else
-        HookManager.run "mime-decode", :content_type => @content_type,
-                                       :filename => lambda { write_to_disk },
-                                       :charset => encoded_content.charset,
-                                       :sibling_types => sibling_types
+        HookManager.run "mime-decode", content_type: @content_type,
+                                       filename: lambda { write_to_disk },
+                                       charset: encoded_content.charset,
+                                       sibling_types: sibling_types
       end
 
       @lines = nil
@@ -182,8 +182,8 @@ EOS
 
     def view!
       write_to_disk do |path|
-        ret = HookManager.run "mime-view", :content_type => @content_type,
-                                           :filename => path
+        ret = HookManager.run "mime-view", content_type: @content_type,
+                                           filename: path
         ret || view_default!(path)
       end
     end

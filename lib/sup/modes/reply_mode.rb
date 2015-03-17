@@ -3,11 +3,11 @@ module Redwood
 class ReplyMode < EditMessageMode
   REPLY_TYPES = [:sender, :recipient, :list, :all, :user]
   TYPE_DESCRIPTIONS = {
-    :sender => "Sender",
-    :recipient => "Recipient",
-    :all => "All",
-    :list => "Mailing list",
-    :user => "Customized"
+    sender: "Sender",
+    recipient: "Recipient",
+    all: "All",
+    list: "Mailing list",
+    user: "Customized"
   }
 
   HookManager.register "attribution", <<EOS
@@ -52,7 +52,7 @@ EOS
 
     ## first, determine the address at which we received this email. this will
     ## become our From: address in the reply.
-    hook_reply_from = HookManager.run "reply-from", :message => @m
+    hook_reply_from = HookManager.run "reply-from", message: @m
 
     ## sanity check that selection is a Person (or we'll fail below)
     ## don't check that it's an Account, though; assume they know what they're
@@ -130,7 +130,7 @@ EOS
     types = REPLY_TYPES.select { |t| @headers.member?(t) }
     @type_selector = HorizontalSelector.new "Reply to:", types, types.map { |x| TYPE_DESCRIPTIONS[x] }
 
-    hook_reply = HookManager.run "reply-to", :modes => types
+    hook_reply = HookManager.run "reply-to", modes: types
 
     @type_selector.set_to(
       if types.include? type_arg
@@ -153,9 +153,9 @@ EOS
       "References" => refs,
     }.merge @headers[@type_selector.val]
 
-    HookManager.run "before-edit", :header => headers_full, :body => body
+    HookManager.run "before-edit", header: headers_full, body: body
 
-    super :header => headers_full, :body => body, :twiddles => false
+    super header: headers_full, body: body, twiddles: false
     add_selector @type_selector
   end
 
@@ -180,7 +180,7 @@ EOS
   end
 
   def reply_body_lines m
-    attribution = HookManager.run("attribution", :message => m) || default_attribution(m)
+    attribution = HookManager.run("attribution", message: m) || default_attribution(m)
     lines = attribution.split("\n") + m.quotable_body_lines.map { |l| "> #{l}" }
     lines.pop while lines.last =~ /^\s*$/
     lines

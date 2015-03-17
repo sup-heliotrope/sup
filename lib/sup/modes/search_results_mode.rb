@@ -49,7 +49,7 @@ class SearchResultsMode < ThreadIndexMode
       short_text = text.length < 20 ? text : text[0 ... 20] + "..."
       mode = SearchResultsMode.new query
       BufferManager.spawn "search: \"#{short_text}\"", mode
-      mode.load_threads :num => mode.buffer.content_height
+      mode.load_threads num: mode.buffer.content_height
     rescue Index::ParseError => e
       BufferManager.flash "Problem: #{e.message}!"
     end

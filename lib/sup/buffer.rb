@@ -82,7 +82,7 @@ class Buffer
   end
 
   def draw_status status
-    write @height - 1, 0, status, :color => :status_color
+    write @height - 1, 0, status, color: :status_color
   end
 
   def focus
@@ -247,7 +247,7 @@ EOS
     Ncurses.sync do
       @dirty = true
       Ncurses.clear
-      draw_screen :sync => false, :status => status, :title => title
+      draw_screen sync: false, status: status, title: title
     end
   end
 
@@ -284,7 +284,7 @@ EOS
       @dirty ? buf.draw(status) : buf.redraw(status)
     end
 
-    draw_minibuf :sync => false unless opts[:skip_minibuf]
+    draw_minibuf sync: false unless opts[:skip_minibuf]
 
     @dirty = false
     Ncurses.doupdate
@@ -328,7 +328,7 @@ EOS
     ## w = Ncurses::WINDOW.new(height, width, (opts[:top] || 0),
     ## (opts[:left] || 0))
     w = Ncurses.stdscr
-    b = Buffer.new w, mode, width, height, :title => realtitle, :force_to_top => opts[:force_to_top], :system => opts[:system]
+    b = Buffer.new w, mode, width, height, title: realtitle, force_to_top: opts[:force_to_top], system: opts[:system]
     mode.buffer = b
     @name_map[realtitle] = b
 
@@ -509,7 +509,7 @@ EOS
     default = default_contacts.is_a?(String) ? default_contacts : default_contacts.map { |s| s.to_s }.join(", ")
     default += " " unless default.empty?
 
-    recent = Index.load_contacts(AccountManager.user_emails, :num => 10).map { |c| [c.full_address, c.email] }
+    recent = Index.load_contacts(AccountManager.user_emails, num: 10).map { |c| [c.full_address, c.email] }
     contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.full_address, c.email] }
 
     completions = (recent + contacts).flatten.uniq
@@ -545,7 +545,7 @@ EOS
     Ncurses.sync do
       tf.activate Ncurses.stdscr, Ncurses.rows - 1, 0, Ncurses.cols, question, default, &block
       @dirty = true # for some reason that blanks the whole fucking screen
-      draw_screen :sync => false, :status => status, :title => title
+      draw_screen sync: false, status: status, title: title
       tf.position_cursor
       Ncurses.refresh
     end
@@ -561,14 +561,14 @@ EOS
         shorts = tf.completions.map { |_full, short| short }
         prefix_len = shorts.shared_prefix(caseless=true).length
 
-        mode = CompletionMode.new shorts, :header => "Possible completions for \"#{tf.value}\": ", :prefix_len => prefix_len
-        completion_buf = spawn "<completions>", mode, :height => 10
+        mode = CompletionMode.new shorts, header: "Possible completions for \"#{tf.value}\": ", prefix_len: prefix_len
+        completion_buf = spawn "<completions>", mode, height: 10
 
-        draw_screen :skip_minibuf => true
+        draw_screen skip_minibuf: true
         tf.position_cursor
       elsif tf.roll_completions?
         completion_buf.mode.roll
-        draw_screen :skip_minibuf => true
+        draw_screen skip_minibuf: true
         tf.position_cursor
       end
 
@@ -581,7 +581,7 @@ EOS
     @asking = false
     Ncurses.sync do
       tf.deactivate
-      draw_screen :sync => false, :status => status, :title => title
+      draw_screen sync: false, status: status, title: title
     end
     tf.value.tap { |x| x }
   end
@@ -593,7 +593,7 @@ EOS
 
     status, title = get_status_and_title @focus_buf
     Ncurses.sync do
-      draw_screen :sync => false, :status => status, :title => title
+      draw_screen sync: false, status: status, title: title
       Ncurses.mvaddstr Ncurses.rows - 1, 0, question
       Ncurses.move Ncurses.rows - 1, question.length + 1
       Ncurses.curs_set 1
@@ -617,7 +617,7 @@ EOS
     @asking = false
     Ncurses.sync do
       Ncurses.curs_set 0
-      draw_screen :sync => false, :status => status, :title => title
+      draw_screen sync: false, status: status, title: title
     end
 
     ret
@@ -690,9 +690,9 @@ EOS
     end
 
     if new_id
-      draw_screen :refresh => true
+      draw_screen refresh: true
     else
-      draw_minibuf :refresh => true
+      draw_minibuf refresh: true
     end
 
     if block_given?
@@ -709,7 +709,7 @@ EOS
 
   def flash s
     @flash = s
-    draw_screen :refresh => true
+    draw_screen refresh: true
   end
 
   ## a little tricky because we can't just delete_at id because ids
@@ -725,7 +725,7 @@ EOS
       end
     end
 
-    draw_screen :refresh => true
+    draw_screen refresh: true
   end
 
   def shell_out command
@@ -752,13 +752,13 @@ EOS
 
   def get_status_and_title buf
     opts = {
-      :num_inbox => lambda { Index.num_results_for :label => :inbox },
-      :num_inbox_unread => lambda { Index.num_results_for :labels => [:inbox, :unread] },
-      :num_total => lambda { Index.size },
-      :num_spam => lambda { Index.num_results_for :label => :spam },
-      :title => buf.title,
-      :mode => buf.mode.name,
-      :status => buf.mode.status
+      num_inbox: lambda { Index.num_results_for label: :inbox },
+      num_inbox_unread: lambda { Index.num_results_for labels: [:inbox, :unread] },
+      num_total: lambda { Index.size },
+      num_spam: lambda { Index.num_results_for label: :spam },
+      title: buf.title,
+      mode: buf.mode.name,
+      status: buf.mode.status
     }
 
     statusbar_text = HookManager.run("status-bar-text", opts) || default_status_bar(buf)

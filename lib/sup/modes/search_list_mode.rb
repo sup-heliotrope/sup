@@ -91,8 +91,8 @@ EOS
         else
           query = Index.parse_query search_string
         end
-        total = Index.num_results_for :qobj => query[:qobj]
-        unread = Index.num_results_for :qobj => query[:qobj], :label => :unread
+        total = Index.num_results_for qobj: query[:qobj]
+        unread = Index.num_results_for qobj: query[:qobj], label: :unread
       rescue Index::ParseError => e
         BufferManager.flash "Problem: #{e.message}!"
         total = 0
@@ -102,7 +102,7 @@ EOS
     end
 
     if HookManager.enabled? "search-list-filter"
-      counts = HookManager.run "search-list-filter", :counted => counted
+      counts = HookManager.run "search-list-filter", counted: counted
     else
       counts = counted.sort_by { |n, _s, _t, _u| n.downcase }
     end
@@ -118,7 +118,7 @@ EOS
 
     @searches = []
     counts.each do |name, search_string, total, unread|
-      fmt = HookManager.run "search-list-format", :n_width => n_width, :tmax => tmax, :umax => umax, :s_width => s_width
+      fmt = HookManager.run "search-list-format", n_width: n_width, tmax: tmax, umax: umax, s_width: s_width
       if !fmt
         fmt = "%#{n_width + 1}s %5d %s, %5d unread: %s"
       end

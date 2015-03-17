@@ -3,7 +3,7 @@ module Redwood
 class LabelSearchResultsMode < ThreadIndexMode
   def initialize labels
     @labels = labels
-    opts = { :labels => @labels }
+    opts = { labels: @labels }
     opts[:load_deleted] = true if labels.include? :deleted
     opts[:load_spam] = true if labels.include? :spam
     super [], opts
@@ -30,7 +30,7 @@ class LabelSearchResultsMode < ThreadIndexMode
       BufferManager.raise_to_front InboxMode.instance.buffer
     else
       b, new = BufferManager.spawn_unless_exists("All threads with label '#{label}'") { LabelSearchResultsMode.new [label] }
-      b.mode.load_threads :num => b.content_height if new
+      b.mode.load_threads num: b.content_height if new
     end
   end
 end

@@ -312,31 +312,31 @@ EOM
   ## set up default configuration file
   def load_config filename
     default_config = {
-      :editor => ENV["EDITOR"] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
-      :thread_by_subject => false,
-      :edit_signature => false,
-      :ask_for_from => false,
-      :ask_for_to => true,
-      :ask_for_cc => true,
-      :ask_for_bcc => false,
-      :ask_for_subject => true,
-      :account_selector => true,
-      :confirm_no_attachments => true,
-      :confirm_top_posting => true,
-      :jump_to_open_message => true,
-      :discard_snippets_from_encrypted_messages => false,
-      :load_more_threads_when_scrolling => true,
-      :default_attachment_save_dir => "",
-      :sent_source => "sup://sent",
-      :archive_sent => true,
-      :poll_interval => 300,
-      :wrap_width => 0,
-      :slip_rows => 0,
-      :col_jump => 2,
-      :stem_language => "english",
-      :sync_back_to_maildir => false,
-      :continuous_scroll => false,
-      :always_edit_async => false,
+      editor: ENV["EDITOR"] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
+      thread_by_subject: false,
+      edit_signature: false,
+      ask_for_from: false,
+      ask_for_to: true,
+      ask_for_cc: true,
+      ask_for_bcc: false,
+      ask_for_subject: true,
+      account_selector: true,
+      confirm_no_attachments: true,
+      confirm_top_posting: true,
+      jump_to_open_message: true,
+      discard_snippets_from_encrypted_messages: false,
+      load_more_threads_when_scrolling: true,
+      default_attachment_save_dir: "",
+      sent_source: "sup://sent",
+      archive_sent: true,
+      poll_interval: 300,
+      wrap_width: 0,
+      slip_rows: 0,
+      col_jump: 2,
+      stem_language: "english",
+      sync_back_to_maildir: false,
+      continuous_scroll: false,
+      always_edit_async: false,
     }
     if File.exist? filename
       config = Redwood::load_yaml_obj filename
@@ -355,14 +355,14 @@ EOM
         end
 
       config = {
-        :accounts => {
-          :default => {
-            :name => name.dup.fix_encoding!,
-            :email => email.dup.fix_encoding!,
-            :alternates => [],
-            :sendmail => "/usr/sbin/sendmail -oem -ti",
-            :signature => File.join(ENV["HOME"], ".signature"),
-            :gpgkey => ""
+        accounts: {
+          default: {
+            name: name.dup.fix_encoding!,
+            email: email.dup.fix_encoding!,
+            alternates: [],
+            sendmail: "/usr/sbin/sendmail -oem -ti",
+            signature: File.join(ENV["HOME"], ".signature"),
+            gpgkey: ""
           }
         },
       }

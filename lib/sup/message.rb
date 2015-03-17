@@ -372,7 +372,7 @@ EOS
   end
 
   def self.build_from_source source, source_info
-    m = Message.new :locations => [Location.new(source, source_info)]
+    m = Message.new locations: [Location.new(source, source_info)]
     m.load_from_source!
     m
   end

@@ -32,7 +32,7 @@ class LogMode < TextMode
 
   def << s
     if buffer.nil? && @autospawn_buffer_name
-      BufferManager.spawn @autospawn_buffer_name, self, :hidden => true, :system => true
+      BufferManager.spawn @autospawn_buffer_name, self, hidden: true, system: true
     end
 
     s.split("\n").each { |l| super(l + "\n") } # insane. different << semantics.

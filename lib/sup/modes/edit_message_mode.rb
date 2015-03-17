@@ -127,7 +127,7 @@ EOS
     @selector_label_width = 0
     @async_mode = nil
 
-    HookManager.run "before-edit", :header => @header, :body => @body
+    HookManager.run "before-edit", header: @header, body: @body
 
     @account_selector = nil
     # only show account selector if there is more than one email address
@@ -164,7 +164,7 @@ EOS
     add_selector @crypto_selector if @crypto_selector
 
     if @crypto_selector
-      HookManager.run "crypto-mode", :header => @header, :body => @body, :crypto_selector => @crypto_selector
+      HookManager.run "crypto-mode", header: @header, body: @body, crypto_selector: @crypto_selector
     end
 
     super opts
@@ -343,7 +343,7 @@ EOS
     fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
     return unless fn
     if HookManager.enabled? "check-attachment"
-        reason = HookManager.run("check-attachment", :filename => fn)
+        reason = HookManager.run("check-attachment", filename: fn)
         if reason
             return unless BufferManager.ask_yes_or_no("#{reason} Attach anyway?")
         end
@@ -372,7 +372,7 @@ EOS
 
   def rerun_crypto_selector_hook
     if @crypto_selector && !@crypto_selector.changed_by_user
-      HookManager.run "crypto-mode", :header => @header, :body => @body, :crypto_selector => @crypto_selector
+      HookManager.run "crypto-mode", header: @header, body: @body, crypto_selector: @crypto_selector
     end
   end
 
@@ -525,7 +525,7 @@ EOS
       m = build_message date
 
       if HookManager.enabled? "sendmail"
-        if not HookManager.run "sendmail", :message => m, :account => acct
+        if not HookManager.run "sendmail", message: m, account: acct
               warn "Sendmail hook was not successful"
               return false
         end
@@ -674,7 +674,7 @@ EOS
 
   def mentions_attachments?
     if HookManager.enabled? "mentions-attachments"
-      HookManager.run "mentions-attachments", :header => @header, :body => @body
+      HookManager.run "mentions-attachments", header: @header, body: @body
     else
       @body.any? {  |l| l.fix_encoding! =~ /^[^>]/ && l.fix_encoding! =~ /\battach(ment|ed|ing|)\b/i }
     end
@@ -689,7 +689,7 @@ EOS
     from_email = p && p.email
 
     ## first run the hook
-    hook_sig = HookManager.run "signature", :header => @header, :from_email => from_email, :message_id => @message_id
+    hook_sig = HookManager.run "signature", header: @header, from_email: from_email, message_id: @message_id
 
     return [] if hook_sig == :none
     return ["", "-- "] + hook_sig.split("\n") if hook_sig
