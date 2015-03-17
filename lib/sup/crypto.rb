@@ -476,7 +476,7 @@ private
   # elsif only one account,            then leave blank so gpg default will be user
   # else                                    set --local-user from_email_address
   # NOTE: multiple signers doesn't seem to work with gpgme (2.0.2, 1.0.8)
-  #       
+  #
   def gen_sign_user_opts from
     account = AccountManager.account_for from
     account ||= AccountManager.default_account

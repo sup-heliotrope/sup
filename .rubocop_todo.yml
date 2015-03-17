@@ -642,11 +642,6 @@ Style/TrailingBlankLines:
 Style/TrailingComma:
   Enabled: false
 
-# Offense count: 7
-# Cop supports --auto-correct.
-Style/TrailingWhitespace:
-  Enabled: false
-
 # Offense count: 12
 # Cop supports --auto-correct.
 # Configuration parameters: ExactNameMatch, AllowPredicates, AllowDSLWriters, Whitelist.

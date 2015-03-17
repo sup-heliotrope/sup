@@ -526,11 +526,11 @@ Content-Disposition: inline
 
 Excerpts from Felix Kaiser's message of 2015-01-14 16:36:29 +0100:
 > When saving attachments, sup should replace special characters when suggesting a filename to save the attachment to.
-> 
+>
 > I just got an attachment with a name like "foo/2.pdf". sup suggests saving it to /home/fxkr/foo/2.pdf (and fails to save it, of course, if /home/fxkr/foo isn't a directory).
-> 
+>
 > I haven't tested the "Save All" feature, but I hope nothing bad happens when there's an attachment called "../../../../../../../home/fxkr/.bashrc" ;-)
-> 
+>
 > ---
 > Reply to this email directly or view it on GitHub:
 > https://github.com/sup-heliotrope/sup/issues/378
@@ -538,7 +538,7 @@ Excerpts from Felix Kaiser's message of 2015-01-14 16:36:29 +0100:
 For tests, here's an email with an attachment filename set to
 sup/.travis.yml (really, this time)
 
--- 
+--
 Matthieu Rakotojaona
 
 --=-1421270017-526778-1064-1628-1-=

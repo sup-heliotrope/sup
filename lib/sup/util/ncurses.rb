@@ -108,7 +108,7 @@ module Ncurses
     def character!      ; @status  = Ncurses::OK ; self             end  ## Sets character flag
     def keycode?        ; dumb? || @status == Ncurses::KEY_CODE_YES end  ## Returns true if keycode
     def keycode!        ; @status  = Ncurses::KEY_CODE_YES ; self   end  ## Sets keycode flag
-    def keycode=(c)     ; replace(c); keycode! ; self               end  ## Sets keycode    
+    def keycode=(c)     ; replace(c); keycode! ; self               end  ## Sets keycode
     def present?        ; not empty?                                end  ## Proxy method
     def printable?      ; character?                                end  ## Alias for character?
     def dumb?           ; self.class.dumb?                          end  ## True if we cannot distinguish keycodes from characters
