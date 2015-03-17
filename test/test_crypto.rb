@@ -59,7 +59,7 @@ class TestCryptoManager < Minitest::Test
 
     def test_sign
         if CryptoManager.have_crypto? then
-            signed = CryptoManager.sign @from_email,@to_email,'ABCDEFG'
+            signed = CryptoManager.sign @from_email, @to_email, 'ABCDEFG'
             assert_instance_of RMail::Message, signed
             assert_equal 'ABCDEFG', signed.body[0]
             assert signed.body[1].body.length > 0 , 'signature length must be > 0'

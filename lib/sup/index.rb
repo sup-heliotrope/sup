@@ -13,7 +13,7 @@ require 'sup/hook'
 require 'sup/logger/singleton'
 
 
-if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,15]) < 0
+if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1, 2, 15]) < 0
   fail <<-EOF
 \n
 Xapian version 1.2.15 or higher required.
@@ -236,7 +236,7 @@ EOS
     entry = synchronize { get_entry id }
     return unless entry
 
-    locations = entry[:locations].map do |source_id,source_info|
+    locations = entry[:locations].map do |source_id, source_info|
       source = SourceManager[source_id]
       raise "invalid source #{source_id}" unless source
       Location.new source, source_info
@@ -268,12 +268,12 @@ EOS
   def load_contacts email_addresses, opts={}
     contacts = Set.new
     num = opts[:num] || 20
-    each_id_by_date participants: email_addresses do |_id,b|
+    each_id_by_date participants: email_addresses do |_id, b|
       break if contacts.size >= num
       m = b.call
       ([m.from]+m.to+m.cc+m.bcc).compact.each { |p| contacts << [p.name, p.email] }
     end
-    contacts.to_a.compact[0...num].map { |n,e| Person.from_name_and_email n, e }
+    contacts.to_a.compact[0...num].map { |n, e| Person.from_name_and_email n, e }
   end
 
   ## Yield each message-id matching query
@@ -517,8 +517,8 @@ EOS
     qp.stemming_strategy = Xapian::QueryParser::STEM_SOME
     qp.default_op = Xapian::Query::OP_AND
     qp.add_valuerangeprocessor(Xapian::NumberValueRangeProcessor.new(DATE_VALUENO, 'date:', true))
-    NORMAL_PREFIX.each { |k,info| info[:prefix].each { |v| qp.add_prefix k, v } }
-    BOOLEAN_PREFIX.each { |k,info| info[:prefix].each { |v| qp.add_boolean_prefix k, v, info[:exclusive] } }
+    NORMAL_PREFIX.each { |k, info| info[:prefix].each { |v| qp.add_prefix k, v } }
+    BOOLEAN_PREFIX.each { |k, info| info[:prefix].each { |v| qp.add_boolean_prefix k, v, info[:exclusive] } }
 
     begin
       xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD)
@@ -611,7 +611,7 @@ EOS
   end
 
   def find_docid id
-    docids = term_docids(mkterm(:msgid,id))
+    docids = term_docids(mkterm(:msgid, id))
     fail unless docids.size <= 1
     docids.first
   end
@@ -658,17 +658,17 @@ EOS
     pos_terms, neg_terms = [], []
 
     pos_terms << mkterm(:type, 'mail')
-    pos_terms.concat(labels.map { |l| mkterm(:label,l) })
+    pos_terms.concat(labels.map { |l| mkterm(:label, l) })
     pos_terms << opts[:qobj] if opts[:qobj]
     pos_terms << mkterm(:source_id, opts[:source_id]) if opts[:source_id]
     pos_terms << mkterm(:location, *opts[:location]) if opts[:location]
 
     if opts[:participants]
-      participant_terms = opts[:participants].map { |p| [:from,:to].map { |d| mkterm(:email, d, (Redwood::Person === p) ? p.email : p) } }.flatten
+      participant_terms = opts[:participants].map { |p| [:from, :to].map { |d| mkterm(:email, d, (Redwood::Person === p) ? p.email : p) } }.flatten
       pos_terms << Q.new(Q::OP_OR, participant_terms)
     end
 
-    neg_terms.concat(neglabels.map { |l| mkterm(:label,l) }) if ignore_neg_terms
+    neg_terms.concat(neglabels.map { |l| mkterm(:label, l) }) if ignore_neg_terms
 
     pos_query = Q.new(Q::OP_AND, pos_terms)
     neg_query = Q.new(Q::OP_OR, neg_terms)
@@ -783,8 +783,8 @@ EOS
     return if new_labels == old_labels
     added = new_labels.to_a - old_labels.to_a
     removed = old_labels.to_a - new_labels.to_a
-    added.each { |t| doc.add_term mkterm(:label,t) }
-    removed.each { |t| doc.remove_term mkterm(:label,t) }
+    added.each { |t| doc.add_term mkterm(:label, t) }
+    removed.each { |t| doc.remove_term mkterm(:label, t) }
   end
 
   ## Assign a set of thread ids to the document. This is a hybrid of the runtime

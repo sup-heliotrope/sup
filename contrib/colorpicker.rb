@@ -23,19 +23,19 @@ fail "color count is #{cc}, expected 256" unless cc == 256
 end
 
 def cell y, x, c
-  @map[[y,x]] = c
+  @map[[y, x]] = c
   Ncurses.attron(Ncurses.COLOR_PAIR(c))
   Ncurses.mvaddstr(y, x, ' ')
   Ncurses.attroff(Ncurses.COLOR_PAIR(c))
 end
 
 def handle_click y, x
-  c = @map[[y,x]] or return
+  c = @map[[y, x]] or return
   name = case c
   when 0...16
     c.to_s
   when 16...232
-    'c' + (c-16).to_s(6).rjust(3,'0')
+    'c' + (c-16).to_s(6).rjust(3, '0')
   when 232...256
     'g' + (c-232).to_s
   end

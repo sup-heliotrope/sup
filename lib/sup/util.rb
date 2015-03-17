@@ -33,7 +33,7 @@ class Lockfile
 
   def dump_lock_id lock_id = @lock_id
       "host: %s\npid: %s\nppid: %s\ntime: %s\nuser: %s\npname: %s\n" %
-        lock_id.values_at('host','pid','ppid','time','user', 'pname')
+        lock_id.values_at('host', 'pid', 'ppid', 'time', 'user', 'pname')
   end
 
   def lockinfo_on_disk
@@ -648,7 +648,7 @@ module Redwood
         return nil if @instance.nil?
 
         # Speed up further calls by defining a shortcut around method_missing
-        if meth.to_s[-1,1] == '='
+        if meth.to_s[-1, 1] == '='
           # Argh! Inconsistency! Setters do not work like all the other methods.
           class_eval "def self.#{meth}(a); @instance.send :#{meth}, a; end"
         else

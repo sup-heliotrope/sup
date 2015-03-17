@@ -48,7 +48,7 @@ EOS
     messages_in_index = []
     Index.instance.each_message {|a| messages_in_index << a}
     refute_empty messages_in_index, 'There are no messages in the index'
-    test_message_without_first_line = @test_message_1.sub(/^.*\n/,'')
+    test_message_without_first_line = @test_message_1.sub(/^.*\n/, '')
     assert_equal(messages_in_index.first.raw_message, test_message_without_first_line)
 
   end
@@ -61,7 +61,7 @@ EOS
     messages_in_index = []
     Index.instance.each_message {|a| messages_in_index << a}
     refute_empty messages_in_index, 'There are no messages in the index'
-    test_message_without_first_line = @test_message_1.sub(/^.*\n/,'')
+    test_message_without_first_line = @test_message_1.sub(/^.*\n/, '')
     assert_equal(messages_in_index.first.raw_message, test_message_without_first_line)
 
   end

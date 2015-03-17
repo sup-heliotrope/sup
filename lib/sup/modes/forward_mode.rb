@@ -77,11 +77,11 @@ EOS
 
   def forward_body_lines m
     attribution = HookManager.run('forward-attribution', message: m) || default_attribution(m)
-    attribution[0,1] +
+    attribution[0, 1] +
     m.quotable_header_lines +
     [''] +
     m.quotable_body_lines +
-    attribution[1,1]
+    attribution[1, 1]
   end
 
   def default_attribution m

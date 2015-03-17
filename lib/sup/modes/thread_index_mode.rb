@@ -336,7 +336,7 @@ EOS
       lambda do
         thread.apply_label :inbox
         update_text_for_line pos
-        UpdateManager.relay self,:unarchived, thread.first
+        UpdateManager.relay self, :unarchived, thread.first
       end
     else
       t.apply_label :inbox
@@ -359,7 +359,7 @@ EOS
       lambda do
         thread.apply_label :spam
         self.hide_thread thread
-        UpdateManager.relay self,:spammed, thread.first
+        UpdateManager.relay self, :spammed, thread.first
       end
     else
       t.apply_label :spam
@@ -368,7 +368,7 @@ EOS
       lambda do
         thread.remove_label :spam
         add_or_unhide thread.first
-        UpdateManager.relay self,:unspammed, thread.first
+        UpdateManager.relay self, :unspammed, thread.first
       end
     end
   end
@@ -611,7 +611,7 @@ EOS
     return unless user_labels
 
     user_labels.map! { |l| (l.to_s =~ /^-/)? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
-    hl = user_labels.select { |(l,_)| @hidden_labels.member? l }
+    hl = user_labels.select { |(l, _)| @hidden_labels.member? l }
     unless hl.empty?
       BufferManager.flash "'#{hl}' is a reserved label!"
       return

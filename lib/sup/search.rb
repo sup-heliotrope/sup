@@ -27,7 +27,7 @@ class SearchManager
                                                     load_killed: false,
                                                     text: 'Search all mail.'}
     }
-    @predefined_searches.each do |k,v|
+    @predefined_searches.each do |k, v|
       @searches[k] = v
     end
   end

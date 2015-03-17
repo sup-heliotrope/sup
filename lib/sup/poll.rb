@@ -143,7 +143,7 @@ EOS
 
         msg = ''
         num = numi = numu = numd = 0
-        poll_from source do |action,m,old_m,_progress|
+        poll_from source do |action, m, old_m, _progress|
           if action == :delete
             yield "Deleting #{m.id}"
             loaded_labels.merge m.labels
@@ -232,7 +232,7 @@ EOS
               m.locations.delete Location.new(source, args[:info])
               Index.sync_message m, false
               if m.locations.size == 0
-                yield :delete, m, [source,args[:info]], args[:progress] if block_given?
+                yield :delete, m, [source, args[:info]], args[:progress] if block_given?
                 Index.delete m.id
                 UpdateManager.relay self, :location_deleted, m
               end

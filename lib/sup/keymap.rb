@@ -128,7 +128,7 @@ EOS
   end
 
   def self.run_hook global_keymap
-    modes = Hash[Mode.keymaps.map { |klass,_keymap| [Mode.make_name(klass.name),klass] }]
+    modes = Hash[Mode.keymaps.map { |klass, _keymap| [Mode.make_name(klass.name), klass] }]
     locals = {
       modes: modes,
       global_keymap: global_keymap

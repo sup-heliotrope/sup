@@ -451,11 +451,6 @@ Style/SingleLineBlockParams:
 Style/SingleLineMethods:
   Enabled: false
 
-# Offense count: 51
-# Cop supports --auto-correct.
-Style/SpaceAfterComma:
-  Enabled: false
-
 # Offense count: 19
 # Cop supports --auto-correct.
 Style/SpaceAfterControlKeyword:

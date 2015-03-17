@@ -119,7 +119,7 @@ class Maildir < Source
     added = []
     deleted = []
     updated = []
-    @ctimes.each do |d,prev_ctime|
+    @ctimes.each do |d, prev_ctime|
       subdir = File.join @dir, d
       debug "polling maildir #{subdir}"
       raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
@@ -131,7 +131,7 @@ class Maildir < Source
       new_ids = benchmark(:maildir_read_dir) {
         Dir.open(subdir).select {
           |f| !File.directory? f}.map {
-            |x| File.join(d,File.basename(x)) }.sort }
+            |x| File.join(d, File.basename(x)) }.sort }
       added += new_ids - old_ids
       deleted += old_ids - new_ids
       debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
@@ -157,20 +157,20 @@ class Maildir < Source
     debug "#{added.size} added, #{deleted.size} deleted, #{updated.size} updated"
     total_size = added.size+deleted.size+updated.size
 
-    added.each_with_index do |id,i|
+    added.each_with_index do |id, i|
       yield :add,
       info: id,
       labels: @labels + maildir_labels(id) + [:inbox],
       progress: i.to_f/total_size
     end
 
-    deleted.each_with_index do |id,i|
+    deleted.each_with_index do |id, i|
       yield :delete,
       info: id,
       progress: (i.to_f+added.size)/total_size
     end
 
-    updated.each_with_index do |id,i|
+    updated.each_with_index do |id, i|
       yield :update,
       old_info: id[0],
       new_info: id[1],

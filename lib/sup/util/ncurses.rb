@@ -77,7 +77,7 @@ module Ncurses
       c = '' if c.nil?
       return super('') if status == Ncurses::ERR
       c = enc_char(c) if c.is_a?(Fixnum)
-      super c.length > 1 ? c[0,1] : c
+      super c.length > 1 ? c[0, 1] : c
     end
 
     ## Proxy method for String's replace
@@ -90,7 +90,7 @@ module Ncurses
         @status = Ncurses::OK
         c = '' if c.nil?
         c = enc_char(c) if c.is_a?(Fixnum)
-        super c.length > 1 ? c[0,1] : c
+        super c.length > 1 ? c[0, 1] : c
       end
     end
 

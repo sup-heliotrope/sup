@@ -378,10 +378,10 @@ EOS
 
   def mime_encode string
     string = [string].pack('M') # basic quoted-printable
-    string.gsub!(/=\n/,'')      # .. remove trailing newline
-    string.gsub!(/_/,'=5F')     # .. encode underscores
-    string.gsub!(/\?/,'=3F')    # .. encode question marks
-    string.gsub!(/ /,'_')       # .. translate space to underscores
+    string.gsub!(/=\n/, '')      # .. remove trailing newline
+    string.gsub!(/_/, '=5F')     # .. encode underscores
+    string.gsub!(/\?/, '=3F')    # .. encode question marks
+    string.gsub!(/ /, '_')       # .. translate space to underscores
     "=?utf-8?q?#{string}?="
   end
 
