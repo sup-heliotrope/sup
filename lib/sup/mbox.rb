@@ -19,7 +19,7 @@ class MBox < Source
     case uri_or_fp
     when String
       @expanded_uri = Source.expand_filesystem_uri(uri_or_fp)
-      parts = @expanded_uri.match /^([a-zA-Z0-9]*:(\/\/)?)(.*)/
+      parts = @expanded_uri.match(/^([a-zA-Z0-9]*:(\/\/)?)(.*)/)
       if parts
         prefix = parts[1]
         @path = parts[3]
