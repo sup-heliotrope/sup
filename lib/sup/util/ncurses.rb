@@ -94,24 +94,24 @@ module Ncurses
       end
     end
 
-    def to_character    ; character? ? self : "<#{code}>"           end  ## Returns character or code as a string
-    def to_keycode      ; keycode?   ? code : Ncurses::ERR          end  ## Returns keycode or ERR if it's not a keycode
-    def to_sequence     ; bytes.to_a                                end  ## Returns unpacked sequence of bytes for a character
-    def code            ; ord                                       end  ## Returns decimal representation of a character
-    def is_keycode?(c)  ; keycode?   &&  code == c                  end  ## Tests if keycode matches
+    def to_character; character? ? self : "<#{code}>"           end  ## Returns character or code as a string
+    def to_keycode; keycode?   ? code : Ncurses::ERR          end  ## Returns keycode or ERR if it's not a keycode
+    def to_sequence; bytes.to_a                                end  ## Returns unpacked sequence of bytes for a character
+    def code; ord                                       end  ## Returns decimal representation of a character
+    def is_keycode?(c); keycode?   &&  code == c                  end  ## Tests if keycode matches
     def is_character?(c); character? &&  self == c                  end  ## Tests if character matches
-    def try_keycode     ; keycode?   ? code : nil                   end  ## Returns dec. code if keycode, nil otherwise
-    def try_character   ; character? ? self : nil                   end  ## Returns character if character, nil otherwise
-    def keycode         ; try_keycode                               end  ## Alias for try_keycode
-    def character       ; try_character                             end  ## Alias for try_character
-    def character?      ; dumb? || @status == Ncurses::OK           end  ## Returns true if character
-    def character!      ; @status  = Ncurses::OK ; self             end  ## Sets character flag
-    def keycode?        ; dumb? || @status == Ncurses::KEY_CODE_YES end  ## Returns true if keycode
-    def keycode!        ; @status  = Ncurses::KEY_CODE_YES ; self   end  ## Sets keycode flag
-    def keycode=(c)     ; replace(c); keycode! ; self               end  ## Sets keycode
-    def present?        ; not empty?                                end  ## Proxy method
-    def printable?      ; character?                                end  ## Alias for character?
-    def dumb?           ; self.class.dumb?                          end  ## True if we cannot distinguish keycodes from characters
+    def try_keycode; keycode?   ? code : nil                   end  ## Returns dec. code if keycode, nil otherwise
+    def try_character; character? ? self : nil                   end  ## Returns character if character, nil otherwise
+    def keycode; try_keycode                               end  ## Alias for try_keycode
+    def character; try_character                             end  ## Alias for try_character
+    def character?; dumb? || @status == Ncurses::OK           end  ## Returns true if character
+    def character!; @status  = Ncurses::OK; self             end  ## Sets character flag
+    def keycode?; dumb? || @status == Ncurses::KEY_CODE_YES end  ## Returns true if keycode
+    def keycode!; @status  = Ncurses::KEY_CODE_YES; self   end  ## Sets keycode flag
+    def keycode=(c); replace(c); keycode!; self               end  ## Sets keycode
+    def present?; not empty?                                end  ## Proxy method
+    def printable?; character?                                end  ## Alias for character?
+    def dumb?; self.class.dumb?                          end  ## True if we cannot distinguish keycodes from characters
 
     # Empty singleton that
     # keeps GC from going crazy.
@@ -144,9 +144,9 @@ module Ncurses
         super('', Ncurses::ERR)
       end
 
-      def empty?    ; true  end   ## always true
-      def present?  ; false end   ## always false
-      def clear     ; self  end   ## always self
+      def empty?; true  end   ## always true
+      def present?; false end   ## always false
+      def clear; self  end   ## always self
 
       self
     end.init # CharCode::Empty
