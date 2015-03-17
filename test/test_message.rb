@@ -10,6 +10,7 @@ module Redwood
 
 class TestMessage < Minitest::Test
 
+  # rubocop:disable Style/Tab
   def setup
     @path = Dir.mktmpdir
     Redwood::HookManager.init File.join(@path, 'hooks')
@@ -583,6 +584,7 @@ EOS
   # TODO: test different quoting styles, see that they are all divided
   # to chunks properly
 
+  # rubocop:enable Style/Tab
 end
 
 end

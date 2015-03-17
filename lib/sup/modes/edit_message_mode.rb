@@ -29,7 +29,7 @@ EOS
   HookManager.register 'check-attachment', <<EOS
 Do checks on the attachment filename
 Variables:
-	filename: the name of the attachment
+  filename: the name of the attachment
 Return value:
     A String (single line) containing a message why this attachment is not optimal
     to be attached.
@@ -40,20 +40,20 @@ EOS
 Modifies message body and headers before editing a new message. Variables
 should be modified in place.
 Variables:
-	header: a hash of headers. See 'signature' hook for documentation.
-	body: an array of lines of body text.
+  header: a hash of headers. See 'signature' hook for documentation.
+  body: an array of lines of body text.
 Return value:
-	none
+  none
 EOS
 
   HookManager.register 'mentions-attachments', <<EOS
 Detects if given message mentions attachments the way it is probable
 that there should be files attached to the message.
 Variables:
-	header: a hash of headers. See 'signature' hook for documentation.
-	body: an array of lines of body text.
+  header: a hash of headers. See 'signature' hook for documentation.
+  body: an array of lines of body text.
 Return value:
-	True if attachments are mentioned.
+  True if attachments are mentioned.
 EOS
 
   HookManager.register 'crypto-mode', <<EOS

@@ -522,7 +522,7 @@ EOS
         [notice, sig].compact + children
       else
         ## try inline pgp signed
-      	chunks = inline_gpg_to_chunks m.body, $encoding, (m.charset || $encoding)
+        chunks = inline_gpg_to_chunks m.body, $encoding, (m.charset || $encoding)
         if chunks
           chunks
         else
