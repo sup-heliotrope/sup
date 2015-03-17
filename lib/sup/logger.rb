@@ -54,7 +54,7 @@ private
       when "error"; "ERROR: "
       else ""
     end
-    "[#{time.to_s}] #{prefix}#{msg.rstrip}\n"
+    "[#{time}] #{prefix}#{msg.rstrip}\n"
   end
 
   ## actually distribute the message

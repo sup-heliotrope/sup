@@ -394,12 +394,12 @@ class String
     encode!('UTF-16', 'UTF-8', :invalid => :replace, :undef => :replace)
     encode!('UTF-8', 'UTF-16', :invalid => :replace, :undef => :replace)
 
-    fail "Could not create valid UTF-8 string out of: '#{self.to_s}'." unless valid_encoding?
+    fail "Could not create valid UTF-8 string out of: '#{self}'." unless valid_encoding?
 
     # now convert to $encoding
     encode!($encoding, :invalid => :replace, :undef => :replace)
 
-    fail "Could not create valid #{$encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
+    fail "Could not create valid #{$encoding.inspect} string out of: '#{self}'." unless valid_encoding?
 
     self
   end
@@ -419,11 +419,11 @@ class String
       end
 
     rescue Encoding::ConverterNotFoundError
-      debug "Encoding converter not found for #{from_encoding.inspect} or #{to_encoding.inspect}, fixing string: '#{self.to_s}', but expect weird characters."
+      debug "Encoding converter not found for #{from_encoding.inspect} or #{to_encoding.inspect}, fixing string: '#{self}', but expect weird characters."
       fix_encoding!
     end
 
-    fail "Could not create valid #{to_encoding.inspect} string out of: '#{self.to_s}'." unless valid_encoding?
+    fail "Could not create valid #{to_encoding.inspect} string out of: '#{self}'." unless valid_encoding?
 
     self
   end

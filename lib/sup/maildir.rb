@@ -208,7 +208,7 @@ private
 
   def new_maildir_basefn
     Kernel::srand()
-    "#{Time.now.to_i.to_s}.#{$$}#{Kernel.rand(1000000)}.#{MYHOSTNAME}"
+    "#{Time.now.to_i}.#{$$}#{Kernel.rand(1000000)}.#{MYHOSTNAME}"
   end
 
   def with_file_for id

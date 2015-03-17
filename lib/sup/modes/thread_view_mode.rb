@@ -805,7 +805,7 @@ EOS
     error = CryptoManager.retrieve crypto_chunk.unknown_fingerprint
 
     if error
-      BufferManager.flash "Couldn't retrieve key: #{error.to_s}"
+      BufferManager.flash "Couldn't retrieve key: #{error}"
     else
       BufferManager.flash "Key #{crypto_chunk.unknown_fingerprint} successfully retrieved !"
     end
