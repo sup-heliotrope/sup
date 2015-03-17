@@ -1,5 +1,5 @@
-ENV["XAPIAN_FLUSH_THRESHOLD"] = "1000"
-ENV["XAPIAN_CJK_NGRAM"] = "1"
+ENV['XAPIAN_FLUSH_THRESHOLD'] = '1000'
+ENV['XAPIAN_CJK_NGRAM'] = '1'
 
 require 'xapian'
 require 'set'
@@ -7,10 +7,10 @@ require 'fileutils'
 require 'monitor'
 require 'chronic'
 
-require "sup/util/query"
-require "sup/interactive_lock"
-require "sup/hook"
-require "sup/logger/singleton"
+require 'sup/util/query'
+require 'sup/interactive_lock'
+require 'sup/hook'
+require 'sup/logger/singleton'
 
 
 if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,15]) < 0
@@ -40,7 +40,7 @@ class Index
   MIN_DATE = Time.at 0
   MAX_DATE = Time.at(2**31-1)
 
-  HookManager.register "custom-search", <<EOS
+  HookManager.register 'custom-search', <<EOS
 Executes before a string search is applied to the index,
 returning a new search string.
 Variables:
@@ -66,7 +66,7 @@ EOS
     @index_mutex = Monitor.new
   end
 
-  def lockfile; File.join @dir, "lock" end
+  def lockfile; File.join @dir, 'lock' end
 
   def lock
     debug "locking #{lockfile}..."
@@ -78,7 +78,7 @@ EOS
   end
 
   def start_lock_update_thread
-    @lock_update_thread = Redwood::reporting_thread("lock update") do
+    @lock_update_thread = Redwood::reporting_thread('lock update') do
       while true
         sleep 30
         @lock.touch_yourself
@@ -104,7 +104,7 @@ EOS
   end
 
   def save
-    debug "saving index and sources..."
+    debug 'saving index and sources...'
     FileUtils.mkdir_p @dir unless File.exist? @dir
     SourceManager.save_sources
     save_index
@@ -141,7 +141,7 @@ EOS
   def update_message_state m; sync_message m[0], false, m[1] end
 
   def save_index
-    info "Flushing Xapian updates to disk. This may take a while..."
+    info 'Flushing Xapian updates to disk. This may take a while...'
     @xapian.flush
   end
 
@@ -405,7 +405,7 @@ EOS
   def parse_query s
     query = {}
 
-    subs = HookManager.run("custom-search", subs: s) || s
+    subs = HookManager.run('custom-search', subs: s) || s
     begin
       subs = SearchManager.expand subs
     rescue SearchManager::ExpansionError => e
@@ -416,7 +416,7 @@ EOS
       email_field, name_field = %w(email name).map { |x| "#{field}_#{x}" }
       if(p = ContactManager.contact_for(value))
         "#{email_field}:#{p.email}"
-      elsif value == "me"
+      elsif value == 'me'
         '(' + AccountManager.user_emails.map { |e| "#{email_field}:#{e}" }.join(' OR ') + ')'
       else
         "(#{email_field}:#{value} OR #{name_field}:#{value})"
@@ -427,14 +427,14 @@ EOS
     subs = subs.gsub(/\b(is|has):(\S+)\b/) do
       field, label = $1, $2
       case label
-      when "read"
-        "-label:unread"
-      when "spam"
+      when 'read'
+        '-label:unread'
+      when 'spam'
         query[:load_spam] = true
-        "label:spam"
-      when "deleted"
+        'label:spam'
+      when 'deleted'
         query[:load_deleted] = true
-        "label:deleted"
+        'label:deleted'
       else
         "label:#{$2}"
       end
@@ -467,10 +467,10 @@ EOS
     subs = subs.gsub(/\b(filename|filetype):(\((.+?)\)\B|(\S+)\b)/) do
       field, name = $1, ($3 || $4)
       case field
-      when "filename"
+      when 'filename'
         debug "filename: translated #{field}:#{name} to attachment:\"#{name.downcase}\""
         "attachment:\"#{name.downcase}\""
-      when "filetype"
+      when 'filetype'
         debug "filetype: translated #{field}:#{name} to attachment_extension:#{name.downcase}"
         "attachment_extension:#{name.downcase}"
       end
@@ -483,10 +483,10 @@ EOS
       realdate = Chronic.parse datestr, guess: false, context: :past
       if realdate
         case field
-        when "after"
+        when 'after'
           debug "chronic: translated #{field}:#{datestr} to #{realdate.end}"
           "date:#{realdate.end.to_i}..#{lastdate}"
-        when "before"
+        when 'before'
           debug "chronic: translated #{field}:#{datestr} to #{realdate.begin}"
           "date:#{firstdate}..#{realdate.end.to_i}"
         else
@@ -832,7 +832,7 @@ EOS
     when :type
       PREFIX['type'][:prefix] + args[0].to_s.downcase
     when :date
-      PREFIX['date'][:prefix] + args[0].getutc.strftime("%Y%m%d%H%M%S")
+      PREFIX['date'][:prefix] + args[0].getutc.strftime('%Y%m%d%H%M%S')
     when :email
       case args[0]
       when :from then PREFIX['from_email'][:prefix]

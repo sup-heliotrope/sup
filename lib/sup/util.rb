@@ -27,7 +27,7 @@ class Lockfile
          'ppid' => "#{ Process.ppid }",
          'time' => timestamp,
          'pname' => $0,
-         'user' => ENV["USER"]
+         'user' => ENV['USER']
         ]
   end
 
@@ -63,16 +63,16 @@ class Pathname
       begin
         size
       rescue SystemCallError
-        return "?"
+        return '?'
       end
     s.to_human_size
   end
 
   def human_time
     begin
-      ctime.strftime("%Y-%m-%d %H:%M")
+      ctime.strftime('%Y-%m-%d %H:%M')
     rescue SystemCallError
-      "?"
+      '?'
     end
   end
 end
@@ -84,28 +84,28 @@ module RMail
   class Message
     def self.make_file_attachment fn
       bfn = File.basename fn
-      t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first
+      t = MIME::Types.type_for(bfn).first || MIME::Types.type_for('exe').first
       make_attachment IO.read(fn), t.content_type, t.encoding, bfn.to_s
     end
 
     def charset
-      if header.field?("content-type") && header.fetch("content-type") =~ /charset="?(.*?)"?(;|$)/i
+      if header.field?('content-type') && header.fetch('content-type') =~ /charset="?(.*?)"?(;|$)/i
         $1
       end
     end
 
     def self.make_attachment payload, mime_type, encoding, filename
       a = Message.new
-      a.header.add "Content-Disposition", "attachment; filename=#{filename.inspect}"
-      a.header.add "Content-Type", "#{mime_type}; name=#{filename.inspect}"
-      a.header.add "Content-Transfer-Encoding", encoding if encoding
+      a.header.add 'Content-Disposition', "attachment; filename=#{filename.inspect}"
+      a.header.add 'Content-Type', "#{mime_type}; name=#{filename.inspect}"
+      a.header.add 'Content-Transfer-Encoding', encoding if encoding
       a.body =
         case encoding
-        when "base64"
-          [payload].pack "m"
-        when "quoted-printable"
-          [payload].pack "M"
-        when "7bit", "8bit", nil
+        when 'base64'
+          [payload].pack 'm'
+        when 'quoted-printable'
+          [payload].pack 'M'
+        when '7bit', '8bit', nil
           payload
         else
           raise EncodingUnsupportedError, encoding.inspect
@@ -139,7 +139,7 @@ module RMail
           if field =~ EXTRACT_FIELD_NAME_RE
             [ $1, $'.chomp ]
           else
-            [ "", Field.value_strip(field) ]
+            [ '', Field.value_strip(field) ]
           end
         end
       end
@@ -278,7 +278,7 @@ class String
   end
 
   def slice_by_display_length len
-    each_char.each_with_object "" do |c, buffer|
+    each_char.each_with_object '' do |c, buffer|
       len -= c.display_length
       buffer << c if len >= 0
     end
@@ -337,7 +337,7 @@ class String
       when ?,, nil
         state = case state
           when :outstring, :escaped_outstring then
-            ret << self[region_start ... newpos].gsub(/^\s+|\s+$/, "")
+            ret << self[region_start ... newpos].gsub(/^\s+|\s+$/, '')
             region_start = newpos + 1
             :outstring
           when :instring then :instring
@@ -356,7 +356,7 @@ class String
 
     remainder = case state
       when :instring
-        self[region_start .. -1].gsub(/^\s+/, "")
+        self[region_start .. -1].gsub(/^\s+/, '')
       else
         nil
       end
@@ -430,7 +430,7 @@ class String
 
   def normalize_whitespace
     fix_encoding!
-    gsub(/\t/, "    ").gsub(/\r/, "")
+    gsub(/\t/, '    ').gsub(/\r/, '')
   end
 
   unless method_defined? :ord
@@ -456,14 +456,14 @@ class String
   def check
     begin
       fail "unexpected encoding #{encoding}" if respond_to?(:encoding) && !(encoding == Encoding::UTF_8 || encoding == Encoding::ASCII)
-      fail "invalid encoding" if respond_to?(:valid_encoding?) && !valid_encoding?
+      fail 'invalid encoding' if respond_to?(:valid_encoding?) && !valid_encoding?
     rescue
       raise CheckError.new($!.message)
     end
   end
 
   def ascii
-    out = ""
+    out = ''
     each_byte do |b|
       if (b & 128) != 0
         out << "\\x#{b.to_s 16}"
@@ -498,13 +498,13 @@ class Numeric
 
   def to_human_size
     if self < 1024
-      to_s + "b"
+      to_s + 'b'
     elsif self < (1024 * 1024)
-      (self / 1024).to_s + "k"
+      (self / 1024).to_s + 'k'
     elsif self < (1024 * 1024 * 1024)
-      (self / 1024 / 1024).to_s + "m"
+      (self / 1024 / 1024).to_s + 'm'
     else
-      (self / 1024 / 1024 / 1024).to_s + "g"
+      (self / 1024 / 1024 / 1024).to_s + 'g'
     end
   end
 end
@@ -526,14 +526,14 @@ class Fixnum
 
   ## hacking the english language
   def pluralize s
-    to_s + " " +
+    to_s + ' ' +
       if self == 1
         s
       else
         if s =~ /(.*)y$/
-          $1 + "ies"
+          $1 + 'ies'
         else
-          s + "s"
+          s + 's'
         end
       end
   end
@@ -585,9 +585,9 @@ module Enumerable
 
   ## returns the maximum shared prefix of an array of strings
   ## optinally excluding a prefix
-  def shared_prefix caseless=false, exclude=""
-    return "" if empty?
-    prefix = ""
+  def shared_prefix caseless=false, exclude=''
+    return '' if empty?
+    prefix = ''
     (0 ... first.length).each do |i|
       c = (caseless ? first.downcase : first)[i]
       break unless all? { |s| (caseless ? s.downcase : s)[i] == c }
@@ -658,7 +658,7 @@ module Redwood
         @instance.send meth, *a, &b
       end
       def init *args
-        raise "there can be only one! (instance)" if instantiated?
+        raise 'there can be only one! (instance)' if instantiated?
         @instance = new(*args)
       end
     end

@@ -22,9 +22,9 @@ class Maildir < Source
       @path = uri.path
     end
 
-    raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
+    raise ArgumentError, 'not a maildir URI' unless uri.scheme == 'maildir'
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
-    raise ArgumentError, "maildir URI must have a path component" unless uri.path
+    raise ArgumentError, 'maildir URI must have a path component' unless uri.path
 
     @sync_back = sync_back
     # sync by default if not specified
@@ -101,7 +101,7 @@ class Maildir < Source
   end
 
   def raw_header id
-    ret = ""
+    ret = ''
     with_file_for(id) do |f|
       until f.eof? || (l = f.gets) =~ /^$/
         ret += l
@@ -193,12 +193,12 @@ class Maildir < Source
       (draft?(id) ? [:draft] : [])
   end
 
-  def draft? id; maildir_data(id)[2].include? "D"; end
-  def flagged? id; maildir_data(id)[2].include? "F"; end
-  def passed? id; maildir_data(id)[2].include? "P"; end
-  def replied? id; maildir_data(id)[2].include? "R"; end
-  def seen? id; maildir_data(id)[2].include? "S"; end
-  def trashed? id; maildir_data(id)[2].include? "T"; end
+  def draft? id; maildir_data(id)[2].include? 'D'; end
+  def flagged? id; maildir_data(id)[2].include? 'F'; end
+  def passed? id; maildir_data(id)[2].include? 'P'; end
+  def replied? id; maildir_data(id)[2].include? 'R'; end
+  def seen? id; maildir_data(id)[2].include? 'S'; end
+  def trashed? id; maildir_data(id)[2].include? 'T'; end
 
   def valid? id
     File.exist? File.join(@dir, id)
@@ -224,19 +224,19 @@ class Maildir < Source
     id = File.basename id
     # Flags we recognize are DFPRST
     id =~ %r{^([^:]+):([12]),([A-Za-z]*)$}
-    [($1 || id), ($2 || "2"), ($3 || "")]
+    [($1 || id), ($2 || '2'), ($3 || '')]
   end
 
   def maildir_reconcile_flags id, labels
       new_flags = Set.new( maildir_data(id)[2].each_char )
 
       # Set flags based on labels for the six flags we recognize
-      if labels.member? :draft then new_flags.add?( "D" ) else new_flags.delete?( "D" ) end
-      if labels.member? :starred then new_flags.add?( "F" ) else new_flags.delete?( "F" ) end
-      if labels.member? :forwarded then new_flags.add?( "P" ) else new_flags.delete?( "P" ) end
-      if labels.member? :replied then new_flags.add?( "R" ) else new_flags.delete?( "R" ) end
-      if not labels.member? :unread then new_flags.add?( "S" ) else new_flags.delete?( "S" ) end
-      if labels.member? :deleted or labels.member? :killed then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
+      if labels.member? :draft then new_flags.add?( 'D' ) else new_flags.delete?( 'D' ) end
+      if labels.member? :starred then new_flags.add?( 'F' ) else new_flags.delete?( 'F' ) end
+      if labels.member? :forwarded then new_flags.add?( 'P' ) else new_flags.delete?( 'P' ) end
+      if labels.member? :replied then new_flags.add?( 'R' ) else new_flags.delete?( 'R' ) end
+      if not labels.member? :unread then new_flags.add?( 'S' ) else new_flags.delete?( 'S' ) end
+      if labels.member? :deleted or labels.member? :killed then new_flags.add?( 'T' ) else new_flags.delete?( 'T' ) end
 
       ## Flags must be stored in ASCII order according to Maildir
       ## documentation
@@ -245,7 +245,7 @@ class Maildir < Source
 
   def maildir_mark_file orig_path, flags
     @mutex.synchronize do
-      new_base = (flags.include?("S")) ? "cur" : "new"
+      new_base = (flags.include?('S')) ? 'cur' : 'new'
       md_base, md_ver, md_flags = maildir_data orig_path
 
       return if md_flags == flags
@@ -253,7 +253,7 @@ class Maildir < Source
       new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
       orig_path = File.join @dir, orig_path
       new_path  = File.join @dir, new_loc
-      tmp_path  = File.join @dir, "tmp", "#{md_base}:#{md_ver},#{flags}"
+      tmp_path  = File.join @dir, 'tmp', "#{md_base}:#{md_ver},#{flags}"
 
       File.safe_link orig_path, tmp_path
       File.unlink orig_path

@@ -7,16 +7,16 @@ class FileBrowserMode < LineCursorMode
   RESERVED_ROWS = 1
 
   register_keymap do |k|
-    k.add :back, "Go back to previous directory", "B"
-    k.add :view, "View file", "v"
-    k.add :select_file_or_follow_directory, "Select the highlighted file, or follow the directory", :enter
-    k.add :reload, "Reload file list", "R"
+    k.add :back, 'Go back to previous directory', 'B'
+    k.add :view, 'View file', 'v'
+    k.add :select_file_or_follow_directory, 'Select the highlighted file, or follow the directory', :enter
+    k.add :reload, 'Reload file list', 'R'
   end
 
   bool_reader :done
   attr_reader :value
 
-  def initialize dir="."
+  def initialize dir='.'
     @dirs = [Pathname.new(dir).realpath]
     @done = false
     @value = nil
@@ -57,7 +57,7 @@ class FileBrowserMode < LineCursorMode
     name, f = @files[curpos - RESERVED_ROWS]
     return unless f
 
-    if f.directory? && f.to_s != "."
+    if f.directory? && f.to_s != '.'
       if f.readable?
         @dirs.push f
         reload
@@ -82,17 +82,17 @@ class FileBrowserMode < LineCursorMode
         end
       rescue SystemCallError => e
         BufferManager.flash "Error: #{e.message}"
-        [Pathname.new("."), Pathname.new("..")]
+        [Pathname.new('.'), Pathname.new('..')]
       end.map do |f|
       real_f = cwd + f
       name = f.basename.to_s +
         case
         when real_f.symlink?
-          "@"
+          '@'
         when real_f.directory?
-          "/"
+          '/'
         else
-          ""
+          ''
         end
       [name, real_f]
       end

@@ -1,12 +1,12 @@
-require "sup/modes/thread_index_mode"
+require 'sup/modes/thread_index_mode'
 
 module Redwood
 
 class InboxMode < ThreadIndexMode
   register_keymap do |k|
     ## overwrite toggle_archived with archive
-    k.add :archive, "Archive thread (remove from inbox)", 'a'
-    k.add :refine_search, "Refine search", '|'
+    k.add :archive, 'Archive thread (remove from inbox)', 'a'
+    k.add :refine_search, 'Refine search', '|'
   end
 
   def initialize
@@ -18,9 +18,9 @@ class InboxMode < ThreadIndexMode
   def is_relevant? m; (m.labels & [:spam, :deleted, :killed, :inbox]) == Set.new([:inbox]) end
 
   def refine_search
-    text = BufferManager.ask :search, "refine inbox with query: "
+    text = BufferManager.ask :search, 'refine inbox with query: '
     return unless text && text !~ /^\s*$/
-    text = "label:inbox -label:spam -label:deleted " + text
+    text = 'label:inbox -label:spam -label:deleted ' + text
     SearchResultsMode.spawn_from_query text
   end
 
@@ -33,7 +33,7 @@ class InboxMode < ThreadIndexMode
     return unless cursor_thread
     thread = cursor_thread # to make sure lambda only knows about 'old' cursor_thread
 
-    UndoManager.register "archiving thread" do
+    UndoManager.register 'archiving thread' do
       thread.apply_label :inbox
       add_or_unhide thread.first
       Index.save_thread thread

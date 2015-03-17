@@ -10,19 +10,19 @@ class ThreadIndexMode < LineCursorMode
   MIN_FROM_WIDTH = 15
   LOAD_MORE_THREAD_NUM = 20
 
-  HookManager.register "index-mode-size-widget", <<EOS
+  HookManager.register 'index-mode-size-widget', <<EOS
 Generates the per-thread size widget for each thread.
 Variables:
   thread: The message thread to be formatted.
 EOS
 
-  HookManager.register "index-mode-date-widget", <<EOS
+  HookManager.register 'index-mode-date-widget', <<EOS
 Generates the per-thread date widget for each thread.
 Variables:
   thread: The message thread to be formatted.
 EOS
 
-  HookManager.register "mark-as-spam", <<EOS
+  HookManager.register 'mark-as-spam', <<EOS
 This hook is run when a thread is marked as spam
 Variables:
   thread: The message thread being marked as spam.
@@ -30,31 +30,31 @@ EOS
 
   register_keymap do |k|
     k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
-    k.add_multi "Load all threads (! to confirm) :", '!' do |kk|
-      kk.add :load_all_threads, "Load all threads (may list a _lot_ of threads)", '!'
+    k.add_multi 'Load all threads (! to confirm) :', '!' do |kk|
+      kk.add :load_all_threads, 'Load all threads (may list a _lot_ of threads)', '!'
     end
-    k.add :read_and_archive, "Archive thread (remove from inbox) and mark read", 'A'
-    k.add :cancel_search, "Cancel current search", :ctrl_g
-    k.add :reload, "Refresh view", '@'
-    k.add :toggle_archived, "Toggle archived status", 'a'
-    k.add :toggle_starred, "Star or unstar all messages in thread", '*'
-    k.add :toggle_new, "Toggle new/read status of all messages in thread", 'N'
-    k.add :edit_labels, "Edit or add labels for a thread", 'l'
-    k.add :edit_message, "Edit message (drafts only)", 'e'
-    k.add :toggle_spam, "Mark/unmark thread as spam", 'S'
-    k.add :toggle_deleted, "Delete/undelete thread", 'd'
-    k.add :kill, "Kill thread (never to be seen in inbox again)", '&'
-    k.add :flush_index, "Flush all changes now", '$'
-    k.add :jump_to_next_new, "Jump to next new thread", :tab
-    k.add :reply, "Reply to latest message in a thread", 'r'
-    k.add :reply_all, "Reply to all participants of the latest message in a thread", 'G'
-    k.add :forward, "Forward latest message in a thread", 'f'
-    k.add :toggle_tagged, "Tag/untag selected thread", 't'
-    k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
-    k.add :tag_matching, "Tag matching threads", 'g'
-    k.add :apply_to_tagged, "Apply next command to all tagged threads", '+', '='
-    k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
-    k.add :undo, "Undo the previous action", 'u'
+    k.add :read_and_archive, 'Archive thread (remove from inbox) and mark read', 'A'
+    k.add :cancel_search, 'Cancel current search', :ctrl_g
+    k.add :reload, 'Refresh view', '@'
+    k.add :toggle_archived, 'Toggle archived status', 'a'
+    k.add :toggle_starred, 'Star or unstar all messages in thread', '*'
+    k.add :toggle_new, 'Toggle new/read status of all messages in thread', 'N'
+    k.add :edit_labels, 'Edit or add labels for a thread', 'l'
+    k.add :edit_message, 'Edit message (drafts only)', 'e'
+    k.add :toggle_spam, 'Mark/unmark thread as spam', 'S'
+    k.add :toggle_deleted, 'Delete/undelete thread', 'd'
+    k.add :kill, 'Kill thread (never to be seen in inbox again)', '&'
+    k.add :flush_index, 'Flush all changes now', '$'
+    k.add :jump_to_next_new, 'Jump to next new thread', :tab
+    k.add :reply, 'Reply to latest message in a thread', 'r'
+    k.add :reply_all, 'Reply to all participants of the latest message in a thread', 'G'
+    k.add :forward, 'Forward latest message in a thread', 'f'
+    k.add :toggle_tagged, 'Tag/untag selected thread', 't'
+    k.add :toggle_tagged_all, 'Tag/untag all threads', 'T'
+    k.add :tag_matching, 'Tag matching threads', 'g'
+    k.add :apply_to_tagged, 'Apply next command to all tagged threads', '+', '='
+    k.add :join_threads, 'Force tagged threads to be joined into the same thread', '#'
+    k.add :undo, 'Undo the previous action', 'u'
   end
 
   def initialize hidden_labels=[], load_thread_opts={}
@@ -107,7 +107,7 @@ EOS
   def select t=nil, when_done=nil
     t ||= cursor_thread or return
 
-    Redwood::reporting_thread("load messages for thread-view-mode") do
+    Redwood::reporting_thread('load messages for thread-view-mode') do
       num = t.size
       message = "Loading #{num.pluralize 'message body'}..."
       BufferManager.say(message) do |sid|
@@ -282,9 +282,9 @@ EOS
     message, *_ = t.find { |m, *_o| m.has_label? :draft }
     if message
       mode = ResumeMode.new message
-      BufferManager.spawn "Edit message", mode
+      BufferManager.spawn 'Edit message', mode
     else
-      BufferManager.flash "Not a draft message!"
+      BufferManager.flash 'Not a draft message!'
     end
   end
 
@@ -312,7 +312,7 @@ EOS
   def toggle_starred
     t = cursor_thread or return
     undo = actually_toggle_starred t
-    UndoManager.register "toggling thread starred status", undo, lambda { Index.save_thread t }
+    UndoManager.register 'toggling thread starred status', undo, lambda { Index.save_thread t }
     update_text_for_line curpos
     cursor_down
     Index.save_thread t
@@ -455,7 +455,7 @@ EOS
       jump_to_line n unless n >= topline && n < botline
       set_cursor_pos n
     else
-      BufferManager.flash "No new messages."
+      BufferManager.flash 'No new messages.'
     end
   end
 
@@ -473,7 +473,7 @@ EOS
   ## you also want them to disappear immediately.
   def multi_toggle_spam threads
     undos = threads.map { |t| actually_toggle_spammed t }
-    threads.each { |t| HookManager.run("mark-as-spam", thread: t) }
+    threads.each { |t| HookManager.run('mark-as-spam', thread: t) }
     UndoManager.register "marking/unmarking  #{threads.size.pluralize 'thread'} as spam",
                          undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
     regen_text
@@ -500,7 +500,7 @@ EOS
   end
 
   def flush_index
-    @flush_id = BufferManager.say "Flushing index..."
+    @flush_id = BufferManager.say 'Flushing index...'
     Index.save_index
     BufferManager.clear @flush_id
   end
@@ -548,7 +548,7 @@ EOS
       BufferManager.erase_flash
     end
     dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
-    fail "dirty threads remain" unless dirty_threads.empty?
+    fail 'dirty threads remain' unless dirty_threads.empty?
     super
   end
 
@@ -565,7 +565,7 @@ EOS
   end
 
   def tag_matching
-    query = BufferManager.ask :search, "tag threads matching (regex): "
+    query = BufferManager.ask :search, 'tag threads matching (regex): '
     return if query.nil? || query.empty?
     query = begin
       /#{query}/i
@@ -588,14 +588,14 @@ EOS
 
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
-    user_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", modifyl.sort_by {|x| x.to_s}, @hidden_labels
+    user_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', modifyl.sort_by {|x| x.to_s}, @hidden_labels
     return unless user_labels
 
     thread.labels = Set.new(keepl) + user_labels
     user_labels.each { |l| LabelManager << l }
     update_text_for_line curpos
 
-    UndoManager.register "labeling thread" do
+    UndoManager.register 'labeling thread' do
       thread.labels = old_labels
       update_text_for_line pos
       UpdateManager.relay self, :labeled, thread.first
@@ -607,7 +607,7 @@ EOS
   end
 
   def multi_edit_labels threads
-    user_labels = BufferManager.ask_for_labels :labels, "Add/remove labels (use -label to remove): ", [], @hidden_labels
+    user_labels = BufferManager.ask_for_labels :labels, 'Add/remove labels (use -label to remove): ', [], @hidden_labels
     return unless user_labels
 
     user_labels.map! { |l| (l.to_s =~ /^-/)? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
@@ -666,7 +666,7 @@ EOS
 
   def load_n_threads_background n=LOAD_MORE_THREAD_NUM, opts={}
     return if @load_thread # todo: wrap in mutex
-    @load_thread = Redwood::reporting_thread("load threads for thread-index-mode") do
+    @load_thread = Redwood::reporting_thread('load threads for thread-index-mode') do
       num = load_n_threads n, opts
       opts[:when_done].call(num) if opts[:when_done]
       @load_thread = nil
@@ -676,7 +676,7 @@ EOS
   ## TODO: figure out @ts_mutex in this method
   def load_n_threads n=LOAD_MORE_THREAD_NUM, opts={}
     @interrupt_search = false
-    @mbid = BufferManager.say "Searching for threads..."
+    @mbid = BufferManager.say 'Searching for threads...'
 
     ts_to_load = n
     ts_to_load = ts_to_load + @ts.size unless n == -1 # -1 means all threads
@@ -705,7 +705,7 @@ EOS
 
   def status
     if (l = lines) == 0
-      "line 0 of 0"
+      'line 0 of 0'
     else
       "line #{curpos + 1} of #{l}"
     end
@@ -732,7 +732,7 @@ EOS
       if num > 0
         BufferManager.flash "Found #{num.pluralize 'thread'}."
       else
-        BufferManager.flash "No matches."
+        BufferManager.flash 'No matches.'
       end
     end)})
 
@@ -749,7 +749,7 @@ EOS
     thread = cursor_thread # to make sure lambda only knows about 'old' cursor_thread
 
     was_unread = thread.labels.member? :unread
-    UndoManager.register "reading and archiving thread" do
+    UndoManager.register 'reading and archiving thread' do
       thread.apply_label :inbox
       thread.apply_label :unread if was_unread
       add_or_unhide thread.first
@@ -813,11 +813,11 @@ EOS
   end
 
   def size_widget_for_thread t
-    HookManager.run("index-mode-size-widget", thread: t) || default_size_widget_for(t)
+    HookManager.run('index-mode-size-widget', thread: t) || default_size_widget_for(t)
   end
 
   def date_widget_for_thread t
-    HookManager.run("index-mode-date-widget", thread: t) || default_date_widget_for(t)
+    HookManager.run('index-mode-date-widget', thread: t) || default_date_widget_for(t)
   end
 
   def cursor_thread; @mutex.synchronize { @threads[curpos] }; end
@@ -841,7 +841,7 @@ EOS
   def hide_thread t
     @mutex.synchronize do
       i = @threads.index(t) or return
-      raise "already hidden" if @hidden_threads[t]
+      raise 'already hidden' if @hidden_threads[t]
       @hidden_threads[t] = true
       @threads.delete_at i
       @size_widgets.delete_at i
@@ -904,7 +904,7 @@ EOS
     authors.each do |a|
       break if limit && result.size >= limit
       name = if AccountManager.is_account?(a)
-        "me"
+        'me'
       elsif t.authors.size == 1
         a.mediumname
       else
@@ -914,7 +914,7 @@ EOS
       result << [name, new[a]]
     end
 
-    if result.size == 1 && (author_and_newness = result.assoc("me"))
+    if result.size == 1 && (author_and_newness = result.assoc('me'))
       unless (recipients = t.participants - t.authors).empty?
         result = recipients.collect do |r|
           break if limit && result.size >= limit
@@ -945,21 +945,21 @@ EOS
 
       abbrev =
         if cur_width + name.display_length > from_width
-          name.slice_by_display_length(from_width - cur_width - 1) + "."
+          name.slice_by_display_length(from_width - cur_width - 1) + '.'
         elsif cur_width + name.display_length == from_width
           name.slice_by_display_length(from_width - cur_width)
         else
           if last
             name.slice_by_display_length(from_width - cur_width)
           else
-            name.slice_by_display_length(from_width - cur_width - 1) + ","
+            name.slice_by_display_length(from_width - cur_width - 1) + ','
           end
         end
 
       cur_width += abbrev.display_length
 
       if last && from_width > cur_width
-        abbrev += " " * (from_width - cur_width)
+        abbrev += ' ' * (from_width - cur_width)
       end
 
       from << [(newness ? :index_new_color : (starred ? :index_starred_color : :index_old_color)), abbrev]
@@ -983,27 +983,27 @@ EOS
       end
 
     size_padding = @size_widget_width - size_widget.display_length
-    size_widget_text = sprintf "%#{size_padding}s%s", "", size_widget
+    size_widget_text = sprintf "%#{size_padding}s%s", '', size_widget
 
     date_padding = @date_widget_width - date_widget.display_length
-    date_widget_text = sprintf "%#{date_padding}s%s", "", date_widget
+    date_widget_text = sprintf "%#{date_padding}s%s", '', date_widget
 
     [
-      [:tagged_color, @tags.tagged?(t) ? ">" : " "],
+      [:tagged_color, @tags.tagged?(t) ? '>' : ' '],
       [:date_color, date_widget_text],
-      [:starred_color, (starred ? "*" : " ")],
+      [:starred_color, (starred ? '*' : ' ')],
     ] +
       from +
       [
         [:size_widget_color, size_widget_text],
-        [:with_attachment_color , t.labels.member?(:attachment) ? "@" : " "],
-        [:to_me_color, directly_participated ? ">" : (participated ? '+' : " ")],
+        [:with_attachment_color , t.labels.member?(:attachment) ? '@' : ' '],
+        [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')],
       ] +
       (t.labels - @hidden_labels).sort_by {|x| x.to_s}.map {
             |label| [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]
       } +
       [
-        [subj_color, t.subj + (t.subj.empty? ? "" : " ")],
+        [subj_color, t.subj + (t.subj.empty? ? '' : ' ')],
         [:snippet_color, t.snippet],
       ]
   end
@@ -1015,7 +1015,7 @@ EOS
   def default_size_widget_for t
     case t.size
     when 1
-      ""
+      ''
     else
       "(#{t.size})"
     end

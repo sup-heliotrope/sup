@@ -72,10 +72,10 @@ module Ncurses
       defined?(@dumb) && @dumb
     end
 
-    def initialize(c = "", status = Ncurses::OK)
+    def initialize(c = '', status = Ncurses::OK)
       @status = status
-      c = "" if c.nil?
-      return super("") if status == Ncurses::ERR
+      c = '' if c.nil?
+      return super('') if status == Ncurses::ERR
       c = enc_char(c) if c.is_a?(Fixnum)
       super c.length > 1 ? c[0,1] : c
     end
@@ -88,7 +88,7 @@ module Ncurses
         super(c)
       else
         @status = Ncurses::OK
-        c = "" if c.nil?
+        c = '' if c.nil?
         c = enc_char(c) if c.is_a?(Fixnum)
         super c.length > 1 ? c[0,1] : c
       end
@@ -141,7 +141,7 @@ module Ncurses
       end
 
       def initialize
-        super("", Ncurses::ERR)
+        super('', Ncurses::ERR)
       end
 
       def empty?    ; true  end   ## always true
@@ -167,7 +167,7 @@ module Ncurses
             begin
               character = [c].pack('C')
             rescue
-              character = ""
+              character = ''
               @status = Ncurses::ERR
             end
           end
@@ -200,8 +200,8 @@ module Ncurses
   ## form_driver that accepts wide chars. We are just falling back to form_driver, expect problems.
   def prepare_form_driver
     if not defined? Form.form_driver_w
-      warn "Your Ncursesw does not have a form_driver_w function (wide char aware), " \
-           "non-ASCII chars may not work on your system."
+      warn 'Your Ncursesw does not have a form_driver_w function (wide char aware), ' \
+           'non-ASCII chars may not work on your system.'
       Form.module_eval <<-FRM_DRV, __FILE__, __LINE__ + 1
         def form_driver_w form, status, c
           form_driver form, c
@@ -221,8 +221,8 @@ module Ncurses
       FRM_DRV
     end # if not defined? Form.form_driver_w
     if not defined? Ncurses.get_wch
-      warn "Your Ncursesw does not have a get_wch function (wide char aware), " \
-           "non-ASCII chars may not work on your system."
+      warn 'Your Ncursesw does not have a get_wch function (wide char aware), ' \
+           'non-ASCII chars may not work on your system.'
       Ncurses.module_eval <<-GET_WCH, __FILE__, __LINE__ + 1
         def get_wch
           c = getch

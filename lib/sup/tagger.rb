@@ -3,11 +3,11 @@ require 'sup/util/ncurses'
 module Redwood
 
 class Tagger
-  def initialize mode, noun="thread", plural_noun=nil
+  def initialize mode, noun='thread', plural_noun=nil
     @mode = mode
     @tagged = {}
     @noun = noun
-    @plural_noun = plural_noun || (@noun + "s")
+    @plural_noun = plural_noun || (@noun + 's')
   end
 
   def tagged? o; @tagged[o]; end
@@ -21,7 +21,7 @@ class Tagger
     targets = @tagged.select_by_value
     num_tagged = targets.size
     if num_tagged == 0
-      BufferManager.flash "No tagged threads!"
+      BufferManager.flash 'No tagged threads!'
       return
     end
 
@@ -38,7 +38,7 @@ class Tagger
       if @mode.respond_to? tagged_sym
         @mode.send tagged_sym, targets
       else
-        BufferManager.flash "That command cannot be applied to multiple threads."
+        BufferManager.flash 'That command cannot be applied to multiple threads.'
       end
     else
       BufferManager.flash "Unknown command #{c.to_character}."

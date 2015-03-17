@@ -13,7 +13,7 @@ class EditMessageMode < LineCursorMode
   MULTI_HEADERS = %w(To Cc Bcc)
   NON_EDITABLE_HEADERS = %w(Message-id Date)
 
-  HookManager.register "signature", <<EOS
+  HookManager.register 'signature', <<EOS
 Generates a message signature.
 Variables:
       header: an object that supports string-to-string hashtable-style access
@@ -26,7 +26,7 @@ Return value:
   use the default signature, or :none for no signature.
 EOS
 
-  HookManager.register "check-attachment", <<EOS
+  HookManager.register 'check-attachment', <<EOS
 Do checks on the attachment filename
 Variables:
 	filename: the name of the attachment
@@ -36,7 +36,7 @@ Return value:
     If it is ok just return an empty string or nil
 EOS
 
-  HookManager.register "before-edit", <<EOS
+  HookManager.register 'before-edit', <<EOS
 Modifies message body and headers before editing a new message. Variables
 should be modified in place.
 Variables:
@@ -46,7 +46,7 @@ Return value:
 	none
 EOS
 
-  HookManager.register "mentions-attachments", <<EOS
+  HookManager.register 'mentions-attachments', <<EOS
 Detects if given message mentions attachments the way it is probable
 that there should be files attached to the message.
 Variables:
@@ -56,7 +56,7 @@ Return value:
 	True if attachments are mentioned.
 EOS
 
-  HookManager.register "crypto-mode", <<EOS
+  HookManager.register 'crypto-mode', <<EOS
 Modifies cryptography settings based on header and message content, before
 editing a new message. This can be used to set, for example, default cryptography
 settings.
@@ -68,7 +68,7 @@ Return value:
      none
 EOS
 
-  HookManager.register "sendmail", <<EOS
+  HookManager.register 'sendmail', <<EOS
 Sends the given mail. If this hook doesn't exist, the sendmail command
 configured for the account is used.
 The message will be saved after this hook is run, so any modification to it
@@ -85,18 +85,18 @@ EOS
   bool_reader :edited
 
   register_keymap do |k|
-    k.add :send_message, "Send message", 'y'
-    k.add :edit_message_or_field, "Edit selected field", 'e'
-    k.add :edit_to, "Edit To:", 't'
-    k.add :edit_cc, "Edit Cc:", 'c'
-    k.add :edit_subject, "Edit Subject", 's'
-    k.add :default_edit_message, "Edit message (default)", :enter
-    k.add :alternate_edit_message, "Edit message (alternate, asynchronously)", 'E'
-    k.add :save_as_draft, "Save as draft", 'P'
-    k.add :attach_file, "Attach a file", 'a'
-    k.add :delete_attachment, "Delete an attachment", 'd'
-    k.add :move_cursor_right, "Move selector to the right", :right, 'l'
-    k.add :move_cursor_left, "Move selector to the left", :left, 'h'
+    k.add :send_message, 'Send message', 'y'
+    k.add :edit_message_or_field, 'Edit selected field', 'e'
+    k.add :edit_to, 'Edit To:', 't'
+    k.add :edit_cc, 'Edit Cc:', 'c'
+    k.add :edit_subject, 'Edit Subject', 's'
+    k.add :default_edit_message, 'Edit message (default)', :enter
+    k.add :alternate_edit_message, 'Edit message (alternate, asynchronously)', 'E'
+    k.add :save_as_draft, 'Save as draft', 'P'
+    k.add :attach_file, 'Attach a file', 'a'
+    k.add :delete_attachment, 'Delete an attachment', 'd'
+    k.add :move_cursor_right, 'Move selector to the right', :right, 'l'
+    k.add :move_cursor_left, 'Move selector to the left', :left, 'h'
   end
 
   def initialize opts={}
@@ -114,7 +114,7 @@ EOS
     end
 
     begin
-      hostname = File.open("/etc/mailname", "r").gets.chomp
+      hostname = File.open('/etc/mailname', 'r').gets.chomp
     rescue
       nil
     end
@@ -127,7 +127,7 @@ EOS
     @selector_label_width = 0
     @async_mode = nil
 
-    HookManager.run "before-edit", header: @header, body: @body
+    HookManager.run 'before-edit', header: @header, body: @body
 
     @account_selector = nil
     # only show account selector if there is more than one email address
@@ -139,9 +139,9 @@ EOS
       AccountManager.user_emails.each { |e| user_emails_copy.push e.dup }
 
       @account_selector =
-        HorizontalSelector.new "Account:", AccountManager.user_emails + [nil], user_emails_copy + ["Customized"]
+        HorizontalSelector.new 'Account:', AccountManager.user_emails + [nil], user_emails_copy + ['Customized']
 
-      if @header["From"] =~ /<?(\S+@(\S+?))>?$/
+      if @header['From'] =~ /<?(\S+@(\S+?))>?$/
         # TODO: this is ugly. might implement an AccountSelector and handle
         # special cases more transparently.
         account_from = @account_selector.can_set_to?($1) ? $1 : nil
@@ -152,19 +152,19 @@ EOS
 
       # A single source of truth might better than duplicating this in both
       # @account_user and @account_selector.
-      @account_user = @header["From"]
+      @account_user = @header['From']
 
       add_selector @account_selector
     end
 
     @crypto_selector =
       if CryptoManager.have_crypto?
-        HorizontalSelector.new "Crypto:", [:none] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.keys, ["None"] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.values
+        HorizontalSelector.new 'Crypto:', [:none] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.keys, ['None'] + CryptoManager::OUTGOING_MESSAGE_OPERATIONS.values
       end
     add_selector @crypto_selector if @crypto_selector
 
     if @crypto_selector
-      HookManager.run "crypto-mode", header: @header, body: @body, crypto_selector: @crypto_selector
+      HookManager.run 'crypto-mode', header: @header, body: @body, crypto_selector: @crypto_selector
     end
 
     super opts
@@ -179,7 +179,7 @@ EOS
     elsif i < @selectors.length
       @selectors[i].line @selector_label_width
     elsif i == @selectors.length
-      ""
+      ''
     else
       @text[i - @selectors.length - DECORATION_LINES]
     end
@@ -199,13 +199,13 @@ EOS
     end
   end
 
-  def edit_to; edit_field "To" end
-  def edit_cc; edit_field "Cc" end
-  def edit_subject; edit_field "Subject" end
+  def edit_to; edit_field 'To' end
+  def edit_cc; edit_field 'Cc' end
+  def edit_subject; edit_field 'Subject' end
 
   def save_message_to_file
     sig = sig_lines.join("\n")
-    @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", ".eml"]
+    @file = Tempfile.new ["sup.#{self.class.name.gsub(/.*::/, '').camel_to_hyphy}", '.eml']
     @file.puts format_headers(@header - NON_EDITABLE_HEADERS).first
     @file.puts
 
@@ -254,7 +254,7 @@ EOS
   end
 
   def edit_message
-    old_from = @header["From"] if @account_selector
+    old_from = @header['From'] if @account_selector
 
     begin
       save_message_to_file
@@ -263,7 +263,7 @@ EOS
       return
     end
 
-    editor = $config[:editor] || ENV['EDITOR'] || "/usr/bin/vi"
+    editor = $config[:editor] || ENV['EDITOR'] || '/usr/bin/vi'
 
     mtime = File.mtime @file.path
     BufferManager.shell_out "#{editor} #{@file.path}"
@@ -275,8 +275,8 @@ EOS
     @header = header - NON_EDITABLE_HEADERS
     set_sig_edit_flag
 
-    if @account_selector and @header["From"] != old_from
-      @account_user = @header["From"]
+    if @account_selector and @header['From'] != old_from
+      @account_user = @header['From']
       @account_selector.set_to nil
     end
 
@@ -299,7 +299,7 @@ EOS
 
     # put up buffer saying you can now edit the message in another
     # terminal or app, and continue to use sup in the meantime.
-    subject = @header["Subject"] || ""
+    subject = @header['Subject'] || ''
     @async_mode = EditMessageAsyncMode.new self, @file.path, subject
     BufferManager.spawn "Waiting for message \"#{subject}\" to be finished", @async_mode
 
@@ -334,16 +334,16 @@ EOS
         update
       end
     end
-    !edited? || BufferManager.ask_yes_or_no("Discard message?")
+    !edited? || BufferManager.ask_yes_or_no('Discard message?')
   end
 
   def unsaved?; edited? end
 
   def attach_file
-    fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
+    fn = BufferManager.ask_for_filename :attachment, 'File name (enter for browser): '
     return unless fn
-    if HookManager.enabled? "check-attachment"
-        reason = HookManager.run("check-attachment", filename: fn)
+    if HookManager.enabled? 'check-attachment'
+        reason = HookManager.run('check-attachment', filename: fn)
         if reason
             return unless BufferManager.ask_yes_or_no("#{reason} Attach anyway?")
         end
@@ -372,7 +372,7 @@ EOS
 
   def rerun_crypto_selector_hook
     if @crypto_selector && !@crypto_selector.changed_by_user
-      HookManager.run "crypto-mode", header: @header, body: @body, crypto_selector: @crypto_selector
+      HookManager.run 'crypto-mode', header: @header, body: @body, crypto_selector: @crypto_selector
     end
   end
 
@@ -427,9 +427,9 @@ EOS
   def update
     if @account_selector
       if @account_selector.val.nil?
-        @header["From"] = @account_user
+        @header['From'] = @account_user
       else
-        @header["From"] = AccountManager.full_address_for @account_selector.val
+        @header['From'] = AccountManager.full_address_for @account_selector.val
       end
     end
 
@@ -438,14 +438,14 @@ EOS
   end
 
   def regen_text
-    header, @header_lines = format_headers(@header - NON_EDITABLE_HEADERS) + [""]
-    @text = header + [""] + @body
+    header, @header_lines = format_headers(@header - NON_EDITABLE_HEADERS) + ['']
+    @text = header + [''] + @body
     @text += sig_lines unless @sig_edited
 
     @attachment_lines_offset = 0
 
     unless @attachments.empty?
-      @text += [""]
+      @text += ['']
       @attachment_lines_offset = @text.length
       @text += (0 ... @attachments.size).map { |i| [[:attachment_color, "+ Attachment: #{@attachment_names[i]} (#{@attachments[i].body.size.to_human_size})"]] }
     end
@@ -486,9 +486,9 @@ EOS
   def make_lines header, things
     case things
     when nil, []
-      [header + " "]
+      [header + ' ']
     when String
-      [header + " " + things]
+      [header + ' ' + things]
     else
       if things.empty?
         [header]
@@ -496,47 +496,47 @@ EOS
         things.map_with_index do |name, i|
           raise "an array: #{name.inspect} (things #{things.inspect})" if Array === name
           if i == 0
-            header + " " + name
+            header + ' ' + name
           else
-            (" " * (header.display_length + 1)) + name
-          end + (i == things.length - 1 ? "" : ",")
+            (' ' * (header.display_length + 1)) + name
+          end + (i == things.length - 1 ? '' : ',')
         end
       end
     end
   end
 
   def send_message
-    return false if !edited? && !BufferManager.ask_yes_or_no("Message unedited. Really send?")
+    return false if !edited? && !BufferManager.ask_yes_or_no('Message unedited. Really send?')
     return false if $config[:confirm_no_attachments] && mentions_attachments? && @attachments.size == 0 && !BufferManager.ask_yes_or_no("You haven't added any attachments. Really send?")#" stupid ruby-mode
     return false if $config[:confirm_top_posting] && top_posting? && !BufferManager.ask_yes_or_no("You're top-posting. That makes you a bad person. Really send?") #" stupid ruby-mode
 
     from_email =
-      if @header["From"] =~ /<?(\S+@(\S+?))>?$/
+      if @header['From'] =~ /<?(\S+@(\S+?))>?$/
         $1
       else
         AccountManager.default_account.email
       end
 
     acct = AccountManager.account_for(from_email) || AccountManager.default_account
-    BufferManager.flash "Sending..."
+    BufferManager.flash 'Sending...'
 
     begin
       date = Time.now
       m = build_message date
 
-      if HookManager.enabled? "sendmail"
-        if not HookManager.run "sendmail", message: m, account: acct
-              warn "Sendmail hook was not successful"
+      if HookManager.enabled? 'sendmail'
+        if not HookManager.run 'sendmail', message: m, account: acct
+              warn 'Sendmail hook was not successful'
               return false
         end
       else
-        IO.popen(acct.sendmail, "w:UTF-8") { |p| p.puts m }
+        IO.popen(acct.sendmail, 'w:UTF-8') { |p| p.puts m }
         raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
       end
 
       SentManager.write_sent_message(date, from_email) { |f| f.puts sanitize_body(m.to_s) }
       BufferManager.kill_buffer buffer
-      BufferManager.flash "Message sent!"
+      BufferManager.flash 'Message sent!'
       true
     rescue SystemCallError, SendmailCommandFailed, CryptoManager::Error => e
       warn "Problem sending mail: #{e.message}"
@@ -548,12 +548,12 @@ EOS
   def save_as_draft
     DraftManager.write_draft { |f| write_message f, false }
     BufferManager.kill_buffer buffer
-    BufferManager.flash "Saved for later editing."
+    BufferManager.flash 'Saved for later editing.'
   end
 
   def build_message date
     m = RMail::Message.new
-    m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
+    m.header['Content-Type'] = "text/plain; charset=#{$encoding}"
     m.body = @body.join("\n")
     m.body += "\n" + sig_lines.join("\n") unless @sig_edited
     ## body must end in a newline or GPG signatures will be WRONG!
@@ -563,7 +563,7 @@ EOS
     ## there are attachments, so wrap body in an attachment of its own
     unless @attachments.empty?
       body_m = m
-      body_m.header["Content-Disposition"] = "inline"
+      body_m.header['Content-Disposition'] = 'inline'
       m = RMail::Message.new
 
       m.add_part body_m
@@ -575,8 +575,8 @@ EOS
 
     ## do whatever crypto transformation is necessary
     if @crypto_selector && @crypto_selector.val != :none
-      from_email = Person.from_address(@header["From"]).email
-      to_email = [@header["To"], @header["Cc"], @header["Bcc"]].flatten.compact.map { |p| Person.from_address(p).email }
+      from_email = Person.from_address(@header['From']).email
+      to_email = [@header['To'], @header['Cc'], @header['Bcc']].flatten.compact.map { |p| Person.from_address(p).email }
       if m.multipart?
         m.each_part {|p| p = transfer_encode p}
       else
@@ -594,15 +594,15 @@ EOS
         when String
           (k.match(/subject/i) ? mime_encode_subject(v).dup.fix_encoding! : mime_encode_address(v)).dup.fix_encoding!
         when Array
-          (v.map { |v| mime_encode_address v }.join ", ").dup.fix_encoding!
+          (v.map { |v| mime_encode_address v }.join ', ').dup.fix_encoding!
         end
     end
 
-    m.header["Date"] = date.rfc2822
-    m.header["Message-Id"] = @message_id
-    m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
-    m.header["Content-Transfer-Encoding"] ||= '8bit'
-    m.header["MIME-Version"] = "1.0" if m.multipart?
+    m.header['Date'] = date.rfc2822
+    m.header['Message-Id'] = @message_id
+    m.header['User-Agent'] = "Sup/#{Redwood::VERSION}"
+    m.header['Content-Transfer-Encoding'] ||= '8bit'
+    m.header['MIME-Version'] = '1.0' if m.multipart?
     m
   end
 
@@ -611,7 +611,7 @@ EOS
   ## this is going to change soon: draft messages (currently written
   ## with full=false) will be output as yaml.
   def write_message f, full=true, date=Time.now
-    raise ArgumentError, "no pre-defined date: header allowed" if @header["Date"]
+    raise ArgumentError, 'no pre-defined date: header allowed' if @header['Date']
     f.puts format_headers(@header).first
     f.puts <<EOS
 Date: #{date.rfc2822}
@@ -635,8 +635,8 @@ EOS
 
   def edit_field field
     case field
-    when "Subject"
-      text = BufferManager.ask :subject, "Subject: ", @header[field]
+    when 'Subject'
+      text = BufferManager.ask :subject, 'Subject: ', @header[field]
        if text
          @header[field] = parse_header field, text
          update
@@ -645,18 +645,18 @@ EOS
       default = case field
         when *MULTI_HEADERS
           @header[field] ||= []
-          @header[field].join(", ")
+          @header[field].join(', ')
         else
           @header[field]
         end
 
       contacts = BufferManager.ask_for_contacts :people, "#{field}: ", default
       if contacts
-        text = contacts.map { |s| s.full_address }.join(", ")
+        text = contacts.map { |s| s.full_address }.join(', ')
         @header[field] = parse_header field, text
 
-        if @account_selector and field == "From"
-          @account_user = @header["From"]
+        if @account_selector and field == 'From'
+          @account_user = @header['From']
           @account_selector.set_to nil
         end
 
@@ -669,12 +669,12 @@ EOS
   private
 
   def sanitize_body body
-    body.gsub(/^From /, ">From ")
+    body.gsub(/^From /, '>From ')
   end
 
   def mentions_attachments?
-    if HookManager.enabled? "mentions-attachments"
-      HookManager.run "mentions-attachments", header: @header, body: @body
+    if HookManager.enabled? 'mentions-attachments'
+      HookManager.run 'mentions-attachments', header: @header, body: @body
     else
       @body.any? {  |l| l.fix_encoding! =~ /^[^>]/ && l.fix_encoding! =~ /\battach(ment|ed|ing|)\b/i }
     end
@@ -685,14 +685,14 @@ EOS
   end
 
   def sig_lines
-    p = Person.from_address(@header["From"])
+    p = Person.from_address(@header['From'])
     from_email = p && p.email
 
     ## first run the hook
-    hook_sig = HookManager.run "signature", header: @header, from_email: from_email, message_id: @message_id
+    hook_sig = HookManager.run 'signature', header: @header, from_email: from_email, message_id: @message_id
 
     return [] if hook_sig == :none
-    return ["", "-- "] + hook_sig.split("\n") if hook_sig
+    return ['', '-- '] + hook_sig.split("\n") if hook_sig
 
     ## no hook, do default signature generation based on config.yaml
     return [] unless from_email
@@ -700,7 +700,7 @@ EOS
              AccountManager.default_account).signature
 
     if sigfn && File.exist?(sigfn)
-      ["", "-- "] + File.readlines(sigfn).map { |l| l.chomp }
+      ['', '-- '] + File.readlines(sigfn).map { |l| l.chomp }
     else
       []
     end
@@ -708,18 +708,18 @@ EOS
 
   def transfer_encode msg_part
     ## return the message unchanged if it's already encoded
-    if (msg_part.header["Content-Transfer-Encoding"] == "base64" ||
-        msg_part.header["Content-Transfer-Encoding"] == "quoted-printable")
+    if (msg_part.header['Content-Transfer-Encoding'] == 'base64' ||
+        msg_part.header['Content-Transfer-Encoding'] == 'quoted-printable')
       return msg_part
     end
 
     ## encode to quoted-printable for all text/* MIME types,
     ## use base64 otherwise
-    if msg_part.header["Content-Type"] =~ /text\/.*/
-      msg_part.header["Content-Transfer-Encoding"] = 'quoted-printable'
+    if msg_part.header['Content-Type'] =~ /text\/.*/
+      msg_part.header['Content-Transfer-Encoding'] = 'quoted-printable'
       msg_part.body = [msg_part.body].pack('M')
     else
-      msg_part.header["Content-Transfer-Encoding"] = 'base64'
+      msg_part.header['Content-Transfer-Encoding'] = 'base64'
       msg_part.body = [msg_part.body].pack('m')
     end
     msg_part

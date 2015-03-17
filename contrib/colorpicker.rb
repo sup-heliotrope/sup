@@ -25,7 +25,7 @@ end
 def cell y, x, c
   @map[[y,x]] = c
   Ncurses.attron(Ncurses.COLOR_PAIR(c))
-  Ncurses.mvaddstr(y, x, " ")
+  Ncurses.mvaddstr(y, x, ' ')
   Ncurses.attroff(Ncurses.COLOR_PAIR(c))
 end
 
@@ -47,7 +47,7 @@ def handle_click y, x
     20.times do |j|
       y = 13 + i
       x = j
-      Ncurses.mvaddstr(y, x, " ")
+      Ncurses.mvaddstr(y, x, ' ')
     end
   end
   Ncurses.attroff(Ncurses.COLOR_PAIR(c))

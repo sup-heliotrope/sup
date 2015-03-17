@@ -19,7 +19,7 @@ module Ncurses
     24.times { |x| color! "g#{x}", (16+6*6*6) + x }
   elsif Ncurses::NUM_COLORS == -1
     ## Terminal emulator doesn't appear to support colors
-    fail "sup must be run in a terminal with color support, please check your TERM variable."
+    fail 'sup must be run in a terminal with color support, please check your TERM variable.'
   end
 end
 
@@ -29,51 +29,51 @@ class Colormap
   @@instance = nil
 
   DEFAULT_COLORS = {
-    text: { fg: "white", bg: "black" },
-    status: { fg: "white", bg: "blue", attrs: ["bold"] },
-    index_old: { fg: "white", bg: "default" },
-    index_new: { fg: "white", bg: "default", attrs: ["bold"] },
-    index_starred: { fg: "yellow", bg: "default", attrs: ["bold"] },
-    index_draft: { fg: "red", bg: "default", attrs: ["bold"] },
-    labellist_old: { fg: "white", bg: "default" },
-    labellist_new: { fg: "white", bg: "default", attrs: ["bold"] },
-    twiddle: { fg: "blue", bg: "default" },
-    label: { fg: "yellow", bg: "default" },
-    message_patina: { fg: "black", bg: "green" },
-    alternate_patina: { fg: "black", bg: "blue" },
-    missing_message: { fg: "black", bg: "red" },
-    attachment: { fg: "cyan", bg: "default" },
-    cryptosig_valid: { fg: "yellow", bg: "default", attrs: ["bold"] },
-    cryptosig_valid_untrusted: { fg: "yellow", bg: "blue", attrs: ["bold"] },
-    cryptosig_unknown: { fg: "cyan", bg: "default" },
-    cryptosig_invalid: { fg: "yellow", bg: "red", attrs: ["bold"] },
-    generic_notice_patina: { fg: "cyan", bg: "default" },
-    quote_patina: { fg: "yellow", bg: "default" },
-    sig_patina: { fg: "yellow", bg: "default" },
-    quote: { fg: "yellow", bg: "default" },
-    sig: { fg: "yellow", bg: "default" },
-    to_me: { fg: "green", bg: "default" },
-    with_attachment: { fg: "green", bg: "default" },
-    starred: { fg: "yellow", bg: "default", attrs: ["bold"] },
-    starred_patina: { fg: "yellow", bg: "green", attrs: ["bold"] },
-    alternate_starred_patina: { fg: "yellow", bg: "blue", attrs: ["bold"] },
-    snippet: { fg: "cyan", bg: "default" },
-    option: { fg: "white", bg: "default" },
-    tagged: { fg: "yellow", bg: "default", attrs: ["bold"] },
-    draft_notification: { fg: "red", bg: "default", attrs: ["bold"] },
-    completion_character: { fg: "white", bg: "default", attrs: ["bold"] },
-    horizontal_selector_selected: { fg: "yellow", bg: "default", attrs: ["bold"] },
-    horizontal_selector_unselected: { fg: "cyan", bg: "default" },
-    search_highlight: { fg: "black", bg: "yellow", attrs: ["bold"] },
-    system_buf: { fg: "blue", bg: "default" },
-    regular_buf: { fg: "white", bg: "default" },
-    modified_buffer: { fg: "yellow", bg: "default", attrs: ["bold"] },
-    date: { fg: "white", bg: "default"},
-    size_widget: { fg: "white", bg: "default"},
+    text: { fg: 'white', bg: 'black' },
+    status: { fg: 'white', bg: 'blue', attrs: ['bold'] },
+    index_old: { fg: 'white', bg: 'default' },
+    index_new: { fg: 'white', bg: 'default', attrs: ['bold'] },
+    index_starred: { fg: 'yellow', bg: 'default', attrs: ['bold'] },
+    index_draft: { fg: 'red', bg: 'default', attrs: ['bold'] },
+    labellist_old: { fg: 'white', bg: 'default' },
+    labellist_new: { fg: 'white', bg: 'default', attrs: ['bold'] },
+    twiddle: { fg: 'blue', bg: 'default' },
+    label: { fg: 'yellow', bg: 'default' },
+    message_patina: { fg: 'black', bg: 'green' },
+    alternate_patina: { fg: 'black', bg: 'blue' },
+    missing_message: { fg: 'black', bg: 'red' },
+    attachment: { fg: 'cyan', bg: 'default' },
+    cryptosig_valid: { fg: 'yellow', bg: 'default', attrs: ['bold'] },
+    cryptosig_valid_untrusted: { fg: 'yellow', bg: 'blue', attrs: ['bold'] },
+    cryptosig_unknown: { fg: 'cyan', bg: 'default' },
+    cryptosig_invalid: { fg: 'yellow', bg: 'red', attrs: ['bold'] },
+    generic_notice_patina: { fg: 'cyan', bg: 'default' },
+    quote_patina: { fg: 'yellow', bg: 'default' },
+    sig_patina: { fg: 'yellow', bg: 'default' },
+    quote: { fg: 'yellow', bg: 'default' },
+    sig: { fg: 'yellow', bg: 'default' },
+    to_me: { fg: 'green', bg: 'default' },
+    with_attachment: { fg: 'green', bg: 'default' },
+    starred: { fg: 'yellow', bg: 'default', attrs: ['bold'] },
+    starred_patina: { fg: 'yellow', bg: 'green', attrs: ['bold'] },
+    alternate_starred_patina: { fg: 'yellow', bg: 'blue', attrs: ['bold'] },
+    snippet: { fg: 'cyan', bg: 'default' },
+    option: { fg: 'white', bg: 'default' },
+    tagged: { fg: 'yellow', bg: 'default', attrs: ['bold'] },
+    draft_notification: { fg: 'red', bg: 'default', attrs: ['bold'] },
+    completion_character: { fg: 'white', bg: 'default', attrs: ['bold'] },
+    horizontal_selector_selected: { fg: 'yellow', bg: 'default', attrs: ['bold'] },
+    horizontal_selector_unselected: { fg: 'cyan', bg: 'default' },
+    search_highlight: { fg: 'black', bg: 'yellow', attrs: ['bold'] },
+    system_buf: { fg: 'blue', bg: 'default' },
+    regular_buf: { fg: 'white', bg: 'default' },
+    modified_buffer: { fg: 'yellow', bg: 'default', attrs: ['bold'] },
+    date: { fg: 'white', bg: 'default'},
+    size_widget: { fg: 'white', bg: 'default'},
   }
 
   def initialize
-    raise "only one instance can be created" if @@instance
+    raise 'only one instance can be created' if @@instance
     @@instance = self
     @color_pairs = {[Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK] => 0}
     @users = []
@@ -225,7 +225,7 @@ class Colormap
 
       highlight_symbol = v[:highlight] ? :"#{v[:highlight]}_color" : nil
 
-      symbol = (k.to_s + "_color").to_sym
+      symbol = (k.to_s + '_color').to_sym
       add symbol, fg, bg, attrs, highlight_symbol
     end
   end

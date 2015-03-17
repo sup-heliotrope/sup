@@ -11,15 +11,15 @@ class CryptoManager
   class Error < StandardError; end
 
   OUTGOING_MESSAGE_OPERATIONS = OrderedHash.new(
-    [:sign, "Sign"],
-    [:sign_and_encrypt, "Sign and encrypt"],
-    [:encrypt, "Encrypt only"]
+    [:sign, 'Sign'],
+    [:sign_and_encrypt, 'Sign and encrypt'],
+    [:encrypt, 'Encrypt only']
   )
 
   KEY_PATTERN = /(-----BEGIN PGP PUBLIC KEY BLOCK.*-----END PGP PUBLIC KEY BLOCK)/m
-  KEYSERVER_URL = "http://pool.sks-keyservers.net:11371/pks/lookup"
+  KEYSERVER_URL = 'http://pool.sks-keyservers.net:11371/pks/lookup'
 
-  HookManager.register "gpg-options", <<EOS
+  HookManager.register 'gpg-options', <<EOS
 Runs before gpg is called, allowing you to modify the options (most
 likely you would want to add something to certain commands, like
 {:always_trust => true} to encrypting a message, but who knows).
@@ -31,7 +31,7 @@ options: a dictionary of values to be passed to GPGME
 Return value: a dictionary to be passed to GPGME
 EOS
 
-  HookManager.register "sig-output", <<EOS
+  HookManager.register 'sig-output', <<EOS
 Runs when the signature output is being generated, allowing you to
 add extra information to your signatures if you want.
 
@@ -42,7 +42,7 @@ from_key: the key that generated the signature (class is GPGME::Key)
 Return value: an array of lines of output
 EOS
 
-  HookManager.register "gpg-expand-keys", <<EOS
+  HookManager.register 'gpg-expand-keys', <<EOS
 Runs when the list of encryption recipients is created, allowing you to
 replace a recipient with one or more GPGME recipients. For example, you could
 replace the email address of a mailing list with the key IDs that belong to
@@ -97,12 +97,12 @@ EOS
     else
       # check if the gpg-options hook uses the passphrase_callback
       # if it doesn't then check if gpg agent is present
-      gpg_opts = HookManager.run("gpg-options",
-                                 {operation: "sign", options: {}}) || {}
+      gpg_opts = HookManager.run('gpg-options',
+                                 {operation: 'sign', options: {}}) || {}
       if gpg_opts[:passphrase_callback].nil?
         if ENV['GPG_AGENT_INFO'].nil?
           @not_working_reason = ["Environment variable 'GPG_AGENT_INFO' not set, is gpg-agent running?",
-                                 "If gpg-agent is running, try $ export `cat ~/.gpg-agent-info`"]
+                                 'If gpg-agent is running, try $ export `cat ~/.gpg-agent-info`']
           return
         end
 
@@ -129,8 +129,8 @@ EOS
 
     gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP, armor: true, textmode: true}
     gpg_opts.merge!(gen_sign_user_opts(from))
-    gpg_opts = HookManager.run("gpg-options",
-                               {operation: "sign", options: gpg_opts}) || gpg_opts
+    gpg_opts = HookManager.run('gpg-options',
+                               {operation: 'sign', options: gpg_opts}) || gpg_opts
     begin
       if GPGME.respond_to?('detach_sign')
         sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
@@ -146,14 +146,14 @@ EOS
     # if the key (or gpg-agent) is not available GPGME does not complain
     # but just returns a zero length string. Let's catch that
     if sig.length == 0
-      raise Error, gpgme_exc_msg("GPG failed to generate signature: check that gpg-agent is running and your key is available.")
+      raise Error, gpgme_exc_msg('GPG failed to generate signature: check that gpg-agent is running and your key is available.')
     end
 
     envelope = RMail::Message.new
-    envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature'
+    envelope.header['Content-Type'] = 'multipart/signed; protocol=application/pgp-signature'
 
     envelope.add_part payload
-    signature = RMail::Message.make_attachment sig, "application/pgp-signature", nil, "signature.asc"
+    signature = RMail::Message.make_attachment sig, 'application/pgp-signature', nil, 'signature.asc'
     envelope.add_part signature
     envelope
   end
@@ -166,10 +166,10 @@ EOS
       gpg_opts.merge!(gen_sign_user_opts(from))
       gpg_opts.merge!({sign: true})
     end
-    gpg_opts = HookManager.run("gpg-options",
-                               {operation: "encrypt", options: gpg_opts}) || gpg_opts
+    gpg_opts = HookManager.run('gpg-options',
+                               {operation: 'encrypt', options: gpg_opts}) || gpg_opts
     recipients = to + [from]
-    recipients = HookManager.run("gpg-expand-keys", { recipients: recipients }) || recipients
+    recipients = HookManager.run('gpg-expand-keys', { recipients: recipients }) || recipients
     begin
       if GPGME.respond_to?('encrypt')
         cipher = GPGME.encrypt(recipients, format_payload(payload), gpg_opts)
@@ -185,21 +185,21 @@ EOS
     # if the key (or gpg-agent) is not available GPGME does not complain
     # but just returns a zero length string. Let's catch that
     if cipher.length == 0
-      raise Error, gpgme_exc_msg("GPG failed to generate cipher text: check that gpg-agent is running and your key is available.")
+      raise Error, gpgme_exc_msg('GPG failed to generate cipher text: check that gpg-agent is running and your key is available.')
     end
 
     encrypted_payload = RMail::Message.new
-    encrypted_payload.header["Content-Type"] = "application/octet-stream"
-    encrypted_payload.header["Content-Disposition"] = 'inline; filename="msg.asc"'
+    encrypted_payload.header['Content-Type'] = 'application/octet-stream'
+    encrypted_payload.header['Content-Disposition'] = 'inline; filename="msg.asc"'
     encrypted_payload.body = cipher
 
     control = RMail::Message.new
-    control.header["Content-Type"] = "application/pgp-encrypted"
-    control.header["Content-Disposition"] = "attachment"
+    control.header['Content-Type'] = 'application/pgp-encrypted'
+    control.header['Content-Disposition'] = 'attachment'
     control.body = "Version: 1\n"
 
     envelope = RMail::Message.new
-    envelope.header["Content-Type"] = 'multipart/encrypted; protocol=application/pgp-encrypted'
+    envelope.header['Content-Type'] = 'multipart/encrypted; protocol=application/pgp-encrypted'
 
     envelope.add_part control
     envelope.add_part encrypted_payload
@@ -247,7 +247,7 @@ EOS
     elsif !unknown
       Chunk::CryptoNotice.new(:invalid, summary_line, all_output_lines)
     elsif unknown_fingerprint
-      Chunk::CryptoNotice.new(:unknown_key, "Unable to determine validity of cryptographic signature", all_output_lines, unknown_fingerprint)
+      Chunk::CryptoNotice.new(:unknown_key, 'Unable to determine validity of cryptographic signature', all_output_lines, unknown_fingerprint)
     else
       unknown_status all_output_lines
     end
@@ -257,8 +257,8 @@ EOS
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP}
-    gpg_opts = HookManager.run("gpg-options",
-                               {operation: "verify", options: gpg_opts}) || gpg_opts
+    gpg_opts = HookManager.run('gpg-options',
+                               {operation: 'verify', options: gpg_opts}) || gpg_opts
     ctx = GPGME::Ctx.new(gpg_opts)
     sig_data = GPGME::Data.from_str signature.decode
     if detached
@@ -289,8 +289,8 @@ EOS
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP}
-    gpg_opts = HookManager.run("gpg-options",
-                               {operation: "decrypt", options: gpg_opts}) || gpg_opts
+    gpg_opts = HookManager.run('gpg-options',
+                               {operation: 'decrypt', options: gpg_opts}) || gpg_opts
     ctx = GPGME::Ctx.new(gpg_opts)
     cipher_data = GPGME::Data.from_str(format_payload(payload))
     if GPGME::Data.respond_to?('empty')
@@ -301,7 +301,7 @@ EOS
     begin
       ctx.decrypt_verify(cipher_data, plain_data)
     rescue GPGME::Error => exc
-      return Chunk::CryptoNotice.new(:invalid, "This message could not be decrypted", gpgme_exc_msg(exc.message))
+      return Chunk::CryptoNotice.new(:invalid, 'This message could not be decrypted', gpgme_exc_msg(exc.message))
     end
     begin
       sig = self.verified_ok? ctx.verify_result
@@ -353,19 +353,19 @@ EOS
         msg = RMail::Parser.read output
       end
     end
-    notice = Chunk::CryptoNotice.new :valid, "This message has been decrypted for display"
+    notice = Chunk::CryptoNotice.new :valid, 'This message has been decrypted for display'
     [notice, sig, msg]
   end
 
   def retrieve fingerprint
     require 'net/http'
     uri = URI($config[:keyserver_url] || KEYSERVER_URL)
-    unless uri.scheme == "http" and not uri.host.nil?
+    unless uri.scheme == 'http' and not uri.host.nil?
       return "Invalid url: #{uri}"
     end
 
-    fingerprint = "0x" + fingerprint unless fingerprint[0..1] == "0x"
-    params = {op: "get", search: fingerprint}
+    fingerprint = '0x' + fingerprint unless fingerprint[0..1] == '0x'
+    params = {op: 'get', search: fingerprint}
     uri.query = URI.encode_www_form(params)
 
     begin
@@ -375,7 +375,7 @@ EOS
     return "Couldn't get key from keyserver at this address: #{uri}" unless res.is_a?(Net::HTTPSuccess)
 
     match = KEY_PATTERN.match(res.body)
-    return "No key found" unless match && match.length > 0
+    return 'No key found' unless match && match.length > 0
 
     GPGME::Key.import(match[0])
 
@@ -385,7 +385,7 @@ EOS
   private
 
   def unknown_status lines=[]
-    Chunk::CryptoNotice.new :unknown, "Unable to determine validity of cryptographic signature", lines
+    Chunk::CryptoNotice.new :unknown, 'Unable to determine validity of cryptographic signature', lines
   end
 
   def gpgme_exc_msg msg
@@ -402,9 +402,9 @@ EOS
 
   # remove the hex key_id and info in ()
   def simplify_sig_line sig_line, trusted
-    sig_line.sub!(/from [0-9A-F]{16} /, "from ")
+    sig_line.sub!(/from [0-9A-F]{16} /, 'from ')
     if !trusted
-      sig_line.sub!(/Good signature/, "Good (untrusted) signature")
+      sig_line.sub!(/Good signature/, 'Good (untrusted) signature')
     end
     sig_line
   end
@@ -420,7 +420,7 @@ EOS
       elsif signature.to_s
         first_sig = signature.to_s.sub(/from [0-9A-F]{16} /, 'from "') + '"'
       else
-        first_sig = "Unknown error or empty signature"
+        first_sig = 'Unknown error or empty signature'
       end
     rescue EOFError
       from_key = nil
@@ -428,9 +428,9 @@ EOS
       unknown_fpr = signature.fingerprint
     end
 
-    time_line = "Signature made " + signature.timestamp.strftime("%a %d %b %Y %H:%M:%S %Z") +
-                " using " + key_type(from_key, signature.fingerprint) +
-                "key ID " + signature.fingerprint[-8..-1]
+    time_line = 'Signature made ' + signature.timestamp.strftime('%a %d %b %Y %H:%M:%S %Z') +
+                ' using ' + key_type(from_key, signature.fingerprint) +
+                'key ID ' + signature.fingerprint[-8..-1]
     output_lines = [time_line, first_sig]
 
     trusted = false
@@ -443,30 +443,30 @@ EOS
 
       # now we want to look at the trust of that key
       if signature.validity != GPGME::GPGME_VALIDITY_FULL && signature.validity != GPGME::GPGME_VALIDITY_MARGINAL
-        output_lines << "WARNING: This key is not certified with a trusted signature!"
-        output_lines << "There is no indication that the signature belongs to the owner"
-        output_lines << "Full fingerprint is: " + (0..9).map {|i| signature.fpr[(i*4),4]}.join(":")
+        output_lines << 'WARNING: This key is not certified with a trusted signature!'
+        output_lines << 'There is no indication that the signature belongs to the owner'
+        output_lines << 'Full fingerprint is: ' + (0..9).map {|i| signature.fpr[(i*4),4]}.join(':')
       else
         trusted = true
       end
 
       # finally, run the hook
-      output_lines << HookManager.run("sig-output",
+      output_lines << HookManager.run('sig-output',
                                       {signature: signature, from_key: from_key})
     end
     return output_lines, trusted, unknown_fpr
   end
 
   def key_type key, fpr
-    return "" if key.nil?
+    return '' if key.nil?
     subkey = key.subkeys.find {|subkey| subkey.fpr == fpr || subkey.keyid == fpr }
-    return "" if subkey.nil?
+    return '' if subkey.nil?
 
     case subkey.pubkey_algo
-    when GPGME::PK_RSA then "RSA "
-    when GPGME::PK_DSA then "DSA "
-    when GPGME::PK_ELG then "ElGamel "
-    when GPGME::PK_ELG_E then "ElGamel "
+    when GPGME::PK_RSA then 'RSA '
+    when GPGME::PK_DSA then 'DSA '
+    when GPGME::PK_ELG then 'ElGamel '
+    when GPGME::PK_ELG_E then 'ElGamel '
     else "unknown key type (#{subkey.pubkey_algo}) "
     end
   end

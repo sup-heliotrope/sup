@@ -2,7 +2,7 @@ module Redwood
 
 class EditMessageAsyncMode < LineCursorMode
 
-  HookManager.register "async-edit", <<EOS
+  HookManager.register 'async-edit', <<EOS
 Runs when 'H' is pressed in async edit mode. You can run whatever code
 you want here - though the default case would be launching a text
 editor. Your hook is assumed to not block, so you should use exec() or
@@ -18,9 +18,9 @@ Return value: None
 EOS
 
   register_keymap do |k|
-    k.add :run_async_hook, "Run the async-edit hook", 'H'
-    k.add :edit_finished, "Finished editing message", 'E'
-    k.add :path_to_clipboard, "Copy file path to the clipboard", :enter
+    k.add :run_async_hook, 'Run the async-edit hook', 'H'
+    k.add :edit_finished, 'Finished editing message', 'E'
+    k.add :path_to_clipboard, 'Copy file path to the clipboard', :enter
   end
 
   def initialize parent_edit_mode, file_path, msg_subject
@@ -28,11 +28,11 @@ EOS
     @file_path = file_path
     @orig_mtime = File.mtime @file_path
 
-    @text = ["ASYNC MESSAGE EDIT",
-             "", "Your message with subject:",  msg_subject, "is saved in a file:", "", @file_path, "",
-             "You can edit your message in the editor of your choice and continue to",
-             "use sup while you edit your message.", "",
-             "Press <Enter> to have the file path copied to the clipboard.", "",
+    @text = ['ASYNC MESSAGE EDIT',
+             '', 'Your message with subject:',  msg_subject, 'is saved in a file:', '', @file_path, '',
+             'You can edit your message in the editor of your choice and continue to',
+             'use sup while you edit your message.', '',
+             'Press <Enter> to have the file path copied to the clipboard.', '',
              "When you have finished editing, select this buffer and press 'E'.",]
     run_async_hook()
     super()
@@ -46,7 +46,7 @@ EOS
 
   def killable?
     if file_being_edited?
-      if !BufferManager.ask_yes_or_no("It appears the file is still being edited. Are you sure?")
+      if !BufferManager.ask_yes_or_no('It appears the file is still being edited. Are you sure?')
         return false
       end
     end
@@ -63,7 +63,7 @@ EOS
 
   def edit_finished
     if file_being_edited?
-      if !BufferManager.ask_yes_or_no("It appears the file is still being edited. Are you sure?")
+      if !BufferManager.ask_yes_or_no('It appears the file is still being edited. Are you sure?')
         return false
       end
     end
@@ -74,21 +74,21 @@ EOS
   end
 
   def path_to_clipboard
-    if system("which xsel > /dev/null 2>&1")
+    if system('which xsel > /dev/null 2>&1')
       # linux/unix path
       IO.popen('xsel --clipboard --input', 'r+') { |clipboard| clipboard.puts(@file_path) }
-      BufferManager.flash "Copied file path to clipboard."
-    elsif system("which pbcopy > /dev/null 2>&1")
+      BufferManager.flash 'Copied file path to clipboard.'
+    elsif system('which pbcopy > /dev/null 2>&1')
       # mac path
       IO.popen('pbcopy', 'r+') { |clipboard| clipboard.puts(@file_path) }
-      BufferManager.flash "Copied file path to clipboard."
+      BufferManager.flash 'Copied file path to clipboard.'
     else
-      BufferManager.flash "No way to copy text to clipboard - try installing xsel."
+      BufferManager.flash 'No way to copy text to clipboard - try installing xsel.'
     end
   end
 
   def run_async_hook
-    HookManager.run("async-edit", {file_path: @file_path})
+    HookManager.run('async-edit', {file_path: @file_path})
   end
 
   def file_being_edited?

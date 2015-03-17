@@ -3,14 +3,14 @@ module Redwood
 class ReplyMode < EditMessageMode
   REPLY_TYPES = [:sender, :recipient, :list, :all, :user]
   TYPE_DESCRIPTIONS = {
-    sender: "Sender",
-    recipient: "Recipient",
-    all: "All",
-    list: "Mailing list",
-    user: "Customized"
+    sender: 'Sender',
+    recipient: 'Recipient',
+    all: 'All',
+    list: 'Mailing list',
+    user: 'Customized'
   }
 
-  HookManager.register "attribution", <<EOS
+  HookManager.register 'attribution', <<EOS
 Generates an attribution ("Excerpts from Joe Bloggs's message of Fri Jan 11 09:54:32 -0500 2008:").
 Variables:
   message: a message object representing the message being replied to
@@ -19,7 +19,7 @@ Return value:
   A string containing the text of the quote line (can be multi-line)
 EOS
 
-  HookManager.register "reply-from", <<EOS
+  HookManager.register 'reply-from', <<EOS
 Selects a default address for the From: header of a new reply.
 Variables:
   message: a message object representing the message being replied to
@@ -29,7 +29,7 @@ Return value:
   default behavior.
 EOS
 
-  HookManager.register "reply-to", <<EOS
+  HookManager.register 'reply-to', <<EOS
 Set the default reply-to mode.
 Variables:
   modes: array of valid modes to choose from, which will be a subset of
@@ -52,13 +52,13 @@ EOS
 
     ## first, determine the address at which we received this email. this will
     ## become our From: address in the reply.
-    hook_reply_from = HookManager.run "reply-from", message: @m
+    hook_reply_from = HookManager.run 'reply-from', message: @m
 
     ## sanity check that selection is a Person (or we'll fail below)
     ## don't check that it's an Account, though; assume they know what they're
     ## doing.
     if hook_reply_from && !(hook_reply_from.is_a? Person)
-      info "reply-from returned non-Person, using default from."
+      info 'reply-from returned non-Person, using default from.'
       hook_reply_from = nil
     end
 
@@ -97,40 +97,40 @@ EOS
 
     @headers = {}
     @headers[:recipient] = {
-      "To" => cc.map { |p| p.full_address },
-      "Cc" => [],
+      'To' => cc.map { |p| p.full_address },
+      'Cc' => [],
     } if useful_recipient
 
     ## typically we don't want to have a reply-to-sender option if the sender
     ## is a user account. however, if the cc is empty, it's a message to
     ## ourselves, so for the lack of any other options, we'll add it.
     @headers[:sender] = {
-      "To" => [to.full_address],
-      "Cc" => [],
+      'To' => [to.full_address],
+      'Cc' => [],
     } if !AccountManager.is_account?(to) || !useful_recipient
 
     @headers[:user] = {
-      "To" => [],
-      "Cc" => [],
+      'To' => [],
+      'Cc' => [],
     }
 
     not_me_ccs = cc.select { |p| !AccountManager.is_account?(p) }
     @headers[:all] = {
-      "To" => [to.full_address],
-      "Cc" => not_me_ccs.map { |p| p.full_address },
+      'To' => [to.full_address],
+      'Cc' => not_me_ccs.map { |p| p.full_address },
     } unless not_me_ccs.empty?
 
     @headers[:list] = {
-      "To" => [@m.list_address.full_address],
-      "Cc" => [],
+      'To' => [@m.list_address.full_address],
+      'Cc' => [],
     } if @m.is_list_message?
 
     refs = gen_references
 
     types = REPLY_TYPES.select { |t| @headers.member?(t) }
-    @type_selector = HorizontalSelector.new "Reply to:", types, types.map { |x| TYPE_DESCRIPTIONS[x] }
+    @type_selector = HorizontalSelector.new 'Reply to:', types, types.map { |x| TYPE_DESCRIPTIONS[x] }
 
-    hook_reply = HookManager.run "reply-to", modes: types
+    hook_reply = HookManager.run 'reply-to', modes: types
 
     @type_selector.set_to(
       if types.include? type_arg
@@ -146,14 +146,14 @@ EOS
       end)
 
     headers_full = {
-      "From" => from.full_address,
-      "Bcc" => [],
-      "In-reply-to" => "<#{@m.id}>",
-      "Subject" => Message.reify_subj(@m.subj),
-      "References" => refs,
+      'From' => from.full_address,
+      'Bcc' => [],
+      'In-reply-to' => "<#{@m.id}>",
+      'Subject' => Message.reify_subj(@m.subj),
+      'References' => refs,
     }.merge @headers[@type_selector.val]
 
-    HookManager.run "before-edit", header: headers_full, body: body
+    HookManager.run 'before-edit', header: headers_full, body: body
 
     super header: headers_full, body: body, twiddles: false
     add_selector @type_selector
@@ -180,7 +180,7 @@ EOS
   end
 
   def reply_body_lines m
-    attribution = HookManager.run("attribution", message: m) || default_attribution(m)
+    attribution = HookManager.run('attribution', message: m) || default_attribution(m)
     lines = attribution.split("\n") + m.quotable_body_lines.map { |l| "> #{l}" }
     lines.pop while lines.last =~ /^\s*$/
     lines
@@ -198,22 +198,22 @@ EOS
     old_header = @headers[@type_selector.val]
     if old_header.any? { |k, v| new_header[k] != v }
       @type_selector.set_to :user
-      self.header["To"] = @headers[:user]["To"] = new_header["To"]
-      self.header["Cc"] = @headers[:user]["Cc"] = new_header["Cc"]
+      self.header['To'] = @headers[:user]['To'] = new_header['To']
+      self.header['Cc'] = @headers[:user]['Cc'] = new_header['Cc']
       update
     end
   end
 
   def gen_references
-    (@m.refs + [@m.id]).map { |x| "<#{x}>" }.join(" ")
+    (@m.refs + [@m.id]).map { |x| "<#{x}>" }.join(' ')
   end
 
   def edit_field field
     edited_field = super
-    if edited_field and (field == "To" or field == "Cc")
+    if edited_field and (field == 'To' or field == 'Cc')
       @type_selector.set_to :user
-      @headers[:user]["To"] = self.header["To"]
-      @headers[:user]["Cc"] = self.header["Cc"]
+      @headers[:user]['To'] = self.header['To']
+      @headers[:user]['Cc'] = self.header['Cc']
       update
     end
   end

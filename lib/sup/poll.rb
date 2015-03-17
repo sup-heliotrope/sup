@@ -5,18 +5,18 @@ module Redwood
 class PollManager
   include Redwood::Singleton
 
-  HookManager.register "before-add-message", <<EOS
+  HookManager.register 'before-add-message', <<EOS
 Executes immediately before a message is added to the index.
 Variables:
   message: the new message
 EOS
 
-  HookManager.register "before-poll", <<EOS
+  HookManager.register 'before-poll', <<EOS
 Executes immediately before a poll for new messages commences.
 No variables.
 EOS
 
-  HookManager.register "after-poll", <<EOS
+  HookManager.register 'after-poll', <<EOS
 Executes immediately after a poll for new messages completes.
 Variables:
                    num: the total number of new messages added in this poll
@@ -49,10 +49,10 @@ EOS
   def poll_with_sources
     @mode ||= PollMode.new
 
-    if HookManager.enabled? "before-poll"
-      HookManager.run("before-poll")
+    if HookManager.enabled? 'before-poll'
+      HookManager.run('before-poll')
     else
-      BufferManager.flash "Polling for new messages..."
+      BufferManager.flash 'Polling for new messages...'
     end
 
     num, numi, numu, numd, from_and_subj, from_and_subj_inbox, loaded_labels = @mode.poll
@@ -64,7 +64,7 @@ EOS
     @running_totals[:loaded_labels] += loaded_labels || []
 
 
-    if HookManager.enabled? "after-poll"
+    if HookManager.enabled? 'after-poll'
       hook_args = { num: num, num_inbox: numi,
                     num_total: @running_totals[:num], num_inbox_total: @running_totals[:numi],
                     num_updated: @running_totals[:numu],
@@ -73,7 +73,7 @@ EOS
                     from_and_subj: from_and_subj, from_and_subj_inbox: from_and_subj_inbox,
                     num_inbox_total_unread: lambda { Index.num_results_for labels: [:inbox, :unread] } }
 
-      HookManager.run("after-poll", hook_args)
+      HookManager.run('after-poll', hook_args)
     else
       if @running_totals[:num] > 0
         flash_msg = "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox. " if @running_totals[:num] > 0
@@ -82,7 +82,7 @@ EOS
         flash_msg += "Labels: #{@running_totals[:loaded_labels].map{|l| l.to_s}.join(', ')}." if @running_totals[:loaded_labels].size > 0
         BufferManager.flash flash_msg
       else
-        BufferManager.flash "No new messages."
+        BufferManager.flash 'No new messages.'
       end
     end
 
@@ -95,7 +95,7 @@ EOS
       @polling.unlock
       [num, numi]
     else
-      debug "poll already in progress."
+      debug 'poll already in progress.'
       return
     end
   end
@@ -107,13 +107,13 @@ EOS
       @polling.unlock
       [num, numi]
     else
-      debug "poll_unusual already in progress."
+      debug 'poll_unusual already in progress.'
       return
     end
   end
 
   def start
-    @thread = Redwood::reporting_thread("periodic poll") do
+    @thread = Redwood::reporting_thread('periodic poll') do
       while true
         sleep @delay / 2
         poll if @last_poll.nil? || (Time.now - @last_poll) >= @delay
@@ -141,7 +141,7 @@ EOS
           next
         end
 
-        msg = ""
+        msg = ''
         num = numi = numu = numd = 0
         poll_from source do |action,m,old_m,_progress|
           if action == :delete
@@ -177,7 +177,7 @@ EOS
         msg += "Found #{num} messages, #{numi} to inbox. " unless num == 0
         msg += "Updated #{numu} messages. " unless numu == 0
         msg += "Deleted #{numd} messages." unless numd == 0
-        yield msg unless msg == ""
+        yield msg unless msg == ''
         total_num += num
         total_numi += numi
         total_numu += numu
@@ -210,7 +210,7 @@ EOS
             m.labels.each { |l| LabelManager << l }
             m.labels = old_m.labels + (m.labels - [:unread, :inbox]) if old_m
             m.locations = old_m.locations + m.locations if old_m
-            HookManager.run "before-add-message", message: m
+            HookManager.run 'before-add-message', message: m
             yield :add, m, old_m, args[:progress] if block_given?
             Index.sync_message m, true
 

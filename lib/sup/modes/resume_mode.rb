@@ -6,12 +6,12 @@ class ResumeMode < EditMessageMode
     @safe = false
 
     header, body = parse_file m.draft_filename
-    header.delete "Date"
+    header.delete 'Date'
 
     super header: header, body: body, have_signature: true
   rescue Errno::ENOENT
     DraftManager.discard @m
-    BufferManager.flash "Draft deleted outside of sup."
+    BufferManager.flash 'Draft deleted outside of sup.'
   end
 
   def unsaved?; !@safe end
@@ -19,16 +19,16 @@ class ResumeMode < EditMessageMode
   def killable?
     return true if @safe
 
-    case BufferManager.ask_yes_or_no "Discard draft?"
+    case BufferManager.ask_yes_or_no 'Discard draft?'
     when true
       DraftManager.discard @m
-      BufferManager.flash "Draft discarded."
+      BufferManager.flash 'Draft discarded.'
       true
     when false
       if edited?
         DraftManager.write_draft { |f| write_message f, false }
         DraftManager.discard @m
-        BufferManager.flash "Draft saved."
+        BufferManager.flash 'Draft saved.'
       end
       true
     else

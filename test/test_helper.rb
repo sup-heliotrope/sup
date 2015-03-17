@@ -1,6 +1,6 @@
-require "rubygems" rescue nil
+require 'rubygems' rescue nil
 require 'minitest/autorun'
-require "rr"
+require 'rr'
 
 class Minitest::Unit::TestCase
   include ::RR::Adapters::MiniTest

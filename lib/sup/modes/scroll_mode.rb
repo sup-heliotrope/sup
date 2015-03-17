@@ -13,19 +13,19 @@ class ScrollMode < Mode
   attr_reader :status, :topline, :botline, :leftcol
 
   register_keymap do |k|
-    k.add :line_down, "Down one line", :down, 'j', 'J', "\C-e"
-    k.add :line_up, "Up one line", :up, 'k', 'K', "\C-y"
-    k.add :col_left, "Left one column", :left, 'h'
-    k.add :col_right, "Right one column", :right, 'l'
-    k.add :page_down, "Down one page", :page_down, ' ', "\C-f"
-    k.add :page_up, "Up one page", :page_up, 'p', :backspace, "\C-b"
-    k.add :half_page_down, "Down one half page", "\C-d"
-    k.add :half_page_up, "Up one half page", "\C-u"
-    k.add :jump_to_start, "Jump to top", :home, '^', '1'
-    k.add :jump_to_end, "Jump to bottom", :end, '$', '0'
-    k.add :jump_to_left, "Jump to the left", '['
-    k.add :search_in_buffer, "Search in current buffer", '/'
-    k.add :continue_search_in_buffer, "Jump to next search occurrence in buffer", BufferManager::CONTINUE_IN_BUFFER_SEARCH_KEY
+    k.add :line_down, 'Down one line', :down, 'j', 'J', "\C-e"
+    k.add :line_up, 'Up one line', :up, 'k', 'K', "\C-y"
+    k.add :col_left, 'Left one column', :left, 'h'
+    k.add :col_right, 'Right one column', :right, 'l'
+    k.add :page_down, 'Down one page', :page_down, ' ', "\C-f"
+    k.add :page_up, 'Up one page', :page_up, 'p', :backspace, "\C-b"
+    k.add :half_page_down, 'Down one half page', "\C-d"
+    k.add :half_page_up, 'Up one half page', "\C-u"
+    k.add :jump_to_start, 'Jump to top', :home, '^', '1'
+    k.add :jump_to_end, 'Jump to bottom', :end, '$', '0'
+    k.add :jump_to_left, 'Jump to the left', '['
+    k.add :search_in_buffer, 'Search in current buffer', '/'
+    k.add :continue_search_in_buffer, 'Jump to next search occurrence in buffer', BufferManager::CONTINUE_IN_BUFFER_SEARCH_KEY
   end
 
   def initialize opts={}
@@ -35,7 +35,7 @@ class ScrollMode < Mode
     @twiddles = opts.member?(:twiddles) ? opts[:twiddles] : true
     @search_query = nil
     @search_line = nil
-    @status = ""
+    @status = ''
     super()
   end
 
@@ -46,9 +46,9 @@ class ScrollMode < Mode
     (@topline ... @botline).each { |ln| draw_line ln, color: :text_color }
     ((@botline - @topline) ... buffer.content_height).each do |ln|
       if @twiddles
-        buffer.write ln, 0, "~", color: :twiddle_color
+        buffer.write ln, 0, '~', color: :twiddle_color
       else
-        buffer.write ln, 0, "", color: :text_color
+        buffer.write ln, 0, '', color: :text_color
       end
     end
     @status = "lines #{@topline + 1}:#{@botline}/#{lines}"
@@ -59,7 +59,7 @@ class ScrollMode < Mode
 
   def continue_search_in_buffer
     unless @search_query
-      BufferManager.flash "No current search!"
+      BufferManager.flash 'No current search!'
       return
     end
 
@@ -67,19 +67,19 @@ class ScrollMode < Mode
     line, col = find_text @search_query, start
     if line.nil? && (start > 0)
       line, col = find_text @search_query, 0
-      BufferManager.flash "Search wrapped to top!" if line
+      BufferManager.flash 'Search wrapped to top!' if line
     end
     if line
       @search_line = line + 1
       search_goto_pos line, col, col + @search_query.display_length
       buffer.mark_dirty
     else
-      BufferManager.flash "Not found!"
+      BufferManager.flash 'Not found!'
     end
   end
 
   def search_in_buffer
-    query = BufferManager.ask :search, "search in buffer: "
+    query = BufferManager.ask :search, 'search in buffer: '
     return if query.nil? || query.empty?
     @search_query = Regexp.escape query
     continue_search_in_buffer
@@ -216,7 +216,7 @@ class ScrollMode < Mode
       else
         [oldcolor, text]
       end
-    end.compact + [[oldcolor, ""]]
+    end.compact + [[oldcolor, '']]
   end
 
   def draw_line_from_array ln, a, opts
@@ -227,7 +227,7 @@ class ScrollMode < Mode
       no_fill = i != a.size - 1
 
       if xpos + l < @leftcol
-        buffer.write ln - @topline, 0, "", color: color,
+        buffer.write ln - @topline, 0, '', color: color,
                                            highlight: opts[:highlight]
       elsif xpos < @leftcol
         ## partial

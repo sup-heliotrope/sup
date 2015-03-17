@@ -2,13 +2,13 @@ module Redwood
 
 class LabelListMode < LineCursorMode
   register_keymap do |k|
-    k.add :select_label, "Search by label", :enter
-    k.add :reload, "Discard label list and reload", '@'
-    k.add :jump_to_next_new, "Jump to next new thread", :tab
-    k.add :toggle_show_unread_only, "Toggle between showing all labels and those with unread mail", 'u'
+    k.add :select_label, 'Search by label', :enter
+    k.add :reload, 'Discard label list and reload', '@'
+    k.add :jump_to_next_new, 'Jump to next new thread', :tab
+    k.add :toggle_show_unread_only, 'Toggle between showing all labels and those with unread mail', 'u'
   end
 
-  HookManager.register "label-list-filter", <<EOS
+  HookManager.register 'label-list-filter', <<EOS
 Filter the label list, typically to sort.
 Variables:
   counted: an array of counted labels.
@@ -16,7 +16,7 @@ Return value:
   An array of counted labels with sort_by output structure.
 EOS
 
-  HookManager.register "label-list-format", <<EOS
+  HookManager.register 'label-list-format', <<EOS
 Create the sprintf format string for label-list-mode.
 Variables:
   width: the maximum label width
@@ -50,7 +50,7 @@ EOS
       jump_to_line n unless n >= topline && n < botline
       set_cursor_pos n
     else
-      BufferManager.flash "No labels messages with unread messages."
+      BufferManager.flash 'No labels messages with unread messages.'
     end
   end
 
@@ -85,8 +85,8 @@ EOS
       [label, string, total, unread]
     end
 
-    if HookManager.enabled? "label-list-filter"
-      counts = HookManager.run "label-list-filter", counted: counted
+    if HookManager.enabled? 'label-list-filter'
+      counts = HookManager.run 'label-list-filter', counted: counted
     else
       counts = counted.sort_by { |_l, s, _t, _u| s.downcase }
     end
@@ -114,18 +114,18 @@ EOS
         next
       end
 
-      fmt = HookManager.run "label-list-format", width: width, tmax: tmax, umax: umax
+      fmt = HookManager.run 'label-list-format', width: width, tmax: tmax, umax: umax
       if !fmt
         fmt = "%#{width + 1}s %5d %s, %5d unread"
       end
 
       @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),
-                 sprintf(fmt, string, total, total == 1 ? " message" : "messages", unread)]]
+                 sprintf(fmt, string, total, total == 1 ? ' message' : 'messages', unread)]]
       @labels << [label, unread]
       yield i if block_given?
     end.compact
 
-    BufferManager.flash "No labels with unread messages!" if counts.empty? && @unread_only
+    BufferManager.flash 'No labels with unread messages!' if counts.empty? && @unread_only
   end
 
   def select_label

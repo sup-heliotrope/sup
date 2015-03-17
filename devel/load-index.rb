@@ -1,6 +1,6 @@
 require 'sup'
 
-puts "loading index..."
+puts 'loading index...'
 @index = Redwood::Index.new
 @index.load
 @i = @index.index

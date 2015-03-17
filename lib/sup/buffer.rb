@@ -20,7 +20,7 @@ class Buffer
     @mode = mode
     @dirty = true
     @focus = false
-    @title = opts[:title] || ""
+    @title = opts[:title] || ''
     @force_to_top = opts[:force_to_top] || false
     @hidden = opts[:hidden] || false
     @x, @y, @width, @height = 0, 0, width, height
@@ -68,11 +68,11 @@ class Buffer
     return if x >= @width || y >= @height
 
     @w.attrset Colormap.color_for(opts[:color] || :none, opts[:highlight])
-    s ||= ""
+    s ||= ''
     maxl = @width - x # maximum display width width
 
     # fill up the line with blanks to overwrite old screen contents
-    @w.mvaddstr y, x, " " * maxl unless opts[:no_fill]
+    @w.mvaddstr y, x, ' ' * maxl unless opts[:no_fill]
 
     @w.mvaddstr y, x, s.slice_by_display_length(maxl)
   end
@@ -106,9 +106,9 @@ class BufferManager
   ## we have to define the key used to continue in-buffer search here, because
   ## it has special semantics that BufferManager deals with---current searches
   ## are canceled by any keypress except this one.
-  CONTINUE_IN_BUFFER_SEARCH_KEY = "n"
+  CONTINUE_IN_BUFFER_SEARCH_KEY = 'n'
 
-  HookManager.register "status-bar-text", <<EOS
+  HookManager.register 'status-bar-text', <<EOS
 Sets the status bar. The default status bar contains the mode name, the buffer
 title, and the mode status. Note that this will be called at least once per
 keystroke, so excessive computation is discouraged.
@@ -124,7 +124,7 @@ Variables:
 Return value: a string to be used as the status bar.
 EOS
 
-  HookManager.register "terminal-title-text", <<EOS
+  HookManager.register 'terminal-title-text', <<EOS
 Sets the title of the current terminal, if applicable. Note that this will be
 called at least once per keystroke, so excessive computation is discouraged.
 
@@ -132,7 +132,7 @@ Variables: the same as status-bar-text hook.
 Return value: a string to be used as the terminal title.
 EOS
 
-  HookManager.register "extra-contact-addresses", <<EOS
+  HookManager.register 'extra-contact-addresses', <<EOS
 A list of extra addresses to propose for tab completion, etc. when the
 user is entering an email address. Can be plain email addresses or can
 be full "User Name <email@domain.tld>" entries.
@@ -151,7 +151,7 @@ EOS
     @textfields = {}
     @flash = nil
     @shelled = @asking = false
-    @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
+    @in_x = ENV['TERM'] =~ /(xterm|rxvt|screen)/
     @sigwinch_happened = false
     @sigwinch_mutex = Mutex.new
   end
@@ -226,8 +226,8 @@ EOS
   def exists? n; @name_map.member? n; end
   def [] n; @name_map[n]; end
   def []= n, b
-    raise ArgumentError, "duplicate buffer name" if b && @name_map.member?(n)
-    raise ArgumentError, "title must be a string" unless n.is_a? String
+    raise ArgumentError, 'duplicate buffer name' if b && @name_map.member?(n)
+    raise ArgumentError, 'title must be a string' unless n.is_a? String
     @name_map[n] = b
   end
 
@@ -258,7 +258,7 @@ EOS
       if opts.member? :status
         [opts[:status], opts[:title]]
       else
-        raise "status must be supplied if draw_screen is called within a sync" if opts[:sync] == false
+        raise 'status must be supplied if draw_screen is called within a sync' if opts[:sync] == false
         get_status_and_title @focus_buf # must be called outside of the ncurses lock
       end
 
@@ -310,7 +310,7 @@ EOS
   end
 
   def spawn title, mode, opts={}
-    raise ArgumentError, "title must be a string" unless title.is_a? String
+    raise ArgumentError, 'title must be a string' unless title.is_a? String
     realtitle = title
     num = 2
     while @name_map.member? realtitle
@@ -420,9 +420,9 @@ EOS
       prefix, target =
         case partial
         when /^\s*$/
-          ["", ""]
+          ['', '']
         when /^(.*\s+)?(.*?)$/
-          [$1 || "", $2]
+          [$1 || '', $2]
         else
           raise "william screwed up completion: #{partial.inspect}"
         end
@@ -436,10 +436,10 @@ EOS
   def ask_many_emails_with_completions domain, question, completions, default=nil
     ask domain, question, default do |partial|
       prefix, target = partial.split_on_commas_with_remainder
-      target ||= prefix.pop || ""
+      target ||= prefix.pop || ''
       target.fix_encoding!
 
-      prefix = prefix.join(", ") + (prefix.empty? ? "" : ", ")
+      prefix = prefix.join(', ') + (prefix.empty? ? '' : ', ')
       prefix.fix_encoding!
 
       completions.select { |x| x =~ /^#{Regexp::escape target}/iu }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
@@ -461,7 +461,7 @@ EOS
         end
       else # regular filename completion
         Dir["#{s}*"].sort.map do |fn|
-          suffix = File.directory?(fn) ? "/" : ""
+          suffix = File.directory?(fn) ? '/' : ''
           [fn + suffix, File.basename(fn) + suffix]
         end
       end
@@ -470,9 +470,9 @@ EOS
     if answer
       answer =
         if answer.empty?
-          spawn_modal "file browser", FileBrowserMode.new
+          spawn_modal 'file browser', FileBrowserMode.new
         elsif File.directory?(answer) && !allow_directory
-          spawn_modal "file browser", FileBrowserMode.new(answer)
+          spawn_modal 'file browser', FileBrowserMode.new(answer)
         else
           File.expand_path answer
         end
@@ -484,8 +484,8 @@ EOS
   ## returns an array of labels
   def ask_for_labels domain, question, default_labels, forbidden_labels=[]
     default_labels = default_labels - forbidden_labels - LabelManager::RESERVED_LABELS
-    default = default_labels.to_a.join(" ")
-    default += " " unless default.empty?
+    default = default_labels.to_a.join(' ')
+    default += ' ' unless default.empty?
 
     # here I would prefer to give more control and allow all_labels instead of
     # user_defined_labels only
@@ -506,14 +506,14 @@ EOS
   end
 
   def ask_for_contacts domain, question, default_contacts=[]
-    default = default_contacts.is_a?(String) ? default_contacts : default_contacts.map { |s| s.to_s }.join(", ")
-    default += " " unless default.empty?
+    default = default_contacts.is_a?(String) ? default_contacts : default_contacts.map { |s| s.to_s }.join(', ')
+    default += ' ' unless default.empty?
 
     recent = Index.load_contacts(AccountManager.user_emails, num: 10).map { |c| [c.full_address, c.email] }
     contacts = ContactManager.contacts.map { |c| [ContactManager.alias_for(c), c.full_address, c.email] }
 
     completions = (recent + contacts).flatten.uniq
-    completions += HookManager.run("extra-contact-addresses") || []
+    completions += HookManager.run('extra-contact-addresses') || []
 
     answer = BufferManager.ask_many_emails_with_completions domain, question, completions, default
 
@@ -524,16 +524,16 @@ EOS
 
   def ask_for_account domain, question
     completions = AccountManager.user_emails
-    answer = BufferManager.ask_many_emails_with_completions domain, question, completions, ""
-    answer = AccountManager.default_account.email if answer == ""
+    answer = BufferManager.ask_many_emails_with_completions domain, question, completions, ''
+    answer = AccountManager.default_account.email if answer == ''
     AccountManager.account_for Person.from_address(answer).email if answer
   end
 
   ## for simplicitly, we always place the question at the very bottom of the
   ## screen
   def ask domain, question, default=nil, &block
-    raise "impossible!" if @asking
-    raise "Question too long" if Ncurses.cols <= question.length
+    raise 'impossible!' if @asking
+    raise 'Question too long' if Ncurses.cols <= question.length
     @asking = true
 
     @textfields[domain] ||= TextField.new
@@ -562,7 +562,7 @@ EOS
         prefix_len = shorts.shared_prefix(caseless=true).length
 
         mode = CompletionMode.new shorts, header: "Possible completions for \"#{tf.value}\": ", prefix_len: prefix_len
-        completion_buf = spawn "<completions>", mode, height: 10
+        completion_buf = spawn '<completions>', mode, height: 10
 
         draw_screen skip_minibuf: true
         tf.position_cursor
@@ -587,7 +587,7 @@ EOS
   end
 
   def ask_getch question, accept=nil
-    raise "impossible!" if @asking
+    raise 'impossible!' if @asking
 
     accept = accept.split(//).map { |x| x.ord } if accept
 
@@ -625,7 +625,7 @@ EOS
 
   ## returns true (y), false (n), or nil (ctrl-g / cancel)
   def ask_yes_or_no question
-    case(r = ask_getch question, "ynYN")
+    case(r = ask_getch question, 'ynYN')
     when ?y, ?Y
       true
     when nil
@@ -667,14 +667,14 @@ EOS
     @minibuf_mutex.synchronize do
       m = @minibuf_stack.compact
       m << @flash if @flash
-      m << "" if m.empty? unless @asking # to clear it
+      m << '' if m.empty? unless @asking # to clear it
     end
 
     Ncurses.mutex.lock unless opts[:sync] == false
     Ncurses.attrset Colormap.color_for(:text_color)
     adj = @asking ? 2 : 1
     m.each_with_index do |s, i|
-      Ncurses.mvaddstr Ncurses.rows - i - adj, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
+      Ncurses.mvaddstr Ncurses.rows - i - adj, 0, s + (' ' * [Ncurses.cols - s.length, 0].max)
     end
     Ncurses.refresh if opts[:refresh]
     Ncurses.mutex.unlock unless opts[:sync] == false
@@ -761,8 +761,8 @@ EOS
       status: buf.mode.status
     }
 
-    statusbar_text = HookManager.run("status-bar-text", opts) || default_status_bar(buf)
-    term_title_text = HookManager.run("terminal-title-text", opts) || default_terminal_title(buf)
+    statusbar_text = HookManager.run('status-bar-text', opts) || default_status_bar(buf)
+    term_title_text = HookManager.run('terminal-title-text', opts) || default_terminal_title(buf)
 
     [statusbar_text, term_title_text]
   end

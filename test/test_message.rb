@@ -54,7 +54,7 @@ User-Agent: Sup/0.3
 Test message!
 EOS
 
-    source = DummySource.new("sup-test://test_simple_message")
+    source = DummySource.new('sup-test://test_simple_message')
     source.messages = [ message ]
     source_info = 0
 
@@ -70,41 +70,41 @@ EOS
     assert_equal(1, to.length)
 
     # sup doesn't do capitalized letters in email addresses
-    assert_equal("fake_receiver@localhost", to[0].email)
-    assert_equal("Fake Receiver", to[0].name)
+    assert_equal('fake_receiver@localhost', to[0].email)
+    assert_equal('Fake Receiver', to[0].name)
 
     from = sup_message.from
     # "from" is just a simple person item
 
-    assert_equal("fake_sender@example.invalid", from.email)
-    assert_equal("Fake Sender", from.name)
+    assert_equal('fake_sender@example.invalid', from.email)
+    assert_equal('Fake Sender', from.name)
 
     subj = sup_message.subj
-    assert_equal("Re: Test message subject", subj)
+    assert_equal('Re: Test message subject', subj)
 
     list_subscribe = sup_message.list_subscribe
-    assert_equal("<mailto:example-subscribe@example.invalid>", list_subscribe)
+    assert_equal('<mailto:example-subscribe@example.invalid>', list_subscribe)
 
     list_unsubscribe = sup_message.list_unsubscribe
-    assert_equal("<mailto:example-unsubscribe@example.invalid>", list_unsubscribe)
+    assert_equal('<mailto:example-unsubscribe@example.invalid>', list_unsubscribe)
 
     list_address = sup_message.list_address
-    assert_equal("example@example.invalid", list_address.email)
-    assert_equal("example", list_address.name)
+    assert_equal('example@example.invalid', list_address.email)
+    assert_equal('example', list_address.name)
 
     date = sup_message.date
-    assert_equal(Time.parse("Sun, 9 Dec 2007 21:48:19 +0200"), date)
+    assert_equal(Time.parse('Sun, 9 Dec 2007 21:48:19 +0200'), date)
 
     id = sup_message.id
-    assert_equal("20071209194819.GA25972@example.invalid", id)
+    assert_equal('20071209194819.GA25972@example.invalid', id)
 
     refs = sup_message.refs
     assert_equal(1, refs.length)
-    assert_equal("E1J1Rvb-0006k2-CE@localhost.localdomain", refs[0])
+    assert_equal('E1J1Rvb-0006k2-CE@localhost.localdomain', refs[0])
 
     replytos = sup_message.replytos
     assert_equal(1, replytos.length)
-    assert_equal("E1J1Rvb-0006k2-CE@localhost.localdomain", replytos[0])
+    assert_equal('E1J1Rvb-0006k2-CE@localhost.localdomain', replytos[0])
 
     cc = sup_message.cc
     # there are no ccs
@@ -115,7 +115,7 @@ EOS
     assert_equal(0, bcc.length)
 
     recipient_email = sup_message.recipient_email
-    assert_equal("fake_receiver@localhost", recipient_email)
+    assert_equal('fake_receiver@localhost', recipient_email)
 
     message_source = sup_message.source
     assert_equal(message_source, source)
@@ -135,7 +135,7 @@ EOS
     # there should be only one line
     assert_equal(1, lines.length)
 
-    assert_equal("Test message!", lines[0])
+    assert_equal('Test message!', lines[0])
 
   end
 
@@ -204,7 +204,7 @@ bin/sup-sync-back
 
 --=-1197232418-506707-26079-6122-2-=--
 EOS
-    source = DummySource.new("sup-test://test_multipart_message")
+    source = DummySource.new('sup-test://test_multipart_message')
     source.messages = [ message ]
     source_info = 0
 
@@ -254,7 +254,7 @@ User-Agent: Sup/0.3
 Test message!
 EOS
 
-    source = DummySource.new("sup-test://test_broken_message_1")
+    source = DummySource.new('sup-test://test_broken_message_1')
     source.messages = [ message ]
     source_info = 0
 
@@ -300,7 +300,7 @@ In-Reply-To: <E1J1Rvb-0006k2-CE@localhost.localdomain>
 User-Agent: Sup/0.3
 EOS
 
-    source = DummySource.new("sup-test://test_broken_message_1")
+    source = DummySource.new('sup-test://test_broken_message_1')
     source.messages = [ message ]
     source_info = 0
 
@@ -395,7 +395,7 @@ src=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0></ifra
 
 
 EOS
-    source = DummySource.new("sup-test://test_multipart_message_2")
+    source = DummySource.new('sup-test://test_multipart_message_2')
     source.messages = [ message ]
     source_info = 0
 
@@ -483,7 +483,7 @@ Hi all,
 Michael=
 EOS
 
-    source = DummySource.new("sup-test://test_blank_header_lines")
+    source = DummySource.new('sup-test://test_blank_header_lines')
     source.messages = [ message ]
     source_info = 0
 
@@ -492,12 +492,12 @@ EOS
 
     # See how well parsing the message ID went.
     id = sup_message.id
-    assert_equal("D3C12B2AD838B44DA9D6B2CA334246D011E72A73A4@PA-EXMBX04.widget.com", id)
+    assert_equal('D3C12B2AD838B44DA9D6B2CA334246D011E72A73A4@PA-EXMBX04.widget.com', id)
 
     # Look at another header field whose first line was blank.
     list_unsubscribe = sup_message.list_unsubscribe
     assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>,\n \t" +
-                 "<mailto:monitor-list-request@widget.com?subject=unsubscribe>",
+                 '<mailto:monitor-list-request@widget.com?subject=unsubscribe>',
                  list_unsubscribe)
 
   end
@@ -563,7 +563,7 @@ script: bundle exec rake travis
 --=-1421270017-526778-1064-1628-1-=--
 EOS
 
-    source = DummySource.new("sup-test://test_blank_header_lines")
+    source = DummySource.new('sup-test://test_blank_header_lines')
     source.messages = [ message ]
     source_info = 0
 

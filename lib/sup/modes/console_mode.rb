@@ -1,6 +1,6 @@
 require 'pp'
 
-require "sup/service/label_service"
+require 'sup/service/label_service'
 
 module Redwood
 
@@ -26,7 +26,7 @@ class Console
 
   def print_buffer_dirty_msg msg_count
     puts "Scanned #{msg_count} messages."
-    puts "You might want to refresh open buffers with `@` key."
+    puts 'You might want to refresh open buffers with `@` key.'
   end
   private :print_buffer_dirty_msg
 
@@ -78,11 +78,11 @@ end
 
 class ConsoleMode < LogMode
   register_keymap do |k|
-    k.add :run, "Restart evaluation", 'e'
+    k.add :run, 'Restart evaluation', 'e'
   end
 
   def initialize
-    super "console"
+    super 'console'
     @console = Console.new self
     @binding = @console.instance_eval { binding }
   end
@@ -101,7 +101,7 @@ class ConsoleMode < LogMode
   end
 
   def prompt
-    BufferManager.ask :console, ">> "
+    BufferManager.ask :console, '>> '
   end
 
   def run
@@ -115,7 +115,7 @@ EOS
       if(cmd = prompt)
         execute cmd
       else
-        self << "Console session ended."
+        self << 'Console session ended.'
         break
       end
     end

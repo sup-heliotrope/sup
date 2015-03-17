@@ -7,15 +7,15 @@ module Redwood
 ## #pid.
 
 module InteractiveLock
-  def pluralize number_of, kind; "#{number_of} #{kind}" + (number_of == 1 ? "" : "s") end
+  def pluralize number_of, kind; "#{number_of} #{kind}" + (number_of == 1 ? '' : 's') end
 
   def time_ago_in_words time
     secs = (Time.now - time).to_i
     mins = secs / 60
     time = if mins == 0
-      pluralize secs, "second"
+      pluralize secs, 'second'
     else
-      pluralize mins, "minute"
+      pluralize mins, 'minute'
     end
   end
 
@@ -33,17 +33,17 @@ module InteractiveLock
   The process was alive as of at least #{time_ago_in_words e.mtime} ago.
 
 EOS
-        stream.print "Should I ask that process to kill itself (y/n)? "
+        stream.print 'Should I ask that process to kill itself (y/n)? '
         stream.flush
         if $stdin.gets =~ /^\s*y(es)?\s*$/i
-          Process.kill "TERM", e.pid.to_i
+          Process.kill 'TERM', e.pid.to_i
           sleep DELAY
           stream.puts "Let's try that again."
           begin
             Index.lock
           rescue Index::LockError => e
             stream.puts "I couldn't lock the index. The lockfile might just be stale."
-            stream.print "Should I just remove it and continue? (y/n) "
+            stream.print 'Should I just remove it and continue? (y/n) '
             stream.flush
             if $stdin.gets =~ /^\s*y(es)?\s*$/i
               begin

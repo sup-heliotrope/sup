@@ -26,7 +26,7 @@ class TestMessagesDir < ::Minitest::Test
       message = f.read
     end
 
-    source = DummySource.new("sup-test://test_messages")
+    source = DummySource.new('sup-test://test_messages')
     source.messages = [ message ]
     source_info = 0
 
@@ -36,11 +36,11 @@ class TestMessagesDir < ::Minitest::Test
     from = sup_message.from
     # "from" is just a simple person item
 
-    assert_equal("foo@example.org", from.email)
+    assert_equal('foo@example.org', from.email)
     #assert_equal("Fake Sender", from.name)
 
     subj = sup_message.subj
-    assert_equal("Important", subj)
+    assert_equal('Important', subj)
 
     chunks = sup_message.load_from_source!
     indexable_chunks = sup_message.indexable_chunks
@@ -51,7 +51,7 @@ class TestMessagesDir < ::Minitest::Test
     lines = chunks[0].lines
 
     # lines should contain an error message
-    assert (lines.join.include? "An error occurred while loading this message."), "This message should not load successfully"
+    assert (lines.join.include? 'An error occurred while loading this message.'), 'This message should not load successfully'
   end
 
   def test_bad_content_transfer_encoding
@@ -60,7 +60,7 @@ class TestMessagesDir < ::Minitest::Test
       message = f.read
     end
 
-    source = DummySource.new("sup-test://test_messages")
+    source = DummySource.new('sup-test://test_messages')
     source.messages = [ message ]
     source_info = 0
 
@@ -70,11 +70,11 @@ class TestMessagesDir < ::Minitest::Test
     from = sup_message.from
     # "from" is just a simple person item
 
-    assert_equal("foo@example.org", from.email)
+    assert_equal('foo@example.org', from.email)
     #assert_equal("Fake Sender", from.name)
 
     subj = sup_message.subj
-    assert_equal("Content-Transfer-Encoding:-bug in sup", subj)
+    assert_equal('Content-Transfer-Encoding:-bug in sup', subj)
 
     chunks = sup_message.load_from_source!
     indexable_chunks = sup_message.indexable_chunks
@@ -85,7 +85,7 @@ class TestMessagesDir < ::Minitest::Test
     lines = chunks[0].lines
 
     # lines should contain an error message
-    assert (lines.join.include? "An error occurred while loading this message."), "This message should not load successfully"
+    assert (lines.join.include? 'An error occurred while loading this message.'), 'This message should not load successfully'
   end
 
   def test_missing_line
@@ -94,7 +94,7 @@ class TestMessagesDir < ::Minitest::Test
       message = f.read
     end
 
-    source = DummySource.new("sup-test://test_messages")
+    source = DummySource.new('sup-test://test_messages')
     source.messages = [ message ]
     source_info = 0
 
@@ -104,11 +104,11 @@ class TestMessagesDir < ::Minitest::Test
     from = sup_message.from
     # "from" is just a simple person item
 
-    assert_equal("foo@aol.com", from.email)
+    assert_equal('foo@aol.com', from.email)
     #assert_equal("Fake Sender", from.name)
 
     subj = sup_message.subj
-    assert_equal("Encoding bug", subj)
+    assert_equal('Encoding bug', subj)
 
     chunks = sup_message.load_from_source!
     indexable_chunks = sup_message.indexable_chunks

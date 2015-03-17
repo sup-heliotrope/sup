@@ -1,3 +1,3 @@
 module Redwood
-  VERSION = "git"
+  VERSION = 'git'
 end

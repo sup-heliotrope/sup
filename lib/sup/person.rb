@@ -10,12 +10,12 @@ class Person
 
     @name = if name
       name.fix_encoding!
-      name = name.strip.gsub(/\s+/, " ")
+      name = name.strip.gsub(/\s+/, ' ')
       name =~ /^(['"]\s*)(.*?)(\s*["'])$/ ? $2 : name
       name.gsub('\\\\', '\\')
     end
 
-    @email = email.strip.gsub(/\s+/, " ")
+    @email = email.strip.gsub(/\s+/, ' ')
   end
 
   def to_s
@@ -74,7 +74,7 @@ class Person
 
   ## see comments in self.from_address
   def indexable_content
-    [name, email, email.split(/@/).first].join(" ")
+    [name, email, email.split(/@/).first].join(' ')
   end
 
   class << self

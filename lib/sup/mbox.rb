@@ -29,9 +29,9 @@ class MBox < Source
         @path = uri.path
       end
 
-      raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
+      raise ArgumentError, 'not an mbox uri' unless uri.scheme == 'mbox'
       raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
-      raise ArgumentError, "mbox URI must have a path component" unless uri.path
+      raise ArgumentError, 'mbox URI must have a path component' unless uri.path
       @f = nil
     else
       @f = uri_or_fp
@@ -85,7 +85,7 @@ class MBox < Source
       begin
         ## don't use RMail::Mailbox::MBoxReader because it doesn't properly ignore
         ## "From" at the start of a message body line.
-        string = ""
+        string = ''
         until @f.eof? || MBox::is_break_line?(l = @f.gets)
           string << l
         end
@@ -97,7 +97,7 @@ class MBox < Source
   end
 
   def raw_header offset
-    ret = ""
+    ret = ''
     @mutex.synchronize do
       ensure_open
       @f.seek offset
@@ -109,14 +109,14 @@ class MBox < Source
   end
 
   def raw_message offset
-    ret = ""
+    ret = ''
     each_raw_message_line(offset) { |l| ret << l }
     ret
   end
 
   def store_message date, from_email, &_block
     need_blank = File.exist?(@path) && !File.zero?(@path)
-    File.open(@path, "ab") do |f|
+    File.open(@path, 'ab') do |f|
       f.puts if need_blank
       f.puts "From #{from_email} #{date.asctime}"
       yield f

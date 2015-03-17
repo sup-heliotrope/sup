@@ -43,14 +43,14 @@ if RUBY_VERSION < '1.8.7'
       case prefix_suffix
       when String
         prefix = prefix_suffix
-        suffix = ""
+        suffix = ''
       when Array
         prefix = prefix_suffix[0]
         suffix = prefix_suffix[1]
       else
         raise ArgumentError, "unexpected prefix_suffix: #{prefix_suffix.inspect}"
       end
-      t = Time.now.strftime("%Y%m%d")
+      t = Time.now.strftime('%Y%m%d')
       path = "#{prefix}#{t}-#{$$}-#{rand(0x100000000).to_s(36)}"
       path << "-#{n}" if n
       path << suffix
@@ -62,7 +62,7 @@ end
 module Redwood
 module Chunk
   class Attachment
-    HookManager.register "mime-decode", <<EOS
+    HookManager.register 'mime-decode', <<EOS
 Decodes a MIME attachment into text form. The text will be displayed
 directly in Sup. For attachments that you wish to use a separate program
 to view (e.g. images), you should use the mime-view hook instead.
@@ -79,7 +79,7 @@ Return value:
 EOS
 
 
-    HookManager.register "mime-view", <<EOS
+    HookManager.register 'mime-view', <<EOS
 Views a non-text MIME attachment. This hook allows you to run
 third-party programs for attachments that require such a thing (e.g.
 images). To instead display a text version of the attachment directly in
@@ -130,7 +130,7 @@ EOS
       when /^text\/plain\b/
         @raw_content
       else
-        HookManager.run "mime-decode", content_type: @content_type,
+        HookManager.run 'mime-decode', content_type: @content_type,
                                        filename: lambda { write_to_disk },
                                        charset: encoded_content.charset,
                                        sibling_types: sibling_types
@@ -140,9 +140,9 @@ EOS
       if text
         text = text.transcode(encoded_content.charset || $encoding, text.encoding)
         begin
-          @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+          @lines = text.gsub("\r\n", "\n").gsub(/\t/, '        ').gsub(/\r/, '').split("\n")
         rescue Encoding::CompatibilityError
-          @lines = text.fix_encoding!.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
+          @lines = text.fix_encoding!.gsub("\r\n", "\n").gsub(/\t/, '        ').gsub(/\r/, '').split("\n")
           debug "error while decoding message text, falling back to default encoding, expect errors in encoding: #{text.fix_encoding!}"
         end
 
@@ -159,7 +159,7 @@ EOS
         "Attachment: #{filename} (#{content_type}; #{@raw_content.size.to_human_size})"
       end
     end
-    def safe_filename; Shellwords.escape(@filename).gsub("/", "_") end
+    def safe_filename; Shellwords.escape(@filename).gsub('/', '_') end
 
     ## an attachment is exapndable if we've managed to decode it into
     ## something we can display inline. otherwise, it's viewable.
@@ -182,7 +182,7 @@ EOS
 
     def view!
       write_to_disk do |path|
-        ret = HookManager.run "mime-view", content_type: @content_type,
+        ret = HookManager.run 'mime-view', content_type: @content_type,
                                            filename: path
         ret || view_default!(path)
       end
@@ -195,9 +195,9 @@ EOS
         # Tempfile.new always generates safe file names this should prevent
         # attacking the user with funny attachment file names.
         tempname = if (File.extname @filename) =~ /^\.[[:alnum:]]+$/ then
-                     ["sup-attachment", File.extname(@filename)]
+                     ['sup-attachment', File.extname(@filename)]
                    else
-                     "sup-attachment"
+                     'sup-attachment'
                    end
 
         file = Tempfile.new(tempname)
@@ -273,13 +273,13 @@ EOS
   class EnclosedMessage
     attr_reader :lines
     def initialize from, to, cc, date, subj
-      @from = from ? "unknown sender" : from.full_address
-      @to = to ? "" : to.map { |p| p.full_address }.join(", ")
-      @cc = cc ? "" : cc.map { |p| p.full_address }.join(", ")
+      @from = from ? 'unknown sender' : from.full_address
+      @to = to ? '' : to.map { |p| p.full_address }.join(', ')
+      @cc = cc ? '' : cc.map { |p| p.full_address }.join(', ')
       if date
         @date = date.rfc822
       else
-        @date = ""
+        @date = ''
       end
 
       @subj = subj

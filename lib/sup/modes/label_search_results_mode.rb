@@ -10,12 +10,12 @@ class LabelSearchResultsMode < ThreadIndexMode
   end
 
   register_keymap do |k|
-    k.add :refine_search, "Refine search", '|'
+    k.add :refine_search, 'Refine search', '|'
   end
 
   def refine_search
     label_query = @labels.size > 1 ? "(#{@labels.join('||')})" : @labels.first
-    query = BufferManager.ask :search, "refine query: ", "+label:#{label_query} "
+    query = BufferManager.ask :search, 'refine query: ', "+label:#{label_query} "
     return unless query && query !~ /^\s*$/
     SearchResultsMode.spawn_from_query query
   end

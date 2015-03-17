@@ -3,11 +3,11 @@ module Redwood
 class TextMode < ScrollMode
   attr_reader :text
   register_keymap do |k|
-    k.add :save_to_disk, "Save to disk", 's'
-    k.add :pipe, "Pipe to process", '|'
+    k.add :save_to_disk, 'Save to disk', 's'
+    k.add :pipe, 'Pipe to process', '|'
   end
 
-  def initialize text="", filename=nil
+  def initialize text='', filename=nil
     @text = text
     @filename = filename
     update_lines
@@ -16,12 +16,12 @@ class TextMode < ScrollMode
   end
 
   def save_to_disk
-    fn = BufferManager.ask_for_filename :filename, "Save to file: ", @filename
+    fn = BufferManager.ask_for_filename :filename, 'Save to file: ', @filename
     save_to_file(fn) { |f| f.puts text } if fn
   end
 
   def pipe
-    command = BufferManager.ask(:shell, "pipe command: ")
+    command = BufferManager.ask(:shell, 'pipe command: ')
     return if command.nil? || command.empty?
 
     output, success = pipe_to_process(command) do |stream|

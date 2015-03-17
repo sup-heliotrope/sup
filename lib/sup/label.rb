@@ -63,7 +63,7 @@ class LabelManager
   end
 
   def << t
-    raise ArgumentError, "expecting a symbol" unless t.is_a? Symbol
+    raise ArgumentError, 'expecting a symbol' unless t.is_a? Symbol
     unless @labels.member?(t) || RESERVED_LABELS.member?(t)
       @labels[t] = true
       @new_labels[t] = true
@@ -79,7 +79,7 @@ class LabelManager
 
   def save
     return unless @modified
-    File.open(@fn, "w:UTF-8") { |f| f.puts @labels.keys.sort_by { |l| l.to_s } }
+    File.open(@fn, 'w:UTF-8') { |f| f.puts @labels.keys.sort_by { |l| l.to_s } }
     @new_labels = {}
   end
 end

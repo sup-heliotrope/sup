@@ -1,7 +1,7 @@
 module Redwood
 
 class CompletionMode < ScrollMode
-  INTERSTITIAL = "  "
+  INTERSTITIAL = '  '
 
   def initialize list, opts={}
     @list = list
@@ -45,7 +45,7 @@ class CompletionMode < ScrollMode
           @lines.last += [[:text_color, sprintf("%#{max_length}s#{INTERSTITIAL}", s)]]
         end
       else
-        @lines << "" if i % num_per == 0
+        @lines << '' if i % num_per == 0
         @lines.last += sprintf "%#{max_length}s#{INTERSTITIAL}", s
       end
     end

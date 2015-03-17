@@ -7,22 +7,22 @@ class SearchResultsMode < ThreadIndexMode
   end
 
   register_keymap do |k|
-    k.add :refine_search, "Refine search", '|'
-    k.add :save_search, "Save search", '%'
+    k.add :refine_search, 'Refine search', '|'
+    k.add :save_search, 'Save search', '%'
   end
 
   def refine_search
-    text = BufferManager.ask :search, "refine query: ", (@query[:text] + " ")
+    text = BufferManager.ask :search, 'refine query: ', (@query[:text] + ' ')
     return unless text && text !~ /^\s*$/
     SearchResultsMode.spawn_from_query text
   end
 
   def save_search
-    name = BufferManager.ask :save_search, "Name this search: "
+    name = BufferManager.ask :save_search, 'Name this search: '
     return unless name && name !~ /^\s*$/
     name.strip!
     unless SearchManager.valid_name? name
-      BufferManager.flash "Not saved: " + SearchManager.name_format_hint
+      BufferManager.flash 'Not saved: ' + SearchManager.name_format_hint
       return
     end
     if SearchManager.all_searches.include? name
@@ -46,7 +46,7 @@ class SearchResultsMode < ThreadIndexMode
         query = Index.parse_query(text)
       end
       return unless query
-      short_text = text.length < 20 ? text : text[0 ... 20] + "..."
+      short_text = text.length < 20 ? text : text[0 ... 20] + '...'
       mode = SearchResultsMode.new query
       BufferManager.spawn "search: \"#{short_text}\"", mode
       mode.load_threads num: mode.buffer.content_height

@@ -26,7 +26,7 @@ class Module
   def yaml_properties *props
     props = props.map { |p| p.to_s }
 
-    path = name.gsub(/::/, "/")
+    path = name.gsub(/::/, '/')
     yaml_tag "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
 
     define_method :init_with do |coder|
@@ -46,24 +46,24 @@ class Module
 end
 
 module Redwood
-  BASE_DIR   = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
-  CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
-  COLOR_FN   = File.join(BASE_DIR, "colors.yaml")
-  SOURCE_FN  = File.join(BASE_DIR, "sources.yaml")
-  LABEL_FN   = File.join(BASE_DIR, "labels.txt")
-  CONTACT_FN = File.join(BASE_DIR, "contacts.txt")
-  DRAFT_DIR  = File.join(BASE_DIR, "drafts")
-  SENT_FN    = File.join(BASE_DIR, "sent.mbox")
-  LOCK_FN    = File.join(BASE_DIR, "lock")
-  SUICIDE_FN = File.join(BASE_DIR, "please-kill-yourself")
-  HOOK_DIR   = File.join(BASE_DIR, "hooks")
-  SEARCH_FN  = File.join(BASE_DIR, "searches.txt")
-  LOG_FN     = File.join(BASE_DIR, "log")
-  SYNC_OK_FN = File.join(BASE_DIR, "sync-back-ok")
+  BASE_DIR   = ENV['SUP_BASE'] || File.join(ENV['HOME'], '.sup')
+  CONFIG_FN  = File.join(BASE_DIR, 'config.yaml')
+  COLOR_FN   = File.join(BASE_DIR, 'colors.yaml')
+  SOURCE_FN  = File.join(BASE_DIR, 'sources.yaml')
+  LABEL_FN   = File.join(BASE_DIR, 'labels.txt')
+  CONTACT_FN = File.join(BASE_DIR, 'contacts.txt')
+  DRAFT_DIR  = File.join(BASE_DIR, 'drafts')
+  SENT_FN    = File.join(BASE_DIR, 'sent.mbox')
+  LOCK_FN    = File.join(BASE_DIR, 'lock')
+  SUICIDE_FN = File.join(BASE_DIR, 'please-kill-yourself')
+  HOOK_DIR   = File.join(BASE_DIR, 'hooks')
+  SEARCH_FN  = File.join(BASE_DIR, 'searches.txt')
+  LOG_FN     = File.join(BASE_DIR, 'log')
+  SYNC_OK_FN = File.join(BASE_DIR, 'sync-back-ok')
 
-  YAML_DOMAIN = "supmua.org"
-  LEGACY_YAML_DOMAIN = "masanjin.net"
-  YAML_DATE = "2006-10-01"
+  YAML_DOMAIN = 'supmua.org'
+  LEGACY_YAML_DOMAIN = 'masanjin.net'
+  YAML_DATE = '2006-10-01'
   MAILDIR_SYNC_CHECK_SKIPPED = 'SKIPPED'
   URI_ENCODE_CHARS = "!*'();:@&=+$,?#[] " # see https://en.wikipedia.org/wiki/Percent-encoding
 
@@ -114,24 +114,24 @@ module Redwood
     if backup
       backup_fn = fn + '.bak'
       if File.exist?(fn) && File.size(fn) > 0
-        File.open(backup_fn, "w", mode) do |f|
-          File.open(fn, "r") { |old_f| FileUtils.copy_stream old_f, f }
+        File.open(backup_fn, 'w', mode) do |f|
+          File.open(fn, 'r') { |old_f| FileUtils.copy_stream old_f, f }
           f.fsync
         end
       end
-      File.open(fn, "w") do |f|
+      File.open(fn, 'w') do |f|
         f.puts o.to_yaml
         f.fsync
       end
     elsif safe
       safe_fn = "#{File.dirname fn}/safe_#{File.basename fn}"
-      File.open(safe_fn, "w", mode) do |f|
+      File.open(safe_fn, 'w', mode) do |f|
         f.puts o.to_yaml
         f.fsync
       end
       FileUtils.mv safe_fn, fn
     else
-      File.open(fn, "w", mode) do |f|
+      File.open(fn, 'w', mode) do |f|
         f.puts o.to_yaml
         f.fsync
       end
@@ -243,7 +243,7 @@ sup-sync-back-maildir script.
 
 Are you really sure you want to continue? (y/N)
 EOS
-    abort "Aborted" unless STDIN.gets.chomp.downcase == 'y'
+    abort 'Aborted' unless STDIN.gets.chomp.downcase == 'y'
   end
 
   def finish
@@ -312,7 +312,7 @@ EOM
   ## set up default configuration file
   def load_config filename
     default_config = {
-      editor: ENV["EDITOR"] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
+      editor: ENV['EDITOR'] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
       thread_by_subject: false,
       edit_signature: false,
       ask_for_from: false,
@@ -326,14 +326,14 @@ EOM
       jump_to_open_message: true,
       discard_snippets_from_encrypted_messages: false,
       load_more_threads_when_scrolling: true,
-      default_attachment_save_dir: "",
-      sent_source: "sup://sent",
+      default_attachment_save_dir: '',
+      sent_source: 'sup://sent',
       archive_sent: true,
       poll_interval: 300,
       wrap_width: 0,
       slip_rows: 0,
       col_jump: 2,
-      stem_language: "english",
+      stem_language: 'english',
       sync_back_to_maildir: false,
       continuous_scroll: false,
       always_edit_async: false,
@@ -345,9 +345,9 @@ EOM
     else
       require 'etc'
       require 'socket'
-      name = Etc.getpwnam(ENV["USER"]).gecos.split(/,/).first.force_encoding($encoding).fix_encoding! rescue nil
-      name ||= ENV["USER"]
-      email = ENV["USER"] + "@" +
+      name = Etc.getpwnam(ENV['USER']).gecos.split(/,/).first.force_encoding($encoding).fix_encoding! rescue nil
+      name ||= ENV['USER']
+      email = ENV['USER'] + '@' +
         begin
           Socket.gethostbyname(Socket.gethostname).first
         rescue SocketError
@@ -360,9 +360,9 @@ EOM
             name: name.dup.fix_encoding!,
             email: email.dup.fix_encoding!,
             alternates: [],
-            sendmail: "/usr/sbin/sendmail -oem -ti",
-            signature: File.join(ENV["HOME"], ".signature"),
-            gpgkey: ""
+            sendmail: '/usr/sbin/sendmail -oem -ti',
+            signature: File.join(ENV['HOME'], '.signature'),
+            gpgkey: ''
           }
         },
       }
@@ -382,88 +382,88 @@ EOM
 end
 
 require 'sup/version'
-require "sup/util"
-require "sup/hook"
-require "sup/time"
+require 'sup/util'
+require 'sup/hook'
+require 'sup/time'
 
 ## everything we need to get logging working
-require "sup/logger/singleton"
+require 'sup/logger/singleton'
 
 ## determine encoding and character set
 $encoding = Locale.current.charset
-$encoding = "UTF-8" if $encoding == "utf8"
-$encoding = "UTF-8" if $encoding == "UTF8"
+$encoding = 'UTF-8' if $encoding == 'utf8'
+$encoding = 'UTF-8' if $encoding == 'UTF8'
 if $encoding
   debug "using character set encoding #{$encoding.inspect}"
 else
   warn "can't find character set by using locale, defaulting to utf-8"
-  $encoding = "UTF-8"
+  $encoding = 'UTF-8'
 end
 
 # test encoding
-teststr = "test"
+teststr = 'test'
 teststr.encode('UTF-8')
 begin
   teststr.encode($encoding)
 rescue Encoding::ConverterNotFoundError
-  warn "locale encoding is invalid, defaulting to utf-8"
-  $encoding = "UTF-8"
+  warn 'locale encoding is invalid, defaulting to utf-8'
+  $encoding = 'UTF-8'
 end
 
-require "sup/buffer"
-require "sup/keymap"
-require "sup/mode"
-require "sup/modes/scroll_mode"
-require "sup/modes/text_mode"
-require "sup/modes/log_mode"
-require "sup/update"
-require "sup/message_chunks"
-require "sup/message"
-require "sup/source"
-require "sup/mbox"
-require "sup/maildir"
-require "sup/person"
-require "sup/account"
-require "sup/thread"
-require "sup/interactive_lock"
-require "sup/index"
-require "sup/textfield"
-require "sup/colormap"
-require "sup/label"
-require "sup/contact"
-require "sup/tagger"
-require "sup/draft"
-require "sup/poll"
-require "sup/crypto"
-require "sup/undo"
-require "sup/horizontal_selector"
-require "sup/modes/line_cursor_mode"
-require "sup/modes/help_mode"
-require "sup/modes/edit_message_mode"
-require "sup/modes/edit_message_async_mode"
-require "sup/modes/compose_mode"
-require "sup/modes/resume_mode"
-require "sup/modes/forward_mode"
-require "sup/modes/reply_mode"
-require "sup/modes/label_list_mode"
-require "sup/modes/contact_list_mode"
-require "sup/modes/thread_view_mode"
-require "sup/modes/thread_index_mode"
-require "sup/modes/label_search_results_mode"
-require "sup/modes/search_results_mode"
-require "sup/modes/person_search_results_mode"
-require "sup/modes/inbox_mode"
-require "sup/modes/buffer_list_mode"
-require "sup/modes/poll_mode"
-require "sup/modes/file_browser_mode"
-require "sup/modes/completion_mode"
-require "sup/modes/console_mode"
-require "sup/sent"
-require "sup/search"
-require "sup/modes/search_list_mode"
-require "sup/idle"
+require 'sup/buffer'
+require 'sup/keymap'
+require 'sup/mode'
+require 'sup/modes/scroll_mode'
+require 'sup/modes/text_mode'
+require 'sup/modes/log_mode'
+require 'sup/update'
+require 'sup/message_chunks'
+require 'sup/message'
+require 'sup/source'
+require 'sup/mbox'
+require 'sup/maildir'
+require 'sup/person'
+require 'sup/account'
+require 'sup/thread'
+require 'sup/interactive_lock'
+require 'sup/index'
+require 'sup/textfield'
+require 'sup/colormap'
+require 'sup/label'
+require 'sup/contact'
+require 'sup/tagger'
+require 'sup/draft'
+require 'sup/poll'
+require 'sup/crypto'
+require 'sup/undo'
+require 'sup/horizontal_selector'
+require 'sup/modes/line_cursor_mode'
+require 'sup/modes/help_mode'
+require 'sup/modes/edit_message_mode'
+require 'sup/modes/edit_message_async_mode'
+require 'sup/modes/compose_mode'
+require 'sup/modes/resume_mode'
+require 'sup/modes/forward_mode'
+require 'sup/modes/reply_mode'
+require 'sup/modes/label_list_mode'
+require 'sup/modes/contact_list_mode'
+require 'sup/modes/thread_view_mode'
+require 'sup/modes/thread_index_mode'
+require 'sup/modes/label_search_results_mode'
+require 'sup/modes/search_results_mode'
+require 'sup/modes/person_search_results_mode'
+require 'sup/modes/inbox_mode'
+require 'sup/modes/buffer_list_mode'
+require 'sup/modes/poll_mode'
+require 'sup/modes/file_browser_mode'
+require 'sup/modes/completion_mode'
+require 'sup/modes/console_mode'
+require 'sup/sent'
+require 'sup/search'
+require 'sup/modes/search_list_mode'
+require 'sup/idle'
 
 $:.each do |base|
-  d = File.join base, "sup/share/modes/"
+  d = File.join base, 'sup/share/modes/'
   Redwood::Mode.load_all_modes d if File.directory? d
 end

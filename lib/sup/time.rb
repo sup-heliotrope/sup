@@ -1,6 +1,6 @@
 class Time
 
-  Redwood::HookManager.register "time-to-nice-string", <<EOS
+  Redwood::HookManager.register 'time-to-nice-string', <<EOS
 Formats time nicely as string.
 Variables:
   time: The Time instance to be formatted.
@@ -8,7 +8,7 @@ Variables:
 EOS
 
   def to_indexable_s
-    sprintf "%012d", self
+    sprintf '%012d', self
   end
 
   def nearest_hour
@@ -35,13 +35,13 @@ EOS
     later_than = (self < from)
     diff = (self.to_i - from.to_i).abs.to_f
     text =
-      [ ["second", 60],
-        ["minute", 60],
-        ["hour", 24],
-        ["day", 7],
-        ["week", 4.345], # heh heh
-        ["month", 12],
-        ["year", nil],
+      [ ['second', 60],
+        ['minute', 60],
+        ['hour', 24],
+        ['day', 7],
+        ['week', 4.345], # heh heh
+        ['month', 12],
+        ['year', nil],
       ].argfind do |unit, size|
         if diff.round <= 1
           "one #{unit}"
@@ -53,9 +53,9 @@ EOS
         end
       end
     if later_than
-      text + " ago"
+      text + ' ago'
     else
-      "in " + text
+      'in ' + text
     end
   end
 
@@ -63,30 +63,30 @@ EOS
 
   ## This is how a thread date is displayed in thread-index-mode
   def to_nice_s from=Time.now
-    Redwood::HookManager.run("time-to-nice-string", time: self, from: from) || default_to_nice_s(from)
+    Redwood::HookManager.run('time-to-nice-string', time: self, from: from) || default_to_nice_s(from)
   end
 
   def default_to_nice_s from=Time.now
     if year != from.year
-      strftime "%b %Y"
+      strftime '%b %Y'
     elsif month != from.month
-      strftime "%b %e"
+      strftime '%b %e'
     else
       if is_the_same_day? from
-        format = $config[:time_mode] == "24h" ? "%k:%M" : "%l:%M%p"
+        format = $config[:time_mode] == '24h' ? '%k:%M' : '%l:%M%p'
         strftime(format).downcase
       elsif is_the_day_before? from
-        format = $config[:time_mode] == "24h" ? "%kh" : "%l%p"
-        "Yest." + nearest_hour.strftime(format).downcase
+        format = $config[:time_mode] == '24h' ? '%kh' : '%l%p'
+        'Yest.' + nearest_hour.strftime(format).downcase
       else
-        strftime "%b %e"
+        strftime '%b %e'
       end
     end
   end
 
   ## This is how a message date is displayed in thread-view-mode
   def to_message_nice_s _from=Time.now
-    format = $config[:time_mode] == "24h" ? "%B %e %Y %k:%M" : "%B %e %Y %l:%M%p"
+    format = $config[:time_mode] == '24h' ? '%B %e %Y %k:%M' : '%B %e %Y %l:%M%p'
     strftime format
   end
 end

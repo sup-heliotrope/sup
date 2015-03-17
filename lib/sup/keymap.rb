@@ -4,7 +4,7 @@ module Redwood
 
 class Keymap
 
-  HookManager.register "keybindings", <<EOS
+  HookManager.register 'keybindings', <<EOS
 Add custom keybindings.
 Methods:
   modes: Hash from mode names to mode classes.
@@ -43,18 +43,18 @@ EOS
 
   def self.keysym_to_string k
     case k
-    when :down then "<down arrow>"
-    when :up then "<up arrow>"
-    when :left then "<left arrow>"
-    when :right then "<right arrow>"
-    when :page_down then "<page down>"
-    when :page_up then "<page up>"
-    when :backspace then "<backspace>"
-    when :home then "<home>"
-    when :end then "<end>"
-    when :enter, :return then "<enter>"
-    when :tab then "tab"
-    when " " then "<space>"
+    when :down then '<down arrow>'
+    when :up then '<up arrow>'
+    when :left then '<left arrow>'
+    when :right then '<right arrow>'
+    when :page_down then '<page down>'
+    when :page_up then '<page up>'
+    when :backspace then '<backspace>'
+    when :home then '<home>'
+    when :end then '<end>'
+    when :enter, :return then '<enter>'
+    when :tab then 'tab'
+    when ' ' then '<space>'
     else
       Ncurses::keyname(keysym_to_keycode(k))
     end
@@ -88,7 +88,7 @@ EOS
     kc = Keymap.keysym_to_keycode(key)
     if @map.member? kc
       action = @map[kc].first
-      raise "existing action is not a keymap" unless action.is_a?(Keymap)
+      raise 'existing action is not a keymap' unless action.is_a?(Keymap)
       yield action
     else
       submap = Keymap.new
@@ -106,14 +106,14 @@ EOS
 
   def keysyms; @map.values.map { |_action, _help, keys| keys }.flatten; end
 
-  def help_lines except_for={}, prefix=""
+  def help_lines except_for={}, prefix=''
     lines = [] # :(
     @order.each do |action, help, keys|
       valid_keys = keys.select { |k| !except_for[k] }
       next if valid_keys.empty?
       case action
       when Symbol
-        lines << [valid_keys.map { |k| prefix + Keymap.keysym_to_string(k) }.join(", "), help]
+        lines << [valid_keys.map { |k| prefix + Keymap.keysym_to_string(k) }.join(', '), help]
       when Keymap
         lines += action.help_lines({}, prefix + Keymap.keysym_to_string(keys.first))
       end

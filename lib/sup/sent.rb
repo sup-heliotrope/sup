@@ -26,7 +26,7 @@ class SentManager
 
   def write_sent_message date, from_email, &block
     ::Thread.new do
-      debug "store the sent message (locking sent source..)"
+      debug 'store the sent message (locking sent source..)'
       @source.synchronize do
         @source.store_message date, from_email, &block
       end
@@ -40,8 +40,8 @@ class SentLoader < MBox
 
   def initialize
     @filename = Redwood::SENT_FN
-    File.open(@filename, "w") { } unless File.exist? @filename
-    super "mbox://" + @filename, true, $config[:archive_sent]
+    File.open(@filename, 'w') { } unless File.exist? @filename
+    super 'mbox://' + @filename, true, $config[:archive_sent]
   end
 
   def file_path; @filename end

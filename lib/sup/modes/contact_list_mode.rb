@@ -11,7 +11,7 @@ module CanAliasContacts
     p.name = name
 
     ContactManager.update_alias p, aalias
-    BufferManager.flash "Contact updated!"
+    BufferManager.flash 'Contact updated!'
   end
 end
 
@@ -20,16 +20,16 @@ class ContactListMode < LineCursorMode
 
   register_keymap do |k|
     k.add :load_more, "Load #{LOAD_MORE_CONTACTS_NUM} more contacts", 'M'
-    k.add :reload, "Drop contact list and reload", 'D'
-    k.add :alias, "Edit alias/or name for contact", 'a', 'i'
-    k.add :toggle_tagged, "Tag/untag current line", 't'
-    k.add :apply_to_tagged, "Apply next command to all tagged items", '+'
-    k.add :search, "Search for messages from particular people", 'S'
+    k.add :reload, 'Drop contact list and reload', 'D'
+    k.add :alias, 'Edit alias/or name for contact', 'a', 'i'
+    k.add :toggle_tagged, 'Tag/untag current line', 't'
+    k.add :apply_to_tagged, 'Apply next command to all tagged items', '+'
+    k.add :search, 'Search for messages from particular people', 'S'
   end
 
   def initialize mode=:regular
     @mode = mode
-    @tags = Tagger.new self, "contact"
+    @tags = Tagger.new self, 'contact'
     @num = nil
     @text = []
     super()
@@ -70,7 +70,7 @@ class ContactListMode < LineCursorMode
     case @mode
     when :regular
       mode = ComposeMode.new to: people
-      BufferManager.spawn "new message", mode
+      BufferManager.spawn 'new message', mode
       mode.default_edit_message
     end
   end
@@ -98,7 +98,7 @@ class ContactListMode < LineCursorMode
   end
 
   def load_in_background
-    Redwood::reporting_thread("contact manager load in bg") do
+    Redwood::reporting_thread('contact manager load in bg') do
       load
       update
       BufferManager.draw_screen
@@ -128,8 +128,8 @@ class ContactListMode < LineCursorMode
   end
 
   def text_for_contact p
-    aalias = ContactManager.alias_for(p) || ""
-    [[:tagged_color, @tags.tagged?(p) ? ">" : " "],
+    aalias = ContactManager.alias_for(p) || ''
+    [[:tagged_color, @tags.tagged?(p) ? '>' : ' '],
      [:text_color, sprintf("%-#{@awidth}s %-#{@nwidth}s %s", aalias, p.name, p.email)]]
   end
 

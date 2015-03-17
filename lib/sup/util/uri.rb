@@ -1,6 +1,6 @@
-require "uri"
+require 'uri'
 
-require "sup/util/path"
+require 'sup/util/path'
 
 module Redwood
   module Util

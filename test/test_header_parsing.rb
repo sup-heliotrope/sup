@@ -23,9 +23,9 @@ From: Bob <bob@bob.com>
 To: Sally <sally@sally.com>
 EOS
 
-    assert_equal "Bob <bob@bob.com>", h["from"]
-    assert_equal "Sally <sally@sally.com>", h["to"]
-    assert_nil h["message-id"]
+    assert_equal 'Bob <bob@bob.com>', h['from']
+    assert_equal 'Sally <sally@sally.com>', h['to']
+    assert_nil h['message-id']
   end
 
   def test_multiline
@@ -39,9 +39,9 @@ References: <seven>
 Seven: Eight
 EOS
 
-    assert_equal "one two three four five six", h["subject"]
-    assert_equal "Sally <sally@sally.com>", h["to"]
-    assert_equal "<seven> <eight>", h["references"]
+    assert_equal 'one two three four five six', h['subject']
+    assert_equal 'Sally <sally@sally.com>', h['to']
+    assert_equal '<seven> <eight>', h['references']
   end
 
   def test_ignore_spacing
@@ -52,7 +52,7 @@ EOS
     ]
     variants.each do |s|
       h = Source.parse_raw_email_header StringIO.new(s)
-      assert_equal "one two  three   end", h["subject"]
+      assert_equal 'one two  three   end', h['subject']
     end
   end
 
@@ -63,13 +63,13 @@ EOS
     ]
     variants.each do |s|
       h = Source.parse_raw_email_header StringIO.new(s)
-      assert_equal "<one@bob.com>", h["message-id"]
+      assert_equal '<one@bob.com>', h['message-id']
     end
   end
 
   def test_blank_lines
-    h = Source.parse_raw_email_header StringIO.new("")
-    assert_equal nil, h["message-id"]
+    h = Source.parse_raw_email_header StringIO.new('')
+    assert_equal nil, h['message-id']
   end
 
   def test_empty_headers
@@ -79,7 +79,7 @@ EOS
     ]
     variants.each do |s|
       h = Source.parse_raw_email_header StringIO.new(s)
-      assert_equal "", h["message-id"]
+      assert_equal '', h['message-id']
     end
   end
 
@@ -89,24 +89,24 @@ From: Bob <bob@bob.com>
 
 To: a dear friend
 EOS
-  assert_equal "Bob <bob@bob.com>", h["from"]
-  assert_nil h["to"]
+  assert_equal 'Bob <bob@bob.com>', h['from']
+  assert_nil h['to']
 
   h = Source.parse_raw_email_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 \r
 To: a dear friend
 EOS
-  assert_equal "Bob <bob@bob.com>", h["from"]
-  assert_nil h["to"]
+  assert_equal 'Bob <bob@bob.com>', h['from']
+  assert_nil h['to']
 
   h = Source.parse_raw_email_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 \r\n\r
 To: a dear friend
 EOS
-  assert_equal "Bob <bob@bob.com>", h["from"]
-  assert_nil h["to"]
+  assert_equal 'Bob <bob@bob.com>', h['from']
+  assert_nil h['to']
   end
 
   def test_from_line_splitting

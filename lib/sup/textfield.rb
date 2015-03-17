@@ -179,13 +179,13 @@ class TextField
 
     x = Ncurses.curx
     form_driver_key Ncurses::Form::REQ_VALIDATION
-    v = @field.field_buffer(0).gsub(/^\s+|\s+$/, "")
+    v = @field.field_buffer(0).gsub(/^\s+|\s+$/, '')
 
     ## cursor <= end of text
     if x - @question.length - v.length <= 0
       v
     else # trailing spaces
-      v + (" " * (x - @question.length - v.length))
+      v + (' ' * (x - @question.length - v.length))
     end
 
     # ncurses returns a ASCII-8BIT (binary) string, which
@@ -204,7 +204,7 @@ class TextField
 
     form_driver_key Ncurses::Form::REQ_VALIDATION
     x = Ncurses.curx
-    v = @field.field_buffer(0).gsub(/^\s+|\s+$/, "")
+    v = @field.field_buffer(0).gsub(/^\s+|\s+$/, '')
     v_index = x - @question.length
 
     # at start of line
@@ -234,7 +234,7 @@ class TextField
   end
 
   def set_cursed_value v
-    v = "" if v.nil?
+    v = '' if v.nil?
     @field.set_field_buffer 0, v
   end
 
@@ -246,7 +246,7 @@ class TextField
   ## this is almost certainly unnecessary, but it's the only way
   ## i could get ncurses to remember my form's value
   def nop
-    form_driver_char " "
+    form_driver_char ' '
     form_driver_key Ncurses::Form::REQ_DEL_PREV
   end
 end

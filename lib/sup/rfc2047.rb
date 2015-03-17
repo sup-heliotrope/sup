@@ -43,7 +43,7 @@ module Rfc2047
           # RFC 2047 has a variant of quoted printable where a ' ' character
           # can be represented as an '_', rather than =32, so convert
           # any of these that we find before doing the QP decoding.
-          text = text.tr("_", " ")
+          text = text.tr('_', ' ')
           text = text.unpack('M*')[0]
 
         # Don't need an else, because no other values can be matched in a

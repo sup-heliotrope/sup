@@ -1,4 +1,4 @@
-require "sup/util"
+require 'sup/util'
 require 'stringio'
 require 'thread'
 
@@ -13,7 +13,7 @@ class Logger
   LEVELS = %w(debug info warn error) # in order!
 
   def initialize level=nil
-    level ||= ENV["SUP_LOG_LEVEL"] || "info"
+    level ||= ENV['SUP_LOG_LEVEL'] || 'info'
     self.level = level
     @mutex = Mutex.new
     @buf = StringIO.new
@@ -50,9 +50,9 @@ class Logger
   ## level can be nil!
   def format_message level, time, msg
     prefix = case level
-      when "warn"; "WARNING: "
-      when "error"; "ERROR: "
-      else ""
+      when 'warn'; 'WARNING: '
+      when 'error'; 'ERROR: '
+      else ''
     end
     "[#{time}] #{prefix}#{msg.rstrip}\n"
   end
@@ -62,7 +62,7 @@ class Logger
     @mutex.synchronize do
       @sinks.each do |sink|
         sink << m
-        sink.flush if sink.respond_to?(:flush) and level == "debug"
+        sink.flush if sink.respond_to?(:flush) and level == 'debug'
       end
       @buf << m
     end

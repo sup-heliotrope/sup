@@ -12,7 +12,7 @@ class ThreadViewMode < LineCursorMode
 
   INDENT_SPACES = 2 # how many spaces to indent child messages
 
-  HookManager.register "detailed-headers", <<EOS
+  HookManager.register 'detailed-headers', <<EOS
 Add or remove headers from the detailed header display of a message.
 Variables:
   message: The message whose headers are to be formatted.
@@ -22,7 +22,7 @@ Return value:
   None. The variable 'headers' should be modified in place.
 EOS
 
-  HookManager.register "bounce-command", <<EOS
+  HookManager.register 'bounce-command', <<EOS
 Determines the command used to bounce a message.
 Variables:
       from: The From header of the message being bounced
@@ -34,7 +34,7 @@ Return value:
   which will be appended by sup.
 EOS
 
-  HookManager.register "publish", <<EOS
+  HookManager.register 'publish', <<EOS
 Executed when a message or a chunk is requested to be published.
 Variables:
      chunk: Redwood::Message or Redwood::Chunk::* to be published.
@@ -42,7 +42,7 @@ Return value:
   None.
 EOS
 
-  HookManager.register "goto", <<EOS
+  HookManager.register 'goto', <<EOS
 Open the uri given as a parameter.
 Variables:
       uri: The uri
@@ -51,71 +51,71 @@ Return value:
 EOS
 
   register_keymap do |k|
-    k.add :toggle_detailed_header, "Toggle detailed header", 'h'
-    k.add :show_header, "Show full message header", 'H'
-    k.add :show_message, "Show full message (raw form)", 'V'
-    k.add :activate_chunk, "Expand/collapse or activate item", :enter
-    k.add :expand_all_messages, "Expand/collapse all messages", 'E'
-    k.add :edit_draft, "Edit draft", 'e'
-    k.add :send_draft, "Send draft", 'y'
-    k.add :edit_labels, "Edit or add labels for a thread", 'l'
-    k.add :expand_all_quotes, "Expand/collapse all quotes in a message", 'o'
-    k.add :jump_to_next_open, "Jump to next open message", 'n'
-    k.add :jump_to_next_and_open, "Jump to next message and open", "\C-n"
-    k.add :jump_to_prev_open, "Jump to previous open message", 'p'
-    k.add :jump_to_prev_and_open, "Jump to previous message and open", "\C-p"
-    k.add :align_current_message, "Align current message in buffer", 'z'
-    k.add :toggle_starred, "Star or unstar message", '*'
-    k.add :toggle_new, "Toggle unread/read status of message", 'N'
+    k.add :toggle_detailed_header, 'Toggle detailed header', 'h'
+    k.add :show_header, 'Show full message header', 'H'
+    k.add :show_message, 'Show full message (raw form)', 'V'
+    k.add :activate_chunk, 'Expand/collapse or activate item', :enter
+    k.add :expand_all_messages, 'Expand/collapse all messages', 'E'
+    k.add :edit_draft, 'Edit draft', 'e'
+    k.add :send_draft, 'Send draft', 'y'
+    k.add :edit_labels, 'Edit or add labels for a thread', 'l'
+    k.add :expand_all_quotes, 'Expand/collapse all quotes in a message', 'o'
+    k.add :jump_to_next_open, 'Jump to next open message', 'n'
+    k.add :jump_to_next_and_open, 'Jump to next message and open', "\C-n"
+    k.add :jump_to_prev_open, 'Jump to previous open message', 'p'
+    k.add :jump_to_prev_and_open, 'Jump to previous message and open', "\C-p"
+    k.add :align_current_message, 'Align current message in buffer', 'z'
+    k.add :toggle_starred, 'Star or unstar message', '*'
+    k.add :toggle_new, 'Toggle unread/read status of message', 'N'
 #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
-    k.add :reply, "Reply to a message", 'r'
-    k.add :reply_all, "Reply to all participants of this message", 'G'
-    k.add :forward, "Forward a message or attachment", 'f'
-    k.add :bounce, "Bounce message to other recipient(s)", '!'
-    k.add :alias, "Edit alias/nickname for a person", 'i'
-    k.add :edit_as_new, "Edit message as new", 'D'
-    k.add :save_to_disk, "Save message/attachment to disk", 's'
-    k.add :save_all_to_disk, "Save all attachments to disk", 'A'
-    k.add :publish, "Publish message/attachment using publish-hook", 'P'
-    k.add :search, "Search for messages from particular people", 'S'
-    k.add :compose, "Compose message to person", 'm'
-    k.add :subscribe_to_list, "Subscribe to/unsubscribe from mailing list", "("
-    k.add :unsubscribe_from_list, "Subscribe to/unsubscribe from mailing list", ")"
-    k.add :pipe_message, "Pipe message or attachment to a shell command", '|'
+    k.add :reply, 'Reply to a message', 'r'
+    k.add :reply_all, 'Reply to all participants of this message', 'G'
+    k.add :forward, 'Forward a message or attachment', 'f'
+    k.add :bounce, 'Bounce message to other recipient(s)', '!'
+    k.add :alias, 'Edit alias/nickname for a person', 'i'
+    k.add :edit_as_new, 'Edit message as new', 'D'
+    k.add :save_to_disk, 'Save message/attachment to disk', 's'
+    k.add :save_all_to_disk, 'Save all attachments to disk', 'A'
+    k.add :publish, 'Publish message/attachment using publish-hook', 'P'
+    k.add :search, 'Search for messages from particular people', 'S'
+    k.add :compose, 'Compose message to person', 'm'
+    k.add :subscribe_to_list, 'Subscribe to/unsubscribe from mailing list', '('
+    k.add :unsubscribe_from_list, 'Subscribe to/unsubscribe from mailing list', ')'
+    k.add :pipe_message, 'Pipe message or attachment to a shell command', '|'
 
-    k.add :archive_and_next, "Archive this thread, kill buffer, and view next", 'a'
-    k.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
-    k.add :kill_and_next, "Kill this thread, kill buffer, and view next", '&'
-    k.add :toggle_wrap, "Toggle wrapping of text", 'w'
+    k.add :archive_and_next, 'Archive this thread, kill buffer, and view next', 'a'
+    k.add :delete_and_next, 'Delete this thread, kill buffer, and view next', 'd'
+    k.add :kill_and_next, 'Kill this thread, kill buffer, and view next', '&'
+    k.add :toggle_wrap, 'Toggle wrapping of text', 'w'
 
-    k.add :goto_uri, "Goto uri under cursor", 'g'
-    k.add :fetch_and_verify, "Fetch the PGP key on poolserver and re-verify message", "v"
+    k.add :goto_uri, 'Goto uri under cursor', 'g'
+    k.add :fetch_and_verify, 'Fetch the PGP key on poolserver and re-verify message', 'v'
 
-    k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read:", '.' do |kk|
-      kk.add :archive_and_kill, "Archive this thread and kill buffer", 'a'
-      kk.add :delete_and_kill, "Delete this thread and kill buffer", 'd'
-      kk.add :kill_and_kill, "Kill this thread and kill buffer", '&'
-      kk.add :spam_and_kill, "Mark this thread as spam and kill buffer", 's'
-      kk.add :unread_and_kill, "Mark this thread as unread and kill buffer", 'N'
-      kk.add :do_nothing_and_kill, "Just kill this buffer", '.'
+    k.add_multi '(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read:', '.' do |kk|
+      kk.add :archive_and_kill, 'Archive this thread and kill buffer', 'a'
+      kk.add :delete_and_kill, 'Delete this thread and kill buffer', 'd'
+      kk.add :kill_and_kill, 'Kill this thread and kill buffer', '&'
+      kk.add :spam_and_kill, 'Mark this thread as spam and kill buffer', 's'
+      kk.add :unread_and_kill, 'Mark this thread as unread and kill buffer', 'N'
+      kk.add :do_nothing_and_kill, 'Just kill this buffer', '.'
     end
 
-    k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ',' do |kk|
-      kk.add :archive_and_next, "Archive this thread, kill buffer, and view next", 'a'
-      kk.add :delete_and_next, "Delete this thread, kill buffer, and view next", 'd'
-      kk.add :kill_and_next, "Kill this thread, kill buffer, and view next", '&'
-      kk.add :spam_and_next, "Mark this thread as spam, kill buffer, and view next", 's'
-      kk.add :unread_and_next, "Mark this thread as unread, kill buffer, and view next", 'N'
-      kk.add :do_nothing_and_next, "Kill buffer, and view next", 'n', ','
+    k.add_multi '(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:', ',' do |kk|
+      kk.add :archive_and_next, 'Archive this thread, kill buffer, and view next', 'a'
+      kk.add :delete_and_next, 'Delete this thread, kill buffer, and view next', 'd'
+      kk.add :kill_and_next, 'Kill this thread, kill buffer, and view next', '&'
+      kk.add :spam_and_next, 'Mark this thread as spam, kill buffer, and view next', 's'
+      kk.add :unread_and_next, 'Mark this thread as unread, kill buffer, and view next', 'N'
+      kk.add :do_nothing_and_next, 'Kill buffer, and view next', 'n', ','
     end
 
-    k.add_multi "(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:", ']' do |kk|
-      kk.add :archive_and_prev, "Archive this thread, kill buffer, and view previous", 'a'
-      kk.add :delete_and_prev, "Delete this thread, kill buffer, and view previous", 'd'
-      kk.add :kill_and_prev, "Kill this thread, kill buffer, and view previous", '&'
-      kk.add :spam_and_prev, "Mark this thread as spam, kill buffer, and view previous", 's'
-      kk.add :unread_and_prev, "Mark this thread as unread, kill buffer, and view previous", 'N'
-      kk.add :do_nothing_and_prev, "Kill buffer, and view previous", 'n', ']'
+    k.add_multi '(a)rchive/(d)elete/mark as (s)pam/mark as u(N)read/do (n)othing:', ']' do |kk|
+      kk.add :archive_and_prev, 'Archive this thread, kill buffer, and view previous', 'a'
+      kk.add :delete_and_prev, 'Delete this thread, kill buffer, and view previous', 'd'
+      kk.add :kill_and_prev, 'Kill this thread, kill buffer, and view previous', '&'
+      kk.add :spam_and_prev, 'Mark this thread as spam, kill buffer, and view previous', 's'
+      kk.add :unread_and_prev, 'Mark this thread as unread, kill buffer, and view previous', 'N'
+      kk.add :do_nothing_and_prev, 'Kill buffer, and view previous', 'n', ']'
     end
   end
 
@@ -217,7 +217,7 @@ EOS
   def subscribe_to_list
     m = @message_lines[curpos] or return
     if m.list_subscribe && m.list_subscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
-      ComposeMode.spawn_nicely from: AccountManager.account_for(m.recipient_email), to: [Person.from_address($1)], subj: ($3 || "subscribe")
+      ComposeMode.spawn_nicely from: AccountManager.account_for(m.recipient_email), to: [Person.from_address($1)], subj: ($3 || 'subscribe')
     else
       BufferManager.flash "Can't find List-Subscribe header for this message."
     end
@@ -228,21 +228,21 @@ EOS
     BufferManager.flash "Can't find List-Unsubscribe header for this message." unless m.list_unsubscribe
 
     if m.list_unsubscribe =~ /<mailto:(.*?)(\?subject=(.*?))?>/
-      ComposeMode.spawn_nicely from: AccountManager.account_for(m.recipient_email), to: [Person.from_address($1)], subj: ($3 || "unsubscribe")
+      ComposeMode.spawn_nicely from: AccountManager.account_for(m.recipient_email), to: [Person.from_address($1)], subj: ($3 || 'unsubscribe')
     elsif m.list_unsubscribe =~ /<(http.*)?>/
-      unless HookManager.enabled? "goto"
-        BufferManager.flash "You must add a goto.rb hook before you can goto an unsubscribe URI."
+      unless HookManager.enabled? 'goto'
+        BufferManager.flash 'You must add a goto.rb hook before you can goto an unsubscribe URI.'
         return
       end
 
       begin
         u = URI.parse($1)
       rescue URI::InvalidURIError => e
-        BufferManager.flash("Invalid unsubscribe link")
+        BufferManager.flash('Invalid unsubscribe link')
         return
       end
 
-      HookManager.run "goto", uri: Shellwords.escape(u.to_s)
+      HookManager.run 'goto', uri: Shellwords.escape(u.to_s)
     end
   end
 
@@ -256,11 +256,11 @@ EOS
 
   def bounce
     m = @message_lines[curpos] or return
-    to = BufferManager.ask_for_contacts(:people, "Bounce To: ") or return
+    to = BufferManager.ask_for_contacts(:people, 'Bounce To: ') or return
 
     defcmd = AccountManager.default_account.bounce_sendmail
 
-    cmd = case (hookcmd = HookManager.run "bounce-command", from: m.from, to: to)
+    cmd = case (hookcmd = HookManager.run 'bounce-command', from: m.from, to: to)
           when nil, /^$/ then defcmd
           else hookcmd
           end + ' ' + to.map { |t| t.email }.join(' ')
@@ -309,7 +309,7 @@ EOS
   def edit_labels
     old_labels = @thread.labels
     reserved_labels = old_labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
-    new_labels = BufferManager.ask_for_labels :label, "Labels for thread: ", @thread.labels.sort_by {|x| x.to_s}
+    new_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', @thread.labels.sort_by {|x| x.to_s}
 
     return unless new_labels
     @thread.labels = Set.new(reserved_labels) + new_labels
@@ -317,7 +317,7 @@ EOS
     update
     UpdateManager.relay self, :labeled, @thread.first
     Index.save_thread @thread
-    UndoManager.register "labeling thread" do
+    UndoManager.register 'labeling thread' do
       @thread.labels = old_labels
       Index.save_thread @thread
       UpdateManager.relay self, :labeled, @thread.first
@@ -379,7 +379,7 @@ EOS
   def edit_as_new
     m = @message_lines[curpos] or return
     mode = ComposeMode.new(body: m.quotable_body_lines, to: m.to, cc: m.cc, subj: m.subj, bcc: m.bcc, refs: m.refs, replytos: m.replytos)
-    BufferManager.spawn "edit as new", mode
+    BufferManager.spawn 'edit as new', mode
     mode.default_edit_message
   end
 
@@ -388,9 +388,9 @@ EOS
     case chunk
     when Chunk::Attachment
       default_dir = $config[:default_attachment_save_dir]
-      default_dir = ENV["HOME"] if default_dir.nil? || default_dir.empty?
+      default_dir = ENV['HOME'] if default_dir.nil? || default_dir.empty?
       default_fn = File.expand_path File.join(default_dir, chunk.safe_filename)
-      fn = BufferManager.ask_for_filename :filename, "Save attachment to file or directory: ", default_fn, true
+      fn = BufferManager.ask_for_filename :filename, 'Save attachment to file or directory: ', default_fn, true
 
       # if user selects directory use file name from message
       if fn and File.directory? fn
@@ -400,7 +400,7 @@ EOS
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn
     else
       m = @message_lines[curpos]
-      fn = BufferManager.ask_for_filename :filename, "Save message to file: "
+      fn = BufferManager.ask_for_filename :filename, 'Save message to file: '
       return unless fn
       save_to_file(fn) do |f|
         m.each_raw_message_line { |l| f.print l }
@@ -410,8 +410,8 @@ EOS
 
   def save_all_to_disk
     m = @message_lines[curpos] or return
-    default_dir = ($config[:default_attachment_save_dir] || ".")
-    folder = BufferManager.ask_for_filename :filename, "Save all attachments to folder: ", default_dir, true
+    default_dir = ($config[:default_attachment_save_dir] || '.')
+    folder = BufferManager.ask_for_filename :filename, 'Save all attachments to folder: ', default_dir, true
     return unless folder
 
     num = 0
@@ -436,10 +436,10 @@ EOS
 
   def publish
     chunk = @chunk_lines[curpos] or return
-    if HookManager.enabled? "publish"
-      HookManager.run "publish", chunk: chunk
+    if HookManager.enabled? 'publish'
+      HookManager.run 'publish', chunk: chunk
     else
-      BufferManager.flash "Publishing hook not defined."
+      BufferManager.flash 'Publishing hook not defined.'
     end
   end
 
@@ -447,11 +447,11 @@ EOS
     m = @message_lines[curpos] or return
     if m.is_draft?
       mode = ResumeMode.new m
-      BufferManager.spawn "Edit message", mode
+      BufferManager.spawn 'Edit message', mode
       BufferManager.kill_buffer self.buffer
       mode.default_edit_message
     else
-      BufferManager.flash "Not a draft message!"
+      BufferManager.flash 'Not a draft message!'
     end
   end
 
@@ -459,11 +459,11 @@ EOS
     m = @message_lines[curpos] or return
     if m.is_draft?
       mode = ResumeMode.new m
-      BufferManager.spawn "Send message", mode
+      BufferManager.spawn 'Send message', mode
       BufferManager.kill_buffer self.buffer
       mode.send_message
     else
-      BufferManager.flash "Not a draft message!"
+      BufferManager.flash 'Not a draft message!'
     end
   end
 
@@ -632,7 +632,7 @@ EOS
       @thread.remove_label :inbox
       UpdateManager.relay self, :archived, @thread.first
       Index.save_thread @thread
-      UndoManager.register "archiving 1 thread" do
+      UndoManager.register 'archiving 1 thread' do
         @thread.apply_label :inbox
         Index.save_thread @thread
         UpdateManager.relay self, :unarchived, @thread.first
@@ -645,7 +645,7 @@ EOS
       @thread.apply_label :spam
       UpdateManager.relay self, :spammed, @thread.first
       Index.save_thread @thread
-      UndoManager.register "marking 1 thread as spam" do
+      UndoManager.register 'marking 1 thread as spam' do
         @thread.remove_label :spam
         Index.save_thread @thread
         UpdateManager.relay self, :unspammed, @thread.first
@@ -658,7 +658,7 @@ EOS
       @thread.apply_label :deleted
       UpdateManager.relay self, :deleted, @thread.first
       Index.save_thread @thread
-      UndoManager.register "deleting 1 thread" do
+      UndoManager.register 'deleting 1 thread' do
         @thread.remove_label :deleted
         Index.save_thread @thread
         UpdateManager.relay self, :undeleted, @thread.first
@@ -671,7 +671,7 @@ EOS
       @thread.apply_label :killed
       UpdateManager.relay self, :killed, @thread.first
       Index.save_thread @thread
-      UndoManager.register "killed 1 thread" do
+      UndoManager.register 'killed 1 thread' do
         @thread.remove_label :killed
         Index.save_thread @thread
         UpdateManager.relay self, :unkilled, @thread.first
@@ -720,7 +720,7 @@ EOS
 
     return unless chunk || message
 
-    command = BufferManager.ask(:shell, "pipe command: ")
+    command = BufferManager.ask(:shell, 'pipe command: ')
     return if command.nil? || command.empty?
 
     output, success = pipe_to_process(command) do |stream|
@@ -747,18 +747,18 @@ EOS
   def status
     user_labels = @thread.labels.to_a.map do |l|
       l.to_s if LabelManager.user_defined_labels.member?(l)
-    end.compact.join(",")
-    user_labels = (user_labels.empty? and "" or "<#{user_labels}>")
-    [user_labels, super].join(" -- ")
+    end.compact.join(',')
+    user_labels = (user_labels.empty? and '' or "<#{user_labels}>")
+    [user_labels, super].join(' -- ')
   end
 
   def goto_uri
     unless (chunk = @chunk_lines[curpos])
-      BufferManager.flash "No URI found."
+      BufferManager.flash 'No URI found.'
       return
     end
-    unless HookManager.enabled? "goto"
-      BufferManager.flash "You must add a goto.rb hook before you can goto a URI."
+    unless HookManager.enabled? 'goto'
+      BufferManager.flash 'You must add a goto.rb hook before you can goto a URI.'
       return
     end
 
@@ -769,11 +769,11 @@ EOS
     # ]
 
     linetext = @text.slice(curpos, @text.length).flatten(1)
-      .take_while{|d| d[0] == :text_color and d[1].strip != ""} # Only take up to the first "" alone on its line
-      .map{|d| d[1].strip}.join("").strip
+      .take_while{|d| d[0] == :text_color and d[1].strip != ''} # Only take up to the first "" alone on its line
+      .map{|d| d[1].strip}.join('').strip
 
     found = false
-    (linetext || "").scan(URI::regexp).each do |_matches|
+    (linetext || '').scan(URI::regexp).each do |_matches|
       begin
         link = $& # ruby magic: $& is the whole regexp match
         u = URI.parse(link)
@@ -782,7 +782,7 @@ EOS
 
         reallink = Shellwords.escape(u.to_s)
         BufferManager.flash "Going to #{reallink} ..."
-        HookManager.run "goto", uri: reallink
+        HookManager.run 'goto', uri: reallink
         BufferManager.completely_redraw_screen
         found = true
 
@@ -791,7 +791,7 @@ EOS
         # Do nothing, this is an ok flow
       end
     end
-    BufferManager.flash "No URI found." unless found
+    BufferManager.flash 'No URI found.' unless found
   end
 
   def fetch_and_verify
@@ -899,14 +899,14 @@ EOS
   def message_patina_lines m, state, start, parent, prefix, color, star_color
     prefix_widget = [color, prefix]
 
-    open_widget = [color, (state == :closed ? "+ " : "- ")]
-    new_widget = [color, (m.has_label?(:unread) ? "N" : " ")]
+    open_widget = [color, (state == :closed ? '+ ' : '- ')]
+    new_widget = [color, (m.has_label?(:unread) ? 'N' : ' ')]
     starred_widget = if m.has_label?(:starred)
-        [star_color, "*"]
+        [star_color, '*']
       else
-        [color, " "]
+        [color, ' ']
       end
-    attach_widget = [color, (m.has_label?(:attachment) ? "@" : " ")]
+    attach_widget = [color, (m.has_label?(:attachment) ? '@' : ' ')]
 
     case state
     when :open
@@ -929,46 +929,46 @@ EOS
       addressee_lines = []
       unless m.to.empty?
         m.to.each_with_index { |p, i| @person_lines[start + addressee_lines.length + from_line.length + i] = p }
-        addressee_lines += format_person_list "   To: ", m.to
+        addressee_lines += format_person_list '   To: ', m.to
       end
       unless m.cc.empty?
         m.cc.each_with_index { |p, i| @person_lines[start + addressee_lines.length + from_line.length + i] = p }
-        addressee_lines += format_person_list "   Cc: ", m.cc
+        addressee_lines += format_person_list '   Cc: ', m.cc
       end
       unless m.bcc.empty?
         m.bcc.each_with_index { |p, i| @person_lines[start + addressee_lines.length + from_line.length + i] = p }
-        addressee_lines += format_person_list "   Bcc: ", m.bcc
+        addressee_lines += format_person_list '   Bcc: ', m.bcc
       end
 
       headers = OrderedHash.new
-      headers["Date"] = "#{m.date.to_message_nice_s} (#{m.date.to_nice_distance_s})"
-      headers["Subject"] = m.subj
+      headers['Date'] = "#{m.date.to_message_nice_s} (#{m.date.to_nice_distance_s})"
+      headers['Subject'] = m.subj
 
       show_labels = @thread.labels - LabelManager::HIDDEN_RESERVED_LABELS
       unless show_labels.empty?
-        headers["Labels"] = show_labels.map { |x| x.to_s }.sort.join(', ')
+        headers['Labels'] = show_labels.map { |x| x.to_s }.sort.join(', ')
       end
       if parent
-        headers["In reply to"] = "#{parent.from.mediumname}'s message of #{parent.date.to_message_nice_s}"
+        headers['In reply to'] = "#{parent.from.mediumname}'s message of #{parent.date.to_message_nice_s}"
       end
 
-      HookManager.run "detailed-headers", message: m, headers: headers
+      HookManager.run 'detailed-headers', message: m, headers: headers
 
-      from_line + (addressee_lines + headers.map { |k, v| "   #{k}: #{v}" }).map { |l| [[color, prefix + "  " + l]] }
+      from_line + (addressee_lines + headers.map { |k, v| "   #{k}: #{v}" }).map { |l| [[color, prefix + '  ' + l]] }
     end
   end
 
   def format_person_list prefix, people
     ptext = people.map { |p| format_person p }
-    pad = " " * prefix.display_length
-    [prefix + ptext.first + (ptext.length > 1 ? "," : "")] +
+    pad = ' ' * prefix.display_length
+    [prefix + ptext.first + (ptext.length > 1 ? ',' : '')] +
       ptext[1 .. -1].map_with_index do |e, i|
-        pad + e + (i == ptext.length - 1 ? "" : ",")
+        pad + e + (i == ptext.length - 1 ? '' : ',')
       end
   end
 
   def format_person p
-    p.longname + (ContactManager.is_aliased_contact?(p) ? " (#{ContactManager.alias_for p})" : "")
+    p.longname + (ContactManager.is_aliased_contact?(p) ? " (#{ContactManager.alias_for p})" : '')
   end
 
   def maybe_wrap_text lines
@@ -990,7 +990,7 @@ EOS
 
   ## todo: check arguments on this overly complex function
   def chunk_to_lines chunk, state, start, depth, parent=nil, color=nil, star_color=nil
-    prefix = " " * INDENT_SPACES * depth
+    prefix = ' ' * INDENT_SPACES * depth
     case chunk
     when :fake_root
       [[[:missing_message_color, "#{prefix}<one or more unreceived messages>"]]]

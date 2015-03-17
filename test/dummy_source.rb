@@ -34,7 +34,7 @@ class DummySource < Source
   end
 
   def raw_header offset
-    ret = ""
+    ret = ''
     f = StringIO.new(@messages[offset])
     until f.eof? || (l = f.gets) =~ /^$/
       ret += l
@@ -47,7 +47,7 @@ class DummySource < Source
   end
 
   def each_raw_message_line offset
-    ret = ""
+    ret = ''
     f = StringIO.new(@messages[offset])
     until f.eof?
       yield f.gets

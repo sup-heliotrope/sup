@@ -37,7 +37,7 @@ class Thread
   def initialize
     ## ah, the joys of a multithreaded application with a class called
     ## "Thread". i keep instantiating the wrong one...
-    raise "wrong Thread class, buddy!" if block_given?
+    raise 'wrong Thread class, buddy!' if block_given?
     @containers = []
   end
 
@@ -47,13 +47,13 @@ class Thread
 
   def empty?; @containers.empty?; end
   def empty!; @containers.clear; end
-  def drop c; @containers.delete(c) or raise "bad drop"; end
+  def drop c; @containers.delete(c) or raise 'bad drop'; end
 
   ## unused
   def dump f=$stdout
     f.puts "=== start thread with #{@containers.length} trees ==="
     @containers.each { |c| c.dump_recursive f; f.puts }
-    f.puts "=== end thread ==="
+    f.puts '=== end thread ==='
   end
 
   ## yields each message, its depth, and its parent. the message yield
@@ -96,7 +96,7 @@ class Thread
     return first_unread.snippet if first_unread
     last_read, * = with_snippets.sort_by { |m, *_o| m.date }.last
     return last_read.snippet if last_read
-    ""
+    ''
   end
   def authors; map { |m, *_o| m.from if m }.compact.uniq; end
 
@@ -129,7 +129,7 @@ class Thread
   def subj; argfind { |m, *_o| m && m.subj }; end
   def labels; inject(Set.new) { |s, (m, *_o)| m ? s | m.labels : s } end
   def labels= l
-    raise ArgumentError, "not a set" unless l.is_a?(Set)
+    raise ArgumentError, 'not a set' unless l.is_a?(Set)
     each { |m, *_o| m && m.labels = l.dup }
   end
 
@@ -152,7 +152,7 @@ class Thread
 
   def sort_key
     m = latest_message
-    m ? [-m.date.to_i, m.id] : [-Time.now.to_i, ""]
+    m ? [-m.date.to_i, m.id] : [-Time.now.to_i, '']
   end
 end
 
@@ -221,20 +221,20 @@ class Container
     [ "<#{id}",
       (@parent.nil? ? nil : "parent=#{@parent.id}"),
       (@children.empty? ? nil : "children=#{@children.map { |c| c.id }.inspect}"),
-    ].compact.join(" ") + ">"
+    ].compact.join(' ') + '>'
   end
 
   def dump_recursive f=$stdout, indent=0, root=true, parent=nil
-    raise "inconsistency" unless parent.nil? || parent.children.include?(self)
+    raise 'inconsistency' unless parent.nil? || parent.children.include?(self)
     unless root
-      f.print " " * indent
-      f.print "+->"
+      f.print ' ' * indent
+      f.print '+->'
     end
     line = "[#{thread.nil? ? ' ' : '*'}] " + #"[#{useful? ? 'U' : ' '}] " +
       if @message
         message.subj ##{@message.refs.inspect} / #{@message.replytos.inspect}"
       else
-        "<no message>"
+        '<no message>'
       end
 
     f.puts "#{id} #{line}"#[0 .. (105 - indent)]
@@ -243,7 +243,7 @@ class Container
   end
 
   def sort_key
-    empty? ? [Time.now.to_i, ""] : [@message.date.to_i, @message.id]
+    empty? ? [Time.now.to_i, ''] : [@message.date.to_i, @message.id]
   end
 end
 
@@ -281,9 +281,9 @@ class ThreadSet
 
   def dump f=$stdout
     @threads.each do |s, t|
-      f.puts "**********************"
+      f.puts '**********************'
       f.puts "** for subject #{s} **"
-      f.puts "**********************"
+      f.puts '**********************'
       t.dump f
     end
   end
@@ -359,7 +359,7 @@ class ThreadSet
 
   ## merges in a pre-loaded thread
   def add_thread t
-    raise "duplicate" if @threads.values.member? t
+    raise 'duplicate' if @threads.values.member? t
     t.each { |m, *_o| add_message m }
   end
 
@@ -378,7 +378,7 @@ class ThreadSet
     parent = containers.find { |c| !c.is_reply? }
 
     ## no thread was rooted by a non-reply, so make a fake parent
-    parent ||= @messages["joining-ref-" + containers.map { |c| c.id }.join("-")]
+    parent ||= @messages['joining-ref-' + containers.map { |c| c.id }.join('-')]
 
     containers.each do |c|
       next if c == parent

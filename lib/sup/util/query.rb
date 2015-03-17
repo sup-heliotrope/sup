@@ -4,7 +4,7 @@ module Redwood
       class QueryDescriptionError < ArgumentError; end
 
       def self.describe(query, fallback = nil)
-        d = query.description.force_encoding("UTF-8")
+        d = query.description.force_encoding('UTF-8')
 
         unless d.valid_encoding?
           raise QueryDescriptionError.new(d) unless fallback

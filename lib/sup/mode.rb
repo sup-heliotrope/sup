@@ -22,11 +22,11 @@ class Mode
     @buffer = nil
   end
 
-  def self.make_name s; s.gsub(/.*::/, "").camel_to_hyphy; end
+  def self.make_name s; s.gsub(/.*::/, '').camel_to_hyphy; end
   def name; Mode.make_name self.class.name; end
 
   def self.load_all_modes dir
-    Dir[File.join(dir, "*.rb")].each do |f|
+    Dir[File.join(dir, '*.rb')].each do |f|
       $stderr.puts "## loading mode #{f}"
       require f
     end
@@ -39,7 +39,7 @@ class Mode
   def blur; end
   def cancel_search!; end
   def in_search?; false end
-  def status; ""; end
+  def status; ''; end
   def resize _rows, _cols; end
   def cleanup
     @buffer = nil
@@ -90,7 +90,7 @@ EOS
       end
     end
     begin
-      File.open(fn, "w") { |f| yield f }
+      File.open(fn, 'w') { |f| yield f }
       BufferManager.flash "Successfully wrote #{fn}." if talk
       true
     rescue SystemCallError, IOError => e

@@ -1,4 +1,4 @@
-require "sup/index"
+require 'sup/index'
 
 module Redwood
   # Provides label tweaking service to the user.

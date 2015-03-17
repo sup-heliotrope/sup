@@ -41,8 +41,8 @@ class HorizontalSelector
             [@selected_color, @labels[i]]
           else
             [@base_color, @labels[i]]
-          end] + [[@base_color, "  "]]
-      end + [[@base_color, ""]]
+          end] + [[@base_color, '  ']]
+      end + [[@base_color, '']]
   end
 
   def roll_left

@@ -6,7 +6,7 @@ module Redwood
 
 class LogMode < TextMode
   register_keymap do |k|
-    k.add :toggle_follow, "Toggle follow mode", 'f'
+    k.add :toggle_follow, 'Toggle follow mode', 'f'
   end
 
   ## if buffer_name is supplied, this mode will spawn a buffer
@@ -49,7 +49,7 @@ class LogMode < TextMode
 
   def cleanup
     @on_kill.each { |cb| cb.call self }
-    self.text = ""
+    self.text = ''
     super
   end
 end

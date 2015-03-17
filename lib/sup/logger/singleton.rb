@@ -3,7 +3,7 @@
 # class `Object'
 #
 # For now this is what we have to do.
-require "sup/logger"
+require 'sup/logger'
 Redwood::Logger.init.add_sink $stderr
 class Object
   include Redwood::LogsStuff

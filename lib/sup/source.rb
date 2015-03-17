@@ -1,5 +1,5 @@
-require "sup/rfc2047"
-require "monitor"
+require 'sup/rfc2047'
+require 'monitor'
 
 module Redwood
 
@@ -142,7 +142,7 @@ class Source
       when /^\r*$/; break # blank line signifies end of header
       else
         if last
-          header[last] << " " unless header[last].empty?
+          header[last] << ' ' unless header[last].empty?
           header[last] << line.strip
         end
       end
@@ -167,7 +167,7 @@ class Source
   def parse_raw_email_header f; self.class.parse_raw_email_header f end
 
   def Source.expand_filesystem_uri uri
-    uri.gsub "~", File.expand_path("~")
+    uri.gsub '~', File.expand_path('~')
   end
 end
 
@@ -201,7 +201,7 @@ class SourceManager
 
   def add_source source
     @source_mutex.synchronize do
-      raise "duplicate source!" if @sources.include? source
+      raise 'duplicate source!' if @sources.include? source
       @sources_dirty = true
       max = @sources.max_of { |id, s| s.is_a?(DraftLoader) || s.is_a?(SentLoader) ? 0 : id }
       source.id ||= (max || 0) + 1

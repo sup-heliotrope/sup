@@ -3,7 +3,7 @@ module Redwood
 class PollMode < LogMode
   def initialize
     @new = true
-    super "poll for new messages"
+    super 'poll for new messages'
   end
 
   def poll

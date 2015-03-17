@@ -2,9 +2,9 @@ module Redwood
 
 class BufferListMode < LineCursorMode
   register_keymap do |k|
-    k.add :jump_to_buffer, "Jump to selected buffer", :enter
-    k.add :reload, "Reload buffer list", "@"
-    k.add :kill_selected_buffer, "Kill selected buffer", "X"
+    k.add :jump_to_buffer, 'Jump to selected buffer', :enter
+    k.add :reload, 'Reload buffer list', '@'
+    k.add :kill_selected_buffer, 'Kill selected buffer', 'X'
   end
 
   def initialize
@@ -34,7 +34,7 @@ class BufferListMode < LineCursorMode
       base_color = buf.system? ? :system_buf_color : :regular_buf_color
       [[base_color, sprintf("%#{width}s ", buf.mode.name)],
        [:modified_buffer_color, (buf.mode.unsaved? ? '*' : ' ')],
-       [base_color, " " + name]]
+       [base_color, ' ' + name]]
     end
   end
 

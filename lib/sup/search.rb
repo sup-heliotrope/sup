@@ -41,7 +41,7 @@ class SearchManager
     return @searches[name];
   end
   def valid_name? name; name =~ /^[\w-]+$/; end
-  def name_format_hint; "letters, numbers, underscores and dashes only"; end
+  def name_format_hint; 'letters, numbers, underscores and dashes only'; end
 
   def add name, search_string
     return unless valid_name? name
@@ -102,7 +102,7 @@ class SearchManager
 
   def save
     return unless @modified
-    File.open(@fn, "w:UTF-8") { |f| (@searches - @predefined_searches.keys).sort.each { |(n, s)| f.puts "#{n}: #{s}" } }
+    File.open(@fn, 'w:UTF-8') { |f| (@searches - @predefined_searches.keys).sort.each { |(n, s)| f.puts "#{n}: #{s}" } }
     @modified = false
   end
 end
