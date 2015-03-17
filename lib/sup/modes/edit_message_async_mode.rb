@@ -88,7 +88,7 @@ EOS
   end
 
   def run_async_hook
-    HookManager.run('async-edit', {file_path: @file_path})
+    HookManager.run('async-edit', { file_path: @file_path })
   end
 
   def file_being_edited?

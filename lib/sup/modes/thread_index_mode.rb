@@ -734,7 +734,7 @@ EOS
       else
         BufferManager.flash 'No matches.'
       end
-    end)})
+    end) })
 
     if opts[:background] || opts[:background].nil?
       load_n_threads_background n, myopts

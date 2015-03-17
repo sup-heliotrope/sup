@@ -66,7 +66,7 @@ EOS
       begin
         begin
           begin
-            GPGME.check_version({protocol: GPGME::PROTOCOL_OpenPGP})
+            GPGME.check_version({ protocol: GPGME::PROTOCOL_OpenPGP })
           rescue TypeError
             GPGME.check_version(nil)
           end
@@ -98,7 +98,7 @@ EOS
       # check if the gpg-options hook uses the passphrase_callback
       # if it doesn't then check if gpg agent is present
       gpg_opts = HookManager.run('gpg-options',
-                                 {operation: 'sign', options: {}}) || {}
+                                 { operation: 'sign', options: {} }) || {}
       if gpg_opts[:passphrase_callback].nil?
         if ENV['GPG_AGENT_INFO'].nil?
           @not_working_reason = ["Environment variable 'GPG_AGENT_INFO' not set, is gpg-agent running?",
@@ -127,10 +127,10 @@ EOS
   def sign from, _to, payload
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
-    gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP, armor: true, textmode: true}
+    gpg_opts = { protocol: GPGME::PROTOCOL_OpenPGP, armor: true, textmode: true }
     gpg_opts.merge!(gen_sign_user_opts(from))
     gpg_opts = HookManager.run('gpg-options',
-                               {operation: 'sign', options: gpg_opts}) || gpg_opts
+                               { operation: 'sign', options: gpg_opts }) || gpg_opts
     begin
       if GPGME.respond_to?('detach_sign')
         sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
@@ -161,13 +161,13 @@ EOS
   def encrypt from, to, payload, sign = false
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
-    gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP, armor: true, textmode: true}
+    gpg_opts = { protocol: GPGME::PROTOCOL_OpenPGP, armor: true, textmode: true }
     if sign
       gpg_opts.merge!(gen_sign_user_opts(from))
-      gpg_opts.merge!({sign: true})
+      gpg_opts.merge!({ sign: true })
     end
     gpg_opts = HookManager.run('gpg-options',
-                               {operation: 'encrypt', options: gpg_opts}) || gpg_opts
+                               { operation: 'encrypt', options: gpg_opts }) || gpg_opts
     recipients = to + [from]
     recipients = HookManager.run('gpg-expand-keys', { recipients: recipients }) || recipients
     begin
@@ -256,9 +256,9 @@ EOS
   def verify payload, signature, detached = true # both RubyMail::Message objects
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
-    gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP}
+    gpg_opts = { protocol: GPGME::PROTOCOL_OpenPGP }
     gpg_opts = HookManager.run('gpg-options',
-                               {operation: 'verify', options: gpg_opts}) || gpg_opts
+                               { operation: 'verify', options: gpg_opts }) || gpg_opts
     ctx = GPGME::Ctx.new(gpg_opts)
     sig_data = GPGME::Data.from_str signature.decode
     if detached
@@ -288,9 +288,9 @@ EOS
   def decrypt payload, armor = false # a RubyMail::Message object
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
-    gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP}
+    gpg_opts = { protocol: GPGME::PROTOCOL_OpenPGP }
     gpg_opts = HookManager.run('gpg-options',
-                               {operation: 'decrypt', options: gpg_opts}) || gpg_opts
+                               { operation: 'decrypt', options: gpg_opts }) || gpg_opts
     ctx = GPGME::Ctx.new(gpg_opts)
     cipher_data = GPGME::Data.from_str(format_payload(payload))
     if GPGME::Data.respond_to?('empty')
@@ -365,7 +365,7 @@ EOS
     end
 
     fingerprint = '0x' + fingerprint unless fingerprint[0..1] == '0x'
-    params = {op: 'get', search: fingerprint}
+    params = { op: 'get', search: fingerprint }
     uri.query = URI.encode_www_form(params)
 
     begin
@@ -452,7 +452,7 @@ EOS
 
       # finally, run the hook
       output_lines << HookManager.run('sig-output',
-                                      {signature: signature, from_key: from_key})
+                                      { signature: signature, from_key: from_key })
     end
     return output_lines, trusted, unknown_fpr
   end
@@ -481,12 +481,12 @@ EOS
     account = AccountManager.account_for from
     account ||= AccountManager.default_account
     if !account.gpgkey.nil?
-      opts = {signer: account.gpgkey}
+      opts = { signer: account.gpgkey }
     elsif AccountManager.user_emails.length == 1
       # only one account
       opts = {}
     else
-      opts = {signer: from}
+      opts = { signer: from }
     end
     opts
   end

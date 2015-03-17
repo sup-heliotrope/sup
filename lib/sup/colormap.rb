@@ -68,14 +68,14 @@ class Colormap
     system_buf: { fg: 'blue', bg: 'default' },
     regular_buf: { fg: 'white', bg: 'default' },
     modified_buffer: { fg: 'yellow', bg: 'default', attrs: ['bold'] },
-    date: { fg: 'white', bg: 'default'},
-    size_widget: { fg: 'white', bg: 'default'}
+    date: { fg: 'white', bg: 'default' },
+    size_widget: { fg: 'white', bg: 'default' }
   }
 
   def initialize
     raise 'only one instance can be created' if @@instance
     @@instance = self
-    @color_pairs = {[Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK] => 0}
+    @color_pairs = { [Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK] => 0 }
     @users = []
     @next_id = 0
     reset
@@ -84,7 +84,7 @@ class Colormap
 
   def reset
     @entries = {}
-    @highlights = { none: highlight_sym(:none)}
+    @highlights = { none: highlight_sym(:none) }
     @entries[highlight_sym(:none)] = highlight_for(Ncurses::COLOR_WHITE,
                                                    Ncurses::COLOR_BLACK,
                                                    []) + [nil]

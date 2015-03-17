@@ -451,12 +451,6 @@ Style/SingleLineBlockParams:
 Style/SingleLineMethods:
   Enabled: false
 
-# Offense count: 97
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, EnforcedStyleForEmptyBraces, SupportedStyles.
-Style/SpaceInsideHashLiteralBraces:
-  Enabled: false
-
 # Offense count: 27
 # Cop supports --auto-correct.
 Style/SpaceInsideParens:

@@ -8,7 +8,7 @@ require 'sup'
 module Redwood
   class TestYamlRegressions < ::Minitest::Test
     def test_yamling_hash
-      hsh = {foo: 42}
+      hsh = { foo: 42 }
       reloaded = YAML.load(hsh.to_yaml)
 
       assert_equal reloaded, hsh
