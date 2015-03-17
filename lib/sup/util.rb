@@ -337,7 +337,7 @@ class String
       when ?,, nil
         state = case state
           when :outstring, :escaped_outstring then
-            ret << self[region_start ... newpos].gsub(/^\s+|\s+$/, '')
+            ret << self[region_start...newpos].gsub(/^\s+|\s+$/, '')
             region_start = newpos + 1
             :outstring
           when :instring then :instring
@@ -356,7 +356,7 @@ class String
 
     remainder = case state
       when :instring
-        self[region_start .. -1].gsub(/^\s+/, '')
+        self[region_start..-1].gsub(/^\s+/, '')
       else
         nil
       end
@@ -370,11 +370,11 @@ class String
     while s.display_length > len
       cut = s.slice_by_display_length(len).rindex(/\s/)
       if cut
-        ret << s[0 ... cut]
-        s = s[(cut + 1) .. -1]
+        ret << s[0...cut]
+        s = s[(cut + 1)..-1]
       else
         ret << s.slice_by_display_length(len)
-        s = s[ret.last.length .. -1]
+        s = s[ret.last.length..-1]
       end
     end
     ret << s
@@ -588,7 +588,7 @@ module Enumerable
   def shared_prefix caseless = false, exclude = ''
     return '' if empty?
     prefix = ''
-    (0 ... first.length).each do |i|
+    (0...first.length).each do |i|
       c = (caseless ? first.downcase : first)[i]
       break unless all? { |s| (caseless ? s.downcase : s)[i] == c }
       next if exclude[i] == c

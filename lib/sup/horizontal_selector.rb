@@ -35,7 +35,7 @@ class HorizontalSelector
       end
 
     [[@base_color, label]] +
-      (0 ... @labels.length).inject([]) do |array, i|
+      (0...@labels.length).inject([]) do |array, i|
         array + [
           if i == @selection
             [@selected_color, @labels[i]]

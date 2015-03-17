@@ -447,7 +447,7 @@ EOS
     unless @attachments.empty?
       @text += ['']
       @attachment_lines_offset = @text.length
-      @text += (0 ... @attachments.size).map { |i| [[:attachment_color, "+ Attachment: #{@attachment_names[i]} (#{@attachments[i].body.size.to_human_size})"]] }
+      @text += (0...@attachments.size).map { |i| [[:attachment_color, "+ Attachment: #{@attachment_names[i]} (#{@attachments[i].body.size.to_human_size})"]] }
     end
   end
 

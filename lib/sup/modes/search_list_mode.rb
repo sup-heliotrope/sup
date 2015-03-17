@@ -49,7 +49,7 @@ EOS
   def [] i; @text[i] end
 
   def jump_to_next_new
-    n = ((curpos + 1) ... lines).find { |i| @searches[i][1] > 0 } || (0 ... curpos).find { |i| @searches[i][1] > 0 }
+    n = ((curpos + 1)...lines).find { |i| @searches[i][1] > 0 } || (0...curpos).find { |i| @searches[i][1] > 0 }
     if n
       ## jump there if necessary
       jump_to_line n unless n >= topline && n < botline

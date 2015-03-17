@@ -34,8 +34,8 @@ class CompletionMode < ScrollMode
       if @prefix_len
         @lines << [] if i % num_per == 0
         if @prefix_len < s.length
-          prefix = s[0 ... @prefix_len]
-          suffix = s[(@prefix_len + 1) .. -1]
+          prefix = s[0...@prefix_len]
+          suffix = s[(@prefix_len + 1)..-1]
           char = s[@prefix_len].chr
 
           @lines.last += [[:text_color, sprintf("%#{max_length - suffix.length - 1}s", prefix)],

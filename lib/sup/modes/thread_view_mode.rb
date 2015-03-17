@@ -479,7 +479,7 @@ EOS
   def jump_to_next_and_open
     return continue_search_in_buffer if in_search? # err.. don't know why im doing this
 
-    m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
+    m = (curpos...@message_lines.length).argfind { |i| @message_lines[i] }
     return unless m
 
     nextm = @layout[m].next
@@ -503,7 +503,7 @@ EOS
 
   def jump_to_next_open force_alignment = nil
     return continue_search_in_buffer if in_search? # hack: allow 'n' to apply to both operations
-    m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
+    m = (curpos...@message_lines.length).argfind { |i| @message_lines[i] }
     return unless m
     while nextm = @layout[m].next
       break if @layout[nextm].state != :closed
@@ -518,7 +518,7 @@ EOS
   end
 
   def jump_to_prev_and_open _force_alignment = nil
-    m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] }
+    m = (0..curpos).to_a.reverse.argfind { |i| @message_lines[i] }
     return unless m
 
     nextm = @layout[m].prev
@@ -540,7 +540,7 @@ EOS
   end
 
   def jump_to_prev_open
-    m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] } # bah, .to_a
+    m = (0..curpos).to_a.reverse.argfind { |i| @message_lines[i] } # bah, .to_a
     return unless m
     ## jump to the top of the current message if we're in the body;
     ## otherwise, to the previous message
@@ -862,7 +862,7 @@ EOS
       l.width = 0 # updated below
       @layout[l.prev].next = m if l.prev
 
-      (0 ... text.length).each do |i|
+      (0...text.length).each do |i|
         @chunk_lines[@text.length + i] = m
         @message_lines[@text.length + i] = m
         lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.display_length }.sum
@@ -883,7 +883,7 @@ EOS
             end
 
           text = chunk_to_lines c, cl.state, @text.length, depth
-          (0 ... text.length).each do |i|
+          (0...text.length).each do |i|
             @chunk_lines[@text.length + i] = c
             @message_lines[@text.length + i] = m
             lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.display_length }.sum - (depth * INDENT_SPACES)
@@ -962,7 +962,7 @@ EOS
     ptext = people.map { |p| format_person p }
     pad = ' ' * prefix.display_length
     [prefix + ptext.first + (ptext.length > 1 ? ',' : '')] +
-      ptext[1 .. -1].map_with_index do |e, i|
+      ptext[1..-1].map_with_index do |e, i|
         pad + e + (i == ptext.length - 1 ? '' : ',')
       end
   end

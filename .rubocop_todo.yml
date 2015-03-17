@@ -451,11 +451,6 @@ Style/SingleLineBlockParams:
 Style/SingleLineMethods:
   Enabled: false
 
-# Offense count: 35
-# Cop supports --auto-correct.
-Style/SpaceInsideRangeLiteral:
-  Enabled: false
-
 # Offense count: 18
 # Cop supports --auto-correct.
 Style/SpecialGlobalVars:

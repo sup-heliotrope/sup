@@ -43,8 +43,8 @@ class ScrollMode < Mode
 
   def draw
     ensure_mode_validity
-    (@topline ... @botline).each { |ln| draw_line ln, color: :text_color }
-    ((@botline - @topline) ... buffer.content_height).each do |ln|
+    (@topline...@botline).each { |ln| draw_line ln, color: :text_color }
+    ((@botline - @topline)...buffer.content_height).each do |ln|
       if @twiddles
         buffer.write ln, 0, '~', color: :twiddle_color
       else
@@ -154,7 +154,7 @@ class ScrollMode < Mode
 
   def find_text query, start_line
     regex = /#{query}/i
-    (start_line ... lines).each do |i|
+    (start_line...lines).each do |i|
       case (s = self[i])
       when String
         match = s =~ regex
@@ -231,7 +231,7 @@ class ScrollMode < Mode
                                            highlight: opts[:highlight]
       elsif xpos < @leftcol
         ## partial
-        buffer.write ln - @topline, 0, text[(@leftcol - xpos) .. -1],
+        buffer.write ln - @topline, 0, text[(@leftcol - xpos)..-1],
                      color: color,
                      highlight: opts[:highlight], no_fill: no_fill
       else
@@ -244,7 +244,7 @@ class ScrollMode < Mode
   end
 
   def draw_line_from_string ln, s, opts
-    buffer.write ln - @topline, 0, s[@leftcol .. -1], highlight: opts[:highlight], color: opts[:color]
+    buffer.write ln - @topline, 0, s[@leftcol..-1], highlight: opts[:highlight], color: opts[:color]
   end
 end
 

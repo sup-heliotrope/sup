@@ -616,8 +616,8 @@ EOS
       sig = lines.between(GPG_SIGNED_START, GPG_SIG_START)
       startidx = lines.index(GPG_SIGNED_START)
       endidx = lines.index(GPG_SIG_END)
-      before = startidx != 0 ? lines[0 .. startidx - 1] : []
-      after = endidx ? lines[endidx + 1 .. lines.size] : []
+      before = startidx != 0 ? lines[0..startidx - 1] : []
+      after = endidx ? lines[endidx + 1..lines.size] : []
 
       # sig contains BEGIN PGP SIGNED MESSAGE and END PGP SIGNATURE, so
       # we ditch them. sig may also contain the hash used by PGP (with a
@@ -641,8 +641,8 @@ EOS
       msg.body = gpg.join("\n")
 
       startidx = lines.index(GPG_START)
-      before = startidx != 0 ? lines[0 .. startidx - 1] : []
-      after = lines[lines.index(GPG_END) + 1 .. lines.size]
+      before = startidx != 0 ? lines[0..startidx - 1] : []
+      after = lines[lines.index(GPG_END) + 1..lines.size]
 
       notice, sig, decryptedm = CryptoManager.decrypt msg, true
       chunks = if decryptedm # managed to decrypt
@@ -733,7 +733,7 @@ EOS
         @snippet += ' ' unless @snippet.empty?
         @snippet += line.gsub(/^\s+/, '').gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
         oldlen = @snippet.length
-        @snippet = @snippet[0 ... SNIPPET_LEN].chomp
+        @snippet = @snippet[0...SNIPPET_LEN].chomp
         @snippet += '...' if @snippet.length < oldlen
         @dirty = true unless encrypted && $config[:discard_snippets_from_encrypted_messages]
         @snippet_contains_encrypted_content = true if encrypted
