@@ -13,13 +13,13 @@ module Redwood
 
     def add_labels query, *labels
       run_on_each_message(query) do |m|
-        labels.each {|l| m.add_label l }
+        labels.each { |l| m.add_label l }
       end
     end
 
     def remove_labels query, *labels
       run_on_each_message(query) do |m|
-        labels.each {|l| m.remove_label l }
+        labels.each { |l| m.remove_label l }
       end
     end
 

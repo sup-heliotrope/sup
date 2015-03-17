@@ -189,7 +189,7 @@ EOS
 
 Should I complain about this again? (Y/n)
 EOS
-        File.open(Redwood::SYNC_OK_FN, 'w') {|f| f.write(Redwood::MAILDIR_SYNC_CHECK_SKIPPED) } if STDIN.gets.chomp.downcase == 'n'
+        File.open(Redwood::SYNC_OK_FN, 'w') { |f| f.write(Redwood::MAILDIR_SYNC_CHECK_SKIPPED) } if STDIN.gets.chomp.downcase == 'n'
       end
     elsif not $config[:sync_back_to_maildir] and File.exist? Redwood::SYNC_OK_FN
       File.delete(Redwood::SYNC_OK_FN)
@@ -277,7 +277,7 @@ Hi there. It looks like one or more message sources is reporting
 errors. Until this is corrected, messages from these sources cannot
 be viewed, and new messages will not be detected.
 
-#{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.error.message.wrap(70).join("\n        ")}.join("\n\n")}
+#{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.error.message.wrap(70).join("\n        ") }.join("\n\n")}
 EOM
 #' stupid ruby-mode
       end

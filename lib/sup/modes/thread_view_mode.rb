@@ -309,7 +309,7 @@ EOS
   def edit_labels
     old_labels = @thread.labels
     reserved_labels = old_labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
-    new_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', @thread.labels.sort_by {|x| x.to_s}
+    new_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', @thread.labels.sort_by { |x| x.to_s }
 
     return unless new_labels
     @thread.labels = Set.new(reserved_labels) + new_labels
@@ -769,8 +769,8 @@ EOS
     # ]
 
     linetext = @text.slice(curpos, @text.length).flatten(1)
-      .take_while {|d| d[0] == :text_color and d[1].strip != ''} # Only take up to the first "" alone on its line
-      .map {|d| d[1].strip}.join('').strip
+      .take_while { |d| d[0] == :text_color and d[1].strip != '' } # Only take up to the first "" alone on its line
+      .map { |d| d[1].strip }.join('').strip
 
     found = false
     (linetext || '').scan(URI::regexp).each do |_matches|
@@ -796,7 +796,7 @@ EOS
 
   def fetch_and_verify
     message = @message_lines[curpos]
-    crypto_chunk = message.chunks.select {|chunk| chunk.is_a?(Chunk::CryptoNotice)}.first
+    crypto_chunk = message.chunks.select { |chunk| chunk.is_a?(Chunk::CryptoNotice) }.first
     return unless crypto_chunk
     return unless crypto_chunk.unknown_fingerprint
 

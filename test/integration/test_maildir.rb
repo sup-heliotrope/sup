@@ -16,7 +16,7 @@ EOS
   end
 
   def teardown
-    ObjectSpace.each_object(Class).select {|a| a < Redwood::Singleton}.each do |klass|
+    ObjectSpace.each_object(Class).select { |a| a < Redwood::Singleton }.each do |klass|
       klass.deinstantiate! unless klass == Redwood::Logger
     end
     FileUtils.rm_r @path
@@ -52,7 +52,7 @@ EOS
     start_sup_and_add_source Maildir.new "maildir:#{maildir}"
 
     messages_in_index = []
-    Index.instance.each_message {|a| messages_in_index << a}
+    Index.instance.each_message { |a| messages_in_index << a }
     refute_empty messages_in_index, 'There are no messages in the index'
     assert_equal(messages_in_index.first.raw_message, @test_message_1)
 
@@ -65,7 +65,7 @@ EOS
     start_sup_and_add_source Maildir.new "maildir:#{maildir}"
 
     messages_in_index = []
-    Index.instance.each_message {|a| messages_in_index << a}
+    Index.instance.each_message { |a| messages_in_index << a }
     refute_empty messages_in_index, 'There are no messages in the index'
     assert_equal(messages_in_index.first.raw_message, @test_message_1)
 

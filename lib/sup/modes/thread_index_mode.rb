@@ -588,7 +588,7 @@ EOS
 
     keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
-    user_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', modifyl.sort_by {|x| x.to_s}, @hidden_labels
+    user_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', modifyl.sort_by { |x| x.to_s }, @hidden_labels
     return unless user_labels
 
     thread.labels = Set.new(keepl) + user_labels
@@ -999,7 +999,7 @@ EOS
         [:with_attachment_color, t.labels.member?(:attachment) ? '@' : ' '],
         [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')]
       ] +
-      (t.labels - @hidden_labels).sort_by {|x| x.to_s}.map {
+      (t.labels - @hidden_labels).sort_by { |x| x.to_s }.map {
             |label| [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]
       } +
       [
