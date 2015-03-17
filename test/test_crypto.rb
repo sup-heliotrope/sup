@@ -62,8 +62,8 @@ class TestCryptoManager < Minitest::Test
             signed = CryptoManager.sign @from_email, @to_email, 'ABCDEFG'
             assert_instance_of RMail::Message, signed
             assert_equal 'ABCDEFG', signed.body[0]
-            assert signed.body[1].body.length > 0 , 'signature length must be > 0'
-            assert (signed.body[1].body.include? '-----BEGIN PGP SIGNATURE-----') , 'Expecting PGP armored data'
+            assert signed.body[1].body.length > 0, 'signature length must be > 0'
+            assert (signed.body[1].body.include? '-----BEGIN PGP SIGNATURE-----'), 'Expecting PGP armored data'
         end
     end
 
@@ -71,7 +71,7 @@ class TestCryptoManager < Minitest::Test
         if CryptoManager.have_crypto? then
             encrypted = CryptoManager.encrypt @from_email, [@to_email], 'ABCDEFG'
             assert_instance_of RMail::Message, encrypted
-            assert (encrypted.body[1].body.include? '-----BEGIN PGP MESSAGE-----') , 'Expecting PGP armored data'
+            assert (encrypted.body[1].body.include? '-----BEGIN PGP MESSAGE-----'), 'Expecting PGP armored data'
         end
     end
 
@@ -79,7 +79,7 @@ class TestCryptoManager < Minitest::Test
         if CryptoManager.have_crypto? then
             encrypted = CryptoManager.sign_and_encrypt @from_email, [@to_email], 'ABCDEFG'
             assert_instance_of RMail::Message, encrypted
-            assert (encrypted.body[1].body.include? '-----BEGIN PGP MESSAGE-----') , 'Expecting PGP armored data'
+            assert (encrypted.body[1].body.include? '-----BEGIN PGP MESSAGE-----'), 'Expecting PGP armored data'
         end
     end
 
@@ -93,7 +93,7 @@ class TestCryptoManager < Minitest::Test
             assert_instance_of Chunk::CryptoNotice, decrypted[0]
             assert_instance_of Chunk::CryptoNotice, decrypted[1]
             assert_instance_of RMail::Message, decrypted[2]
-            assert_equal 'ABCDEFG' , decrypted[2].body
+            assert_equal 'ABCDEFG', decrypted[2].body
         end
     end
 

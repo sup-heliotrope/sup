@@ -996,7 +996,7 @@ EOS
       from +
       [
         [:size_widget_color, size_widget_text],
-        [:with_attachment_color , t.labels.member?(:attachment) ? '@' : ' '],
+        [:with_attachment_color, t.labels.member?(:attachment) ? '@' : ' '],
         [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')]
       ] +
       (t.labels - @hidden_labels).sort_by {|x| x.to_s}.map {
