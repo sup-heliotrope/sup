@@ -237,7 +237,7 @@ class Container
         '<no message>'
       end
 
-    f.puts "#{id} #{line}"#[0 .. (105 - indent)]
+    f.puts "#{id} #{line}" #[0 .. (105 - indent)]
     indent += 3
     @children.each { |c| c.dump_recursive f, indent, false, self }
   end
