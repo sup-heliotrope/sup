@@ -155,7 +155,7 @@ class ScrollMode < Mode
   def find_text query, start_line
     regex = /#{query}/i
     (start_line ... lines).each do |i|
-      case(s = self[i])
+      case (s = self[i])
       when String
         match = s =~ regex
         return [i, match] if match
@@ -176,7 +176,7 @@ class ScrollMode < Mode
 
   def draw_line ln, opts={}
     regex = /(#{@search_query})/i
-    case(s = self[ln])
+    case (s = self[ln])
     when String
       if in_search?
         draw_line_from_array ln, matching_text_array(s, regex), opts

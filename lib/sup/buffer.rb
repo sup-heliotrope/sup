@@ -625,7 +625,7 @@ EOS
 
   ## returns true (y), false (n), or nil (ctrl-g / cancel)
   def ask_yes_or_no question
-    case(r = ask_getch question, 'ynYN')
+    case (r = ask_getch question, 'ynYN')
     when ?y, ?Y
       true
     when nil
@@ -770,7 +770,7 @@ EOS
   def users
     unless @users
       @users = []
-      while(u = Etc.getpwent)
+      while (u = Etc.getpwent)
         @users << u.name
       end
     end

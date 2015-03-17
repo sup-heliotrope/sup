@@ -154,7 +154,7 @@ class Colormap
     fg, bg, attrs, color = @entries[sym]
     return color if color
 
-    if(cp = @color_pairs[[fg, bg]])
+    if (cp = @color_pairs[[fg, bg]])
       ## nothing
     else ## need to get a new colorpair
       @next_id = (@next_id + 1) % Ncurses::MAX_PAIRS

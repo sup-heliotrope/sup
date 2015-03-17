@@ -173,7 +173,7 @@ EOS
   end
 
   def handle_labeled_update _sender, m
-    if(t = thread_containing(m))
+    if (t = thread_containing(m))
       l = @lines[t] or return
       update_text_for_line l
     elsif is_relevant?(m)
@@ -278,7 +278,7 @@ EOS
   end
 
   def edit_message
-    return unless(t = cursor_thread)
+    return unless (t = cursor_thread)
     message, *_ = t.find { |m, *_o| m.has_label? :draft }
     if message
       mode = ResumeMode.new message

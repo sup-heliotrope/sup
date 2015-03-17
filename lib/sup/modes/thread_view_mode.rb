@@ -247,9 +247,9 @@ EOS
   end
 
   def forward
-    if(chunk = @chunk_lines[curpos]) && chunk.is_a?(Chunk::Attachment)
+    if (chunk = @chunk_lines[curpos]) && chunk.is_a?(Chunk::Attachment)
       ForwardMode.spawn_nicely attachments: [chunk]
-    elsif(m = @message_lines[curpos])
+    elsif (m = @message_lines[curpos])
       ForwardMode.spawn_nicely message: m
     end
   end
@@ -547,7 +547,7 @@ EOS
 
     top = @layout[m].top
     if curpos == top
-      while(prevm = @layout[m].prev)
+      while (prevm = @layout[m].prev)
         break if @layout[prevm].state != :closed
         m = prevm
       end
@@ -593,7 +593,7 @@ EOS
   end
 
   def expand_all_quotes
-    if(m = @message_lines[curpos])
+    if (m = @message_lines[curpos])
       quotes = m.chunks.select { |c| (c.is_a?(Chunk::Quote) || c.is_a?(Chunk::Signature)) && c.lines.length > 1 }
       numopen = quotes.inject(0) { |s, c| s + (@chunk_layout[c].state == :open ? 1 : 0) }
       newstate = numopen > quotes.length / 2 ? :closed : :open

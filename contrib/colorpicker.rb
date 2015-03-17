@@ -87,7 +87,7 @@ begin
     when Ncurses::KEY_MOUSE
       mev = Ncurses::MEVENT.new
       Ncurses.getmouse(mev)
-      case(mev.bstate)
+      case (mev.bstate)
       when Ncurses::BUTTON1_CLICKED
         handle_click mev.y, mev.x
       end

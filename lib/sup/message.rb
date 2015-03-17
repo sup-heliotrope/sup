@@ -98,7 +98,7 @@ class Message
       name
     end)
 
-    @date = case(date = header['date'])
+    @date = case (date = header['date'])
     when Time
       date
     when String

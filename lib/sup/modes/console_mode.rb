@@ -112,7 +112,7 @@ Ctrl-G stops evaluation; 'e' restarts it.
 
 EOS
     while true
-      if(cmd = prompt)
+      if (cmd = prompt)
         execute cmd
       else
         self << 'Console session ended.'

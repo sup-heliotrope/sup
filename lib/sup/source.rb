@@ -131,7 +131,7 @@ class Source
     header = {}
     last = nil
 
-    while(line = f.gets)
+    while (line = f.gets)
       case line
       ## these three can occur multiple times, and we want the first one
       when /^(Delivered-To|X-Original-To|Envelope-To):\s*(.*?)\s*$/i; header[last = $1.downcase] ||= $2

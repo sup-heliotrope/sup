@@ -48,7 +48,7 @@ EOS
     attachment_hash = {}
     attachments = opts[:attachments] || []
 
-    if(m = opts[:message])
+    if (m = opts[:message])
       m.load_from_source! # read the full message in. you know, maybe i should just make Message#chunks do this....
       attachments += m.chunks.select { |c| c.is_a?(Chunk::Attachment) && !c.quotable? }
     end

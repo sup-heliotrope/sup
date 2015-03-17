@@ -414,7 +414,7 @@ EOS
     subs = subs.gsub(/\b(to|from):(\S+)\b/) do
       field, value = $1, $2
       email_field, name_field = %w(email name).map { |x| "#{field}_#{x}" }
-      if(p = ContactManager.contact_for(value))
+      if (p = ContactManager.contact_for(value))
         "#{email_field}:#{p.email}"
       elsif value == 'me'
         '(' + AccountManager.user_emails.map { |e| "#{email_field}:#{e}" }.join(' OR ') + ')'
