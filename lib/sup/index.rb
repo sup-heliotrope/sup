@@ -395,7 +395,7 @@ EOS
       before on in during after
       limit
     ] + NORMAL_PREFIX.keys + BOOLEAN_PREFIX.keys
-  ).map{|p|"#{p}:"} + COMPL_OPERATORS
+  ).map{|p| "#{p}:"} + COMPL_OPERATORS
 
   ## parse a query string from the user. returns a query object
   ## that can be passed to any index method with a 'query'

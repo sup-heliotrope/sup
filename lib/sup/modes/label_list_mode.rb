@@ -96,7 +96,7 @@ EOS
     umax  = counts.max_of { |_l, _s, _t, u| u }
 
     if @unread_only
-      counts.delete_if { | _l, _s, _t, u | u == 0 }
+      counts.delete_if { |_l, _s, _t, u| u == 0 }
     end
 
     @labels = []

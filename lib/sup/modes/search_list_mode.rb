@@ -113,7 +113,7 @@ EOS
     s_width = counts.max_of { |_n, s, _t, _u| s.length }
 
     if @unread_only
-      counts.delete_if { | _n, _s, _t, u | u == 0 }
+      counts.delete_if { |_n, _s, _t, u| u == 0 }
     end
 
     @searches = []

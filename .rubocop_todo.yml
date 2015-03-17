@@ -451,12 +451,6 @@ Style/SingleLineBlockParams:
 Style/SingleLineMethods:
   Enabled: false
 
-# Offense count: 5
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyleInsidePipes, SupportedStyles.
-Style/SpaceAroundBlockParameters:
-  Enabled: false
-
 # Offense count: 151
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
