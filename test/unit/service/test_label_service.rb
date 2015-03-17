@@ -8,7 +8,7 @@ describe Redwood::LabelService do
       q = 'is:starred'
       label = 'superstarred'
       message = mock!.add_label(label).subject
-      index = mock!.find_messages(q){ [message] }.subject
+      index = mock!.find_messages(q) { [message] }.subject
       mock(index).update_message_state(message)
       mock(index).save_index
 

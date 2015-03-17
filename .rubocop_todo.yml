@@ -453,12 +453,6 @@ Style/SingleLineMethods:
 
 # Offense count: 6
 # Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/SpaceBeforeBlockBraces:
-  Enabled: false
-
-# Offense count: 6
-# Cop supports --auto-correct.
 Style/SpaceBeforeComma:
   Enabled: false
 
