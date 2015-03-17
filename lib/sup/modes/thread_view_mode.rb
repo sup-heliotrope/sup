@@ -913,18 +913,18 @@ EOS
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
         [color,
-            "#{m.from ? m.from.mediumname.fix_encoding! : '?'} to #{m.recipients.map { |l| l.shortname.fix_encoding! }.join(', ')} #{m.date.to_nice_s.fix_encoding!} (#{m.date.to_nice_distance_s.fix_encoding!})"]]]
+         "#{m.from ? m.from.mediumname.fix_encoding! : '?'} to #{m.recipients.map { |l| l.shortname.fix_encoding! }.join(', ')} #{m.date.to_nice_s.fix_encoding!} (#{m.date.to_nice_distance_s.fix_encoding!})"]]]
 
     when :closed
       @person_lines[start] = m.from
       [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
         [color,
-        "#{m.from ? m.from.mediumname.fix_encoding! : '?'}, #{m.date.to_nice_s.fix_encoding!} (#{m.date.to_nice_distance_s.fix_encoding!})  #{m.snippet ? m.snippet.fix_encoding! : ''}"]]]
+         "#{m.from ? m.from.mediumname.fix_encoding! : '?'}, #{m.date.to_nice_s.fix_encoding!} (#{m.date.to_nice_distance_s.fix_encoding!})  #{m.snippet ? m.snippet.fix_encoding! : ''}"]]]
 
     when :detailed
       @person_lines[start] = m.from
       from_line = [[prefix_widget, open_widget, new_widget, attach_widget, starred_widget,
-          [color, "From: #{m.from ? format_person(m.from) : '?'}"]]]
+                    [color, "From: #{m.from ? format_person(m.from) : '?'}"]]]
 
       addressee_lines = []
       unless m.to.empty?

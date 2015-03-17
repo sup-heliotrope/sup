@@ -83,7 +83,7 @@ EOS
 
     unless @gpgme_present
       @not_working_reason = ['gpgme gem not present',
-        'Install the gpgme gem in order to use signed and encrypted emails']
+                             'Install the gpgme gem in order to use signed and encrypted emails']
       return
     end
 
@@ -102,7 +102,7 @@ EOS
       if gpg_opts[:passphrase_callback].nil?
         if ENV['GPG_AGENT_INFO'].nil?
           @not_working_reason = ["Environment variable 'GPG_AGENT_INFO' not set, is gpg-agent running?",
-                             "If gpg-agent is running, try $ export `cat ~/.gpg-agent-info`"]
+                                 "If gpg-agent is running, try $ export `cat ~/.gpg-agent-info`"]
           return
         end
 

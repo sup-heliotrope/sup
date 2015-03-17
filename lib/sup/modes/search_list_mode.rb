@@ -123,7 +123,7 @@ EOS
         fmt = "%#{n_width + 1}s %5d %s, %5d unread: %s"
       end
       @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),
-          sprintf(fmt, name, total, total == 1 ? " message" : "messages", unread, search_string)]]
+                 sprintf(fmt, name, total, total == 1 ? " message" : "messages", unread, search_string)]]
       @searches << [name, unread]
     end
 

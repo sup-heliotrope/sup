@@ -120,7 +120,7 @@ EOS
       end
 
       @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),
-          sprintf(fmt, string, total, total == 1 ? " message" : "messages", unread)]]
+                 sprintf(fmt, string, total, total == 1 ? " message" : "messages", unread)]]
       @labels << [label, unread]
       yield i if block_given?
     end.compact

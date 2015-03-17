@@ -156,8 +156,8 @@ module Redwood
 
   def managers
     %w(HookManager SentManager ContactManager LabelManager AccountManager
-    DraftManager UpdateManager PollManager CryptoManager UndoManager
-    SourceManager SearchManager IdleManager).map { |x| Redwood.const_get x.to_sym }
+       DraftManager UpdateManager PollManager CryptoManager UndoManager
+       SourceManager SearchManager IdleManager).map { |x| Redwood.const_get x.to_sym }
   end
 
   def start bypass_sync_check = false
