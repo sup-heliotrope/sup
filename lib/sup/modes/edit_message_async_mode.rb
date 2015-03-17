@@ -59,7 +59,7 @@ EOS
     !file_being_edited? && !file_has_been_edited?
   end
 
-protected
+  protected
 
   def edit_finished
     if file_being_edited?

@@ -69,7 +69,7 @@ class TextMode < ScrollMode
 #    (@lines[i] ... (i + 1 < @lines.length ? @lines[i + 1] - 1 : @text.length)).inspect
   end
 
-private
+  private
 
   def update_lines
     pos = @text.find_all_positions("\n")

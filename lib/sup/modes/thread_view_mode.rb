@@ -815,7 +815,7 @@ EOS
     update
   end
 
-private
+  private
 
   def initial_state_for m
     if m.has_label?(:starred) || m.has_label?(:unread)

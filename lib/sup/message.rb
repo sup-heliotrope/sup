@@ -377,7 +377,7 @@ EOS
     m
   end
 
-private
+  private
 
   ## here's where we handle decoding mime attachments. unfortunately
   ## but unsurprisingly, the world of mime attachments is a bit of a

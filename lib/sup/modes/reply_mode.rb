@@ -159,7 +159,7 @@ EOS
     add_selector @type_selector
   end
 
-protected
+  protected
 
   def move_cursor_right
     super

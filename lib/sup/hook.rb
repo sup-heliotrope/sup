@@ -130,7 +130,7 @@ EOS
   def clear; @hooks.clear; BufferManager.flash "Hooks cleared" end
   def clear_one k; @hooks.delete k; end
 
-private
+  private
 
   def hook_for name
     unless @hooks.member? name

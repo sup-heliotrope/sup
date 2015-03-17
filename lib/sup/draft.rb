@@ -109,7 +109,7 @@ class DraftLoader < Source
     ids.empty? ? 0 : (ids.last + 1)
   end
 
-private
+  private
 
   def get_ids
     Dir.entries(@dir).select { |x| x =~ /^\d+$/ }.map { |x| x.to_i }.sort

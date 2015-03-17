@@ -204,7 +204,7 @@ class Maildir < Source
     File.exist? File.join(@dir, id)
   end
 
-private
+  private
 
   def new_maildir_basefn
     Kernel::srand()

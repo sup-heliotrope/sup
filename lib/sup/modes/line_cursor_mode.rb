@@ -38,7 +38,7 @@ class LineCursorMode < ScrollMode
     set_status
   end
 
-protected
+  protected
 
   ## callbacks when the cursor is asked to go beyond the bottom
   def to_load_more &b
@@ -189,7 +189,7 @@ protected
     set_cursor_pos(lines - 1)
   end
 
-private
+  private
 
   def set_status
     l = lines

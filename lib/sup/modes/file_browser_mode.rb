@@ -28,7 +28,7 @@ class FileBrowserMode < LineCursorMode
   def lines; @text.length; end
   def [] i; @text[i]; end
 
-protected
+  protected
 
   def back
     return if @dirs.size == 1

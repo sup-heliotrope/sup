@@ -23,7 +23,7 @@ class CompletionMode < ScrollMode
 
   def roll; if at_bottom? then jump_to_start else page_down end end
 
-private
+  private
 
   def update_lines
     width = buffer.content_width

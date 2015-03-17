@@ -164,7 +164,7 @@ class TextField
     true
   end
 
-private
+  private
 
   def reset_completion_state
     @completions = []

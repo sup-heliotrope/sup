@@ -115,7 +115,7 @@ class ContactListMode < LineCursorMode
     end
   end
 
-protected
+  protected
 
   def update
     regen_text

@@ -320,8 +320,8 @@ EOS
 
   def multi_toggle_starred threads
     UndoManager.register "toggling #{threads.size.pluralize 'thread'} starred status",
-      threads.map { |t| actually_toggle_starred t },
-      lambda { threads.each { |t| Index.save_thread t } }
+                         threads.map { |t| actually_toggle_starred t },
+                         lambda { threads.each { |t| Index.save_thread t } }
     regen_text
     threads.each { |t| Index.save_thread t }
   end
@@ -790,7 +790,7 @@ EOS
     super
   end
 
-protected
+  protected
 
   def add_or_unhide m
     @ts_mutex.synchronize do
@@ -1010,7 +1010,7 @@ protected
 
   def dirty?; @mutex.synchronize { (@hidden_threads.keys + @threads).any? { |t| t.dirty? } } end
 
-private
+  private
 
   def default_size_widget_for t
     case t.size

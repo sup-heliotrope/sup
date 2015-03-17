@@ -150,7 +150,7 @@ class ScrollMode < Mode
     ensure_mode_validity
   end
 
-protected
+  protected
 
   def find_text query, start_line
     regex = /#{query}/i

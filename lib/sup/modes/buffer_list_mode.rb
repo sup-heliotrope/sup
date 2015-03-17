@@ -20,7 +20,7 @@ class BufferListMode < LineCursorMode
     set_cursor_pos 0
   end
 
-protected
+  protected
 
   def reload
     regen_text

@@ -740,7 +740,7 @@ EOS
     @shelled = false
   end
 
-private
+  private
 
   def default_status_bar buf
     " [#{buf.mode.name}] #{buf.title}   #{buf.mode.status}"

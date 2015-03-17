@@ -62,7 +62,7 @@ EOS
     reload
   end
 
-protected
+  protected
 
   def toggle_show_unread_only
     @unread_only = !@unread_only

@@ -73,7 +73,7 @@ EOS
     mode.default_edit_message
   end
 
-protected
+  protected
 
   def forward_body_lines m
     attribution = HookManager.run("forward-attribution", :message => m) || default_attribution(m)

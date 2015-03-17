@@ -368,7 +368,7 @@ EOS
     end
   end
 
-protected
+  protected
 
   def rerun_crypto_selector_hook
     if @crypto_selector && !@crypto_selector.changed_by_user
@@ -631,7 +631,7 @@ EOS
     f.puts sig_lines if full unless $config[:edit_signature]
   end
 
-protected
+  protected
 
   def edit_field field
     case field
@@ -666,7 +666,7 @@ protected
     end
   end
 
-private
+  private
 
   def sanitize_body body
     body.gsub(/^From /, ">From ")

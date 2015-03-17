@@ -161,7 +161,7 @@ class Source
     header
   end
 
-protected
+  protected
 
   ## convenience function
   def parse_raw_email_header f; self.class.parse_raw_email_header f end

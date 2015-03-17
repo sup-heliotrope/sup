@@ -98,7 +98,7 @@ EOS
       # check if the gpg-options hook uses the passphrase_callback
       # if it doesn't then check if gpg agent is present
       gpg_opts = HookManager.run("gpg-options",
-                               {:operation => "sign", :options => {}}) || {}
+                                 {:operation => "sign", :options => {}}) || {}
       if gpg_opts[:passphrase_callback].nil?
         if ENV['GPG_AGENT_INFO'].nil?
           @not_working_reason = ["Environment variable 'GPG_AGENT_INFO' not set, is gpg-agent running?",
@@ -382,7 +382,7 @@ EOS
     return nil
   end
 
-private
+  private
 
   def unknown_status lines=[]
     Chunk::CryptoNotice.new :unknown, "Unable to determine validity of cryptographic signature", lines
@@ -452,7 +452,7 @@ private
 
       # finally, run the hook
       output_lines << HookManager.run("sig-output",
-                               {:signature => signature, :from_key => from_key})
+                                      {:signature => signature, :from_key => from_key})
     end
     return output_lines, trusted, unknown_fpr
   end

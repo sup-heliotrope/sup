@@ -45,7 +45,7 @@ class Logger
   ## send a message regardless of the current logging level
   def force_message m; send_message format_message(nil, Time.now, m) end
 
-private
+  private
 
   ## level can be nil!
   def format_message level, time, msg
