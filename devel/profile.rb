@@ -9,4 +9,3 @@ end
 printer = RubyProf::GraphHtmlPrinter.new(result)
 File.open("profile.html", "w") { |f| printer.print(f, 1) }
 puts "report in profile.html"
-

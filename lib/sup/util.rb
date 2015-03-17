@@ -744,4 +744,3 @@ class FinishLine
     @m.synchronize { !@over && @over = true }
   end
 end
-

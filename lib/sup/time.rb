@@ -90,4 +90,3 @@ EOS
     strftime format
   end
 end
-
