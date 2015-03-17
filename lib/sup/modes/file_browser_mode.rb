@@ -95,7 +95,7 @@ protected
           ""
         end
       [name, real_f]
-    end
+      end
 
     size_width = @files.max_of { |name, f| f.human_size.length }
     time_width = @files.max_of { |name, f| f.human_time.length }

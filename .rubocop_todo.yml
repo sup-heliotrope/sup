@@ -14,11 +14,6 @@ Lint/AmbiguousOperator:
 Lint/AssignmentInCondition:
   Enabled: false
 
-# Offense count: 1
-# Cop supports --auto-correct.
-Lint/BlockAlignment:
-  Enabled: false
-
 # Offense count: 19
 # Configuration parameters: AlignWith, SupportedStyles.
 Lint/EndAlignment:
