@@ -13,10 +13,10 @@ module Ncurses
 
   if Ncurses::NUM_COLORS == 256
     ## xterm 6x6x6 color cube
-    6.times { |x| 6.times { |y| 6.times { |z| color! "c#{x}#{y}#{z}", 16 + z + 6*y + 36*x } } }
+    6.times { |x| 6.times { |y| 6.times { |z| color! "c#{x}#{y}#{z}", 16 + z + 6 * y + 36 * x } } }
 
     ## xterm 24-shade grayscale
-    24.times { |x| color! "g#{x}", (16+6*6*6) + x }
+    24.times { |x| color! "g#{x}", (16 + 6 * 6 * 6) + x }
   elsif Ncurses::NUM_COLORS == -1
     ## Terminal emulator doesn't appear to support colors
     fail 'sup must be run in a terminal with color support, please check your TERM variable.'
@@ -199,7 +199,7 @@ class Colormap
       user_colors[:with_attachment] = user_colors[:to_me] unless user_colors.has_key? :with_attachment
     end
 
-    Colormap::DEFAULT_COLORS.merge(user_colors||{}).each_pair do |k, v|
+    Colormap::DEFAULT_COLORS.merge(user_colors || {}).each_pair do |k, v|
       fg = begin
         Ncurses.const_get "COLOR_#{v[:fg].to_s.upcase}"
       rescue NameError
@@ -214,7 +214,7 @@ class Colormap
         Ncurses::COLOR_RED
       end
 
-      attrs = (v[:attrs]||[]).map do |a|
+      attrs = (v[:attrs] || []).map do |a|
         begin
           Ncurses.const_get "A_#{a.upcase}"
         rescue NameError

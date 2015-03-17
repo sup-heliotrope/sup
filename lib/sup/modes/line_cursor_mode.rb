@@ -91,7 +91,7 @@ class LineCursorMode < ScrollMode
   end
 
   def cursor_down
-    call_load_more_callbacks buffer.content_height if @curpos >= lines - [buffer.content_height/2, 1].max
+    call_load_more_callbacks buffer.content_height if @curpos >= lines - [buffer.content_height / 2, 1].max
     return false unless @curpos < lines - 1
 
     if $config[:continuous_scroll] and (@curpos == botline - 3 and @curpos < lines - 3)

@@ -163,7 +163,7 @@ EOS
       return
     end
     reload if SearchManager.rename old_name, new_name
-    set_cursor_pos @searches.index([new_name, num_unread])||curpos
+    set_cursor_pos @searches.index([new_name, num_unread]) || curpos
   end
 
   def edit_selected_search
@@ -179,7 +179,7 @@ EOS
     new_search_string = BufferManager.ask :search, 'Edit this saved search: ', (old_search_string + ' ')
     return unless new_search_string && new_search_string !~ /^\s*$/ && new_search_string != old_search_string
     reload if SearchManager.edit name, new_search_string.strip
-    set_cursor_pos @searches.index([name, num_unread])||curpos
+    set_cursor_pos @searches.index([name, num_unread]) || curpos
   end
 
   def add_new_search
@@ -197,7 +197,7 @@ EOS
       return
     end
     reload if SearchManager.add name, search_string.strip
-    set_cursor_pos @searches.index(@searches.assoc(name))||curpos
+    set_cursor_pos @searches.index(@searches.assoc(name)) || curpos
   end
 end
 

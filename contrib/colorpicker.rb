@@ -35,9 +35,9 @@ def handle_click y, x
   when 0...16
     c.to_s
   when 16...232
-    'c' + (c-16).to_s(6).rjust(3, '0')
+    'c' + (c - 16).to_s(6).rjust(3, '0')
   when 232...256
-    'g' + (c-232).to_s
+    'g' + (c - 232).to_s
   end
 
   Ncurses.mvaddstr 11, 0, "#{name}            "
@@ -64,16 +64,16 @@ begin
   6.times do |i|
     6.times do |j|
       6.times do |k|
-        c = 16 + 6*6*i + 6*j + k
+        c = 16 + 6 * 6 * i + 6 * j + k
         y = 2 + j
-        x = 7*i + k
+        x = 7 * i + k
         cell y, x, c
       end
     end
   end
 
   16.times do |i|
-    c = 16 + 6*6*6 + i
+    c = 16 + 6 * 6 * 6 + i
     cell 9, i, c
   end
 

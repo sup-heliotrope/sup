@@ -149,7 +149,7 @@ class MBox < Source
       yield :add,
         info: offset,
         labels: (labels + default_labels),
-        progress: (offset - first_offset).to_f/end_offset
+        progress: (offset - first_offset).to_f / end_offset
       offset = next_offset offset
     end
   end

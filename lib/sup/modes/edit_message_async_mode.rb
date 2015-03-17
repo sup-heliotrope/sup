@@ -93,8 +93,8 @@ EOS
 
   def file_being_edited?
     # check for common editor lock files
-    vim_lock_file = File.join(File.dirname(@file_path), '.'+File.basename(@file_path)+'.swp')
-    emacs_lock_file = File.join(File.dirname(@file_path), '.#'+File.basename(@file_path))
+    vim_lock_file = File.join(File.dirname(@file_path), '.' + File.basename(@file_path) + '.swp')
+    emacs_lock_file = File.join(File.dirname(@file_path), '.#' + File.basename(@file_path))
 
     return true if File.exist?(vim_lock_file) || File.exist?(emacs_lock_file)
 

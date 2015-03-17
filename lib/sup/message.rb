@@ -616,14 +616,14 @@ EOS
       sig = lines.between(GPG_SIGNED_START, GPG_SIG_START)
       startidx = lines.index(GPG_SIGNED_START)
       endidx = lines.index(GPG_SIG_END)
-      before = startidx != 0 ? lines[0 .. startidx-1] : []
-      after = endidx ? lines[endidx+1 .. lines.size] : []
+      before = startidx != 0 ? lines[0 .. startidx - 1] : []
+      after = endidx ? lines[endidx + 1 .. lines.size] : []
 
       # sig contains BEGIN PGP SIGNED MESSAGE and END PGP SIGNATURE, so
       # we ditch them. sig may also contain the hash used by PGP (with a
       # newline), so we also skip them
       sig_start = sig[1].match(/^Hash:/) ? 3 : 1
-      sig_end = sig.size-2
+      sig_end = sig.size - 2
       payload = RMail::Message.new
       payload.body = sig[sig_start, sig_end].join("\n")
       return [text_to_chunks(before, false),
@@ -641,8 +641,8 @@ EOS
       msg.body = gpg.join("\n")
 
       startidx = lines.index(GPG_START)
-      before = startidx != 0 ? lines[0 .. startidx-1] : []
-      after = lines[lines.index(GPG_END)+1 .. lines.size]
+      before = startidx != 0 ? lines[0 .. startidx - 1] : []
+      after = lines[lines.index(GPG_END) + 1 .. lines.size]
 
       notice, sig, decryptedm = CryptoManager.decrypt msg, true
       chunks = if decryptedm # managed to decrypt
@@ -670,7 +670,7 @@ EOS
       if i >= nextline_index
         # look for next nonblank line only when needed to avoid O(n²)
         # behavior on sequences of blank lines
-        if nextline_index = lines[(i+1)..-1].index { |l| l !~ /^\s*$/ } # skip blank lines
+        if nextline_index = lines[(i + 1)..-1].index { |l| l !~ /^\s*$/ } # skip blank lines
           nextline_index += i + 1
           nextline = lines[nextline_index]
         else
@@ -689,7 +689,7 @@ EOS
         ## like ":a:a:a:a:a" that occurred in certain emails.
         if line =~ QUOTE_PATTERN || (line =~ /:$/ && line =~ /\w/ && nextline =~ QUOTE_PATTERN)
           newstate = :quote
-        elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE && !lines[(i+1)..-1].index { |l| l =~ /^-- $/ }
+        elsif line =~ SIG_PATTERN && (lines.length - i) < MAX_SIG_DISTANCE && !lines[(i + 1)..-1].index { |l| l =~ /^-- $/ }
           newstate = :sig
         elsif line =~ BLOCK_QUOTE_PATTERN
           newstate = :block_quote

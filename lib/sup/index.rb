@@ -38,7 +38,7 @@ class Index
   ## so we must ensure they're reasonably valid. this typically only affect
   ## spam.
   MIN_DATE = Time.at 0
-  MAX_DATE = Time.at(2**31-1)
+  MAX_DATE = Time.at(2**31 - 1)
 
   HookManager.register 'custom-search', <<EOS
 Executes before a string search is applied to the index,
@@ -271,7 +271,7 @@ EOS
     each_id_by_date participants: email_addresses do |_id, b|
       break if contacts.size >= num
       m = b.call
-      ([m.from]+m.to+m.cc+m.bcc).compact.each { |p| contacts << [p.name, p.email] }
+      ([m.from] + m.to + m.cc + m.bcc).compact.each { |p| contacts << [p.name, p.email] }
     end
     contacts.to_a.compact[0...num].map { |n, e| Person.from_name_and_email n, e }
   end
@@ -284,7 +284,7 @@ EOS
 
     xapian_query = build_xapian_query query, ignore_neg_terms
     while true
-      ids = run_query_ids xapian_query, offset, (offset+page)
+      ids = run_query_ids xapian_query, offset, (offset + page)
       ids.each { |id| yield id }
       break if ids.size < page
       offset += page
@@ -476,7 +476,7 @@ EOS
       end
     end
 
-    lastdate = 2<<32 - 1
+    lastdate = 2 << 32 - 1
     firstdate = 0
     subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
       field, datestr = $1, ($3 || $4)
@@ -521,7 +521,7 @@ EOS
     BOOLEAN_PREFIX.each { |k, info| info[:prefix].each { |v| qp.add_boolean_prefix k, v, info[:exclusive] } }
 
     begin
-      xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD)
+      xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE | Xapian::QueryParser::FLAG_BOOLEAN | Xapian::QueryParser::FLAG_LOVEHATE | Xapian::QueryParser::FLAG_WILDCARD)
     rescue RuntimeError => e
       raise ParseError, "xapian query parser error: #{e}"
     end
@@ -588,7 +588,7 @@ EOS
   MIDDLE_DATE = Time.gm(2011)
   def assign_docid _m, truncated_date
     t = (truncated_date.to_i - MIDDLE_DATE.to_i).to_f
-    docid = (DOCID_SCALE - DOCID_SCALE/(Math::E**(-(t/TIME_SCALE)) + 1)).to_i
+    docid = (DOCID_SCALE - DOCID_SCALE / (Math::E**(-(t / TIME_SCALE)) + 1)).to_i
     while docid > 0 and docid_exists? docid
       docid -= 1
     end
@@ -642,7 +642,7 @@ EOS
   def run_query xapian_query, offset, limit, checkatleast = 0
     synchronize do
       @enquire.query = xapian_query
-      @enquire.mset(offset, limit-offset, checkatleast)
+      @enquire.mset(offset, limit - offset, checkatleast)
     end
   end
 
@@ -743,7 +743,7 @@ EOS
     end
 
     person_termer[:from][m.from] if m.from
-    (m.to+m.cc+m.bcc).each(&(person_termer[:to]))
+    (m.to + m.cc + m.bcc).each(&(person_termer[:to]))
 
     # Full text search content
     subject_text = m.indexable_subject
@@ -846,7 +846,7 @@ EOS
     when :attachment_extension
       PREFIX['attachment_extension'][:prefix] + args[0].to_s.downcase
     when :msgid, :ref, :thread
-      PREFIX[type.to_s][:prefix] + args[0][0...(MAX_TERM_LENGTH-1)]
+      PREFIX[type.to_s][:prefix] + args[0][0...(MAX_TERM_LENGTH - 1)]
     else
       raise "Invalid term type #{type}"
     end

@@ -272,7 +272,7 @@ EOS
       @date_widgets = @threads.map { |t| date_widget_for_thread t }
       @date_widget_width = @date_widgets.max_of { |w| w.display_length }
     end
-    set_cursor_pos @threads.index(old_cursor_thread)||curpos
+    set_cursor_pos @threads.index(old_cursor_thread) || curpos
 
     regen_text
   end
@@ -610,7 +610,7 @@ EOS
     user_labels = BufferManager.ask_for_labels :labels, 'Add/remove labels (use -label to remove): ', [], @hidden_labels
     return unless user_labels
 
-    user_labels.map! { |l| (l.to_s =~ /^-/)? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
+    user_labels.map! { |l| (l.to_s =~ /^-/) ? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
     hl = user_labels.select { |(l, _)| @hidden_labels.member? l }
     unless hl.empty?
       BufferManager.flash "'#{hl}' is a reserved label!"

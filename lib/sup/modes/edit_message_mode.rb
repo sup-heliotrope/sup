@@ -228,9 +228,9 @@ EOS
       blen = pbody.length
       slen = sig.length
 
-      if blen > slen and pbody[blen-slen..blen] == sig
+      if blen > slen and pbody[blen - slen..blen] == sig
         @sig_edited = false
-        @body = pbody[0..blen-slen].fix_encoding!.split("\n")
+        @body = pbody[0..blen - slen].fix_encoding!.split("\n")
       else
         @sig_edited = true
       end

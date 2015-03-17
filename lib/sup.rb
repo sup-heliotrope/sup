@@ -205,7 +205,7 @@ EOS
     newly_synced = sources.select { |s| s.is_a? Maildir and s.sync_back_enabled? and not active_sync_sources.include? s.uri }
     unless newly_synced.empty?
 
-      details =<<EOS
+      details = <<EOS
 It appears that the option "sync_back" of the following source(s)
 has been changed from false to true since the last execution of
 sup:
