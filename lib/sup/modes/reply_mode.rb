@@ -186,7 +186,7 @@ protected
     lines
   end
 
-  def default_attribution m
+  def default_attribution _m
     "Excerpts from #{@m.from.name}'s message of #{@m.date}:"
   end
 

@@ -37,7 +37,7 @@ class Maildir < Source
   end
 
   def file_path; @dir end
-  def self.suggest_labels_for path; [] end
+  def self.suggest_labels_for _path; [] end
   def is_source_for? uri; super || (uri == @expanded_uri); end
 
   def supported_labels?
@@ -48,7 +48,7 @@ class Maildir < Source
     @sync_back
   end
 
-  def store_message date, from_email, &block
+  def store_message _date, _from_email, &_block
     stored = false
     new_fn = new_maildir_basefn + ':2,S'
     Dir.chdir(@dir) do |_d|

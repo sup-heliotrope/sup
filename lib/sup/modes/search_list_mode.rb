@@ -63,7 +63,7 @@ EOS
     reload # make sure unread message counts are up-to-date
   end
 
-  def handle_added_update sender, m
+  def handle_added_update _sender, _m
     reload
   end
 

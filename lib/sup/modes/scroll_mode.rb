@@ -86,7 +86,7 @@ class ScrollMode < Mode
   end
 
   ## subclasses can override these three!
-  def search_goto_pos line, leftcol, rightcol
+  def search_goto_pos line, _leftcol, rightcol
     search_goto_line line
 
     if rightcol > self.rightcol # if it's occluded...

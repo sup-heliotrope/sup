@@ -186,7 +186,7 @@ EOS
   end
 
   ## hook for subclasses. i hate this style of programming.
-  def handle_new_text header, body; end
+  def handle_new_text _header, _body; end
 
   def edit_message_or_field
     lines = (@selectors.empty? ? 0 : DECORATION_LINES) + @selectors.size

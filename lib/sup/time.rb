@@ -85,7 +85,7 @@ EOS
   end
 
   ## This is how a message date is displayed in thread-view-mode
-  def to_message_nice_s from=Time.now
+  def to_message_nice_s _from=Time.now
     format = $config[:time_mode] == "24h" ? "%B %e %Y %k:%M" : "%B %e %Y %l:%M%p"
     strftime format
   end

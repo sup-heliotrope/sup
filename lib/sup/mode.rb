@@ -40,7 +40,7 @@ class Mode
   def cancel_search!; end
   def in_search?; false end
   def status; ""; end
-  def resize rows, cols; end
+  def resize _rows, _cols; end
   def cleanup
     @buffer = nil
   end

@@ -172,7 +172,7 @@ EOS
     handle_labeled_update sender, m
   end
 
-  def handle_labeled_update sender, m
+  def handle_labeled_update _sender, m
     if(t = thread_containing(m))
       l = @lines[t] or return
       update_text_for_line l
@@ -181,7 +181,7 @@ EOS
     end
   end
 
-  def handle_simple_update sender, m
+  def handle_simple_update _sender, m
     t = thread_containing(m) or return
     l = @lines[t] or return
     update_text_for_line l
@@ -194,14 +194,14 @@ EOS
   end
 
   ## overwrite me!
-  def is_relevant? m; false; end
+  def is_relevant? _m; false; end
 
-  def handle_added_update sender, m
+  def handle_added_update _sender, m
     add_or_unhide m
     BufferManager.draw_screen
   end
 
-  def handle_updated_update sender, m
+  def handle_updated_update _sender, m
     t = thread_containing(m) or return
     l = @lines[t] or return
     @ts_mutex.synchronize do
@@ -212,7 +212,7 @@ EOS
     update_text_for_line l
   end
 
-  def handle_location_deleted_update sender, m
+  def handle_location_deleted_update _sender, m
     t = thread_containing(m)
     delete_thread t if t and t.first.id == m.id
     @ts_mutex.synchronize do
@@ -221,7 +221,7 @@ EOS
     update
   end
 
-  def handle_single_message_deleted_update sender, m
+  def handle_single_message_deleted_update _sender, m
     @ts_mutex.synchronize do
       return unless @ts.contains? m
       @ts.remove_id m.id
@@ -229,32 +229,32 @@ EOS
     update
   end
 
-  def handle_deleted_update sender, m
+  def handle_deleted_update _sender, m
     t = @ts_mutex.synchronize { @ts.thread_for m }
     return unless t
     hide_thread t
     update
   end
 
-  def handle_killed_update sender, m
+  def handle_killed_update _sender, m
     t = @ts_mutex.synchronize { @ts.thread_for m }
     return unless t
     hide_thread t
     update
   end
 
-  def handle_spammed_update sender, m
+  def handle_spammed_update _sender, m
     t = @ts_mutex.synchronize { @ts.thread_for m }
     return unless t
     hide_thread t
     update
   end
 
-  def handle_undeleted_update sender, m
+  def handle_undeleted_update _sender, m
     add_or_unhide m
   end
 
-  def handle_unkilled_update sender, m
+  def handle_unkilled_update _sender, m
     add_or_unhide m
   end
 
@@ -427,7 +427,7 @@ EOS
     threads.each { |t| Index.save_thread t }
   end
 
-  def multi_toggle_tagged threads
+  def multi_toggle_tagged _threads
     @mutex.synchronize { @tags.drop_all_tags }
     regen_text
   end

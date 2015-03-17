@@ -124,7 +124,7 @@ EOS
   def have_crypto?; @not_working_reason.nil? end
   def not_working_reason; @not_working_reason end
 
-  def sign from, to, payload
+  def sign from, _to, payload
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}

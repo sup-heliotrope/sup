@@ -52,7 +52,7 @@ class ContactListMode < LineCursorMode
     cursor_down
   end
 
-  def multi_toggle_tagged threads
+  def multi_toggle_tagged _threads
     @tags.drop_all_tags
     update
   end

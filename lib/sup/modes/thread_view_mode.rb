@@ -517,7 +517,7 @@ EOS
     jump_to_message m, true
   end
 
-  def jump_to_prev_and_open force_alignment=nil
+  def jump_to_prev_and_open _force_alignment=nil
     m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] }
     return unless m
 

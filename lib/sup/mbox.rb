@@ -114,7 +114,7 @@ class MBox < Source
     ret
   end
 
-  def store_message date, from_email, &block
+  def store_message date, from_email, &_block
     need_blank = File.exist?(@path) && !File.zero?(@path)
     File.open(@path, "ab") do |f|
       f.puts if need_blank

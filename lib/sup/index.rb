@@ -114,7 +114,7 @@ EOS
     @xapian
   end
 
-  def load_index failsafe=false
+  def load_index _failsafe=false
     path = File.join(@dir, 'xapian')
     if File.exist? path
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
@@ -296,7 +296,7 @@ EOS
   ## it contains "forbidden" labels such as :deleted, it is used in
   ## Poll#poll_from when we need to get the location of a message that
   ## may contain these labels
-  def each_message query={}, ignore_neg_terms = true, &b
+  def each_message query={}, ignore_neg_terms = true, &_b
     each_id query, ignore_neg_terms do |id|
       yield build_message(id)
     end
@@ -346,7 +346,7 @@ EOS
 
   ## Yields (in lexicographical order) the source infos of all locations from
   ## the given source with the given source_info prefix
-  def each_source_info source_id, prefix='', &b
+  def each_source_info source_id, prefix='', &_b
     p = mkterm :location, source_id, prefix
     each_prefixed_term p do |x|
       yield prefix + x[p.length..-1]
@@ -586,7 +586,7 @@ EOS
   DOCID_SCALE = 2.0**32
   TIME_SCALE = 2.0**27
   MIDDLE_DATE = Time.gm(2011)
-  def assign_docid m, truncated_date
+  def assign_docid _m, truncated_date
     t = (truncated_date.to_i - MIDDLE_DATE.to_i).to_f
     docid = (DOCID_SCALE - DOCID_SCALE/(Math::E**(-(t/TIME_SCALE)) + 1)).to_i
     while docid > 0 and docid_exists? docid
@@ -732,7 +732,7 @@ EOS
   end
 
   ## Index content that can't be changed by the user
-  def index_message_static m, doc, entry
+  def index_message_static m, doc, _entry
     # Person names are indexed with several prefixes
     person_termer = lambda do |d|
       lambda do |p|

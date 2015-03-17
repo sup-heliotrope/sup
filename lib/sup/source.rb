@@ -88,7 +88,7 @@ class Source
 
   ## Returns an array containing all the labels that are currently in
   ## the location filename
-  def labels? info; [] end
+  def labels? _info; [] end
 
   ## Yields values of the form [Symbol, Hash]
   ## add: info, labels, progress
@@ -97,7 +97,7 @@ class Source
     unimplemented
   end
 
-  def valid? info
+  def valid? _info
     true
   end
 

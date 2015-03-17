@@ -63,17 +63,17 @@ class InboxMode < ThreadIndexMode
     threads.each { |t| Index.save_thread t }
   end
 
-  def handle_unarchived_update sender, m
+  def handle_unarchived_update _sender, m
     add_or_unhide m
   end
 
-  def handle_archived_update sender, m
+  def handle_archived_update _sender, m
     t = thread_containing(m) or return
     hide_thread t
     regen_text
   end
 
-  def handle_idle_update sender, idle_since
+  def handle_idle_update _sender, _idle_since
     flush_index
   end
 
