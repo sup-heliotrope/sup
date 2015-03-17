@@ -12,7 +12,7 @@ class Logger
 
   LEVELS = %w(debug info warn error) # in order!
 
-  def initialize level=nil
+  def initialize level = nil
     level ||= ENV['SUP_LOG_LEVEL'] || 'info'
     self.level = level
     @mutex = Mutex.new
@@ -23,7 +23,7 @@ class Logger
   def level; LEVELS[@level] end
   def level=(level); @level = LEVELS.index(level) || raise(ArgumentError, "invalid log level #{level.inspect}: should be one of #{LEVELS * ', '}"); end
 
-  def add_sink s, copy_current=true
+  def add_sink s, copy_current = true
     @mutex.synchronize do
       @sinks << s
       s << @buf.string if copy_current

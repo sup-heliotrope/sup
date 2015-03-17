@@ -3,7 +3,7 @@ module Redwood
 class CompletionMode < ScrollMode
   INTERSTITIAL = '  '
 
-  def initialize list, opts={}
+  def initialize list, opts = {}
     @list = list
     @header = opts[:header]
     @prefix_len = opts[:prefix_len]

@@ -99,7 +99,7 @@ EOS
     k.add :move_cursor_left, 'Move selector to the left', :left, 'h'
   end
 
-  def initialize opts={}
+  def initialize opts = {}
     @header = opts.delete(:header) || {}
     @header_lines = []
 
@@ -307,7 +307,7 @@ EOS
     buffer.hidden = true
   end
 
-  def edit_message_async_resume being_killed=false
+  def edit_message_async_resume being_killed = false
     buffer.hidden = false
     @async_mode = nil
     BufferManager.raise_to_front buffer if !being_killed
@@ -610,7 +610,7 @@ EOS
   ##
   ## this is going to change soon: draft messages (currently written
   ## with full=false) will be output as yaml.
-  def write_message f, full=true, date=Time.now
+  def write_message f, full = true, date = Time.now
     raise ArgumentError, 'no pre-defined date: header allowed' if @header['Date']
     f.puts format_headers(@header).first
     f.puts <<EOS

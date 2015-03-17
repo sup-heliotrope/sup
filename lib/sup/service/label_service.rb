@@ -7,7 +7,7 @@ module Redwood
   # Should become the backend of bin/sup-tweak-labels in the future.
   class LabelService
     # @param index [Redwood::Index]
-    def initialize index=Index.instance
+    def initialize index = Index.instance
       @index = index
     end
 

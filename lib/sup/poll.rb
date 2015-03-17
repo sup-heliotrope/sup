@@ -194,7 +194,7 @@ EOS
   ## like Source#poll, but yields successive Message objects, which have their
   ## labels and locations set correctly. The Messages are saved to or removed
   ## from the index after being yielded.
-  def poll_from source, _opts={}
+  def poll_from source, _opts = {}
     debug "trying to acquire poll lock for: #{source}..."
     if source.try_lock
       begin

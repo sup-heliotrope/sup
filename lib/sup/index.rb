@@ -57,7 +57,7 @@ EOS
 
   include Redwood::Singleton
 
-  def initialize dir=BASE_DIR
+  def initialize dir = BASE_DIR
     @dir = dir
     FileUtils.mkdir_p @dir
     @lock = Lockfile.new lockfile, retries: 0, max_age: nil
@@ -98,7 +98,7 @@ EOS
     end
   end
 
-  def load failsafe=false
+  def load failsafe = false
     SourceManager.load_sources
     load_index failsafe
   end
@@ -114,7 +114,7 @@ EOS
     @xapian
   end
 
-  def load_index _failsafe=false
+  def load_index _failsafe = false
     path = File.join(@dir, 'xapian')
     if File.exist? path
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
@@ -161,12 +161,12 @@ EOS
   ## message that matches the given query, in descending date order.
   ## You should probably not call this on a block that doesn't break
   ## rather quickly because the results can be very large.
-  def each_id_by_date query={}
+  def each_id_by_date query = {}
     each_id(query) { |id| yield id, lambda { build_message id } }
   end
 
   ## Return the number of matches for query in the index
-  def num_results_for query={}
+  def num_results_for query = {}
     xapian_query = build_xapian_query query
     matchset = run_query xapian_query, 0, 0, 100
     matchset.matches_estimated
@@ -206,7 +206,7 @@ EOS
   ## only two options, :limit and :skip_killed. if :skip_killed is
   ## true, stops loading any thread if a message with a :killed flag
   ## is found.
-  def each_message_in_thread_for m, opts={}
+  def each_message_in_thread_for m, opts = {}
     # TODO thread by subject
     return unless doc = find_doc(m.id)
     queue = doc.value(THREAD_VALUENO).split(',')
@@ -265,7 +265,7 @@ EOS
 
   ## Given an array of email addresses, return an array of Person objects that
   ## have sent mail to or received mail from any of the given addresses.
-  def load_contacts email_addresses, opts={}
+  def load_contacts email_addresses, opts = {}
     contacts = Set.new
     num = opts[:num] || 20
     each_id_by_date participants: email_addresses do |_id, b|
@@ -278,7 +278,7 @@ EOS
 
   ## Yield each message-id matching query
   EACH_ID_PAGE = 100
-  def each_id query={}, ignore_neg_terms = true
+  def each_id query = {}, ignore_neg_terms = true
     offset = 0
     page = EACH_ID_PAGE
 
@@ -296,7 +296,7 @@ EOS
   ## it contains "forbidden" labels such as :deleted, it is used in
   ## Poll#poll_from when we need to get the location of a message that
   ## may contain these labels
-  def each_message query={}, ignore_neg_terms = true, &_b
+  def each_message query = {}, ignore_neg_terms = true, &_b
     each_id query, ignore_neg_terms do |id|
       yield build_message(id)
     end
@@ -346,7 +346,7 @@ EOS
 
   ## Yields (in lexicographical order) the source infos of all locations from
   ## the given source with the given source_info prefix
-  def each_source_info source_id, prefix='', &_b
+  def each_source_info source_id, prefix = '', &_b
     p = mkterm :location, source_id, prefix
     each_prefixed_term p do |x|
       yield prefix + x[p.length..-1]
@@ -639,7 +639,7 @@ EOS
     @index_mutex.synchronize &b
   end
 
-  def run_query xapian_query, offset, limit, checkatleast=0
+  def run_query xapian_query, offset, limit, checkatleast = 0
     synchronize do
       @enquire.query = xapian_query
       @enquire.mset(offset, limit-offset, checkatleast)
@@ -864,7 +864,7 @@ class Xapian::Document
     self.data = Marshal.dump x
   end
 
-  def index_text text, prefix, weight=1
+  def index_text text, prefix, weight = 1
     term_generator = Xapian::TermGenerator.new
     term_generator.stemmer = Xapian::Stem.new($config[:stem_language])
     term_generator.document = self

@@ -32,7 +32,7 @@ class DraftLoader < Source
   attr_accessor :dir
   yaml_properties
 
-  def initialize dir=Redwood::DRAFT_DIR
+  def initialize dir = Redwood::DRAFT_DIR
     Dir.mkdir dir unless File.exist? dir
     super DraftManager.source_name, true, false
     @dir = dir

@@ -88,7 +88,7 @@ class HookManager
 
   attr_reader :tags
 
-  def run name, locals={}
+  def run name, locals = {}
     hook = hook_for(name) or return
     context = @contexts[hook] ||= HookContext.new(name)
 
@@ -109,7 +109,7 @@ class HookManager
     @descs[name] = desc
   end
 
-  def print_hooks f=$stdout
+  def print_hooks f = $stdout
 puts <<EOS
 Have #{HookManager.descs.size} registered hooks:
 

@@ -450,7 +450,7 @@ class String
   ## to an array of label symbols.
   ##
   ## split_on will be passed to String#split, so you can leave this nil for space.
-  def to_set_of_symbols split_on=nil; Set.new split(split_on).map { |x| x.strip.intern } end
+  def to_set_of_symbols split_on = nil; Set.new split(split_on).map { |x| x.strip.intern } end
 
   class CheckError < ArgumentError; end
   def check
@@ -544,7 +544,7 @@ class Hash
     Hash[*self.map { |k, v| [k, v] unless o.include? k }.compact.flatten_one_level]
   end
 
-  def select_by_value v=true
+  def select_by_value v = true
     select { |_k, vv| vv == v }.map { |x| x.first }
   end
 end
@@ -585,7 +585,7 @@ module Enumerable
 
   ## returns the maximum shared prefix of an array of strings
   ## optinally excluding a prefix
-  def shared_prefix caseless=false, exclude=''
+  def shared_prefix caseless = false, exclude = ''
     return '' if empty?
     prefix = ''
     (0 ... first.length).each do |i|

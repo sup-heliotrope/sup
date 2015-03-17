@@ -7,7 +7,7 @@ class TextMode < ScrollMode
     k.add :pipe, 'Pipe to process', '|'
   end
 
-  def initialize text='', filename=nil
+  def initialize text = '', filename = nil
     @text = text
     @filename = filename
     update_lines

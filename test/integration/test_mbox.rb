@@ -23,7 +23,7 @@ EOS
     FileUtils.rm_r @path
   end
 
-  def create_a_mbox(extra='')
+  def create_a_mbox(extra = '')
     mbox = File.join(@path, "test_mbox#{extra}.mbox")
     File.write(mbox, @test_message_1)
     mbox

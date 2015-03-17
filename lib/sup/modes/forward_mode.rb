@@ -13,7 +13,7 @@ Return value:
   A list containing two strings: the text of the begin line and the text of the end line
 EOS
   ## TODO: share some of this with reply-mode
-  def initialize opts={}
+  def initialize opts = {}
     header = {
       'From' => AccountManager.default_account.full_address
     }
@@ -40,7 +40,7 @@ EOS
     super header: header, body: body, attachments: opts[:attachments]
   end
 
-  def self.spawn_nicely opts={}
+  def self.spawn_nicely opts = {}
     to = opts[:to] || (BufferManager.ask_for_contacts(:people, 'To: ') or return if ($config[:ask_for_to] != false))
     cc = opts[:cc] || (BufferManager.ask_for_contacts(:people, 'Cc: ') or return if $config[:ask_for_cc])
     bcc = opts[:bcc] || (BufferManager.ask_for_contacts(:people, 'Bcc: ') or return if $config[:ask_for_bcc])

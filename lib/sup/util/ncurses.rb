@@ -52,7 +52,7 @@ module Ncurses
 
     ## Gets character from input.
     ## Pretends ctrl-c's are ctrl-g's.
-    def self.get handle_interrupt=true
+    def self.get handle_interrupt = true
       begin
         status, code = nonblocking_getwch
         generate code, status

@@ -31,7 +31,7 @@ EOS
     other.midnight - midnight <=  24 * 60 * 60 + 1
   end
 
-  def to_nice_distance_s from=Time.now
+  def to_nice_distance_s from = Time.now
     later_than = (self < from)
     diff = (self.to_i - from.to_i).abs.to_f
     text =
@@ -62,11 +62,11 @@ EOS
   TO_NICE_S_MAX_LEN = 9 # e.g. "Yest.10am"
 
   ## This is how a thread date is displayed in thread-index-mode
-  def to_nice_s from=Time.now
+  def to_nice_s from = Time.now
     Redwood::HookManager.run('time-to-nice-string', time: self, from: from) || default_to_nice_s(from)
   end
 
-  def default_to_nice_s from=Time.now
+  def default_to_nice_s from = Time.now
     if year != from.year
       strftime '%b %Y'
     elsif month != from.month
@@ -85,7 +85,7 @@ EOS
   end
 
   ## This is how a message date is displayed in thread-view-mode
-  def to_message_nice_s _from=Time.now
+  def to_message_nice_s _from = Time.now
     format = $config[:time_mode] == '24h' ? '%B %e %Y %k:%M' : '%B %e %Y %l:%M%p'
     strftime format
   end

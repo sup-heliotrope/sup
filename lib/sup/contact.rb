@@ -28,7 +28,7 @@ class ContactManager
   def contacts; @p2a.keys end
   def contacts_with_aliases; @a2p.values.uniq end
 
-  def update_alias person, aalias=nil
+  def update_alias person, aalias = nil
     ## Deleting old data if it exists
     old_aalias = @p2a[person]
     if old_aalias

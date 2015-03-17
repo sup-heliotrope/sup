@@ -96,7 +96,7 @@ module Redwood
   module_function :reporting_thread, :record_exception, :exceptions
 
 ## one-stop shop for yamliciousness
-  def save_yaml_obj o, fn, safe=false, backup=false
+  def save_yaml_obj o, fn, safe = false, backup = false
     o = if o.is_a?(Array)
       o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
     elsif o.respond_to? :before_marshal
@@ -138,7 +138,7 @@ module Redwood
     end
   end
 
-  def load_yaml_obj fn, compress=false
+  def load_yaml_obj fn, compress = false
     o = if File.exist? fn
       if compress
         Zlib::GzipReader.open(fn) { |f| YAML::load f }
@@ -263,7 +263,7 @@ EOS
   ##
   ## a source error is either a FatalSourceError or an OutOfSyncSourceError.
   ## the superclass SourceError is just a generic.
-  def report_broken_sources opts={}
+  def report_broken_sources opts = {}
     return unless BufferManager.instantiated?
 
     broken_sources = SourceManager.sources.select { |s| s.error.is_a? FatalSourceError }

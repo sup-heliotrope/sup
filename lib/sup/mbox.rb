@@ -12,7 +12,7 @@ class MBox < Source
   attr_reader :labels
 
   ## uri_or_fp is horrific. need to refactor.
-  def initialize uri_or_fp, usual=true, archived=false, id=nil, labels=nil
+  def initialize uri_or_fp, usual = true, archived = false, id = nil, labels = nil
     @mutex = Mutex.new
     @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
 

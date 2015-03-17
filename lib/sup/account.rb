@@ -44,7 +44,7 @@ class AccountManager
 
   ## must be called first with the default account. fills in missing
   ## values from the default account.
-  def add_account hash, default=false
+  def add_account hash, default = false
     raise ArgumentError, 'no email specified for account' unless hash[:email]
     unless default
       [:name, :sendmail, :signature, :gpgkey].each { |k| hash[k] ||= @default_account.send(k) }

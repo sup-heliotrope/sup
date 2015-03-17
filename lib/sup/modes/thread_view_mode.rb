@@ -126,7 +126,7 @@ EOS
   ## Message objects.  @chunk_lines is a map from row #s to Chunk
   ## objects. @person_lines is a map from row #s to Person objects.
 
-  def initialize thread, hidden_labels=[], index_mode=nil
+  def initialize thread, hidden_labels = [], index_mode = nil
     super slip_rows: $config[:slip_rows]
     @thread = thread
     @hidden_labels = hidden_labels
@@ -168,7 +168,7 @@ EOS
     buffer.mark_dirty if buffer
   end
 
-  def draw_line ln, opts={}
+  def draw_line ln, opts = {}
     if ln == curpos
       super ln, highlight: true
     else
@@ -206,7 +206,7 @@ EOS
     update
   end
 
-  def reply type_arg=nil
+  def reply type_arg = nil
     m = @message_lines[curpos] or return
     mode = ReplyMode.new m, type_arg
     BufferManager.spawn "Reply to #{m.subj}", mode
@@ -501,7 +501,7 @@ EOS
     update if @layout[nextm].toggled_state
   end
 
-  def jump_to_next_open force_alignment=nil
+  def jump_to_next_open force_alignment = nil
     return continue_search_in_buffer if in_search? # hack: allow 'n' to apply to both operations
     m = (curpos ... @message_lines.length).argfind { |i| @message_lines[i] }
     return unless m
@@ -517,7 +517,7 @@ EOS
     jump_to_message m, true
   end
 
-  def jump_to_prev_and_open _force_alignment=nil
+  def jump_to_prev_and_open _force_alignment = nil
     m = (0 .. curpos).to_a.reverse.argfind { |i| @message_lines[i] }
     return unless m
 
@@ -557,7 +557,7 @@ EOS
     end
   end
 
-  def jump_to_message m, force_alignment=false
+  def jump_to_message m, force_alignment = false
     l = @layout[m]
 
     ## boundaries of the message
@@ -989,7 +989,7 @@ EOS
   end
 
   ## todo: check arguments on this overly complex function
-  def chunk_to_lines chunk, state, start, depth, parent=nil, color=nil, star_color=nil
+  def chunk_to_lines chunk, state, start, depth, parent = nil, color = nil, star_color = nil
     prefix = ' ' * INDENT_SPACES * depth
     case chunk
     when :fake_root

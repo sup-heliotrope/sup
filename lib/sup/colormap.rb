@@ -90,7 +90,7 @@ class Colormap
                                                    []) + [nil]
   end
 
-  def add sym, fg, bg, attr=nil, highlight=nil
+  def add sym, fg, bg, attr = nil, highlight = nil
     raise ArgumentError, "color for #{sym} already defined" if @entries.member? sym
     raise ArgumentError, "color '#{fg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? fg
     raise ArgumentError, "color '#{bg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? bg
@@ -145,7 +145,7 @@ class Colormap
     [hfg, hbg, attrs]
   end
 
-  def color_for sym, highlight=false
+  def color_for sym, highlight = false
     sym = @highlights[sym] if highlight
     return Ncurses::COLOR_BLACK if sym == :none
     raise ArgumentError, "undefined color #{sym}" unless @entries.member? sym

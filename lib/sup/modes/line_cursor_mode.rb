@@ -12,7 +12,7 @@ class LineCursorMode < ScrollMode
 
   attr_reader :curpos
 
-  def initialize opts={}
+  def initialize opts = {}
     @cursor_top = @curpos = opts.delete(:skip_top_rows) || 0
     @load_more_callbacks = []
     @load_more_q = Queue.new
@@ -45,7 +45,7 @@ class LineCursorMode < ScrollMode
     @load_more_callbacks << b
   end
 
-  def draw_line ln, opts={}
+  def draw_line ln, opts = {}
     if ln == @curpos
       super ln, highlight: true, debug: opts[:debug], color: :text_color
     else

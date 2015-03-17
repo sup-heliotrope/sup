@@ -12,7 +12,7 @@ class LogMode < TextMode
   ## if buffer_name is supplied, this mode will spawn a buffer
   ## upon receiving the << message. otherwise, it will act like
   ## a regular buffer.
-  def initialize autospawn_buffer_name=nil
+  def initialize autospawn_buffer_name = nil
     @follow = true
     @autospawn_buffer_name = autospawn_buffer_name
     @on_kill = []

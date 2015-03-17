@@ -50,7 +50,7 @@ class Thread
   def drop c; @containers.delete(c) or raise 'bad drop'; end
 
   ## unused
-  def dump f=$stdout
+  def dump f = $stdout
     f.puts "=== start thread with #{@containers.length} trees ==="
     @containers.each { |c| c.dump_recursive f; f.puts }
     f.puts '=== end thread ==='
@@ -60,7 +60,7 @@ class Thread
   ## parameter can be a Message object, or :fake_root, or nil (no
   ## message found but the presence of one deduced from other
   ## messages).
-  def each fake_root=false
+  def each fake_root = false
     adj = 0
     root = @containers.find_all { |c| c.message && !Message.subj_is_reply?(c.message.subj) }.argmin { |c| c.date }
 
@@ -172,7 +172,7 @@ class Container
     @children = []
   end
 
-  def each_with_stuff parent=nil
+  def each_with_stuff parent = nil
     yield self, 0, parent
     @children.sort_by(&:sort_key).each do |c|
       c.each_with_stuff(self) { |cc, d, par| yield cc, d + 1, par }
@@ -224,7 +224,7 @@ class Container
     ].compact.join(' ') + '>'
   end
 
-  def dump_recursive f=$stdout, indent=0, root=true, parent=nil
+  def dump_recursive f = $stdout, indent = 0, root = true, parent = nil
     raise 'inconsistency' unless parent.nil? || parent.children.include?(self)
     unless root
       f.print ' ' * indent
@@ -261,7 +261,7 @@ class ThreadSet
   attr_reader :num_messages
   bool_reader :thread_by_subj
 
-  def initialize index, thread_by_subj=true
+  def initialize index, thread_by_subj = true
     @index = index
     @num_messages = 0
     ## map from message ids to container objects
@@ -279,7 +279,7 @@ class ThreadSet
   def threads; @threads.values end
   def size; @threads.size end
 
-  def dump f=$stdout
+  def dump f = $stdout
     @threads.each do |s, t|
       f.puts '**********************'
       f.puts "** for subject #{s} **"
@@ -289,7 +289,7 @@ class ThreadSet
   end
 
   ## link two containers
-  def link p, c, overwrite=false
+  def link p, c, overwrite = false
     if p == c || p.descendant_of?(c) || c.descendant_of?(p) # would create a loop
       #puts "*** linking parent #{p.id} and child #{c.id} would create a loop"
       return
@@ -336,7 +336,7 @@ class ThreadSet
   end
 
   ## load in (at most) num number of threads from the index
-  def load_n_threads num, opts={}
+  def load_n_threads num, opts = {}
     @index.each_id_by_date opts do |mid, builder|
       break if size >= num unless num == -1
       next if contains_id? mid
@@ -349,7 +349,7 @@ class ThreadSet
 
   ## loads in all messages needed to thread m
   ## may do nothing if m's thread is killed
-  def load_thread_for_message m, opts={}
+  def load_thread_for_message m, opts = {}
     good = @index.each_message_in_thread_for m, opts do |mid, builder|
       next if contains_id? mid
       add_message builder.call

@@ -3,7 +3,7 @@ require 'sup/util/ncurses'
 module Redwood
 
 class Tagger
-  def initialize mode, noun='thread', plural_noun=nil
+  def initialize mode, noun = 'thread', plural_noun = nil
     @mode = mode
     @tagged = {}
     @noun = noun
@@ -17,7 +17,7 @@ class Tagger
   def drop_all_tags; @tagged.clear; end
   def drop_tag_for o; @tagged.delete o; end
 
-  def apply_to_tagged action=nil
+  def apply_to_tagged action = nil
     targets = @tagged.select_by_value
     num_tagged = targets.size
     if num_tagged == 0

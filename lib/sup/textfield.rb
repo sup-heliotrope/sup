@@ -33,7 +33,7 @@ class TextField
 
   def value; @value || get_cursed_value end
 
-  def activate window, y, x, width, question, default=nil, &block
+  def activate window, y, x, width, question, default = nil, &block
     @w, @y, @x, @width = window, y, x, width
     @question = question
     @completion_block = block

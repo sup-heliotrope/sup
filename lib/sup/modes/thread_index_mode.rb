@@ -57,7 +57,7 @@ EOS
     k.add :undo, 'Undo the previous action', 'u'
   end
 
-  def initialize hidden_labels=[], load_thread_opts={}
+  def initialize hidden_labels = [], load_thread_opts = {}
     super()
     @mutex = Mutex.new # covers the following variables:
     @threads = []
@@ -104,7 +104,7 @@ EOS
   end
 
   ## open up a thread view window
-  def select t=nil, when_done=nil
+  def select t = nil, when_done = nil
     t ||= cursor_thread or return
 
     Redwood::reporting_thread('load messages for thread-view-mode') do
@@ -645,7 +645,7 @@ EOS
     threads.each { |t| Index.save_thread t }
   end
 
-  def reply type_arg=nil
+  def reply type_arg = nil
     t = cursor_thread or return
     m = t.latest_message
     return if m.nil? # probably won't happen
@@ -664,7 +664,7 @@ EOS
     ForwardMode.spawn_nicely message: m
   end
 
-  def load_n_threads_background n=LOAD_MORE_THREAD_NUM, opts={}
+  def load_n_threads_background n = LOAD_MORE_THREAD_NUM, opts = {}
     return if @load_thread # todo: wrap in mutex
     @load_thread = Redwood::reporting_thread('load threads for thread-index-mode') do
       num = load_n_threads n, opts
@@ -674,7 +674,7 @@ EOS
   end
 
   ## TODO: figure out @ts_mutex in this method
-  def load_n_threads n=LOAD_MORE_THREAD_NUM, opts={}
+  def load_n_threads n = LOAD_MORE_THREAD_NUM, opts = {}
     @interrupt_search = false
     @mbid = BufferManager.say 'Searching for threads...'
 
@@ -719,7 +719,7 @@ EOS
     load_threads num: -1
   end
 
-  def load_threads opts={}
+  def load_threads opts = {}
     if opts[:num].nil?
       n = ThreadIndexMode::LOAD_MORE_THREAD_NUM
     else
@@ -889,7 +889,7 @@ EOS
   def authors; map { |m, *_o| m.from if m }.compact.uniq; end
 
   ## preserve author order from the thread
-  def author_names_and_newness_for_thread t, limit=nil
+  def author_names_and_newness_for_thread t, limit = nil
     new = {}
     seen = {}
     authors = t.map do |m, *_o|

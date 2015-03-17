@@ -57,7 +57,7 @@ class Source
   attr_reader :uri, :usual
   attr_accessor :id
 
-  def initialize uri, usual=true, archived=false, id=nil
+  def initialize uri, usual = true, archived = false, id = nil
     raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
 
     @uri = uri
@@ -223,7 +223,7 @@ class SourceManager
   def usual_sources; sources.find_all { |s| s.usual? }; end
   def unusual_sources; sources.find_all { |s| !s.usual? }; end
 
-  def load_sources fn=Redwood::SOURCE_FN
+  def load_sources fn = Redwood::SOURCE_FN
     source_array = Redwood::load_yaml_obj(fn) || []
     @source_mutex.synchronize do
       @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
@@ -231,7 +231,7 @@ class SourceManager
     end
   end
 
-  def save_sources fn=Redwood::SOURCE_FN, force=false
+  def save_sources fn = Redwood::SOURCE_FN, force = false
     @source_mutex.synchronize do
       if @sources_dirty || force
         Redwood::save_yaml_obj sources, fn, false, true

@@ -21,7 +21,7 @@ module InteractiveLock
 
   DELAY = 5 # seconds
 
-  def lock_interactively stream=$stderr
+  def lock_interactively stream = $stderr
     begin
       Index.lock
     rescue Index::LockError => e

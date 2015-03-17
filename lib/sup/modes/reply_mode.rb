@@ -40,7 +40,7 @@ Return value:
   The reply mode you desire, or nil to use the default behavior.
 EOS
 
-  def initialize message, type_arg=nil
+  def initialize message, type_arg = nil
     @m = message
     @edited = false
 

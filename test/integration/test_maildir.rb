@@ -22,7 +22,7 @@ EOS
     FileUtils.rm_r @path
   end
 
-  def create_a_maildir(extra='')
+  def create_a_maildir(extra = '')
     maildir = File.join @path, "test_maildir#{extra}"
     ['', 'cur', 'new', 'tmp'].each do |dir|
       Dir.mkdir(File.join maildir, dir)

@@ -28,7 +28,7 @@ class ScrollMode < Mode
     k.add :continue_search_in_buffer, 'Jump to next search occurrence in buffer', BufferManager::CONTINUE_IN_BUFFER_SEARCH_KEY
   end
 
-  def initialize opts={}
+  def initialize opts = {}
     @topline, @botline, @leftcol = 0, 0, 0
     @slip_rows = opts[:slip_rows] || 0 # when we pgup/pgdown,
                                        # how many lines do we keep?
@@ -174,7 +174,7 @@ class ScrollMode < Mode
     nil
   end
 
-  def draw_line ln, opts={}
+  def draw_line ln, opts = {}
     regex = /(#{@search_query})/i
     case (s = self[ln])
     when String
@@ -208,7 +208,7 @@ class ScrollMode < Mode
       # return
   end
 
-  def matching_text_array s, regex, oldcolor=:text_color
+  def matching_text_array s, regex, oldcolor = :text_color
     s.split(regex).map do |text|
       next if text.empty?
       if text =~ regex

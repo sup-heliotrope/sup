@@ -106,7 +106,7 @@ EOS
 
   def keysyms; @map.values.map { |_action, _help, keys| keys }.flatten; end
 
-  def help_lines except_for={}, prefix=''
+  def help_lines except_for = {}, prefix = ''
     lines = [] # :(
     @order.each do |action, help, keys|
       valid_keys = keys.select { |k| !except_for[k] }
@@ -121,7 +121,7 @@ EOS
     lines
   end
 
-  def help_text except_for={}
+  def help_text except_for = {}
     lines = help_lines except_for
     llen = lines.max_of { |a, _b| a.length }
     lines.map { |a, b| sprintf " %#{llen}s : %s", a, b }.join("\n")

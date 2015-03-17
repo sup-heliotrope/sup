@@ -158,7 +158,7 @@ EOS
     envelope
   end
 
-  def encrypt from, to, payload, sign=false
+  def encrypt from, to, payload, sign = false
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP, armor: true, textmode: true}
@@ -253,7 +253,7 @@ EOS
     end
   end
 
-  def verify payload, signature, detached=true # both RubyMail::Message objects
+  def verify payload, signature, detached = true # both RubyMail::Message objects
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP}
@@ -285,7 +285,7 @@ EOS
   end
 
   ## returns decrypted_message, status, desc, lines
-  def decrypt payload, armor=false # a RubyMail::Message object
+  def decrypt payload, armor = false # a RubyMail::Message object
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = {protocol: GPGME::PROTOCOL_OpenPGP}
@@ -384,7 +384,7 @@ EOS
 
   private
 
-  def unknown_status lines=[]
+  def unknown_status lines = []
     Chunk::CryptoNotice.new :unknown, 'Unable to determine validity of cryptographic signature', lines
   end
 

@@ -9,7 +9,7 @@ class Maildir < Source
 
   ## remind me never to use inheritance again.
   yaml_properties :uri, :usual, :archived, :sync_back, :id, :labels
-  def initialize uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
+  def initialize uri, usual = true, archived = false, sync_back = true, id = nil, labels = []
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
     parts = @expanded_uri.match(/^([a-zA-Z0-9]*:(\/\/)?)(.*)/)

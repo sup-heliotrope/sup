@@ -15,7 +15,7 @@ class Buffer
   bool_reader :dirty, :system
   bool_accessor :force_to_top, :hidden
 
-  def initialize window, mode, width, height, opts={}
+  def initialize window, mode, width, height, opts = {}
     @w = window
     @mode = mode
     @dirty = true
@@ -64,7 +64,7 @@ class Buffer
   end
 
   ## s nil means a blank line!
-  def write y, x, s, opts={}
+  def write y, x, s, opts = {}
     return if x >= @width || y >= @height
 
     @w.attrset Colormap.color_for(opts[:color] || :none, opts[:highlight])
@@ -251,7 +251,7 @@ EOS
     end
   end
 
-  def draw_screen opts={}
+  def draw_screen opts = {}
     return if @shelled
 
     status, title =
@@ -296,7 +296,7 @@ EOS
   ## calling the block. otherwise, gets the mode from the block and
   ## creates a new buffer. returns two things: the buffer, and a boolean
   ## indicating whether it's a new buffer or not.
-  def spawn_unless_exists title, opts={}
+  def spawn_unless_exists title, opts = {}
     new =
       if @name_map.member? title
         raise_to_front @name_map[title] unless opts[:hidden]
@@ -309,7 +309,7 @@ EOS
     [@name_map[title], new]
   end
 
-  def spawn title, mode, opts={}
+  def spawn title, mode, opts = {}
     raise ArgumentError, 'title must be a string' unless title.is_a? String
     realtitle = title
     num = 2
@@ -342,7 +342,7 @@ EOS
   end
 
   ## requires the mode to have #done? and #value methods
-  def spawn_modal title, mode, opts={}
+  def spawn_modal title, mode, opts = {}
     b = spawn title, mode, opts
     draw_screen
 
@@ -408,14 +408,14 @@ EOS
   ## completions: array of possible answers, that can be completed by using
   ##              the tab key
   ## default:     default value to return
-  def ask_with_completions domain, question, completions, default=nil
+  def ask_with_completions domain, question, completions, default = nil
     ask domain, question, default do |s|
       s.fix_encoding!
       completions.select { |x| x =~ /^#{Regexp::escape s}/iu }.map { |x| [x, x] }
     end
   end
 
-  def ask_many_with_completions domain, question, completions, default=nil
+  def ask_many_with_completions domain, question, completions, default = nil
     ask domain, question, default do |partial|
       prefix, target =
         case partial
@@ -433,7 +433,7 @@ EOS
     end
   end
 
-  def ask_many_emails_with_completions domain, question, completions, default=nil
+  def ask_many_emails_with_completions domain, question, completions, default = nil
     ask domain, question, default do |partial|
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ''
@@ -446,7 +446,7 @@ EOS
     end
   end
 
-  def ask_for_filename domain, question, default=nil, allow_directory=false
+  def ask_for_filename domain, question, default = nil, allow_directory = false
     answer = ask domain, question, default do |s|
       if s =~ /(~([^\s\/]*))/ # twiddle directory expansion
         full = $1
@@ -482,7 +482,7 @@ EOS
   end
 
   ## returns an array of labels
-  def ask_for_labels domain, question, default_labels, forbidden_labels=[]
+  def ask_for_labels domain, question, default_labels, forbidden_labels = []
     default_labels = default_labels - forbidden_labels - LabelManager::RESERVED_LABELS
     default = default_labels.to_a.join(' ')
     default += ' ' unless default.empty?
@@ -505,7 +505,7 @@ EOS
     user_labels
   end
 
-  def ask_for_contacts domain, question, default_contacts=[]
+  def ask_for_contacts domain, question, default_contacts = []
     default = default_contacts.is_a?(String) ? default_contacts : default_contacts.map { |s| s.to_s }.join(', ')
     default += ' ' unless default.empty?
 
@@ -531,7 +531,7 @@ EOS
 
   ## for simplicitly, we always place the question at the very bottom of the
   ## screen
-  def ask domain, question, default=nil, &block
+  def ask domain, question, default = nil, &block
     raise 'impossible!' if @asking
     raise 'Question too long' if Ncurses.cols <= question.length
     @asking = true
@@ -586,7 +586,7 @@ EOS
     tf.value.tap { |x| x }
   end
 
-  def ask_getch question, accept=nil
+  def ask_getch question, accept = nil
     raise 'impossible!' if @asking
 
     accept = accept.split(//).map { |x| x.ord } if accept
@@ -662,7 +662,7 @@ EOS
     end
   end
 
-  def draw_minibuf opts={}
+  def draw_minibuf opts = {}
     m = nil
     @minibuf_mutex.synchronize do
       m = @minibuf_stack.compact
@@ -680,7 +680,7 @@ EOS
     Ncurses.mutex.unlock unless opts[:sync] == false
   end
 
-  def say s, id=nil
+  def say s, id = nil
     new_id = nil
 
     @minibuf_mutex.synchronize do

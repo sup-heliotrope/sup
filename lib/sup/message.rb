@@ -461,7 +461,7 @@ EOS
   end
 
   ## takes a RMail::Message, breaks it into Chunk:: classes.
-  def message_to_chunks m, encrypted=false, sibling_types=[]
+  def message_to_chunks m, encrypted = false, sibling_types = []
     if m.multipart?
       chunks =
         case m.header.content_type.downcase

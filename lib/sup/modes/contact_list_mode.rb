@@ -27,7 +27,7 @@ class ContactListMode < LineCursorMode
     k.add :search, 'Search for messages from particular people', 'S'
   end
 
-  def initialize mode=:regular
+  def initialize mode = :regular
     @mode = mode
     @tags = Tagger.new self, 'contact'
     @num = nil
@@ -59,7 +59,7 @@ class ContactListMode < LineCursorMode
 
   def apply_to_tagged; @tags.apply_to_tagged; end
 
-  def load_more num=LOAD_MORE_CONTACTS_NUM
+  def load_more num = LOAD_MORE_CONTACTS_NUM
     @num += num
     load
     update
