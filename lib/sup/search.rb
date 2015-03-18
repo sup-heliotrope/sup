@@ -9,7 +9,7 @@ class SearchManager
 
   attr_reader :predefined_searches
 
-  def initialize fn
+  def initialize(fn)
     @fn = fn
     @searches = {}
     if File.exist? fn
@@ -34,16 +34,16 @@ class SearchManager
 
   def predefined_queries; return @predefined_queries; end
   def all_searches; return @searches.keys.sort; end
-  def search_string_for name;
+  def search_string_for(name);
     if @predefined_searches.keys.member? name
       return name.to_sym
     end
     return @searches[name];
   end
-  def valid_name? name; name =~ /^[\w-]+$/; end
+  def valid_name?(name); name =~ /^[\w-]+$/; end
   def name_format_hint; 'letters, numbers, underscores and dashes only'; end
 
-  def add name, search_string
+  def add(name, search_string)
     return unless valid_name? name
     if @predefined_searches.has_key? name
       warn "cannot add search: #{name} is already taken by a predefined search"
@@ -53,7 +53,7 @@ class SearchManager
     @modified = true
   end
 
-  def rename old, new
+  def rename(old, new)
     return unless @searches.has_key? old
     if [old, new].any? { |x| @predefined_searches.has_key? x }
       warn "cannot rename search: #{old} or #{new} is already taken by a predefined search"
@@ -63,7 +63,7 @@ class SearchManager
     delete old if add new, search_string
   end
 
-  def edit name, search_string
+  def edit(name, search_string)
     return unless @searches.has_key? name
     if @predefined_searches.has_key? name
       warn "cannot edit predefined search: #{name}."
@@ -73,7 +73,7 @@ class SearchManager
     @modified = true
   end
 
-  def delete name
+  def delete(name)
     return unless @searches.has_key? name
     if @predefined_searches.has_key? name
       warn "cannot delete predefined search: #{name}."
@@ -83,7 +83,7 @@ class SearchManager
     @modified = true
   end
 
-  def expand search_string
+  def expand(search_string)
     expanded = search_string.dup
     until (matches = expanded.scan(/\{([\w-]+)\}/).flatten).empty?
       if !(unknown = matches - @searches.keys).empty?

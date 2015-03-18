@@ -126,7 +126,7 @@ EOS
   ## Message objects.  @chunk_lines is a map from row #s to Chunk
   ## objects. @person_lines is a map from row #s to Person objects.
 
-  def initialize thread, hidden_labels = [], index_mode = nil
+  def initialize(thread, hidden_labels = [], index_mode = nil)
     super slip_rows: $config[:slip_rows]
     @thread = thread
     @hidden_labels = hidden_labels
@@ -168,7 +168,7 @@ EOS
     buffer.mark_dirty if buffer
   end
 
-  def draw_line ln, opts = {}
+  def draw_line(ln, opts = {})
     if ln == curpos
       super ln, highlight: true
     else
@@ -176,12 +176,12 @@ EOS
     end
   end
   def lines; @text.length; end
-  def [] i; @text[i]; end
+  def [](i); @text[i]; end
 
   ## a little hacky---since regen_text can depend on buffer features like the
   ## content_width, we don't call it in the constructor, and instead call it
   ## here, which is set before we're responsible for drawing ourself.
-  def buffer= b
+  def buffer=(b)
     super
     regen_text
   end
@@ -206,7 +206,7 @@ EOS
     update
   end
 
-  def reply type_arg = nil
+  def reply(type_arg = nil)
     m = @message_lines[curpos] or return
     mode = ReplyMode.new m, type_arg
     BufferManager.spawn "Reply to #{m.subj}", mode
@@ -334,7 +334,7 @@ EOS
     toggle_label m, :unread
   end
 
-  def toggle_label m, label
+  def toggle_label(m, label)
     if m.has_label? label
       m.remove_label label
     else
@@ -501,7 +501,7 @@ EOS
     update if @layout[nextm].toggled_state
   end
 
-  def jump_to_next_open force_alignment = nil
+  def jump_to_next_open(force_alignment = nil)
     return continue_search_in_buffer if in_search? # hack: allow 'n' to apply to both operations
     m = (curpos...@message_lines.length).argfind { |i| @message_lines[i] }
     return unless m
@@ -517,7 +517,7 @@ EOS
     jump_to_message m, true
   end
 
-  def jump_to_prev_and_open _force_alignment = nil
+  def jump_to_prev_and_open(_force_alignment = nil)
     m = (0..curpos).to_a.reverse.argfind { |i| @message_lines[i] }
     return unless m
 
@@ -557,7 +557,7 @@ EOS
     end
   end
 
-  def jump_to_message m, force_alignment = false
+  def jump_to_message(m, force_alignment = false)
     l = @layout[m]
 
     ## boundaries of the message
@@ -627,7 +627,7 @@ EOS
   def unread_and_prev; unread_and_then :prev end
   def do_nothing_and_prev; do_nothing_and_then :prev end
 
-  def archive_and_then op
+  def archive_and_then(op)
     dispatch op do
       @thread.remove_label :inbox
       UpdateManager.relay self, :archived, @thread.first
@@ -640,7 +640,7 @@ EOS
     end
   end
 
-  def spam_and_then op
+  def spam_and_then(op)
     dispatch op do
       @thread.apply_label :spam
       UpdateManager.relay self, :spammed, @thread.first
@@ -653,7 +653,7 @@ EOS
     end
   end
 
-  def delete_and_then op
+  def delete_and_then(op)
     dispatch op do
       @thread.apply_label :deleted
       UpdateManager.relay self, :deleted, @thread.first
@@ -666,7 +666,7 @@ EOS
     end
   end
 
-  def kill_and_then op
+  def kill_and_then(op)
     dispatch op do
       @thread.apply_label :killed
       UpdateManager.relay self, :killed, @thread.first
@@ -679,7 +679,7 @@ EOS
     end
   end
 
-  def unread_and_then op
+  def unread_and_then(op)
     dispatch op do
       @thread.apply_label :unread
       UpdateManager.relay self, :unread, @thread.first
@@ -687,11 +687,11 @@ EOS
     end
   end
 
-  def do_nothing_and_then op
+  def do_nothing_and_then(op)
     dispatch op
   end
 
-  def dispatch op
+  def dispatch(op)
     return if @dying
     @dying = true
 
@@ -817,7 +817,7 @@ EOS
 
   private
 
-  def initial_state_for m
+  def initial_state_for(m)
     if m.has_label?(:starred) || m.has_label?(:unread)
       :open
     else
@@ -896,7 +896,7 @@ EOS
     end
   end
 
-  def message_patina_lines m, state, start, parent, prefix, color, star_color
+  def message_patina_lines(m, state, start, parent, prefix, color, star_color)
     prefix_widget = [color, prefix]
 
     open_widget = [color, (state == :closed ? '+ ' : '- ')]
@@ -958,7 +958,7 @@ EOS
     end
   end
 
-  def format_person_list prefix, people
+  def format_person_list(prefix, people)
     ptext = people.map { |p| format_person p }
     pad = ' ' * prefix.display_length
     [prefix + ptext.first + (ptext.length > 1 ? ',' : '')] +
@@ -967,11 +967,11 @@ EOS
       end
   end
 
-  def format_person p
+  def format_person(p)
     p.longname + (ContactManager.is_aliased_contact?(p) ? " (#{ContactManager.alias_for p})" : '')
   end
 
-  def maybe_wrap_text lines
+  def maybe_wrap_text(lines)
     if @wrap
       config_width = $config[:wrap_width]
       if config_width and config_width != 0
@@ -989,7 +989,7 @@ EOS
   end
 
   ## todo: check arguments on this overly complex function
-  def chunk_to_lines chunk, state, start, depth, parent = nil, color = nil, star_color = nil
+  def chunk_to_lines(chunk, state, start, depth, parent = nil, color = nil, star_color = nil)
     prefix = ' ' * INDENT_SPACES * depth
     case chunk
     when :fake_root
@@ -1019,7 +1019,7 @@ EOS
     end
   end
 
-  def view chunk
+  def view(chunk)
     BufferManager.flash "viewing #{chunk.content_type} attachment..."
     success = chunk.view!
     BufferManager.erase_flash

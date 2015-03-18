@@ -14,7 +14,7 @@ class UndoManager
     @@actionlist = []
   end
 
-  def register desc, *actions, &b
+  def register(desc, *actions, &b)
     actions = [*actions.flatten]
     actions << b if b
     raise ArgumentError, 'need at least one action' unless actions.length > 0

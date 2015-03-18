@@ -4,7 +4,7 @@ class DraftManager
   include Redwood::Singleton
 
   attr_accessor :source
-  def initialize dir
+  def initialize(dir)
     @dir = dir
     @source = nil
   end
@@ -20,7 +20,7 @@ class DraftManager
     PollManager.poll_from @source
   end
 
-  def discard m
+  def discard(m)
     raise ArgumentError, "not a draft: source id #{m.source.id.inspect}, should be #{DraftManager.source_id.inspect} for #{m.id.inspect}" unless m.source.id.to_i == DraftManager.source_id
     Index.delete m.id
     File.delete @source.fn_for_offset(m.source_info) rescue Errono::ENOENT
@@ -32,7 +32,7 @@ class DraftLoader < Source
   attr_accessor :dir
   yaml_properties
 
-  def initialize dir = Redwood::DRAFT_DIR
+  def initialize(dir = Redwood::DRAFT_DIR)
     Dir.mkdir dir unless File.exist? dir
     super DraftManager.source_name, true, false
     @dir = dir
@@ -68,13 +68,13 @@ class DraftLoader < Source
     i
   end
 
-  def fn_for_offset o; File.join(@dir, o.to_s); end
+  def fn_for_offset(o); File.join(@dir, o.to_s); end
 
-  def load_header offset
+  def load_header(offset)
     File.open(fn_for_offset(offset)) { |f| parse_raw_email_header f }
   end
 
-  def load_message offset
+  def load_message(offset)
     raise SourceError, 'Draft not found' unless File.exist? fn_for_offset(offset)
     File.open fn_for_offset(offset) do |f|
       RMail::Mailbox::MBoxReader.new(f).each_message do |input|
@@ -83,7 +83,7 @@ class DraftLoader < Source
     end
   end
 
-  def raw_header offset
+  def raw_header(offset)
     ret = ''
     File.open(fn_for_offset(offset), 'r:UTF-8') do |f|
       until f.eof? || (l = f.gets) =~ /^$/
@@ -93,13 +93,13 @@ class DraftLoader < Source
     ret
   end
 
-  def each_raw_message_line offset
+  def each_raw_message_line(offset)
     File.open(fn_for_offset(offset), 'r:UTF-8') do |f|
       yield f.gets until f.eof?
     end
   end
 
-  def raw_message offset
+  def raw_message(offset)
     IO.read(fn_for_offset(offset), encoding: 'UTF-8')
   end
 

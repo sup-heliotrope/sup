@@ -48,16 +48,16 @@ Variables:
 EOS
 
   class LockError < StandardError
-    def initialize h
+    def initialize(h)
       @h = h
     end
 
-    def method_missing m; @h[m.to_s] end
+    def method_missing(m); @h[m.to_s] end
   end
 
   include Redwood::Singleton
 
-  def initialize dir = BASE_DIR
+  def initialize(dir = BASE_DIR)
     @dir = dir
     FileUtils.mkdir_p @dir
     @lock = Lockfile.new lockfile, retries: 0, max_age: nil
@@ -98,7 +98,7 @@ EOS
     end
   end
 
-  def load failsafe = false
+  def load(failsafe = false)
     SourceManager.load_sources
     load_index failsafe
   end
@@ -114,7 +114,7 @@ EOS
     @xapian
   end
 
-  def load_index _failsafe = false
+  def load_index(_failsafe = false)
     path = File.join(@dir, 'xapian')
     if File.exist? path
       @xapian = Xapian::WritableDatabase.new(path, Xapian::DB_OPEN)
@@ -136,20 +136,20 @@ EOS
     @enquire.docid_order = Xapian::Enquire::ASCENDING
   end
 
-  def add_message m; sync_message m, true end
-  def update_message m; sync_message m, true end
-  def update_message_state m; sync_message m[0], false, m[1] end
+  def add_message(m); sync_message m, true end
+  def update_message(m); sync_message m, true end
+  def update_message_state(m); sync_message m[0], false, m[1] end
 
   def save_index
     info 'Flushing Xapian updates to disk. This may take a while...'
     @xapian.flush
   end
 
-  def contains_id? id
+  def contains_id?(id)
     synchronize { find_docid(id) && true }
   end
 
-  def contains? m; contains_id? m.id end
+  def contains?(m); contains_id? m.id end
 
   def size
     synchronize { @xapian.doccount }
@@ -161,12 +161,12 @@ EOS
   ## message that matches the given query, in descending date order.
   ## You should probably not call this on a block that doesn't break
   ## rather quickly because the results can be very large.
-  def each_id_by_date query = {}
+  def each_id_by_date(query = {})
     each_id(query) { |id| yield id, lambda { build_message id } }
   end
 
   ## Return the number of matches for query in the index
-  def num_results_for query = {}
+  def num_results_for(query = {})
     xapian_query = build_xapian_query query
     matchset = run_query xapian_query, 0, 0, 100
     matchset.matches_estimated
@@ -177,7 +177,7 @@ EOS
   ## NOTE: We can be more efficient if we assume every
   ## killed message that hasn't been initially added
   ## to the indexi s this way
-  def message_joining_killed? m
+  def message_joining_killed?(m)
     return false unless doc = find_doc(m.id)
     queue = doc.value(THREAD_VALUENO).split(',')
     seen_threads = Set.new
@@ -206,7 +206,7 @@ EOS
   ## only two options, :limit and :skip_killed. if :skip_killed is
   ## true, stops loading any thread if a message with a :killed flag
   ## is found.
-  def each_message_in_thread_for m, opts = {}
+  def each_message_in_thread_for(m, opts = {})
     # TODO thread by subject
     return unless doc = find_doc(m.id)
     queue = doc.value(THREAD_VALUENO).split(',')
@@ -232,7 +232,7 @@ EOS
   end
 
   ## Load message with the given message-id from the index
-  def build_message id
+  def build_message(id)
     entry = synchronize { get_entry id }
     return unless entry
 
@@ -259,13 +259,13 @@ EOS
   end
 
   ## Delete message with the given message-id from the index
-  def delete id
+  def delete(id)
     synchronize { @xapian.delete_document mkterm(:msgid, id) }
   end
 
   ## Given an array of email addresses, return an array of Person objects that
   ## have sent mail to or received mail from any of the given addresses.
-  def load_contacts email_addresses, opts = {}
+  def load_contacts(email_addresses, opts = {})
     contacts = Set.new
     num = opts[:num] || 20
     each_id_by_date participants: email_addresses do |_id, b|
@@ -278,7 +278,7 @@ EOS
 
   ## Yield each message-id matching query
   EACH_ID_PAGE = 100
-  def each_id query = {}, ignore_neg_terms = true
+  def each_id(query = {}, ignore_neg_terms = true)
     offset = 0
     page = EACH_ID_PAGE
 
@@ -296,14 +296,14 @@ EOS
   ## it contains "forbidden" labels such as :deleted, it is used in
   ## Poll#poll_from when we need to get the location of a message that
   ## may contain these labels
-  def each_message query = {}, ignore_neg_terms = true, &_b
+  def each_message(query = {}, ignore_neg_terms = true, &_b)
     each_id query, ignore_neg_terms do |id|
       yield build_message(id)
     end
   end
 
   # Search messages. Returns an Enumerator.
-  def find_messages query_expr
+  def find_messages(query_expr)
     enum_for :each_message, parse_query(query_expr)
   end
 
@@ -329,12 +329,12 @@ EOS
 
   ## Return the id source of the source the message with the given message-id
   ## was synced from
-  def source_for_id id
+  def source_for_id(id)
     synchronize { get_entry(id)[:source_id] }
   end
 
   ## Yields each term in the index that starts with prefix
-  def each_prefixed_term prefix
+  def each_prefixed_term(prefix)
     term = @xapian._dangerous_allterms_begin prefix
     lastTerm = @xapian._dangerous_allterms_end prefix
     until term.equals lastTerm
@@ -346,7 +346,7 @@ EOS
 
   ## Yields (in lexicographical order) the source infos of all locations from
   ## the given source with the given source_info prefix
-  def each_source_info source_id, prefix = '', &_b
+  def each_source_info(source_id, prefix = '', &_b)
     p = mkterm :location, source_id, prefix
     each_prefixed_term p do |x|
       yield prefix + x[p.length..-1]
@@ -402,7 +402,7 @@ EOS
   ## argument.
   ##
   ## raises a ParseError if something went wrong.
-  def parse_query s
+  def parse_query(s)
     query = {}
 
     subs = HookManager.run('custom-search', subs: s) || s
@@ -534,7 +534,7 @@ EOS
     query
   end
 
-  def save_message m, sync_back = true
+  def save_message(m, sync_back = true)
     if @sync_worker
       @sync_queue << [m, sync_back]
     else
@@ -543,7 +543,7 @@ EOS
     m.clear_dirty
   end
 
-  def save_thread t, sync_back = true
+  def save_thread(t, sync_back = true)
     t.each_dirty_message do |m|
       save_message m, sync_back
     end
@@ -586,7 +586,7 @@ EOS
   DOCID_SCALE = 2.0**32
   TIME_SCALE = 2.0**27
   MIDDLE_DATE = Time.gm(2011)
-  def assign_docid _m, truncated_date
+  def assign_docid(_m, truncated_date)
     t = (truncated_date.to_i - MIDDLE_DATE.to_i).to_f
     docid = (DOCID_SCALE - DOCID_SCALE / (Math::E**(-(t / TIME_SCALE)) + 1)).to_i
     while docid > 0 and docid_exists? docid
@@ -596,7 +596,7 @@ EOS
   end
 
   # XXX is there a better way?
-  def docid_exists? docid
+  def docid_exists?(docid)
     begin
       @xapian.doclength docid
       true
@@ -606,53 +606,53 @@ EOS
     end
   end
 
-  def term_docids term
+  def term_docids(term)
     @xapian.postlist(term).map { |x| x.docid }
   end
 
-  def find_docid id
+  def find_docid(id)
     docids = term_docids(mkterm(:msgid, id))
     fail unless docids.size <= 1
     docids.first
   end
 
-  def find_doc id
+  def find_doc(id)
     return unless docid = find_docid(id)
     @xapian.document docid
   end
 
-  def get_id docid
+  def get_id(docid)
     return unless doc = @xapian.document(docid)
     doc.value MSGID_VALUENO
   end
 
-  def get_entry id
+  def get_entry(id)
     return unless doc = find_doc(id)
     doc.entry
   end
 
-  def thread_killed? thread_id
+  def thread_killed?(thread_id)
     not run_query(Q.new(Q::OP_AND, mkterm(:thread, thread_id), mkterm(:label, :Killed)), 0, 1).empty?
   end
 
-  def synchronize &b
+  def synchronize(&b)
     @index_mutex.synchronize &b
   end
 
-  def run_query xapian_query, offset, limit, checkatleast = 0
+  def run_query(xapian_query, offset, limit, checkatleast = 0)
     synchronize do
       @enquire.query = xapian_query
       @enquire.mset(offset, limit - offset, checkatleast)
     end
   end
 
-  def run_query_ids xapian_query, offset, limit
+  def run_query_ids(xapian_query, offset, limit)
     matchset = run_query xapian_query, offset, limit
     matchset.matches.map { |r| r.document.value MSGID_VALUENO }
   end
 
   Q = Xapian::Query
-  def build_xapian_query opts, ignore_neg_terms = true
+  def build_xapian_query(opts, ignore_neg_terms = true)
     labels = ([opts[:label]] + (opts[:labels] || [])).compact
     neglabels = [:spam, :deleted, :killed].reject { |l| (labels.include? l) || opts.member?("load_#{l}".intern) }
     pos_terms, neg_terms = [], []
@@ -680,7 +680,7 @@ EOS
     end
   end
 
-  def sync_message m, overwrite, sync_back = true
+  def sync_message(m, overwrite, sync_back = true)
     ## TODO: we should not save the message if the sync_back failed
     ## since it would overwrite the location field
     m.sync_back if sync_back
@@ -732,7 +732,7 @@ EOS
   end
 
   ## Index content that can't be changed by the user
-  def index_message_static m, doc, _entry
+  def index_message_static(m, doc, _entry)
     # Person names are indexed with several prefixes
     person_termer = lambda do |d|
       lambda do |p|
@@ -772,14 +772,14 @@ EOS
     doc.add_value DATE_VALUENO, date_value
   end
 
-  def index_message_locations doc, entry, old_entry
+  def index_message_locations(doc, entry, old_entry)
     old_entry[:locations].map { |x| x[0] }.uniq.each { |x| doc.remove_term mkterm(:source_id, x) } if old_entry
     entry[:locations].map { |x| x[0] }.uniq.each { |x| doc.add_term mkterm(:source_id, x) }
     old_entry[:locations].each { |x| (doc.remove_term mkterm(:location, *x) rescue nil) } if old_entry
     entry[:locations].each { |x| doc.add_term mkterm(:location, *x) }
   end
 
-  def index_message_labels doc, new_labels, old_labels
+  def index_message_labels(doc, new_labels, old_labels)
     return if new_labels == old_labels
     added = new_labels.to_a - old_labels.to_a
     removed = old_labels.to_a - new_labels.to_a
@@ -796,7 +796,7 @@ EOS
   ## missing link between multiple previously unrelated threads we can have
   ## more. XapianIndex#each_message_in_thread_for follows the thread ids when
   ## searching so the user sees a single unified thread.
-  def index_message_threading doc, entry, old_entry
+  def index_message_threading(doc, entry, old_entry)
     return if old_entry && (entry[:refs] == old_entry[:refs]) && (entry[:replytos] == old_entry[:replytos])
     children = term_docids(mkterm(:ref, entry[:message_id])).map { |docid| @xapian.document docid }
     parent_ids = entry[:refs] + entry[:replytos]
@@ -812,7 +812,7 @@ EOS
     doc.add_value THREAD_VALUENO, (thread_ids * ',')
   end
 
-  def truncate_date date
+  def truncate_date(date)
     if date < MIN_DATE
       debug "warning: adjusting too-low date #{date} for indexing"
       MIN_DATE
@@ -825,7 +825,7 @@ EOS
   end
 
   # Construct a Xapian term
-  def mkterm type, *args
+  def mkterm(type, *args)
     case type
     when :label
       PREFIX['label'][:prefix] + args[0].to_s.downcase
@@ -864,7 +864,7 @@ class Xapian::Document
     self.data = Marshal.dump x
   end
 
-  def index_text text, prefix, weight = 1
+  def index_text(text, prefix, weight = 1)
     term_generator = Xapian::TermGenerator.new
     term_generator.stemmer = Xapian::Stem.new($config[:stem_language])
     term_generator.document = self
@@ -872,7 +872,7 @@ class Xapian::Document
   end
 
   alias_method :old_add_term, :add_term
-  def add_term term
+  def add_term(term)
     if term.length <= Redwood::Index::MAX_TERM_LENGTH
       old_add_term term, 0
     else

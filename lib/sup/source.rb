@@ -4,7 +4,7 @@ require 'monitor'
 module Redwood
 
 class SourceError < StandardError
-  def initialize *a
+  def initialize(*a)
     raise "don't instantiate me!" if SourceError.is_a?(self.class)
     super
   end
@@ -57,7 +57,7 @@ class Source
   attr_reader :uri, :usual
   attr_accessor :id
 
-  def initialize uri, usual = true, archived = false, id = nil
+  def initialize(uri, usual = true, archived = false, id = nil)
     raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
 
     @uri = uri
@@ -72,8 +72,8 @@ class Source
   def file_path; nil end
 
   def to_s; @uri.to_s; end
-  def == o; o.uri == uri; end
-  def is_source_for? uri; uri == @uri; end
+  def ==(o); o.uri == uri; end
+  def is_source_for?(uri); uri == @uri; end
 
   def read?; false; end
 
@@ -88,7 +88,7 @@ class Source
 
   ## Returns an array containing all the labels that are currently in
   ## the location filename
-  def labels? _info; [] end
+  def labels?(_info); [] end
 
   ## Yields values of the form [Symbol, Hash]
   ## add: info, labels, progress
@@ -97,11 +97,11 @@ class Source
     unimplemented
   end
 
-  def valid? _info
+  def valid?(_info)
     true
   end
 
-  def synchronize &block
+  def synchronize(&block)
     @poll_lock.synchronize &block
   end
 
@@ -127,7 +127,7 @@ class Source
   ## significant effect on Sup's processing speed of email from ALL sources.
   ## Little things like string interpolation, regexp interpolation, += vs <<,
   ## all have DRAMATIC effects. BE CAREFUL WHAT YOU DO!
-  def self.parse_raw_email_header f
+  def self.parse_raw_email_header(f)
     header = {}
     last = nil
 
@@ -164,9 +164,9 @@ class Source
   protected
 
   ## convenience function
-  def parse_raw_email_header f; self.class.parse_raw_email_header f end
+  def parse_raw_email_header(f); self.class.parse_raw_email_header f end
 
-  def Source.expand_filesystem_uri uri
+  def Source.expand_filesystem_uri(uri)
     uri.gsub '~', File.expand_path('~')
   end
 end
@@ -199,7 +199,7 @@ class SourceManager
     @source_mutex.synchronize { @sources[id] }
   end
 
-  def add_source source
+  def add_source(source)
     @source_mutex.synchronize do
       raise 'duplicate source!' if @sources.include? source
       @sources_dirty = true
@@ -215,7 +215,7 @@ class SourceManager
     @source_mutex.synchronize { @sources.values }.sort_by { |s| s.id }.partition { |s| !s.archived? }.flatten
   end
 
-  def source_for uri
+  def source_for(uri)
     expanded_uri = Source.expand_filesystem_uri(uri)
     sources.find { |s| s.is_source_for? expanded_uri }
   end
@@ -223,7 +223,7 @@ class SourceManager
   def usual_sources; sources.find_all { |s| s.usual? }; end
   def unusual_sources; sources.find_all { |s| !s.usual? }; end
 
-  def load_sources fn = Redwood::SOURCE_FN
+  def load_sources(fn = Redwood::SOURCE_FN)
     source_array = Redwood::load_yaml_obj(fn) || []
     @source_mutex.synchronize do
       @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
@@ -231,7 +231,7 @@ class SourceManager
     end
   end
 
-  def save_sources fn = Redwood::SOURCE_FN, force = false
+  def save_sources(fn = Redwood::SOURCE_FN, force = false)
     @source_mutex.synchronize do
       if @sources_dirty || force
         Redwood::save_yaml_obj sources, fn, false, true

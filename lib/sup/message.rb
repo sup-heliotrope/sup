@@ -18,9 +18,9 @@ class Message
 
   ## some utility methods
   class << self
-    def normalize_subj s; s.gsub(RE_PATTERN, ''); end
-    def subj_is_reply? s; s =~ RE_PATTERN; end
-    def reify_subj s; subj_is_reply?(s) ? s : 'Re: ' + s; end
+    def normalize_subj(s); s.gsub(RE_PATTERN, ''); end
+    def subj_is_reply?(s); s =~ RE_PATTERN; end
+    def reify_subj(s); subj_is_reply?(s) ? s : 'Re: ' + s; end
   end
 
   QUOTE_PATTERN = /^\s{0,4}[>|\}]/
@@ -49,7 +49,7 @@ class Message
 
   ## if you specify a :header, will use values from that. otherwise,
   ## will try and load the header from the source.
-  def initialize opts
+  def initialize(opts)
     @locations = opts[:locations] or raise ArgumentError, "locations can't be nil"
     @snippet = opts[:snippet]
     @snippet_contains_encrypted_content = false
@@ -67,7 +67,7 @@ class Message
     #parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
-  def decode_header_field v
+  def decode_header_field(v)
     return unless v
     return v unless v.is_a? String
     return unless v.size < MAX_HEADER_VALUE_SIZE # avoid regex blowup on spam
@@ -76,7 +76,7 @@ class Message
     Rfc2047.decode_to $encoding, d
   end
 
-  def parse_header encoded_header
+  def parse_header(encoded_header)
     header = SavingHash.new { |k| decode_header_field encoded_header[k] }
 
     @id = ''
@@ -152,7 +152,7 @@ class Message
   ## :refs, :replytos => Array of String
   ## :from => Person
   ## :to, :cc, :bcc => Array of Person
-  def load_from_index! entry
+  def load_from_index!(entry)
     @id = entry[:message_id]
     @from = entry[:from]
     @date = entry[:date]
@@ -171,12 +171,12 @@ class Message
     @list_unsubscribe = nil
   end
 
-  def add_ref ref
+  def add_ref(ref)
     @refs << ref
     @dirty = true
   end
 
-  def remove_ref ref
+  def remove_ref(ref)
     @dirty = true if @refs.delete ref
   end
 
@@ -199,20 +199,20 @@ class Message
   ##
   ## an alternative would be to SHA1 or MD5 all message ids on a regular basis.
   ## don't tempt me.
-  def sanitize_message_id mid; mid.gsub(/(\s|[^\000-\177])+/, '')[0..254] end
+  def sanitize_message_id(mid); mid.gsub(/(\s|[^\000-\177])+/, '')[0..254] end
 
   def clear_dirty
     @dirty = false
   end
 
-  def has_label? t; @labels.member? t; end
-  def add_label l
+  def has_label?(t); @labels.member? t; end
+  def add_label(l)
     l = l.to_sym
     return if @labels.member? l
     @labels << l
     @dirty = true
   end
-  def remove_label l
+  def remove_label(l)
     l = l.to_sym
     return unless @labels.member? l
     @labels.delete l
@@ -223,7 +223,7 @@ class Message
     @to + @cc + @bcc
   end
 
-  def labels= l
+  def labels=(l)
     raise ArgumentError, 'not a set' unless l.is_a?(Set)
     raise ArgumentError, 'not a set of labels' unless l.all? { |ll| ll.is_a?(Symbol) }
     return if @labels == l
@@ -303,7 +303,7 @@ EOS
     location.raw_message
   end
 
-  def each_raw_message_line &b
+  def each_raw_message_line(&b)
     location.each_raw_message_line &b
   end
 
@@ -313,7 +313,7 @@ EOS
     end
   end
 
-  def merge_labels_from_locations merge_labels
+  def merge_labels_from_locations(merge_labels)
     ## Get all labels from all locations
     location_labels = Set.new([])
 
@@ -371,7 +371,7 @@ EOS
        "Subject: #{@subj}"]
   end
 
-  def self.build_from_source source, source_info
+  def self.build_from_source(source, source_info)
     m = Message.new locations: [Location.new(source, source_info)]
     m.load_from_source!
     m
@@ -402,7 +402,7 @@ EOS
   ## mime-encoded message, but need only see the delicious end
   ## product.
 
-  def multipart_signed_to_chunks m
+  def multipart_signed_to_chunks(m)
     if m.body.size != 2
       warn "multipart/signed with #{m.body.size} parts (expecting 2)"
       return
@@ -429,7 +429,7 @@ EOS
     [CryptoManager.verify(payload, signature), message_to_chunks(payload)].flatten.compact
   end
 
-  def multipart_encrypted_to_chunks m
+  def multipart_encrypted_to_chunks(m)
     if m.body.size != 2
       warn "multipart/encrypted with #{m.body.size} parts (expecting 2)"
       return
@@ -461,7 +461,7 @@ EOS
   end
 
   ## takes a RMail::Message, breaks it into Chunk:: classes.
-  def message_to_chunks m, encrypted = false, sibling_types = []
+  def message_to_chunks(m, encrypted = false, sibling_types = [])
     if m.multipart?
       chunks =
         case m.header.content_type.downcase
@@ -593,7 +593,7 @@ EOS
   ## looks for gpg signed (but not encrypted) inline  messages inside the
   ## message body (there is no extra header for inline GPG) or for encrypted
   ## (and possible signed) inline GPG messages
-  def inline_gpg_to_chunks body, encoding_to, encoding_from
+  def inline_gpg_to_chunks(body, encoding_to, encoding_from)
     lines = body.split("\n")
 
     # First case: Message is enclosed between
@@ -660,7 +660,7 @@ EOS
   ## parse the lines of text into chunk objects.  the heuristics here
   ## need tweaking in some nice manner. TODO: move these heuristics
   ## into the classes themselves.
-  def text_to_chunks lines, encrypted
+  def text_to_chunks(lines, encrypted)
     state = :text # one of :text, :quote, or :sig
     chunks = []
     chunk_lines = []
@@ -757,7 +757,7 @@ class Location
   attr_reader :source
   attr_reader :info
 
-  def initialize source, info
+  def initialize(source, info)
     @source = source
     @info = info
   end
@@ -770,7 +770,7 @@ class Location
     source.raw_message info
   end
 
-  def sync_back labels, message
+  def sync_back(labels, message)
     synced = false
     return synced unless sync_back_enabled? and valid?
     source.synchronize do
@@ -789,7 +789,7 @@ class Location
   end
 
   ## much faster than raw_message
-  def each_raw_message_line &b
+  def each_raw_message_line(&b)
     source.each_raw_message_line info, &b
   end
 
@@ -805,7 +805,7 @@ class Location
     source.labels? info
   end
 
-  def == o
+  def ==(o)
     o.source.id == source.id and o.info == info
   end
 

@@ -5,7 +5,7 @@ class HorizontalSelector
 
   attr_accessor :label, :changed_by_user
 
-  def initialize label, vals, labels, base_color = :horizontal_selector_unselected_color, selected_color = :horizontal_selector_selected_color
+  def initialize(label, vals, labels, base_color = :horizontal_selector_unselected_color, selected_color = :horizontal_selector_selected_color)
     @label = label
     @vals = vals
     @labels = labels
@@ -15,18 +15,18 @@ class HorizontalSelector
     @changed_by_user = false
   end
 
-  def set_to val
+  def set_to(val)
     raise UnknownValue, val.inspect unless can_set_to? val
     @selection = @vals.index(val)
   end
 
-  def can_set_to? val
+  def can_set_to?(val)
     @vals.include? val
   end
 
   def val; @vals[@selection] end
 
-  def line width = nil
+  def line(width = nil)
     label =
       if width
         sprintf "%#{width}s ", @label

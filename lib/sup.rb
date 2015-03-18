@@ -23,7 +23,7 @@ class Object
 end
 
 class Module
-  def yaml_properties *props
+  def yaml_properties(*props)
     props = props.map { |p| p.to_s }
 
     path = name.gsub(/::/, '/')
@@ -72,14 +72,14 @@ module Redwood
   @exception_mutex = Mutex.new
 
   attr_reader :exceptions
-  def record_exception e, name
+  def record_exception(e, name)
     @exception_mutex.synchronize do
       @exceptions ||= []
       @exceptions << [e, name]
     end
   end
 
-  def reporting_thread name
+  def reporting_thread(name)
     if $opts[:no_threads]
       yield
     else
@@ -96,7 +96,7 @@ module Redwood
   module_function :reporting_thread, :record_exception, :exceptions
 
 ## one-stop shop for yamliciousness
-  def save_yaml_obj o, fn, safe = false, backup = false
+  def save_yaml_obj(o, fn, safe = false, backup = false)
     o = if o.is_a?(Array)
       o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
     elsif o.respond_to? :before_marshal
@@ -138,7 +138,7 @@ module Redwood
     end
   end
 
-  def load_yaml_obj fn, compress = false
+  def load_yaml_obj(fn, compress = false)
     o = if File.exist? fn
       if compress
         Zlib::GzipReader.open(fn) { |f| YAML::load f }
@@ -160,7 +160,7 @@ module Redwood
        SourceManager SearchManager IdleManager).map { |x| Redwood.const_get x.to_sym }
   end
 
-  def start bypass_sync_check = false
+  def start(bypass_sync_check = false)
     managers.each { |x| fail "#{x} already instantiated" if x.instantiated? }
 
     FileUtils.mkdir_p Redwood::BASE_DIR
@@ -219,7 +219,7 @@ EOS
     end
   end
 
-  def self.warn_syncback details
+  def self.warn_syncback(details)
     $stderr.puts <<EOS
 WARNING
 -------
@@ -263,7 +263,7 @@ EOS
   ##
   ## a source error is either a FatalSourceError or an OutOfSyncSourceError.
   ## the superclass SourceError is just a generic.
-  def report_broken_sources opts = {}
+  def report_broken_sources(opts = {})
     return unless BufferManager.instantiated?
 
     broken_sources = SourceManager.sources.select { |s| s.error.is_a? FatalSourceError }
@@ -310,7 +310,7 @@ EOM
 
 
   ## set up default configuration file
-  def load_config filename
+  def load_config(filename)
     default_config = {
       editor: ENV['EDITOR'] || "/usr/bin/vim -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'",
       thread_by_subject: false,

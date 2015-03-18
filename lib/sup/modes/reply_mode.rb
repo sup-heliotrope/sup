@@ -40,7 +40,7 @@ Return value:
   The reply mode you desire, or nil to use the default behavior.
 EOS
 
-  def initialize message, type_arg = nil
+  def initialize(message, type_arg = nil)
     @m = message
     @edited = false
 
@@ -179,18 +179,18 @@ EOS
     end
   end
 
-  def reply_body_lines m
+  def reply_body_lines(m)
     attribution = HookManager.run('attribution', message: m) || default_attribution(m)
     lines = attribution.split("\n") + m.quotable_body_lines.map { |l| "> #{l}" }
     lines.pop while lines.last =~ /^\s*$/
     lines
   end
 
-  def default_attribution _m
+  def default_attribution(_m)
     "Excerpts from #{@m.from.name}'s message of #{@m.date}:"
   end
 
-  def handle_new_text new_header, new_body
+  def handle_new_text(new_header, new_body)
     if new_body != @body_orig
       @body_orig = new_body
       @edited = true
@@ -208,7 +208,7 @@ EOS
     (@m.refs + [@m.id]).map { |x| "<#{x}>" }.join(' ')
   end
 
-  def edit_field field
+  def edit_field(field)
     edited_field = super
     if edited_field and (field == 'To' or field == 'Cc')
       @type_selector.set_to :user

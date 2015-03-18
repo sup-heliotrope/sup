@@ -1,7 +1,7 @@
 module Redwood
 
 class ResumeMode < EditMessageMode
-  def initialize m
+  def initialize(m)
     @m = m
     @safe = false
 

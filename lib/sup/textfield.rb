@@ -33,7 +33,7 @@ class TextField
 
   def value; @value || get_cursed_value end
 
-  def activate window, y, x, width, question, default = nil, &block
+  def activate(window, y, x, width, question, default = nil, &block)
     @w, @y, @x, @width = window, y, x, width
     @question = question
     @completion_block = block
@@ -65,7 +65,7 @@ class TextField
     Ncurses.curs_set 0
   end
 
-  def handle_input c
+  def handle_input(c)
     ## short-circuit exit paths
     case c.code
     when Ncurses::KEY_ENTER # submit!
@@ -233,7 +233,7 @@ class TextField
     end
   end
 
-  def set_cursed_value v
+  def set_cursed_value(v)
     v = '' if v.nil?
     @field.set_field_buffer 0, v
   end

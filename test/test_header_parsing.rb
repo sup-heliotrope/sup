@@ -159,7 +159,7 @@ EOS
     assert_nil offset
   end
 
-  def mbox_for_string content
+  def mbox_for_string(content)
     File.open(@mbox, 'w') do |f|
       f.write content
     end

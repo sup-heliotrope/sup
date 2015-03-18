@@ -5,7 +5,7 @@ require 'sup/service/label_service'
 module Redwood
 
 class Console
-  def initialize mode
+  def initialize(mode)
     @mode = mode
     @label_service = LabelService.new
   end
@@ -24,7 +24,7 @@ class Console
     print_buffer_dirty_msg count
   end
 
-  def print_buffer_dirty_msg msg_count
+  def print_buffer_dirty_msg(msg_count)
     puts "Scanned #{msg_count} messages."
     puts 'You might want to refresh open buffers with `@` key.'
   end
@@ -37,8 +37,8 @@ class Console
 
   def special_methods; public_methods - Object.methods end
 
-  def puts x; @mode << "#{x.to_s.rstrip}\n" end
-  def p x; puts x.inspect end
+  def puts(x); @mode << "#{x.to_s.rstrip}\n" end
+  def p(x); puts x.inspect end
 
   ## files that won't cause problems when reloaded
   ## TODO expand this list / convert to blacklist
@@ -87,7 +87,7 @@ class ConsoleMode < LogMode
     @binding = @console.instance_eval { binding }
   end
 
-  def execute cmd
+  def execute(cmd)
     begin
       self << ">> #{cmd}\n"
       ret = eval cmd, @binding

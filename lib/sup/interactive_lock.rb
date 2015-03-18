@@ -7,9 +7,9 @@ module Redwood
 ## #pid.
 
 module InteractiveLock
-  def pluralize number_of, kind; "#{number_of} #{kind}" + (number_of == 1 ? '' : 's') end
+  def pluralize(number_of, kind); "#{number_of} #{kind}" + (number_of == 1 ? '' : 's') end
 
-  def time_ago_in_words time
+  def time_ago_in_words(time)
     secs = (Time.now - time).to_i
     mins = secs / 60
     time = if mins == 0
@@ -21,7 +21,7 @@ module InteractiveLock
 
   DELAY = 5 # seconds
 
-  def lock_interactively stream = $stderr
+  def lock_interactively(stream = $stderr)
     begin
       Index.lock
     rescue Index::LockError => e

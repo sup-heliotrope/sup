@@ -194,7 +194,7 @@ EOS
   ## like Source#poll, but yields successive Message objects, which have their
   ## labels and locations set correctly. The Messages are saved to or removed
   ## from the index after being yielded.
-  def poll_from source, _opts = {}
+  def poll_from(source, _opts = {})
     debug "trying to acquire poll lock for: #{source}..."
     if source.try_lock
       begin
@@ -264,8 +264,8 @@ EOS
     end
   end
 
-  def handle_idle_update _sender, _idle_since; @should_clear_running_totals = false; end
-  def handle_unidle_update _sender, _idle_since; @should_clear_running_totals = true; clear_running_totals; end
+  def handle_idle_update(_sender, _idle_since); @should_clear_running_totals = false; end
+  def handle_unidle_update(_sender, _idle_since); @should_clear_running_totals = true; clear_running_totals; end
   def clear_running_totals; @running_totals = { num: 0, numi: 0, numu: 0, numd: 0, loaded_labels: Set.new }; end
 end
 

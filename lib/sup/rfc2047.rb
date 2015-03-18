@@ -20,7 +20,7 @@ module Rfc2047
   WORD = %r{=\?([!\#$%&'*+-/0-9A-Z\\^\`a-z{|}~]+)\?([BbQq])\?([!->@-~]+)\?=} # :nodoc: 'stupid ruby-mode
   WORDSEQ = %r{(#{WORD.source})\s+(?=#{WORD.source})}
 
-  def Rfc2047.is_encoded? s; s =~ WORD end
+  def Rfc2047.is_encoded?(s); s =~ WORD end
 
   # Decodes a string, +from+, containing RFC 2047 encoded words into a target
   # character set, +target+. See iconv_open(3) for information on the

@@ -12,7 +12,7 @@ class LabelManager
   ## labels that will typically be hidden from the user
   HIDDEN_RESERVED_LABELS = [:starred, :unread, :attachment, :forwarded, :replied]
 
-  def initialize fn
+  def initialize(fn)
     @fn = fn
     labels =
       if File.exist? fn
@@ -26,7 +26,7 @@ class LabelManager
     labels.each { |t| @labels[t] = true }
   end
 
-  def new_label? l; @new_labels.include?(l) end
+  def new_label?(l); @new_labels.include?(l) end
 
   ## all labels user-defined and system, ordered
   ## nicely and converted to pretty strings. use #label_for to recover
@@ -44,7 +44,7 @@ class LabelManager
   end
 
   ## reverse the label->string mapping, for convenience!
-  def string_for l
+  def string_for(l)
     if RESERVED_LABELS.include? l
       l.to_s.capitalize
     else
@@ -52,7 +52,7 @@ class LabelManager
     end
   end
 
-  def label_for s
+  def label_for(s)
     l = s.intern
     l2 = s.downcase.intern
     if RESERVED_LABELS.include? l2
@@ -62,7 +62,7 @@ class LabelManager
     end
   end
 
-  def << t
+  def <<(t)
     raise ArgumentError, 'expecting a symbol' unless t.is_a? Symbol
     unless @labels.member?(t) || RESERVED_LABELS.member?(t)
       @labels[t] = true
@@ -71,7 +71,7 @@ class LabelManager
     end
   end
 
-  def delete t
+  def delete(t)
     if @labels.delete(t)
       @modified = true
     end

@@ -52,7 +52,7 @@ module Ncurses
 
     ## Gets character from input.
     ## Pretends ctrl-c's are ctrl-g's.
-    def self.get handle_interrupt = true
+    def self.get(handle_interrupt = true)
       begin
         status, code = nonblocking_getwch
         generate code, status
@@ -235,7 +235,7 @@ module Ncurses
   end
 
   def mutex; @mutex ||= Mutex.new; end
-  def sync &b; mutex.synchronize(&b); end
+  def sync(&b); mutex.synchronize(&b); end
 
   module_function :rows, :cols, :curx, :mutex, :sync, :prepare_form_driver
 
@@ -253,18 +253,18 @@ module Ncurses
       private
 
       ## Ncurses::Form.form_driver_w wrapper for keycodes and control characters.
-      def form_driver_key c
+      def form_driver_key(c)
         form_driver CharCode.keycode(c)
       end
 
       ## Ncurses::Form.form_driver_w wrapper for printable characters.
-      def form_driver_char c
+      def form_driver_char(c)
         form_driver CharCode.character(c)
         #c.is_a?(Fixnum) ? c : c.ord
       end
 
       ## Ncurses::Form.form_driver_w wrapper for charcodes.
-      def form_driver c
+      def form_driver(c)
         Ncurses::Form.form_driver_w @form, c.status, c.code
       end
     end # module DriverHelpers

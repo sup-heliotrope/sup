@@ -13,7 +13,7 @@ Return value:
   A list containing two strings: the text of the begin line and the text of the end line
 EOS
   ## TODO: share some of this with reply-mode
-  def initialize opts = {}
+  def initialize(opts = {})
     header = {
       'From' => AccountManager.default_account.full_address
     }
@@ -40,7 +40,7 @@ EOS
     super header: header, body: body, attachments: opts[:attachments]
   end
 
-  def self.spawn_nicely opts = {}
+  def self.spawn_nicely(opts = {})
     to = opts[:to] || (BufferManager.ask_for_contacts(:people, 'To: ') or return if ($config[:ask_for_to] != false))
     cc = opts[:cc] || (BufferManager.ask_for_contacts(:people, 'Cc: ') or return if $config[:ask_for_cc])
     bcc = opts[:bcc] || (BufferManager.ask_for_contacts(:people, 'Bcc: ') or return if $config[:ask_for_bcc])
@@ -75,7 +75,7 @@ EOS
 
   protected
 
-  def forward_body_lines m
+  def forward_body_lines(m)
     attribution = HookManager.run('forward-attribution', message: m) || default_attribution(m)
     attribution[0, 1] +
     m.quotable_header_lines +
@@ -84,7 +84,7 @@ EOS
     attribution[1, 1]
   end
 
-  def default_attribution m
+  def default_attribution(m)
     ["--- Begin forwarded message from #{m.from.mediumname} ---",
      '--- End forwarded message ---']
   end

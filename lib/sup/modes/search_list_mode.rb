@@ -46,7 +46,7 @@ EOS
   end
 
   def lines; @text.length end
-  def [] i; @text[i] end
+  def [](i); @text[i] end
 
   def jump_to_next_new
     n = ((curpos + 1)...lines).find { |i| @searches[i][1] > 0 } || (0...curpos).find { |i| @searches[i][1] > 0 }
@@ -63,7 +63,7 @@ EOS
     reload # make sure unread message counts are up-to-date
   end
 
-  def handle_added_update _sender, _m
+  def handle_added_update(_sender, _m)
     reload
   end
 

@@ -109,7 +109,7 @@ EOS
     ## should be garbage collected when the class variable is removed.
     @@view_tempfiles = []
 
-    def initialize content_type, filename, encoded_content, sibling_types
+    def initialize(content_type, filename, encoded_content, sibling_types)
       @content_type = content_type.downcase
       if Shellwords.escape(@content_type) != @content_type
         warn "content_type #{@content_type} is not safe, changed to application/octet-stream"
@@ -168,7 +168,7 @@ EOS
     def indexable?; expandable? end
     def initial_state; :open end
     def viewable?; @lines.nil? end
-    def view_default! path
+    def view_default!(path)
       case RbConfig::CONFIG['arch']
         when /darwin/
           cmd = "open #{path}"
@@ -222,7 +222,7 @@ EOS
   class Text
 
     attr_reader :lines
-    def initialize lines
+    def initialize(lines)
       @lines = lines
       ## trim off all empty lines except one
       @lines.pop while @lines.length > 1 && @lines[-1] =~ /^\s*$/ && @lines[-2] =~ /^\s*$/
@@ -238,7 +238,7 @@ EOS
 
   class Quote
     attr_reader :lines
-    def initialize lines
+    def initialize(lines)
       @lines = lines
     end
 
@@ -255,7 +255,7 @@ EOS
 
   class Signature
     attr_reader :lines
-    def initialize lines
+    def initialize(lines)
       @lines = lines
     end
 
@@ -272,7 +272,7 @@ EOS
 
   class EnclosedMessage
     attr_reader :lines
-    def initialize from, to, cc, date, subj
+    def initialize(from, to, cc, date, subj)
       @from = from ? 'unknown sender' : from.full_address
       @to = to ? '' : to.map { |p| p.full_address }.join(', ')
       @cc = cc ? '' : cc.map { |p| p.full_address }.join(', ')
@@ -309,7 +309,7 @@ EOS
   class CryptoNotice
     attr_reader :lines, :status, :patina_text, :unknown_fingerprint
 
-    def initialize status, description, lines = [], unknown_fingerprint = nil
+    def initialize(status, description, lines = [], unknown_fingerprint = nil)
       @status = status
       @patina_text = description
       @lines = lines

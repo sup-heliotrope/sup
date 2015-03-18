@@ -4,7 +4,7 @@ module Ncurses
   NUM_COLORS = `tput colors`.to_i
   MAX_PAIRS = `tput pairs`.to_i
 
-  def self.color! name, value
+  def self.color!(name, value)
     const_set "COLOR_#{name.to_s.upcase}", value
   end
 
@@ -90,7 +90,7 @@ class Colormap
                                                    []) + [nil]
   end
 
-  def add sym, fg, bg, attr = nil, highlight = nil
+  def add(sym, fg, bg, attr = nil, highlight = nil)
     raise ArgumentError, "color for #{sym} already defined" if @entries.member? sym
     raise ArgumentError, "color '#{fg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? fg
     raise ArgumentError, "color '#{bg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? bg
@@ -106,11 +106,11 @@ class Colormap
     @highlights[sym] = highlight
   end
 
-  def highlight_sym sym
+  def highlight_sym(sym)
     "#{sym}_highlight".intern
   end
 
-  def highlight_for fg, bg, attrs
+  def highlight_for(fg, bg, attrs)
     hfg =
       case fg
       when Ncurses::COLOR_BLUE
@@ -145,7 +145,7 @@ class Colormap
     [hfg, hbg, attrs]
   end
 
-  def color_for sym, highlight = false
+  def color_for(sym, highlight = false)
     sym = @highlights[sym] if highlight
     return Ncurses::COLOR_BLACK if sym == :none
     raise ArgumentError, "undefined color #{sym}" unless @entries.member? sym
@@ -182,7 +182,7 @@ class Colormap
     color
   end
 
-  def sym_is_defined sym
+  def sym_is_defined(sym)
       return sym if @entries.member? sym
   end
 
@@ -231,12 +231,12 @@ class Colormap
   end
 
   def self.instance; @@instance; end
-  def self.method_missing meth, *a
+  def self.method_missing(meth, *a)
     Colormap.new unless @@instance
     @@instance.send meth, *a
   end
   # Performance shortcut
-  def self.color_for *a; @@instance.color_for *a; end
+  def self.color_for(*a); @@instance.color_for *a; end
 end
 
 end

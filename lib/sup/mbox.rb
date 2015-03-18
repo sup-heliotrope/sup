@@ -12,7 +12,7 @@ class MBox < Source
   attr_reader :labels
 
   ## uri_or_fp is horrific. need to refactor.
-  def initialize uri_or_fp, usual = true, archived = false, id = nil, labels = nil
+  def initialize(uri_or_fp, usual = true, archived = false, id = nil, labels = nil)
     @mutex = Mutex.new
     @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
 
@@ -43,9 +43,9 @@ class MBox < Source
   end
 
   def file_path; @path end
-  def is_source_for? uri; super || (uri == @expanded_uri) end
+  def is_source_for?(uri); super || (uri == @expanded_uri) end
 
-  def self.suggest_labels_for path
+  def self.suggest_labels_for(path)
     ## heuristic: use the filename as a label, unless the file
     ## has a path that probably represents an inbox.
     if File.dirname(path) =~ /\b(var|usr|spool)\b/
@@ -68,7 +68,7 @@ class MBox < Source
     end
   end
 
-  def load_header offset
+  def load_header(offset)
     header = nil
     @mutex.synchronize do
       ensure_open
@@ -78,7 +78,7 @@ class MBox < Source
     header
   end
 
-  def load_message offset
+  def load_message(offset)
     @mutex.synchronize do
       ensure_open
       @f.seek offset
@@ -96,7 +96,7 @@ class MBox < Source
     end
   end
 
-  def raw_header offset
+  def raw_header(offset)
     ret = ''
     @mutex.synchronize do
       ensure_open
@@ -108,13 +108,13 @@ class MBox < Source
     ret
   end
 
-  def raw_message offset
+  def raw_message(offset)
     ret = ''
     each_raw_message_line(offset) { |l| ret << l }
     ret
   end
 
-  def store_message date, from_email, &_block
+  def store_message(date, from_email, &_block)
     need_blank = File.exist?(@path) && !File.zero?(@path)
     File.open(@path, 'ab') do |f|
       f.puts if need_blank
@@ -127,7 +127,7 @@ class MBox < Source
   ## we're just moving messages around on disk, than reading things
   ## into memory with raw_message.
   ##
-  def each_raw_message_line offset
+  def each_raw_message_line(offset)
     @mutex.synchronize do
       ensure_open
       @f.seek offset
@@ -154,7 +154,7 @@ class MBox < Source
     end
   end
 
-  def next_offset offset
+  def next_offset(offset)
     @mutex.synchronize do
       ensure_open
       @f.seek offset
@@ -175,7 +175,7 @@ class MBox < Source
     next_offset(last_indexed_message || 0)
   end
 
-  def self.is_break_line? l
+  def self.is_break_line?(l)
     l =~ BREAK_RE or return false
     time = $1
     begin

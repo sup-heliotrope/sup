@@ -124,7 +124,7 @@ EOS
   def have_crypto?; @not_working_reason.nil? end
   def not_working_reason; @not_working_reason end
 
-  def sign from, _to, payload
+  def sign(from, _to, payload)
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = { protocol: GPGME::PROTOCOL_OpenPGP, armor: true, textmode: true }
@@ -158,7 +158,7 @@ EOS
     envelope
   end
 
-  def encrypt from, to, payload, sign = false
+  def encrypt(from, to, payload, sign = false)
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = { protocol: GPGME::PROTOCOL_OpenPGP, armor: true, textmode: true }
@@ -206,11 +206,11 @@ EOS
     envelope
   end
 
-  def sign_and_encrypt from, to, payload
+  def sign_and_encrypt(from, to, payload)
     encrypt from, to, payload, true
   end
 
-  def verified_ok? verify_result
+  def verified_ok?(verify_result)
     valid = true
     unknown = false
     all_output_lines = []
@@ -253,7 +253,7 @@ EOS
     end
   end
 
-  def verify payload, signature, detached = true # both RubyMail::Message objects
+  def verify(payload, signature, detached = true) # both RubyMail::Message objects
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = { protocol: GPGME::PROTOCOL_OpenPGP }
@@ -285,7 +285,7 @@ EOS
   end
 
   ## returns decrypted_message, status, desc, lines
-  def decrypt payload, armor = false # a RubyMail::Message object
+  def decrypt(payload, armor = false) # a RubyMail::Message object
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
     gpg_opts = { protocol: GPGME::PROTOCOL_OpenPGP }
@@ -357,7 +357,7 @@ EOS
     [notice, sig, msg]
   end
 
-  def retrieve fingerprint
+  def retrieve(fingerprint)
     require 'net/http'
     uri = URI($config[:keyserver_url] || KEYSERVER_URL)
     unless uri.scheme == 'http' and not uri.host.nil?
@@ -384,11 +384,11 @@ EOS
 
   private
 
-  def unknown_status lines = []
+  def unknown_status(lines = [])
     Chunk::CryptoNotice.new :unknown, 'Unable to determine validity of cryptographic signature', lines
   end
 
-  def gpgme_exc_msg msg
+  def gpgme_exc_msg(msg)
     err_msg = "Exception in GPGME call: #{msg}"
     #info err_msg
     err_msg
@@ -396,12 +396,12 @@ EOS
 
   ## here's where we munge rmail output into the format that signed/encrypted
   ## PGP/GPG messages should be
-  def format_payload payload
+  def format_payload(payload)
     payload.to_s.gsub(/(^|[^\r])\n/, "\\1\r\n")
   end
 
   # remove the hex key_id and info in ()
-  def simplify_sig_line sig_line, trusted
+  def simplify_sig_line(sig_line, trusted)
     sig_line.sub!(/from [0-9A-F]{16} /, 'from ')
     if !trusted
       sig_line.sub!(/Good signature/, 'Good (untrusted) signature')
@@ -409,7 +409,7 @@ EOS
     sig_line
   end
 
-  def sig_output_lines signature
+  def sig_output_lines(signature)
     # It appears that the signature.to_s call can lead to a EOFError if
     # the key is not found. So start by looking for the key.
     ctx = GPGME::Ctx.new
@@ -457,7 +457,7 @@ EOS
     return output_lines, trusted, unknown_fpr
   end
 
-  def key_type key, fpr
+  def key_type(key, fpr)
     return '' if key.nil?
     subkey = key.subkeys.find { |subkey| subkey.fpr == fpr || subkey.keyid == fpr }
     return '' if subkey.nil?
@@ -477,7 +477,7 @@ EOS
   # else                                    set --local-user from_email_address
   # NOTE: multiple signers doesn't seem to work with gpgme (2.0.2, 1.0.8)
   #
-  def gen_sign_user_opts from
+  def gen_sign_user_opts(from)
     account = AccountManager.account_for from
     account ||= AccountManager.default_account
     if !account.gpgkey.nil?

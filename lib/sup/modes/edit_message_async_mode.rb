@@ -23,7 +23,7 @@ EOS
     k.add :path_to_clipboard, 'Copy file path to the clipboard', :enter
   end
 
-  def initialize parent_edit_mode, file_path, msg_subject
+  def initialize(parent_edit_mode, file_path, msg_subject)
     @parent_edit_mode = parent_edit_mode
     @file_path = file_path
     @orig_mtime = File.mtime @file_path
@@ -40,7 +40,7 @@ EOS
 
   def lines; @text.length end
 
-  def [] i
+  def [](i)
     @text[i]
   end
 

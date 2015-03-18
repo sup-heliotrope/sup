@@ -11,7 +11,7 @@ class DummySource < Source
 
   attr_accessor :messages
 
-  def initialize uri, _last_date = nil, usual = true, archived = false, id = nil, _labels = []
+  def initialize(uri, _last_date = nil, usual = true, archived = false, id = nil, _labels = [])
     super uri, usual, archived, id
     @messages = nil
   end
@@ -25,15 +25,15 @@ class DummySource < Source
     return @messages ? @messages.length - 1 : 0
   end
 
-  def load_header offset
+  def load_header(offset)
     Source.parse_raw_email_header StringIO.new(raw_header(offset))
   end
 
-  def load_message offset
+  def load_message(offset)
     RMail::Parser.read raw_message(offset)
   end
 
-  def raw_header offset
+  def raw_header(offset)
     ret = ''
     f = StringIO.new(@messages[offset])
     until f.eof? || (l = f.gets) =~ /^$/
@@ -42,11 +42,11 @@ class DummySource < Source
     ret
   end
 
-  def raw_message offset
+  def raw_message(offset)
     @messages[offset]
   end
 
-  def each_raw_message_line offset
+  def each_raw_message_line(offset)
     ret = ''
     f = StringIO.new(@messages[offset])
     until f.eof?

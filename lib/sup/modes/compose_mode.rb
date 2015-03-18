@@ -3,7 +3,7 @@
 module Redwood
 
 class ComposeMode < EditMessageMode
-  def initialize opts = {}
+  def initialize(opts = {})
     header = {}
     header['From'] = (opts[:from] || AccountManager.default_account).full_address
     header['To'] = opts[:to].map { |p| p.full_address }.join(', ') if opts[:to]
@@ -22,7 +22,7 @@ class ComposeMode < EditMessageMode
     edited
   end
 
-  def self.spawn_nicely opts = {}
+  def self.spawn_nicely(opts = {})
     from = opts[:from] || (BufferManager.ask_for_account(:account, "From (default #{AccountManager.default_account.email}): ") or return if $config[:ask_for_from])
     to = opts[:to] || (BufferManager.ask_for_contacts(:people, 'To: ', [opts[:to_default]]) or return if ($config[:ask_for_to] != false))
     cc = opts[:cc] || (BufferManager.ask_for_contacts(:people, 'Cc: ') or return if $config[:ask_for_cc])

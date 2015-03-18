@@ -1,7 +1,7 @@
 module Redwood
 
 class LabelSearchResultsMode < ThreadIndexMode
-  def initialize labels
+  def initialize(labels)
     @labels = labels
     opts = { labels: @labels }
     opts[:load_deleted] = true if labels.include? :deleted
@@ -20,9 +20,9 @@ class LabelSearchResultsMode < ThreadIndexMode
     SearchResultsMode.spawn_from_query query
   end
 
-  def is_relevant? m; @labels.all? { |l| m.has_label? l } end
+  def is_relevant?(m); @labels.all? { |l| m.has_label? l } end
 
-  def self.spawn_nicely label
+  def self.spawn_nicely(label)
     label = LabelManager.label_for(label) unless label.is_a?(Symbol)
     case label
     when nil

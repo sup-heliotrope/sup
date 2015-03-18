@@ -57,7 +57,7 @@ EOS
     k.add :undo, 'Undo the previous action', 'u'
   end
 
-  def initialize hidden_labels = [], load_thread_opts = {}
+  def initialize(hidden_labels = [], load_thread_opts = {})
     super()
     @mutex = Mutex.new # covers the following variables:
     @threads = []
@@ -93,8 +93,8 @@ EOS
 
   def unsaved?; dirty? end
   def lines; @text.length; end
-  def [] i; @text[i]; end
-  def contains_thread? t; @threads.include?(t) end
+  def [](i); @text[i]; end
+  def contains_thread?(t); @threads.include?(t) end
 
   def reload
     drop_all_threads
@@ -104,7 +104,7 @@ EOS
   end
 
   ## open up a thread view window
-  def select t = nil, when_done = nil
+  def select(t = nil, when_done = nil)
     t ||= cursor_thread or return
 
     Redwood::reporting_thread('load messages for thread-view-mode') do
@@ -134,22 +134,22 @@ EOS
     end
   end
 
-  def multi_select threads
+  def multi_select(threads)
     threads.each { |t| select t }
   end
 
   ## these two methods are called by thread-view-modes when the user
   ## wants to view the previous/next thread without going back to
   ## index-mode. we update the cursor as a convenience.
-  def launch_next_thread_after thread, &b
+  def launch_next_thread_after(thread, &b)
     launch_another_thread thread, 1, &b
   end
 
-  def launch_prev_thread_before thread, &b
+  def launch_prev_thread_before(thread, &b)
     launch_another_thread thread, -1, &b
   end
 
-  def launch_another_thread thread, direction, &b
+  def launch_another_thread(thread, direction, &b)
     l = @lines[thread] or return
     target_l = l + direction
     t = @mutex.synchronize do
@@ -166,13 +166,13 @@ EOS
     end
   end
 
-  def handle_single_message_labeled_update sender, m
+  def handle_single_message_labeled_update(sender, m)
     ## no need to do anything different here; we don't differentiate
     ## messages from their containing threads
     handle_labeled_update sender, m
   end
 
-  def handle_labeled_update _sender, m
+  def handle_labeled_update(_sender, m)
     if (t = thread_containing(m))
       l = @lines[t] or return
       update_text_for_line l
@@ -181,7 +181,7 @@ EOS
     end
   end
 
-  def handle_simple_update _sender, m
+  def handle_simple_update(_sender, m)
     t = thread_containing(m) or return
     l = @lines[t] or return
     update_text_for_line l
@@ -194,14 +194,14 @@ EOS
   end
 
   ## overwrite me!
-  def is_relevant? _m; false; end
+  def is_relevant?(_m); false; end
 
-  def handle_added_update _sender, m
+  def handle_added_update(_sender, m)
     add_or_unhide m
     BufferManager.draw_screen
   end
 
-  def handle_updated_update _sender, m
+  def handle_updated_update(_sender, m)
     t = thread_containing(m) or return
     l = @lines[t] or return
     @ts_mutex.synchronize do
@@ -212,7 +212,7 @@ EOS
     update_text_for_line l
   end
 
-  def handle_location_deleted_update _sender, m
+  def handle_location_deleted_update(_sender, m)
     t = thread_containing(m)
     delete_thread t if t and t.first.id == m.id
     @ts_mutex.synchronize do
@@ -221,7 +221,7 @@ EOS
     update
   end
 
-  def handle_single_message_deleted_update _sender, m
+  def handle_single_message_deleted_update(_sender, m)
     @ts_mutex.synchronize do
       return unless @ts.contains? m
       @ts.remove_id m.id
@@ -229,32 +229,32 @@ EOS
     update
   end
 
-  def handle_deleted_update _sender, m
+  def handle_deleted_update(_sender, m)
     t = @ts_mutex.synchronize { @ts.thread_for m }
     return unless t
     hide_thread t
     update
   end
 
-  def handle_killed_update _sender, m
+  def handle_killed_update(_sender, m)
     t = @ts_mutex.synchronize { @ts.thread_for m }
     return unless t
     hide_thread t
     update
   end
 
-  def handle_spammed_update _sender, m
+  def handle_spammed_update(_sender, m)
     t = @ts_mutex.synchronize { @ts.thread_for m }
     return unless t
     hide_thread t
     update
   end
 
-  def handle_undeleted_update _sender, m
+  def handle_undeleted_update(_sender, m)
     add_or_unhide m
   end
 
-  def handle_unkilled_update _sender, m
+  def handle_unkilled_update(_sender, m)
     add_or_unhide m
   end
 
@@ -289,7 +289,7 @@ EOS
   end
 
   ## returns an undo lambda
-  def actually_toggle_starred t
+  def actually_toggle_starred(t)
     if t.has_label? :starred # if ANY message has a star
       t.remove_label :starred # remove from all
       UpdateManager.relay self, :unstarred, t.first
@@ -318,7 +318,7 @@ EOS
     Index.save_thread t
   end
 
-  def multi_toggle_starred threads
+  def multi_toggle_starred(threads)
     UndoManager.register "toggling #{threads.size.pluralize 'thread'} starred status",
                          threads.map { |t| actually_toggle_starred t },
                          lambda { threads.each { |t| Index.save_thread t } }
@@ -327,7 +327,7 @@ EOS
   end
 
   ## returns an undo lambda
-  def actually_toggle_archived t
+  def actually_toggle_archived(t)
     thread = t
     pos = curpos
     if t.has_label? :inbox
@@ -350,7 +350,7 @@ EOS
   end
 
   ## returns an undo lambda
-  def actually_toggle_spammed t
+  def actually_toggle_spammed(t)
     thread = t
     if t.has_label? :spam
       t.remove_label :spam
@@ -374,7 +374,7 @@ EOS
   end
 
   ## returns an undo lambda
-  def actually_toggle_deleted t
+  def actually_toggle_deleted(t)
     if t.has_label? :deleted
       t.remove_label :deleted
       add_or_unhide t.first
@@ -405,7 +405,7 @@ EOS
     Index.save_thread t
   end
 
-  def multi_toggle_archived threads
+  def multi_toggle_archived(threads)
     undos = threads.map { |t| actually_toggle_archived t }
     UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}", undos, lambda { regen_text },
                          lambda { threads.each { |t| Index.save_thread t } }
@@ -421,13 +421,13 @@ EOS
     Index.save_thread t
   end
 
-  def multi_toggle_new threads
+  def multi_toggle_new(threads)
     threads.each { |t| t.toggle_label :unread }
     regen_text
     threads.each { |t| Index.save_thread t }
   end
 
-  def multi_toggle_tagged _threads
+  def multi_toggle_tagged(_threads)
     @mutex.synchronize { @tags.drop_all_tags }
     regen_text
   end
@@ -438,7 +438,7 @@ EOS
     @tags.apply_to_tagged :join_threads
   end
 
-  def multi_join_threads threads
+  def multi_join_threads(threads)
     @ts.join_threads threads or return
     threads.each { |t| Index.save_thread t }
     @tags.drop_all_tags # otherwise we have tag pointers to invalid threads!
@@ -471,7 +471,7 @@ EOS
   ## deleted, you want it to disappear immediately; in LSRM, you only
   ## see deleted or spam emails, and when you undelete or unspam them
   ## you also want them to disappear immediately.
-  def multi_toggle_spam threads
+  def multi_toggle_spam(threads)
     undos = threads.map { |t| actually_toggle_spammed t }
     threads.each { |t| HookManager.run('mark-as-spam', thread: t) }
     UndoManager.register "marking/unmarking  #{threads.size.pluralize 'thread'} as spam",
@@ -486,7 +486,7 @@ EOS
   end
 
   ## see comment for multi_toggle_spam
-  def multi_toggle_deleted threads
+  def multi_toggle_deleted(threads)
     undos = threads.map { |t| actually_toggle_deleted t }
     UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}",
                          undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
@@ -506,7 +506,7 @@ EOS
   end
 
   ## m-m-m-m-MULTI-KILL
-  def multi_kill threads
+  def multi_kill(threads)
     UndoManager.register "killing/unkilling #{threads.size.pluralize 'threads'}" do
       threads.each do |t|
         if t.toggle_label :killed
@@ -606,7 +606,7 @@ EOS
     Index.save_thread thread
   end
 
-  def multi_edit_labels threads
+  def multi_edit_labels(threads)
     user_labels = BufferManager.ask_for_labels :labels, 'Add/remove labels (use -label to remove): ', [], @hidden_labels
     return unless user_labels
 
@@ -645,7 +645,7 @@ EOS
     threads.each { |t| Index.save_thread t }
   end
 
-  def reply type_arg = nil
+  def reply(type_arg = nil)
     t = cursor_thread or return
     m = t.latest_message
     return if m.nil? # probably won't happen
@@ -664,7 +664,7 @@ EOS
     ForwardMode.spawn_nicely message: m
   end
 
-  def load_n_threads_background n = LOAD_MORE_THREAD_NUM, opts = {}
+  def load_n_threads_background(n = LOAD_MORE_THREAD_NUM, opts = {})
     return if @load_thread # todo: wrap in mutex
     @load_thread = Redwood::reporting_thread('load threads for thread-index-mode') do
       num = load_n_threads n, opts
@@ -674,7 +674,7 @@ EOS
   end
 
   ## TODO: figure out @ts_mutex in this method
-  def load_n_threads n = LOAD_MORE_THREAD_NUM, opts = {}
+  def load_n_threads(n = LOAD_MORE_THREAD_NUM, opts = {})
     @interrupt_search = false
     @mbid = BufferManager.say 'Searching for threads...'
 
@@ -719,7 +719,7 @@ EOS
     load_threads num: -1
   end
 
-  def load_threads opts = {}
+  def load_threads(opts = {})
     if opts[:num].nil?
       n = ThreadIndexMode::LOAD_MORE_THREAD_NUM
     else
@@ -763,7 +763,7 @@ EOS
     Index.save_thread thread
   end
 
-  def multi_read_and_archive threads
+  def multi_read_and_archive(threads)
     old_labels = threads.map { |t| t.labels.dup }
 
     threads.each do |t|
@@ -785,14 +785,14 @@ EOS
     threads.each { |t| Index.save_thread t }
   end
 
-  def resize rows, cols
+  def resize(rows, cols)
     regen_text
     super
   end
 
   protected
 
-  def add_or_unhide m
+  def add_or_unhide(m)
     @ts_mutex.synchronize do
       if (is_relevant?(m) || @ts.is_relevant?(m)) && !@ts.contains?(m)
         @ts.load_thread_for_message m, @load_thread_opts
@@ -804,19 +804,19 @@ EOS
     update
   end
 
-  def thread_containing m; @ts_mutex.synchronize { @ts.thread_for m } end
+  def thread_containing(m); @ts_mutex.synchronize { @ts.thread_for m } end
 
   ## used to tag threads by query. this can be made a lot more sophisticated,
   ## but for right now we'll do the obvious this.
-  def thread_matches? t, query
+  def thread_matches?(t, query)
     t.subj =~ query || t.snippet =~ query || t.participants.any? { |x| x.longname =~ query }
   end
 
-  def size_widget_for_thread t
+  def size_widget_for_thread(t)
     HookManager.run('index-mode-size-widget', thread: t) || default_size_widget_for(t)
   end
 
-  def date_widget_for_thread t
+  def date_widget_for_thread(t)
     HookManager.run('index-mode-date-widget', thread: t) || default_date_widget_for(t)
   end
 
@@ -828,7 +828,7 @@ EOS
     update
   end
 
-  def delete_thread t
+  def delete_thread(t)
     @mutex.synchronize do
       i = @threads.index(t) or return
       @threads.delete_at i
@@ -838,7 +838,7 @@ EOS
     end
   end
 
-  def hide_thread t
+  def hide_thread(t)
     @mutex.synchronize do
       i = @threads.index(t) or return
       raise 'already hidden' if @hidden_threads[t]
@@ -850,7 +850,7 @@ EOS
     end
   end
 
-  def update_text_for_line l
+  def update_text_for_line(l)
     return unless l # not sure why this happens, but it does, occasionally
 
     need_update = false
@@ -889,7 +889,7 @@ EOS
   def authors; map { |m, *_o| m.from if m }.compact.uniq; end
 
   ## preserve author order from the thread
-  def author_names_and_newness_for_thread t, limit = nil
+  def author_names_and_newness_for_thread(t, limit = nil)
     new = {}
     seen = {}
     authors = t.map do |m, *_o|
@@ -928,7 +928,7 @@ EOS
   end
 
   AUTHOR_LIMIT = 5
-  def text_for_thread_at line
+  def text_for_thread_at(line)
     t, size_widget, date_widget = @mutex.synchronize do
       [@threads[line], @size_widgets[line], @date_widgets[line]]
     end
@@ -1012,7 +1012,7 @@ EOS
 
   private
 
-  def default_size_widget_for t
+  def default_size_widget_for(t)
     case t.size
     when 1
       ''
@@ -1021,7 +1021,7 @@ EOS
     end
   end
 
-  def default_date_widget_for t
+  def default_date_widget_for(t)
     t.date.getlocal.to_nice_s
   end
 

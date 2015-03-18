@@ -16,7 +16,7 @@ class FileBrowserMode < LineCursorMode
   bool_reader :done
   attr_reader :value
 
-  def initialize dir = '.'
+  def initialize(dir = '.')
     @dirs = [Pathname.new(dir).realpath]
     @done = false
     @value = nil
@@ -26,7 +26,7 @@ class FileBrowserMode < LineCursorMode
 
   def cwd; @dirs.last end
   def lines; @text.length; end
-  def [] i; @text[i]; end
+  def [](i); @text[i]; end
 
   protected
 

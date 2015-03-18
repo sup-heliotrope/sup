@@ -5,7 +5,7 @@ module Redwood
 class ContactManager
   include Redwood::Singleton
 
-  def initialize fn
+  def initialize(fn)
     @fn = fn
 
     ## maintain the mapping between people and aliases. for contacts without
@@ -28,7 +28,7 @@ class ContactManager
   def contacts; @p2a.keys end
   def contacts_with_aliases; @a2p.values.uniq end
 
-  def update_alias person, aalias = nil
+  def update_alias(person, aalias = nil)
     ## Deleting old data if it exists
     old_aalias = @p2a[person]
     if old_aalias
@@ -45,17 +45,17 @@ class ContactManager
 
   ## this may not actually be called anywhere, since we still keep contacts
   ## around without aliases to override any fullname changes.
-  def drop_contact person
+  def drop_contact(person)
     aalias = @p2a[person]
     @p2a.delete person
     @e2p.delete person.email
     @a2p.delete aalias if aalias
   end
 
-  def contact_for aalias; @a2p[aalias] end
-  def alias_for person; @p2a[person] end
-  def person_for email; @e2p[email] end
-  def is_aliased_contact? person; !@p2a[person].nil? end
+  def contact_for(aalias); @a2p[aalias] end
+  def alias_for(person); @p2a[person] end
+  def person_for(email); @e2p[email] end
+  def is_aliased_contact?(person); !@p2a[person].nil? end
 
   def save
     File.open(@fn, 'w:UTF-8') do |f|

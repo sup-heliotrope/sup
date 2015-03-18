@@ -7,7 +7,7 @@ class TextMode < ScrollMode
     k.add :pipe, 'Pipe to process', '|'
   end
 
-  def initialize text = '', filename = nil
+  def initialize(text = '', filename = nil)
     @text = text
     @filename = filename
     update_lines
@@ -40,7 +40,7 @@ class TextMode < ScrollMode
     end
   end
 
-  def text= t
+  def text=(t)
     @text = t
     update_lines
     if buffer
@@ -49,7 +49,7 @@ class TextMode < ScrollMode
     end
   end
 
-  def << line
+  def <<(line)
     @lines = [0] if @text.empty?
     @text << line.fix_encoding!
     @lines << @text.length
@@ -63,7 +63,7 @@ class TextMode < ScrollMode
     @lines.length - 1
   end
 
-  def [] i
+  def [](i)
     return nil unless i < @lines.length
     @text[@lines[i]...(i + 1 < @lines.length ? @lines[i + 1] - 1 : @text.length)].normalize_whitespace
 #    (@lines[i] ... (i + 1 < @lines.length ? @lines[i + 1] - 1 : @text.length)).inspect

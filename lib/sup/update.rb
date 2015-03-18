@@ -18,10 +18,10 @@ class UpdateManager
     @targets = {}
   end
 
-  def register o; @targets[o] = true; end
-  def unregister o; @targets.delete o; end
+  def register(o); @targets[o] = true; end
+  def unregister(o); @targets.delete o; end
 
-  def relay sender, type, *args
+  def relay(sender, type, *args)
     meth = "handle_#{type}_update".intern
     @targets.keys.each { |o| o.send meth, sender, *args unless o == sender if o.respond_to? meth }
   end

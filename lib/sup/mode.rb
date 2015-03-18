@@ -5,7 +5,7 @@ class Mode
   attr_accessor :buffer
   @@keymaps = {}
 
-  def self.register_keymap keymap = nil, &b
+  def self.register_keymap(keymap = nil, &b)
     keymap = Keymap.new(&b) if keymap.nil?
     @@keymaps[self] = keymap
   end
@@ -22,10 +22,10 @@ class Mode
     @buffer = nil
   end
 
-  def self.make_name s; s.gsub(/.*::/, '').camel_to_hyphy; end
+  def self.make_name(s); s.gsub(/.*::/, '').camel_to_hyphy; end
   def name; Mode.make_name self.class.name; end
 
-  def self.load_all_modes dir
+  def self.load_all_modes(dir)
     Dir[File.join(dir, '*.rb')].each do |f|
       $stderr.puts "## loading mode #{f}"
       require f
@@ -40,12 +40,12 @@ class Mode
   def cancel_search!; end
   def in_search?; false end
   def status; ''; end
-  def resize _rows, _cols; end
+  def resize(_rows, _cols); end
   def cleanup
     @buffer = nil
   end
 
-  def resolve_input c
+  def resolve_input(c)
     ancestors.each do |klass| # try all keymaps in order of ancestry
       next unless @@keymaps.member?(klass)
       action = BufferManager.resolve_input_with_keymap c, @@keymaps[klass]
@@ -54,7 +54,7 @@ class Mode
     nil
   end
 
-  def handle_input c
+  def handle_input(c)
     action = resolve_input(c) or return false
     send action
     true
@@ -82,7 +82,7 @@ EOS
 
 ### helper functions
 
-  def save_to_file fn, talk = true
+  def save_to_file(fn, talk = true)
     if File.exist? fn
       unless BufferManager.ask_yes_or_no "File \"#{fn}\" exists. Overwrite?"
         info "Not overwriting #{fn}"
@@ -101,7 +101,7 @@ EOS
     end
   end
 
-  def pipe_to_process command
+  def pipe_to_process(command)
     begin
       Open3.popen3(command) do |input, output, error|
         err, data, * = IO.select [error], [input], nil

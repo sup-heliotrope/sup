@@ -99,7 +99,7 @@ EOS
     k.add :move_cursor_left, 'Move selector to the left', :left, 'h'
   end
 
-  def initialize opts = {}
+  def initialize(opts = {})
     @header = opts.delete(:header) || {}
     @header_lines = []
 
@@ -173,7 +173,7 @@ EOS
 
   def lines; @text.length + (@selectors.empty? ? 0 : (@selectors.length + DECORATION_LINES)) end
 
-  def [] i
+  def [](i)
     if @selectors.empty?
       @text[i]
     elsif i < @selectors.length
@@ -186,7 +186,7 @@ EOS
   end
 
   ## hook for subclasses. i hate this style of programming.
-  def handle_new_text _header, _body; end
+  def handle_new_text(_header, _body); end
 
   def edit_message_or_field
     lines = (@selectors.empty? ? 0 : DECORATION_LINES) + @selectors.size
@@ -307,7 +307,7 @@ EOS
     buffer.hidden = true
   end
 
-  def edit_message_async_resume being_killed = false
+  def edit_message_async_resume(being_killed = false)
     buffer.hidden = false
     @async_mode = nil
     BufferManager.raise_to_front buffer if !being_killed
@@ -376,7 +376,7 @@ EOS
     end
   end
 
-  def mime_encode string
+  def mime_encode(string)
     string = [string].pack('M') # basic quoted-printable
     string.gsub!(/=\n/, '')      # .. remove trailing newline
     string.gsub!(/_/, '=5F')     # .. encode underscores
@@ -385,7 +385,7 @@ EOS
     "=?utf-8?q?#{string}?="
   end
 
-  def mime_encode_subject string
+  def mime_encode_subject(string)
     return string if string.ascii_only?
     mime_encode string
   end
@@ -396,7 +396,7 @@ EOS
   # Encode "bælammet mitt <user@example.com>" into
   # "=?utf-8?q?b=C3=A6lammet_mitt?= <user@example.com>
   # rubocop:enable Style/AsciiComments
-  def mime_encode_address string
+  def mime_encode_address(string)
     return string if string.ascii_only?
     string.sub(RE_ADDRESS) { |_match| mime_encode($1) + $2 }
   end
@@ -421,7 +421,7 @@ EOS
     end
   end
 
-  def add_selector s
+  def add_selector(s)
     @selectors << s
     @selector_label_width = [@selector_label_width, s.label.length].max
   end
@@ -453,7 +453,7 @@ EOS
     end
   end
 
-  def parse_file fn
+  def parse_file(fn)
     File.open(fn) do |f|
       header = Source.parse_raw_email_header(f).inject({}) { |h, (k, v)| h[k.capitalize] = v; h } # lousy HACK
       body = f.readlines.map { |l| l.chomp }
@@ -465,7 +465,7 @@ EOS
     end
   end
 
-  def parse_header k, v
+  def parse_header(k, v)
     if MULTI_HEADERS.include?(k)
       v.split_on_commas.map do |name|
         (p = ContactManager.contact_for(name)) && p.full_address || name
@@ -475,7 +475,7 @@ EOS
     end
   end
 
-  def format_headers header
+  def format_headers(header)
     header_lines = []
     headers = (FORCE_HEADERS + (header.keys - FORCE_HEADERS)).map do |h|
       lines = make_lines "#{h}:", header[h]
@@ -485,7 +485,7 @@ EOS
     [headers, header_lines]
   end
 
-  def make_lines header, things
+  def make_lines(header, things)
     case things
     when nil, []
       [header + ' ']
@@ -553,7 +553,7 @@ EOS
     BufferManager.flash 'Saved for later editing.'
   end
 
-  def build_message date
+  def build_message(date)
     m = RMail::Message.new
     m.header['Content-Type'] = "text/plain; charset=#{$encoding}"
     m.body = @body.join("\n")
@@ -612,7 +612,7 @@ EOS
   ##
   ## this is going to change soon: draft messages (currently written
   ## with full=false) will be output as yaml.
-  def write_message f, full = true, date = Time.now
+  def write_message(f, full = true, date = Time.now)
     raise ArgumentError, 'no pre-defined date: header allowed' if @header['Date']
     f.puts format_headers(@header).first
     f.puts <<EOS
@@ -635,7 +635,7 @@ EOS
 
   protected
 
-  def edit_field field
+  def edit_field(field)
     case field
     when 'Subject'
       text = BufferManager.ask :subject, 'Subject: ', @header[field]
@@ -670,7 +670,7 @@ EOS
 
   private
 
-  def sanitize_body body
+  def sanitize_body(body)
     body.gsub(/^From /, '>From ')
   end
 
@@ -708,7 +708,7 @@ EOS
     end
   end
 
-  def transfer_encode msg_part
+  def transfer_encode(msg_part)
     ## return the message unchanged if it's already encoded
     if (msg_part.header['Content-Transfer-Encoding'] == 'base64' ||
         msg_part.header['Content-Transfer-Encoding'] == 'quoted-printable')

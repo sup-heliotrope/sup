@@ -12,7 +12,7 @@ class LineCursorMode < ScrollMode
 
   attr_reader :curpos
 
-  def initialize opts = {}
+  def initialize(opts = {})
     @cursor_top = @curpos = opts.delete(:skip_top_rows) || 0
     @load_more_callbacks = []
     @load_more_q = Queue.new
@@ -41,11 +41,11 @@ class LineCursorMode < ScrollMode
   protected
 
   ## callbacks when the cursor is asked to go beyond the bottom
-  def to_load_more &b
+  def to_load_more(&b)
     @load_more_callbacks << b
   end
 
-  def draw_line ln, opts = {}
+  def draw_line(ln, opts = {})
     if ln == @curpos
       super ln, highlight: true, debug: opts[:debug], color: :text_color
     else
@@ -62,7 +62,7 @@ class LineCursorMode < ScrollMode
     @curpos = c
   end
 
-  def set_cursor_pos p
+  def set_cursor_pos(p)
     return if @curpos == p
     @curpos = p.clamp @cursor_top, lines
     buffer.mark_dirty if buffer # not sure why the buffer is gone
@@ -71,7 +71,7 @@ class LineCursorMode < ScrollMode
 
   ## override search behavior to be cursor-based. this is a stupid
   ## implementation and should be made better. TODO: improve.
-  def search_goto_line line
+  def search_goto_line(line)
     page_down while line >= botline
     page_up while line < topline
     set_cursor_pos line
@@ -196,7 +196,7 @@ class LineCursorMode < ScrollMode
     @status = l > 0 ? "line #{@curpos + 1} of #{l}" : ''
   end
 
-  def call_load_more_callbacks size
+  def call_load_more_callbacks(size)
     @load_more_q.push size if $config[:load_more_threads_when_scrolling]
   end
 end

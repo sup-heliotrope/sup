@@ -12,7 +12,7 @@ class Logger
 
   LEVELS = %w(debug info warn error) # in order!
 
-  def initialize level = nil
+  def initialize(level = nil)
     level ||= ENV['SUP_LOG_LEVEL'] || 'info'
     self.level = level
     @mutex = Mutex.new
@@ -23,14 +23,14 @@ class Logger
   def level; LEVELS[@level] end
   def level=(level); @level = LEVELS.index(level) || raise(ArgumentError, "invalid log level #{level.inspect}: should be one of #{LEVELS * ', '}"); end
 
-  def add_sink s, copy_current = true
+  def add_sink(s, copy_current = true)
     @mutex.synchronize do
       @sinks << s
       s << @buf.string if copy_current
     end
   end
 
-  def remove_sink s; @mutex.synchronize { @sinks.delete s } end
+  def remove_sink(s); @mutex.synchronize { @sinks.delete s } end
   def remove_all_sinks!; @mutex.synchronize { @sinks.clear } end
   def clear!; @mutex.synchronize { @buf = StringIO.new } end
 
@@ -43,12 +43,12 @@ class Logger
   end
 
   ## send a message regardless of the current logging level
-  def force_message m; send_message format_message(nil, Time.now, m) end
+  def force_message(m); send_message format_message(nil, Time.now, m) end
 
   private
 
   ## level can be nil!
-  def format_message level, time, msg
+  def format_message(level, time, msg)
     prefix = case level
       when 'warn'; 'WARNING: '
       when 'error'; 'ERROR: '
@@ -58,7 +58,7 @@ class Logger
   end
 
   ## actually distribute the message
-  def send_message m
+  def send_message(m)
     @mutex.synchronize do
       @sinks.each do |sink|
         sink << m

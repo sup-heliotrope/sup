@@ -1,7 +1,7 @@
 module Redwood
 
 module CanAliasContacts
-  def alias_contact p
+  def alias_contact(p)
     aalias = BufferManager.ask(:alias, "Alias for #{p.longname}: ", ContactManager.alias_for(p))
     return if aalias.nil?
     aalias = nil if aalias.empty? # allow empty aliases
@@ -27,7 +27,7 @@ class ContactListMode < LineCursorMode
     k.add :search, 'Search for messages from particular people', 'S'
   end
 
-  def initialize mode = :regular
+  def initialize(mode = :regular)
     @mode = mode
     @tags = Tagger.new self, 'contact'
     @num = nil
@@ -43,7 +43,7 @@ class ContactListMode < LineCursorMode
   end
 
   def lines; @text.length; end
-  def [] i; @text[i]; end
+  def [](i); @text[i]; end
 
   def toggle_tagged
     p = @contacts[curpos] or return
@@ -52,21 +52,21 @@ class ContactListMode < LineCursorMode
     cursor_down
   end
 
-  def multi_toggle_tagged _threads
+  def multi_toggle_tagged(_threads)
     @tags.drop_all_tags
     update
   end
 
   def apply_to_tagged; @tags.apply_to_tagged; end
 
-  def load_more num = LOAD_MORE_CONTACTS_NUM
+  def load_more(num = LOAD_MORE_CONTACTS_NUM)
     @num += num
     load
     update
     BufferManager.flash "Added #{num.pluralize 'contact'}."
   end
 
-  def multi_select people
+  def multi_select(people)
     case @mode
     when :regular
       mode = ComposeMode.new to: people
@@ -80,7 +80,7 @@ class ContactListMode < LineCursorMode
     multi_select [p]
   end
 
-  def multi_search people
+  def multi_search(people)
     mode = PersonSearchResultsMode.new people
     BufferManager.spawn "search for #{people.map { |p| p.name }.join(', ')}", mode
     mode.load_threads num: mode.buffer.content_height
@@ -122,12 +122,12 @@ class ContactListMode < LineCursorMode
     buffer.mark_dirty if buffer
   end
 
-  def update_text_for_line line
+  def update_text_for_line(line)
     @text[line] = text_for_contact @contacts[line]
     buffer.mark_dirty if buffer
   end
 
-  def text_for_contact p
+  def text_for_contact(p)
     aalias = ContactManager.alias_for(p) || ''
     [[:tagged_color, @tags.tagged?(p) ? '>' : ' '],
      [:text_color, sprintf("%-#{@awidth}s %-#{@nwidth}s %s", aalias, p.name, p.email)]]

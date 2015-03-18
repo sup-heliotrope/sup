@@ -17,7 +17,7 @@ EOS
     yield self if block_given?
   end
 
-  def self.keysym_to_keycode k
+  def self.keysym_to_keycode(k)
     case k
     when :down then Ncurses::KEY_DOWN
     when :up then Ncurses::KEY_UP
@@ -41,7 +41,7 @@ EOS
     end
   end
 
-  def self.keysym_to_string k
+  def self.keysym_to_string(k)
     case k
     when :down then '<down arrow>'
     when :up then '<up arrow>'
@@ -60,7 +60,7 @@ EOS
     end
   end
 
-  def add action, help, *keys
+  def add(action, help, *keys)
     entry = [action, help, keys]
     @order << entry
     keys.each do |k|
@@ -70,7 +70,7 @@ EOS
     end
   end
 
-  def delete k
+  def delete(k)
     kc = Keymap.keysym_to_keycode(k)
     return unless @map.member? kc
     entry = @map.delete kc
@@ -79,12 +79,12 @@ EOS
     @order.delete entry if keys.empty?
   end
 
-  def add! action, help, *keys
+  def add!(action, help, *keys)
     keys.each { |k| delete k }
     add action, help, *keys
   end
 
-  def add_multi prompt, key
+  def add_multi(prompt, key)
     kc = Keymap.keysym_to_keycode(key)
     if @map.member? kc
       action = @map[kc].first
@@ -97,16 +97,16 @@ EOS
     end
   end
 
-  def action_for kc
+  def action_for(kc)
     action, help, keys = @map[kc.code]
     [action, help]
   end
 
-  def has_key? k; @map[k.code] end
+  def has_key?(k); @map[k.code] end
 
   def keysyms; @map.values.map { |_action, _help, keys| keys }.flatten; end
 
-  def help_lines except_for = {}, prefix = ''
+  def help_lines(except_for = {}, prefix = '')
     lines = [] # :(
     @order.each do |action, help, keys|
       valid_keys = keys.select { |k| !except_for[k] }
@@ -121,13 +121,13 @@ EOS
     lines
   end
 
-  def help_text except_for = {}
+  def help_text(except_for = {})
     lines = help_lines except_for
     llen = lines.max_of { |a, _b| a.length }
     lines.map { |a, b| sprintf " %#{llen}s : %s", a, b }.join("\n")
   end
 
-  def self.run_hook global_keymap
+  def self.run_hook(global_keymap)
     modes = Hash[Mode.keymaps.map { |klass, _keymap| [Mode.make_name(klass.name), klass] }]
     locals = {
       modes: modes,

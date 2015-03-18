@@ -13,7 +13,7 @@ class BufferListMode < LineCursorMode
   end
 
   def lines; @text.length end
-  def [] i; @text[i] end
+  def [](i); @text[i] end
 
   def focus
     reload # buffers may have been killed or created since last view

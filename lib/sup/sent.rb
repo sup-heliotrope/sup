@@ -5,14 +5,14 @@ class SentManager
 
   attr_reader :source, :source_uri
 
-  def initialize source_uri
+  def initialize(source_uri)
     @source = nil
     @source_uri = source_uri
   end
 
   def source_id; @source.id; end
 
-  def source= s
+  def source=(s)
     raise FatalSourceError.new("Configured sent_source [#{s.uri}] can't store mail.  Correct your configuration.") unless s.respond_to? :store_message
     @source_uri = s.uri
     @source = s
@@ -24,7 +24,7 @@ class SentManager
     @source
   end
 
-  def write_sent_message date, from_email, &block
+  def write_sent_message(date, from_email, &block)
     ::Thread.new do
       debug 'store the sent message (locking sent source..)'
       @source.synchronize do

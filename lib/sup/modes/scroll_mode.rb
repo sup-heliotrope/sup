@@ -28,7 +28,7 @@ class ScrollMode < Mode
     k.add :continue_search_in_buffer, 'Jump to next search occurrence in buffer', BufferManager::CONTINUE_IN_BUFFER_SEARCH_KEY
   end
 
-  def initialize opts = {}
+  def initialize(opts = {})
     @topline, @botline, @leftcol = 0, 0, 0
     @slip_rows = opts[:slip_rows] || 0 # when we pgup/pgdown,
                                        # how many lines do we keep?
@@ -86,7 +86,7 @@ class ScrollMode < Mode
   end
 
   ## subclasses can override these three!
-  def search_goto_pos line, _leftcol, rightcol
+  def search_goto_pos(line, _leftcol, rightcol)
     search_goto_line line
 
     if rightcol > self.rightcol # if it's occluded...
@@ -94,7 +94,7 @@ class ScrollMode < Mode
     end
   end
   def search_start_line; @topline end
-  def search_goto_line line; jump_to_line line end
+  def search_goto_line(line); jump_to_line line end
 
   def col_jump
     $config[:col_jump] || 2
@@ -111,7 +111,7 @@ class ScrollMode < Mode
     buffer.mark_dirty
   end
 
-  def jump_to_col col
+  def jump_to_col(col)
     col = col - (col % col_jump)
     buffer.mark_dirty unless @leftcol == col
     @leftcol = col
@@ -120,7 +120,7 @@ class ScrollMode < Mode
   def jump_to_left; jump_to_col 0; end
 
   ## set top line to l
-  def jump_to_line l
+  def jump_to_line(l)
     l = l.clamp 0, lines - 1
     return if @topline == l
     @topline = l
@@ -145,14 +145,14 @@ class ScrollMode < Mode
     @botline = [@topline + buffer.content_height, lines].min
   end
 
-  def resize *a
+  def resize(*a)
     super(*a)
     ensure_mode_validity
   end
 
   protected
 
-  def find_text query, start_line
+  def find_text(query, start_line)
     regex = /#{query}/i
     (start_line...lines).each do |i|
       case (s = self[i])
@@ -174,7 +174,7 @@ class ScrollMode < Mode
     nil
   end
 
-  def draw_line ln, opts = {}
+  def draw_line(ln, opts = {})
     regex = /(#{@search_query})/i
     case (s = self[ln])
     when String
@@ -208,7 +208,7 @@ class ScrollMode < Mode
       # return
   end
 
-  def matching_text_array s, regex, oldcolor = :text_color
+  def matching_text_array(s, regex, oldcolor = :text_color)
     s.split(regex).map do |text|
       next if text.empty?
       if text =~ regex
@@ -219,7 +219,7 @@ class ScrollMode < Mode
     end.compact + [[oldcolor, '']]
   end
 
-  def draw_line_from_array ln, a, opts
+  def draw_line_from_array(ln, a, opts)
     xpos = 0
     a.each_with_index do |(color, text), i|
       raise "nil text for color '#{color}'" if text.nil? # good for debugging
@@ -243,7 +243,7 @@ class ScrollMode < Mode
     end
   end
 
-  def draw_line_from_string ln, s, opts
+  def draw_line_from_string(ln, s, opts)
     buffer.write ln - @topline, 0, s[@leftcol..-1], highlight: opts[:highlight], color: opts[:color]
   end
 end

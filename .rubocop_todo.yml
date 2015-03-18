@@ -298,12 +298,6 @@ Style/LineEndConcatenation:
 Style/MethodCallParentheses:
   Enabled: false
 
-# Offense count: 572
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/MethodDefParentheses:
-  Enabled: false
-
 # Offense count: 4
 Style/MultilineBlockChain:
   Enabled: false
@@ -353,7 +347,6 @@ Style/NonNilCheck:
 # Cop supports --auto-correct.
 Style/Not:
   Enabled: false
-
 
 # Offense count: 11
 Style/OneLineConditional:

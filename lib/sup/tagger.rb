@@ -3,21 +3,21 @@ require 'sup/util/ncurses'
 module Redwood
 
 class Tagger
-  def initialize mode, noun = 'thread', plural_noun = nil
+  def initialize(mode, noun = 'thread', plural_noun = nil)
     @mode = mode
     @tagged = {}
     @noun = noun
     @plural_noun = plural_noun || (@noun + 's')
   end
 
-  def tagged? o; @tagged[o]; end
-  def toggle_tag_for o; @tagged[o] = !@tagged[o]; end
-  def tag o; @tagged[o] = true; end
-  def untag o; @tagged[o] = false; end
+  def tagged?(o); @tagged[o]; end
+  def toggle_tag_for(o); @tagged[o] = !@tagged[o]; end
+  def tag(o); @tagged[o] = true; end
+  def untag(o); @tagged[o] = false; end
   def drop_all_tags; @tagged.clear; end
-  def drop_tag_for o; @tagged.delete o; end
+  def drop_tag_for(o); @tagged.delete o; end
 
-  def apply_to_tagged action = nil
+  def apply_to_tagged(action = nil)
     targets = @tagged.select_by_value
     num_tagged = targets.size
     if num_tagged == 0

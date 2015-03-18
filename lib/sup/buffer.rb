@@ -15,7 +15,7 @@ class Buffer
   bool_reader :dirty, :system
   bool_accessor :force_to_top, :hidden
 
-  def initialize window, mode, width, height, opts = {}
+  def initialize(window, mode, width, height, opts = {})
     @w = window
     @mode = mode
     @dirty = true
@@ -31,7 +31,7 @@ class Buffer
   def content_height; @height - 1; end
   def content_width; @width; end
 
-  def resize rows, cols
+  def resize(rows, cols)
     return if cols == @width && rows == @height
     @width = cols
     @height = rows
@@ -39,7 +39,7 @@ class Buffer
     mode.resize rows, cols
   end
 
-  def redraw status
+  def redraw(status)
     if @dirty
       draw status
     else
@@ -56,7 +56,7 @@ class Buffer
     @w.noutrefresh
   end
 
-  def draw status
+  def draw(status)
     @mode.draw
     draw_status status
     commit
@@ -64,7 +64,7 @@ class Buffer
   end
 
   ## s nil means a blank line!
-  def write y, x, s, opts = {}
+  def write(y, x, s, opts = {})
     return if x >= @width || y >= @height
 
     @w.attrset Colormap.color_for(opts[:color] || :none, opts[:highlight])
@@ -81,7 +81,7 @@ class Buffer
     @w.clear
   end
 
-  def draw_status status
+  def draw_status(status)
     write @height - 1, 0, status, color: :status_color
   end
 
@@ -169,7 +169,7 @@ EOS
   def buffers; @name_map.to_a; end
   def shelled?; @shelled; end
 
-  def focus_on buf
+  def focus_on(buf)
     return unless @buffers.member? buf
     return if buf == @focus_buf
     @focus_buf.blur if @focus_buf
@@ -177,7 +177,7 @@ EOS
     @focus_buf.focus
   end
 
-  def raise_to_front buf
+  def raise_to_front(buf)
     @buffers.delete(buf) or return
     if @buffers.length > 0 && @buffers.last.force_to_top?
       @buffers.insert(-2, buf)
@@ -213,7 +213,7 @@ EOS
     @buffers.select { |b| !(b.system? || b.hidden?) || @buffers.last == b }
   end
 
-  def handle_input c
+  def handle_input(c)
     if @focus_buf
       if @focus_buf.mode.in_search? && c != CONTINUE_IN_BUFFER_SEARCH_KEY
         @focus_buf.mode.cancel_search!
@@ -223,9 +223,9 @@ EOS
     end
   end
 
-  def exists? n; @name_map.member? n; end
-  def [] n; @name_map[n]; end
-  def []= n, b
+  def exists?(n); @name_map.member? n; end
+  def [](n); @name_map[n]; end
+  def []=(n, b)
     raise ArgumentError, 'duplicate buffer name' if b && @name_map.member?(n)
     raise ArgumentError, 'title must be a string' unless n.is_a? String
     @name_map[n] = b
@@ -251,7 +251,7 @@ EOS
     end
   end
 
-  def draw_screen opts = {}
+  def draw_screen(opts = {})
     return if @shelled
 
     status, title =
@@ -296,7 +296,7 @@ EOS
   ## calling the block. otherwise, gets the mode from the block and
   ## creates a new buffer. returns two things: the buffer, and a boolean
   ## indicating whether it's a new buffer or not.
-  def spawn_unless_exists title, opts = {}
+  def spawn_unless_exists(title, opts = {})
     new =
       if @name_map.member? title
         raise_to_front @name_map[title] unless opts[:hidden]
@@ -309,7 +309,7 @@ EOS
     [@name_map[title], new]
   end
 
-  def spawn title, mode, opts = {}
+  def spawn(title, mode, opts = {})
     raise ArgumentError, 'title must be a string' unless title.is_a? String
     realtitle = title
     num = 2
@@ -342,7 +342,7 @@ EOS
   end
 
   ## requires the mode to have #done? and #value methods
-  def spawn_modal title, mode, opts = {}
+  def spawn_modal(title, mode, opts = {})
     b = spawn title, mode, opts
     draw_screen
 
@@ -371,7 +371,7 @@ EOS
     true
   end
 
-  def kill_buffer_safely buf
+  def kill_buffer_safely(buf)
     return false unless buf.mode.killable?
     kill_buffer buf
     true
@@ -381,7 +381,7 @@ EOS
     kill_buffer @buffers.first until @buffers.empty?
   end
 
-  def kill_buffer buf
+  def kill_buffer(buf)
     raise ArgumentError, "buffer not on stack: #{buf}: #{buf.title.inspect}" unless @buffers.member? buf
 
     buf.mode.cleanup
@@ -408,14 +408,14 @@ EOS
   ## completions: array of possible answers, that can be completed by using
   ##              the tab key
   ## default:     default value to return
-  def ask_with_completions domain, question, completions, default = nil
+  def ask_with_completions(domain, question, completions, default = nil)
     ask domain, question, default do |s|
       s.fix_encoding!
       completions.select { |x| x =~ /^#{Regexp::escape s}/iu }.map { |x| [x, x] }
     end
   end
 
-  def ask_many_with_completions domain, question, completions, default = nil
+  def ask_many_with_completions(domain, question, completions, default = nil)
     ask domain, question, default do |partial|
       prefix, target =
         case partial
@@ -433,7 +433,7 @@ EOS
     end
   end
 
-  def ask_many_emails_with_completions domain, question, completions, default = nil
+  def ask_many_emails_with_completions(domain, question, completions, default = nil)
     ask domain, question, default do |partial|
       prefix, target = partial.split_on_commas_with_remainder
       target ||= prefix.pop || ''
@@ -446,7 +446,7 @@ EOS
     end
   end
 
-  def ask_for_filename domain, question, default = nil, allow_directory = false
+  def ask_for_filename(domain, question, default = nil, allow_directory = false)
     answer = ask domain, question, default do |s|
       if s =~ /(~([^\s\/]*))/ # twiddle directory expansion
         full = $1
@@ -482,7 +482,7 @@ EOS
   end
 
   ## returns an array of labels
-  def ask_for_labels domain, question, default_labels, forbidden_labels = []
+  def ask_for_labels(domain, question, default_labels, forbidden_labels = [])
     default_labels = default_labels - forbidden_labels - LabelManager::RESERVED_LABELS
     default = default_labels.to_a.join(' ')
     default += ' ' unless default.empty?
@@ -505,7 +505,7 @@ EOS
     user_labels
   end
 
-  def ask_for_contacts domain, question, default_contacts = []
+  def ask_for_contacts(domain, question, default_contacts = [])
     default = default_contacts.is_a?(String) ? default_contacts : default_contacts.map { |s| s.to_s }.join(', ')
     default += ' ' unless default.empty?
 
@@ -522,7 +522,7 @@ EOS
     end
   end
 
-  def ask_for_account domain, question
+  def ask_for_account(domain, question)
     completions = AccountManager.user_emails
     answer = BufferManager.ask_many_emails_with_completions domain, question, completions, ''
     answer = AccountManager.default_account.email if answer == ''
@@ -531,7 +531,7 @@ EOS
 
   ## for simplicitly, we always place the question at the very bottom of the
   ## screen
-  def ask domain, question, default = nil, &block
+  def ask(domain, question, default = nil, &block)
     raise 'impossible!' if @asking
     raise 'Question too long' if Ncurses.cols <= question.length
     @asking = true
@@ -586,7 +586,7 @@ EOS
     tf.value.tap { |x| x }
   end
 
-  def ask_getch question, accept = nil
+  def ask_getch(question, accept = nil)
     raise 'impossible!' if @asking
 
     accept = accept.split(//).map { |x| x.ord } if accept
@@ -624,7 +624,7 @@ EOS
   end
 
   ## returns true (y), false (n), or nil (ctrl-g / cancel)
-  def ask_yes_or_no question
+  def ask_yes_or_no(question)
     case (r = ask_getch question, 'ynYN')
     when ?y, ?Y
       true
@@ -641,7 +641,7 @@ EOS
   ## should be handled differently.)
   ##
   ## this is in BufferManager because multi-key sequences require prompting.
-  def resolve_input_with_keymap c, keymap
+  def resolve_input_with_keymap(c, keymap)
     action, text = keymap.action_for c
     while action.is_a? Keymap # multi-key commands, prompt
       key = BufferManager.ask_getch text
@@ -662,7 +662,7 @@ EOS
     end
   end
 
-  def draw_minibuf opts = {}
+  def draw_minibuf(opts = {})
     m = nil
     @minibuf_mutex.synchronize do
       m = @minibuf_stack.compact
@@ -680,7 +680,7 @@ EOS
     Ncurses.mutex.unlock unless opts[:sync] == false
   end
 
-  def say s, id = nil
+  def say(s, id = nil)
     new_id = nil
 
     @minibuf_mutex.synchronize do
@@ -707,14 +707,14 @@ EOS
 
   def erase_flash; @flash = nil; end
 
-  def flash s
+  def flash(s)
     @flash = s
     draw_screen refresh: true
   end
 
   ## a little tricky because we can't just delete_at id because ids
   ## are relative (they're positions into the array).
-  def clear id
+  def clear(id)
     @minibuf_mutex.synchronize do
       @minibuf_stack[id] = nil
       if id == @minibuf_stack.length - 1
@@ -728,7 +728,7 @@ EOS
     draw_screen refresh: true
   end
 
-  def shell_out command
+  def shell_out(command)
     @shelled = true
     Ncurses.sync do
       Ncurses.endwin
@@ -742,15 +742,15 @@ EOS
 
   private
 
-  def default_status_bar buf
+  def default_status_bar(buf)
     " [#{buf.mode.name}] #{buf.title}   #{buf.mode.status}"
   end
 
-  def default_terminal_title buf
+  def default_terminal_title(buf)
     "Sup #{Redwood::VERSION} :: #{buf.title}"
   end
 
-  def get_status_and_title buf
+  def get_status_and_title(buf)
     opts = {
       num_inbox: lambda { Index.num_results_for label: :inbox },
       num_inbox_unread: lambda { Index.num_results_for labels: [:inbox, :unread] },

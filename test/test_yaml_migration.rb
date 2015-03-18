@@ -6,7 +6,7 @@ require 'psych'
 if RUBY_VERSION < '2.1'
 describe "Sup's YAML util" do
   describe 'Module#yaml_properties' do
-    def build_class_with_name name, &b
+    def build_class_with_name(name, &b)
       Class.new do
         meta_cls = class << self; self; end
         meta_cls.send(:define_method, :name) { name }
@@ -35,7 +35,7 @@ describe "Sup's YAML util" do
       cls = build_class_with_name 'Cls' do
         yaml_properties :id
         attr_accessor :id
-        def initialize id
+        def initialize(id)
           @id = id
         end
       end
@@ -58,7 +58,7 @@ EOF
         attr_accessor :id
         attr_reader :flag
 
-        def initialize id
+        def initialize(id)
           @id = id
           @flag = true
         end

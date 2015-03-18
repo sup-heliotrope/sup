@@ -1,7 +1,7 @@
 module Redwood
 
 class SearchResultsMode < ThreadIndexMode
-  def initialize query
+  def initialize(query)
     @query = query
     super [], query
   end
@@ -38,7 +38,7 @@ class SearchResultsMode < ThreadIndexMode
   ## the message, and search against it to see if i have > 0 results,
   ## but that seems pretty insane.
 
-  def self.spawn_from_query text
+  def self.spawn_from_query(text)
     begin
       if SearchManager.predefined_queries.has_key? text
         query = SearchManager.predefined_queries[text]

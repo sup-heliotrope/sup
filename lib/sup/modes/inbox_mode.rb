@@ -15,7 +15,7 @@ class InboxMode < ThreadIndexMode
     @@instance = self
   end
 
-  def is_relevant? m; (m.labels & [:spam, :deleted, :killed, :inbox]) == Set.new([:inbox]) end
+  def is_relevant?(m); (m.labels & [:spam, :deleted, :killed, :inbox]) == Set.new([:inbox]) end
 
   def refine_search
     text = BufferManager.ask :search, 'refine inbox with query: '
@@ -45,7 +45,7 @@ class InboxMode < ThreadIndexMode
     Index.save_thread thread
   end
 
-  def multi_archive threads
+  def multi_archive(threads)
     UndoManager.register "archiving #{threads.size.pluralize 'thread'}" do
       threads.map do |t|
         t.apply_label :inbox
@@ -63,17 +63,17 @@ class InboxMode < ThreadIndexMode
     threads.each { |t| Index.save_thread t }
   end
 
-  def handle_unarchived_update _sender, m
+  def handle_unarchived_update(_sender, m)
     add_or_unhide m
   end
 
-  def handle_archived_update _sender, m
+  def handle_archived_update(_sender, m)
     t = thread_containing(m) or return
     hide_thread t
     regen_text
   end
 
-  def handle_idle_update _sender, _idle_since
+  def handle_idle_update(_sender, _idle_since)
     flush_index
   end
 

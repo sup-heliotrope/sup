@@ -3,7 +3,7 @@ module Redwood
 class Person
   attr_accessor :name, :email
 
-  def initialize name, email
+  def initialize(name, email)
     raise ArgumentError, "email can't be nil" unless email
 
     email.fix_encoding!
@@ -68,7 +68,7 @@ class Person
     end.downcase
   end
 
-  def eql? o; email.eql? o.email end
+  def eql?(o); email.eql? o.email end
   def hash; email.hash end
 
 
@@ -79,7 +79,7 @@ class Person
 
   class << self
 
-    def full_address name, email
+    def full_address(name, email)
       if name && email
         if name =~ /[",@]/
           "#{name.inspect} <#{email}>" # escape quotes
@@ -93,11 +93,11 @@ class Person
 
     ## return "canonical" person using contact manager or create one if
     ## not found or contact manager not available
-    def from_name_and_email name, email
+    def from_name_and_email(name, email)
       ContactManager.instantiated? && ContactManager.person_for(email) || Person.new(name, email)
     end
 
-    def from_address s
+    def from_address(s)
       return nil if s.nil?
 
       ## try and parse an email address and name
@@ -129,7 +129,7 @@ class Person
       from_name_and_email name, email
     end
 
-    def from_address_list ss
+    def from_address_list(ss)
       return [] if ss.nil?
       ss.dup.split_on_commas.map { |s| self.from_address s }
     end

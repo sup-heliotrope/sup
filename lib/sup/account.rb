@@ -3,7 +3,7 @@ module Redwood
 class Account < Person
   attr_accessor :sendmail, :signature, :gpgkey
 
-  def initialize h
+  def initialize(h)
     raise ArgumentError, 'no name for account' unless h[:name]
     raise ArgumentError, 'no email for account' unless h[:email]
     super h[:name], h[:email]
@@ -29,7 +29,7 @@ class AccountManager
 
   attr_accessor :default_account
 
-  def initialize accounts
+  def initialize(accounts)
     @email_map = {}
     @accounts = {}
     @regexen = {}
@@ -44,7 +44,7 @@ class AccountManager
 
   ## must be called first with the default account. fills in missing
   ## values from the default account.
-  def add_account hash, default = false
+  def add_account(hash, default = false)
     raise ArgumentError, 'no email specified for account' unless hash[:email]
     unless default
       [:name, :sendmail, :signature, :gpgkey].each { |k| hash[k] ||= @default_account.send(k) }
@@ -72,16 +72,16 @@ class AccountManager
     end if hash[:regexen]
   end
 
-  def is_account? p; is_account_email? p.email end
-  def is_account_email? email; !account_for(email).nil? end
-  def account_for email
+  def is_account?(p); is_account_email? p.email end
+  def is_account_email?(email); !account_for(email).nil? end
+  def account_for(email)
     if (a = @email_map[email])
       a
     else
       @regexen.argfind { |re, a| re =~ email && a }
     end
   end
-  def full_address_for email
+  def full_address_for(email)
     a = account_for email
     Person.full_address a.name, email
   end

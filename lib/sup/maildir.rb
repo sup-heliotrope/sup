@@ -9,7 +9,7 @@ class Maildir < Source
 
   ## remind me never to use inheritance again.
   yaml_properties :uri, :usual, :archived, :sync_back, :id, :labels
-  def initialize uri, usual = true, archived = false, sync_back = true, id = nil, labels = []
+  def initialize(uri, usual = true, archived = false, sync_back = true, id = nil, labels = [])
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
     parts = @expanded_uri.match(/^([a-zA-Z0-9]*:(\/\/)?)(.*)/)
@@ -37,8 +37,8 @@ class Maildir < Source
   end
 
   def file_path; @dir end
-  def self.suggest_labels_for _path; [] end
-  def is_source_for? uri; super || (uri == @expanded_uri); end
+  def self.suggest_labels_for(_path); [] end
+  def is_source_for?(uri); super || (uri == @expanded_uri); end
 
   def supported_labels?
     [:draft, :starred, :forwarded, :replied, :unread, :deleted]
@@ -48,7 +48,7 @@ class Maildir < Source
     @sync_back
   end
 
-  def store_message _date, _from_email, &_block
+  def store_message(_date, _from_email, &_block)
     stored = false
     new_fn = new_maildir_basefn + ':2,S'
     Dir.chdir(@dir) do |_d|
@@ -76,7 +76,7 @@ class Maildir < Source
     stored
   end
 
-  def each_raw_message_line id
+  def each_raw_message_line(id)
     with_file_for(id) do |f|
       until f.eof?
         yield f.gets
@@ -84,15 +84,15 @@ class Maildir < Source
     end
   end
 
-  def load_header id
+  def load_header(id)
     with_file_for(id) { |f| parse_raw_email_header f }
   end
 
-  def load_message id
+  def load_message(id)
     with_file_for(id) { |f| RMail::Parser.read f }
   end
 
-  def sync_back id, labels
+  def sync_back(id, labels)
     synchronize do
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
@@ -100,7 +100,7 @@ class Maildir < Source
     end
   end
 
-  def raw_header id
+  def raw_header(id)
     ret = ''
     with_file_for(id) do |f|
       until f.eof? || (l = f.gets) =~ /^$/
@@ -110,7 +110,7 @@ class Maildir < Source
     ret
   end
 
-  def raw_message id
+  def raw_message(id)
     with_file_for(id) { |f| f.read }
   end
 
@@ -180,11 +180,11 @@ class Maildir < Source
     nil
   end
 
-  def labels? id
+  def labels?(id)
     maildir_labels id
   end
 
-  def maildir_labels id
+  def maildir_labels(id)
     (seen?(id) ? [] : [:unread]) +
       (trashed?(id) ?  [:deleted] : []) +
       (flagged?(id) ? [:starred] : []) +
@@ -193,14 +193,14 @@ class Maildir < Source
       (draft?(id) ? [:draft] : [])
   end
 
-  def draft? id; maildir_data(id)[2].include? 'D'; end
-  def flagged? id; maildir_data(id)[2].include? 'F'; end
-  def passed? id; maildir_data(id)[2].include? 'P'; end
-  def replied? id; maildir_data(id)[2].include? 'R'; end
-  def seen? id; maildir_data(id)[2].include? 'S'; end
-  def trashed? id; maildir_data(id)[2].include? 'T'; end
+  def draft?(id); maildir_data(id)[2].include? 'D'; end
+  def flagged?(id); maildir_data(id)[2].include? 'F'; end
+  def passed?(id); maildir_data(id)[2].include? 'P'; end
+  def replied?(id); maildir_data(id)[2].include? 'R'; end
+  def seen?(id); maildir_data(id)[2].include? 'S'; end
+  def trashed?(id); maildir_data(id)[2].include? 'T'; end
 
-  def valid? id
+  def valid?(id)
     File.exist? File.join(@dir, id)
   end
 
@@ -211,7 +211,7 @@ class Maildir < Source
     "#{Time.now.to_i}.#{$$}#{Kernel.rand(1000000)}.#{MYHOSTNAME}"
   end
 
-  def with_file_for id
+  def with_file_for(id)
     fn = File.join(@dir, id)
     begin
       File.open(fn, 'rb') { |f| yield f }
@@ -220,14 +220,14 @@ class Maildir < Source
     end
   end
 
-  def maildir_data id
+  def maildir_data(id)
     id = File.basename id
     # Flags we recognize are DFPRST
     id =~ %r{^([^:]+):([12]),([A-Za-z]*)$}
     [($1 || id), ($2 || '2'), ($3 || '')]
   end
 
-  def maildir_reconcile_flags id, labels
+  def maildir_reconcile_flags(id, labels)
       new_flags = Set.new(maildir_data(id)[2].each_char)
 
       # Set flags based on labels for the six flags we recognize
@@ -243,7 +243,7 @@ class Maildir < Source
       new_flags.to_a.sort.join
   end
 
-  def maildir_mark_file orig_path, flags
+  def maildir_mark_file(orig_path, flags)
     @mutex.synchronize do
       new_base = (flags.include?('S')) ? 'cur' : 'new'
       md_base, md_ver, md_flags = maildir_data orig_path

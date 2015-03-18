@@ -31,7 +31,7 @@ class Lockfile
         ]
   end
 
-  def dump_lock_id lock_id = @lock_id
+  def dump_lock_id(lock_id = @lock_id)
       "host: %s\npid: %s\nppid: %s\ntime: %s\nuser: %s\npname: %s\n" %
         lock_id.values_at('host', 'pid', 'ppid', 'time', 'user', 'pname')
   end
@@ -48,7 +48,7 @@ end
 
 class File
   # platform safe file.link which attempts a copy if hard-linking fails
-  def self.safe_link src, dest
+  def self.safe_link(src, dest)
     begin
       File.link src, dest
     rescue
@@ -82,7 +82,7 @@ module RMail
   class EncodingUnsupportedError < StandardError; end
 
   class Message
-    def self.make_file_attachment fn
+    def self.make_file_attachment(fn)
       bfn = File.basename fn
       t = MIME::Types.type_for(bfn).first || MIME::Types.type_for('exe').first
       make_attachment IO.read(fn), t.content_type, t.encoding, bfn.to_s
@@ -94,7 +94,7 @@ module RMail
       end
     end
 
-    def self.make_attachment payload, mime_type, encoding, filename
+    def self.make_attachment(payload, mime_type, encoding, filename)
       a = Message.new
       a.header.add 'Content-Disposition', "attachment; filename=#{filename.inspect}"
       a.header.add 'Content-Type', "#{mime_type}; name=#{filename.inspect}"
@@ -178,16 +178,16 @@ class Range
 end
 
 class Module
-  def bool_reader *args
+  def bool_reader(*args)
     args.each { |sym| class_eval %{ def #{sym}?; @#{sym}; end } }
   end
-  def bool_writer *args; attr_writer(*args); end
-  def bool_accessor *args
+  def bool_writer(*args); attr_writer(*args); end
+  def bool_accessor(*args)
     bool_reader(*args)
     bool_writer(*args)
   end
 
-  def defer_all_other_method_calls_to obj
+  def defer_all_other_method_calls_to(obj)
     class_eval %{
       def method_missing meth, *a, &b; @#{obj}.send meth, *a, &b; end
       def respond_to?(m, include_private = false)
@@ -210,7 +210,7 @@ class Object
   end
 
   ## "k combinator"
-  def returning x; yield x; x; end
+  def returning(x); yield x; x; end
 
   unless method_defined? :tap
     def tap; yield self; self; end
@@ -219,7 +219,7 @@ class Object
   ## clone of java-style whole-method synchronization
   ## assumes a @mutex variable
   ## TODO: clean up, try harder to avoid namespace collisions
-  def synchronized *methods
+  def synchronized(*methods)
     methods.each do |meth|
       class_eval <<-EOF
         alias unsynchronized_#{meth} #{meth}
@@ -230,7 +230,7 @@ class Object
     end
   end
 
-  def ignore_concurrent_calls *methods
+  def ignore_concurrent_calls(*methods)
     methods.each do |meth|
       mutex = "@__concurrent_protector_#{meth}"
       flag = "@__concurrent_flag_#{meth}"
@@ -256,7 +256,7 @@ class Object
     end
   end
 
-  def benchmark s, &b
+  def benchmark(s, &b)
     ret = nil
     times = Benchmark.measure { ret = b.call }
     debug "benchmark #{s}: #{times}"
@@ -277,7 +277,7 @@ class String
     @display_length
   end
 
-  def slice_by_display_length len
+  def slice_by_display_length(len)
     each_char.each_with_object '' do |c, buffer|
       len -= c.display_length
       buffer << c if len >= 0
@@ -288,7 +288,7 @@ class String
     self.gsub(/([a-z])([A-Z0-9])/, '\1-\2').downcase
   end
 
-  def find_all_positions x
+  def find_all_positions(x)
     ret = []
     start = 0
     while start < length
@@ -364,7 +364,7 @@ class String
     [ret, remainder]
   end
 
-  def wrap len
+  def wrap(len)
     ret = []
     s = self
     while s.display_length > len
@@ -408,7 +408,7 @@ class String
   # fix if broken.
   #
   # Not Ruby 1.8 compatible
-  def transcode to_encoding, from_encoding
+  def transcode(to_encoding, from_encoding)
     begin
       encode!(to_encoding, from_encoding, invalid: :replace, undef: :replace)
 
@@ -440,7 +440,7 @@ class String
   end
 
   unless method_defined? :each
-    def each &b
+    def each(&b)
       each_line &b
     end
   end
@@ -450,7 +450,7 @@ class String
   ## to an array of label symbols.
   ##
   ## split_on will be passed to String#split, so you can leave this nil for space.
-  def to_set_of_symbols split_on = nil; Set.new split(split_on).map { |x| x.strip.intern } end
+  def to_set_of_symbols(split_on = nil); Set.new split(split_on).map { |x| x.strip.intern } end
 
   class CheckError < ArgumentError; end
   def check
@@ -484,7 +484,7 @@ class String
 end
 
 class Numeric
-  def clamp min, max
+  def clamp(min, max)
     if self < min
       min
     elsif self > max
@@ -494,7 +494,7 @@ class Numeric
     end
   end
 
-  def in? range; range.member? self; end
+  def in?(range); range.member? self; end
 
   def to_human_size
     if self < 1024
@@ -525,7 +525,7 @@ class Fixnum
   end
 
   ## hacking the english language
-  def pluralize s
+  def pluralize(s)
     to_s + ' ' +
       if self == 1
         s
@@ -540,11 +540,11 @@ class Fixnum
 end
 
 class Hash
-  def - o
+  def -(o)
     Hash[*self.map { |k, v| [k, v] unless o.include? k }.compact.flatten_one_level]
   end
 
-  def select_by_value v = true
+  def select_by_value(v = true)
     select { |_k, vv| vv == v }.map { |x| x.first }
   end
 end
@@ -585,7 +585,7 @@ module Enumerable
 
   ## returns the maximum shared prefix of an array of strings
   ## optinally excluding a prefix
-  def shared_prefix caseless = false, exclude = ''
+  def shared_prefix(caseless = false, exclude = '')
     return '' if empty?
     prefix = ''
     (0...first.length).each do |i|
@@ -602,7 +602,7 @@ module Enumerable
   end
 
   ## returns all the entries which are equal to startline up to endline
-  def between startline, endline
+  def between(startline, endline)
     select { |l| true if l == startline .. l == endline }
   end
 end
@@ -621,7 +621,7 @@ class Array
 
   def to_boolean_h; Hash[*map { |x| [x, true] }.flatten]; end
 
-  def last= e; self[-1] = e end
+  def last=(e); self[-1] = e end
   def nonempty?; !empty? end
 end
 
@@ -638,7 +638,7 @@ module Redwood
       def instance; @instance; end
       def instantiated?; defined?(@instance) && !@instance.nil?; end
       def deinstantiate!; @instance = nil; end
-      def method_missing meth, *a, &b
+      def method_missing(meth, *a, &b)
         raise "no #{name} instance defined in method call to #{meth}!" unless defined? @instance
 
         ## if we've been deinstantiated, just drop all calls. this is
@@ -657,13 +657,13 @@ module Redwood
 
         @instance.send meth, *a, &b
       end
-      def init *args
+      def init(*args)
         raise 'there can be only one! (instance)' if instantiated?
         @instance = new(*args)
       end
     end
 
-    def self.included klass
+    def self.included(klass)
       klass.private_class_method :allocate, :new
       klass.extend ClassMethods
     end
@@ -694,12 +694,12 @@ end
 ## because just checking h[anything] will always evaluate to true
 ## (except for degenerate constructor blocks that return nil or false)
 class SavingHash
-  def initialize &b
+  def initialize(&b)
     @constructor = b
     @hash = Hash.new
   end
 
-  def [] k
+  def [](k)
     @hash[k] ||= @constructor.call(k)
   end
 
@@ -711,20 +711,20 @@ class OrderedHash < Hash
   alias_method :each_pair, :each
   attr_reader :keys
 
-  def initialize *a
+  def initialize(*a)
     @keys = []
     a.each { |k, v| self[k] = v }
   end
 
-  def []= key, val
+  def []=(key, val)
     @keys << key unless member?(key)
     super
   end
 
   def values; keys.map { |k| self[k] } end
-  def index key; @keys.index key end
+  def index(key); @keys.index key end
 
-  def delete key
+  def delete(key)
     @keys.delete key
     super
   end
