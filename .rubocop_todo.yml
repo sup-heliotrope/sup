@@ -299,11 +299,6 @@ Style/NegatedIf:
   Enabled: false
 
 # Offense count: 2
-# Cop supports --auto-correct.
-Style/NegatedWhile:
-  Enabled: false
-
-# Offense count: 2
 Style/NestedTernaryOperator:
   Enabled: false
 

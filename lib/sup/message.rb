@@ -64,7 +64,7 @@ class Message
     ## why.
     @refs = []
 
-    #parse_header(opts[:header] || @source.load_header(@source_info))
+    # parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
   def decode_header_field(v)
@@ -86,15 +86,15 @@ class Message
     end
     if (not @id.include? '@') || @id.length < 6
       @id = 'sup-faked-' + Digest::MD5.hexdigest(raw_header)
-      #from = header["from"]
-      #debug "faking non-existent message-id for message from #{from}: #{id}"
+      # from = header["from"]
+      # debug "faking non-existent message-id for message from #{from}: #{id}"
     end
 
     @from = Person.from_address(if header['from']
       header['from']
     else
       name = 'Sup Auto-generated Fake Sender <sup@fake.sender.example.com>'
-      #debug "faking non-existent sender for message #@id: #{name}"
+      # debug "faking non-existent sender for message #@id: #{name}"
       name
     end)
 
@@ -105,11 +105,11 @@ class Message
       begin
         Time.parse date
       rescue ArgumentError => e
-        #debug "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
+        # debug "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
         Time.now
       end
     else
-      #debug "faking non-existent date header for #{@id}"
+      # debug "faking non-existent date header for #{@id}"
       Time.now
     end
 
@@ -422,7 +422,7 @@ EOS
 
     if signature.header.content_type && signature.header.content_type.downcase != 'application/pgp-signature'
       ## unknown signature type; just ignore.
-      #warn "multipart/signed with signature content type #{signature.header.content_type}"
+      # warn "multipart/signed with signature content type #{signature.header.content_type}"
       return
     end
 

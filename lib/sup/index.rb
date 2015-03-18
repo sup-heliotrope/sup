@@ -600,7 +600,7 @@ EOS
     begin
       @xapian.doclength docid
       true
-    rescue RuntimeError #Xapian::DocNotFoundError
+    rescue RuntimeError # Xapian::DocNotFoundError
       raise unless $!.message =~ /DocNotFoundError/
       false
     end

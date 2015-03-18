@@ -279,7 +279,7 @@ be viewed, and new messages will not be detected.
 
 #{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.error.message.wrap(70).join("\n        ") }.join("\n\n")}
 EOM
-#' stupid ruby-mode
+# ' stupid ruby-mode
       end
     end
 
@@ -303,7 +303,7 @@ and new messages will not be detected. Luckily, this is easy to correct!
    "\n   Fix: sup-sync --changed #{s}"
   end}
 EOM
-#' stupid ruby-mode
+# ' stupid ruby-mode
       end
     end
   end

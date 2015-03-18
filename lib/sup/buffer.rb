@@ -272,7 +272,7 @@ EOS
     ## TODO: reenable this if we allow multiple buffers
     false && @buffers.inject(@dirty) do |dirty, buf|
       buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
-      #dirty ? buf.draw : buf.redraw
+      # dirty ? buf.draw : buf.redraw
       buf.draw status
       dirty
     end

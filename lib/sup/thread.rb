@@ -230,14 +230,14 @@ class Container
       f.print ' ' * indent
       f.print '+->'
     end
-    line = "[#{thread.nil? ? ' ' : '*'}] " + #"[#{useful? ? 'U' : ' '}] " +
+    line = "[#{thread.nil? ? ' ' : '*'}] " + # "[#{useful? ? 'U' : ' '}] " +
       if @message
-        message.subj ##{@message.refs.inspect} / #{@message.replytos.inspect}"
+        message.subj # #{@message.refs.inspect} / #{@message.replytos.inspect}"
       else
         '<no message>'
       end
 
-    f.puts "#{id} #{line}" #[0 .. (105 - indent)]
+    f.puts "#{id} #{line}" # [0 .. (105 - indent)]
     indent += 3
     @children.each { |c| c.dump_recursive f, indent, false, self }
   end
@@ -291,11 +291,11 @@ class ThreadSet
   ## link two containers
   def link(p, c, overwrite = false)
     if p == c || p.descendant_of?(c) || c.descendant_of?(p) # would create a loop
-      #puts "*** linking parent #{p.id} and child #{c.id} would create a loop"
+      # puts "*** linking parent #{p.id} and child #{c.id} would create a loop"
       return
     end
 
-    #puts "in link for #{p.id} to #{c.id}, perform? #{c.parent.nil?} || #{overwrite}"
+    # puts "in link for #{p.id} to #{c.id}, perform? #{c.parent.nil?} || #{overwrite}"
 
     return unless c.parent.nil? || overwrite
     remove_container c
@@ -404,7 +404,7 @@ class ThreadSet
     el = @messages[message.id]
     return if el.message # we've seen it before
 
-    #puts "adding: #{message.id}, refs #{message.refs.inspect}"
+    # puts "adding: #{message.id}, refs #{message.refs.inspect}"
 
     el.message = message
     oldroot = el.root

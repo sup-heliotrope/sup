@@ -37,7 +37,7 @@ class TestMessagesDir < ::Minitest::Test
     # "from" is just a simple person item
 
     assert_equal('foo@example.org', from.email)
-    #assert_equal("Fake Sender", from.name)
+    # assert_equal("Fake Sender", from.name)
 
     subj = sup_message.subj
     assert_equal('Important', subj)
@@ -46,7 +46,7 @@ class TestMessagesDir < ::Minitest::Test
     indexable_chunks = sup_message.indexable_chunks
 
     # there should be only one chunk
-    #assert_equal(1, chunks.length)
+    # assert_equal(1, chunks.length)
 
     lines = chunks[0].lines
 
@@ -71,7 +71,7 @@ class TestMessagesDir < ::Minitest::Test
     # "from" is just a simple person item
 
     assert_equal('foo@example.org', from.email)
-    #assert_equal("Fake Sender", from.name)
+    # assert_equal("Fake Sender", from.name)
 
     subj = sup_message.subj
     assert_equal('Content-Transfer-Encoding:-bug in sup', subj)
@@ -80,7 +80,7 @@ class TestMessagesDir < ::Minitest::Test
     indexable_chunks = sup_message.indexable_chunks
 
     # there should be only one chunk
-    #assert_equal(1, chunks.length)
+    # assert_equal(1, chunks.length)
 
     lines = chunks[0].lines
 
@@ -105,7 +105,7 @@ class TestMessagesDir < ::Minitest::Test
     # "from" is just a simple person item
 
     assert_equal('foo@aol.com', from.email)
-    #assert_equal("Fake Sender", from.name)
+    # assert_equal("Fake Sender", from.name)
 
     subj = sup_message.subj
     assert_equal('Encoding bug', subj)
@@ -114,7 +114,7 @@ class TestMessagesDir < ::Minitest::Test
     indexable_chunks = sup_message.indexable_chunks
 
     # there should be only one chunk
-    #assert_equal(1, chunks.length)
+    # assert_equal(1, chunks.length)
 
     lines = chunks[0].lines
 

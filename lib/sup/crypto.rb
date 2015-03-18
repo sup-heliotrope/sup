@@ -317,8 +317,8 @@ EOS
     #
     ## check for a valid signature in an extra run because gpg aborts if the
     ## signature cannot be verified (but it is still able to decrypt)
-    #sigoutput = run_gpg "#{payload_fn.path}"
-    #sig = self.old_verified_ok? sigoutput, $?
+    # sigoutput = run_gpg "#{payload_fn.path}"
+    # sig = self.old_verified_ok? sigoutput, $?
 
     if armor
       msg = RMail::Message.new
@@ -390,7 +390,7 @@ EOS
 
   def gpgme_exc_msg(msg)
     err_msg = "Exception in GPGME call: #{msg}"
-    #info err_msg
+    # info err_msg
     err_msg
   end
 

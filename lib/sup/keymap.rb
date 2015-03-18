@@ -31,7 +31,7 @@ EOS
     when :ctrl_l then "\f".ord
     when :ctrl_g then "\a".ord
     when :tab then "\t".ord
-    when :enter, :return then 10 #Ncurses::KEY_ENTER
+    when :enter, :return then 10 # Ncurses::KEY_ENTER
     else
       if k.is_a?(String) && k.length == 1
         k.ord

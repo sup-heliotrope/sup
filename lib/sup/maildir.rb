@@ -58,10 +58,10 @@ class Maildir < Source
         sleep 2 if File.stat(tmp_path)
 
         File.stat(tmp_path)
-      rescue Errno::ENOENT #this is what we want.
+      rescue Errno::ENOENT # this is what we want.
         begin
           File.open(tmp_path, 'wb') do |f|
-            yield f #provide a writable interface for the caller
+            yield f # provide a writable interface for the caller
             f.fsync
           end
 
@@ -70,8 +70,8 @@ class Maildir < Source
         ensure
           File.unlink tmp_path if File.exist? tmp_path
         end
-      end #rescue Errno...
-    end #Dir.chdir
+      end # rescue Errno...
+    end # Dir.chdir
 
     stored
   end
