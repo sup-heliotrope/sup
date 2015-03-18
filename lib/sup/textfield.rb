@@ -120,12 +120,12 @@ class TextField
       when Ncurses::KEY_UP, Ncurses::KEY_DOWN
         unless !@i || @history.empty?
           value = get_cursed_value
-          #debug "history before #{@history.inspect}"
+          # debug "history before #{@history.inspect}"
           @i = @i + (c.is_keycode?(Ncurses::KEY_UP) ? -1 : 1)
           @i = 0 if @i < 0
           @i = @history.size if @i > @history.size
           @value = @history[@i] || ''
-          #debug "history after #{@history.inspect}"
+          # debug "history after #{@history.inspect}"
           set_cursed_value @value
           Ncurses::Form::REQ_END_FIELD
         end

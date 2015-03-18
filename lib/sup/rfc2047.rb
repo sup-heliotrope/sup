@@ -34,9 +34,9 @@ module Rfc2047
       # B64 or QP decode, as necessary:
       case encoding
         when 'b', 'B'
-          #puts text
+          # puts text
           text = text.unpack('m*')[0]
-          #puts text.dump
+          # puts text.dump
 
         when 'q', 'Q'
           # RFC 2047 has a variant of quoted printable where a ' ' character

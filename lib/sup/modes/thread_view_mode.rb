@@ -365,7 +365,7 @@ EOS
     end
     if layout
       layout.state = (layout.state != :closed ? :closed : :open)
-      #cursor_down if layout.state == :closed # too annoying
+      # cursor_down if layout.state == :closed # too annoying
       update
     elsif chunk.viewable?
       view chunk
@@ -470,9 +470,9 @@ EOS
   def jump_to_first_open
     m = @message_lines[0] or return
     if @layout[m].state != :closed
-      jump_to_message m #, true
+      jump_to_message m # , true
     else
-      jump_to_next_open #true
+      jump_to_next_open # true
     end
   end
 

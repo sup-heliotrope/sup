@@ -154,7 +154,7 @@ class Source
       header[k] = begin
         Rfc2047.decode_to $encoding, v
       rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
-        #debug "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
+        # debug "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
         v
       end
     end
@@ -205,7 +205,7 @@ class SourceManager
       @sources_dirty = true
       max = @sources.max_of { |id, s| s.is_a?(DraftLoader) || s.is_a?(SentLoader) ? 0 : id }
       source.id ||= (max || 0) + 1
-      ##source.id += 1 while @sources.member? source.id
+      # #source.id += 1 while @sources.member? source.id
       @sources[source.id] = source
     end
   end

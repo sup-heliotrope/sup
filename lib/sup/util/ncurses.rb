@@ -260,7 +260,7 @@ module Ncurses
       ## Ncurses::Form.form_driver_w wrapper for printable characters.
       def form_driver_char(c)
         form_driver CharCode.character(c)
-        #c.is_a?(Fixnum) ? c : c.ord
+        # c.is_a?(Fixnum) ? c : c.ord
       end
 
       ## Ncurses::Form.form_driver_w wrapper for charcodes.

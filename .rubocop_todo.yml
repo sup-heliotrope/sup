@@ -283,11 +283,6 @@ Style/InfiniteLoop:
 Style/Lambda:
   Enabled: false
 
-# Offense count: 46
-# Cop supports --auto-correct.
-Style/LeadingCommentSpace:
-  Enabled: false
-
 # Offense count: 4
 Style/MultilineBlockChain:
   Enabled: false

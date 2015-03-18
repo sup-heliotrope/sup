@@ -82,7 +82,7 @@ begin
 
   while (c = Ncurses.getch)
     case c
-    when 113 #q
+    when 113 # q
       break
     when Ncurses::KEY_MOUSE
       mev = Ncurses::MEVENT.new
