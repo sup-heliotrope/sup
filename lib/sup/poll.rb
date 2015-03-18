@@ -114,7 +114,7 @@ EOS
 
   def start
     @thread = Redwood::reporting_thread('periodic poll') do
-      while true
+      loop do
         sleep @delay / 2
         poll if @last_poll.nil? || (Time.now - @last_poll) >= @delay
       end

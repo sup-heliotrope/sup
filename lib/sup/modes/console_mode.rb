@@ -111,7 +111,7 @@ Available extra commands: #{(@console.special_methods) * ", "}
 Ctrl-G stops evaluation; 'e' restarts it.
 
 EOS
-    while true
+    loop do
       if (cmd = prompt)
         execute cmd
       else

@@ -79,7 +79,7 @@ EOS
 
   def start_lock_update_thread
     @lock_update_thread = Redwood::reporting_thread('lock update') do
-      while true
+      loop do
         sleep 30
         @lock.touch_yourself
       end
@@ -283,7 +283,7 @@ EOS
     page = EACH_ID_PAGE
 
     xapian_query = build_xapian_query query, ignore_neg_terms
-    while true
+    loop do
       ids = run_query_ids xapian_query, offset, (offset + page)
       ids.each { |id| yield id }
       break if ids.size < page

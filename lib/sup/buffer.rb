@@ -550,7 +550,7 @@ EOS
       Ncurses.refresh
     end
 
-    while true
+    loop do
       c = Ncurses::CharCode.get
       next unless c.present? # getch timeout
       break unless tf.handle_input c # process keystroke

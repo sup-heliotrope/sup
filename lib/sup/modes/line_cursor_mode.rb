@@ -17,7 +17,7 @@ class LineCursorMode < ScrollMode
     @load_more_callbacks = []
     @load_more_q = Queue.new
     @load_more_thread = ::Thread.new do
-      while true
+      loop do
         e = @load_more_q.pop
         @load_more_callbacks.each { |c| c.call e }
         sleep 0.5
