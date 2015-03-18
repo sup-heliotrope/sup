@@ -10,9 +10,7 @@ Rake::TestTask.new(:minitest) do |test|
 end
 desc 'Run tests'
 
-RuboCop::RakeTask.new(:rubocop) do |task|
-  task.patterns = ['lib/**/*.rb', 'bin/**/*.rb']
-end
+RuboCop::RakeTask.new(:rubocop)
 desc 'Run Rubocop Linter'
 
 task test: [:minitest, :rubocop]
