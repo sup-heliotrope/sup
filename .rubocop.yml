@@ -7,3 +7,6 @@ AllCops:
 
 Style/AndOr:
   Enabled: false
+
+Style/NumericLiterals:
+  Enabled: false

@@ -354,10 +354,6 @@ Style/NonNilCheck:
 Style/Not:
   Enabled: false
 
-# Offense count: 3
-# Cop supports --auto-correct.
-Style/NumericLiterals:
-  MinDigits: 8
 
 # Offense count: 11
 Style/OneLineConditional:
