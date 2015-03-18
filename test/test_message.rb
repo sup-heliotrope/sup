@@ -8,22 +8,22 @@ require 'dummy_source'
 
 module Redwood
 
-class TestMessage < Minitest::Test
+  class TestMessage < Minitest::Test
 
-  # rubocop:disable Style/Tab
-  def setup
-    @path = Dir.mktmpdir
-    Redwood::HookManager.init File.join(@path, 'hooks')
-  end
+    # rubocop:disable Style/Tab
+    def setup
+      @path = Dir.mktmpdir
+      Redwood::HookManager.init File.join(@path, 'hooks')
+    end
 
-  def teardown
-    Redwood::HookManager.deinstantiate!
-    FileUtils.rm_r @path
-  end
+    def teardown
+      Redwood::HookManager.deinstantiate!
+      FileUtils.rm_r @path
+    end
 
-  def test_simple_message
+    def test_simple_message
 
-    message = <<EOS
+      message = <<EOS
 Return-path: <fake_sender@example.invalid>
 Envelope-to: fake_receiver@localhost
 Delivery-date: Sun, 09 Dec 2007 21:48:19 +0200
@@ -55,94 +55,94 @@ User-Agent: Sup/0.3
 Test message!
 EOS
 
-    source = DummySource.new('sup-test://test_simple_message')
-    source.messages = [message]
-    source_info = 0
+      source = DummySource.new('sup-test://test_simple_message')
+      source.messages = [message]
+      source_info = 0
 
-    sup_message = Message.build_from_source(source, source_info)
-    sup_message.load_from_source!
+      sup_message = Message.build_from_source(source, source_info)
+      sup_message.load_from_source!
 
-    # see how well parsing the header went
+      # see how well parsing the header went
 
-    to = sup_message.to
-    # "to" is an Array containing person items
+      to = sup_message.to
+      # "to" is an Array containing person items
 
-    # there should be only one item
-    assert_equal(1, to.length)
+      # there should be only one item
+      assert_equal(1, to.length)
 
-    # sup doesn't do capitalized letters in email addresses
-    assert_equal('fake_receiver@localhost', to[0].email)
-    assert_equal('Fake Receiver', to[0].name)
+      # sup doesn't do capitalized letters in email addresses
+      assert_equal('fake_receiver@localhost', to[0].email)
+      assert_equal('Fake Receiver', to[0].name)
 
-    from = sup_message.from
-    # "from" is just a simple person item
+      from = sup_message.from
+      # "from" is just a simple person item
 
-    assert_equal('fake_sender@example.invalid', from.email)
-    assert_equal('Fake Sender', from.name)
+      assert_equal('fake_sender@example.invalid', from.email)
+      assert_equal('Fake Sender', from.name)
 
-    subj = sup_message.subj
-    assert_equal('Re: Test message subject', subj)
+      subj = sup_message.subj
+      assert_equal('Re: Test message subject', subj)
 
-    list_subscribe = sup_message.list_subscribe
-    assert_equal('<mailto:example-subscribe@example.invalid>', list_subscribe)
+      list_subscribe = sup_message.list_subscribe
+      assert_equal('<mailto:example-subscribe@example.invalid>', list_subscribe)
 
-    list_unsubscribe = sup_message.list_unsubscribe
-    assert_equal('<mailto:example-unsubscribe@example.invalid>', list_unsubscribe)
+      list_unsubscribe = sup_message.list_unsubscribe
+      assert_equal('<mailto:example-unsubscribe@example.invalid>', list_unsubscribe)
 
-    list_address = sup_message.list_address
-    assert_equal('example@example.invalid', list_address.email)
-    assert_equal('example', list_address.name)
+      list_address = sup_message.list_address
+      assert_equal('example@example.invalid', list_address.email)
+      assert_equal('example', list_address.name)
 
-    date = sup_message.date
-    assert_equal(Time.parse('Sun, 9 Dec 2007 21:48:19 +0200'), date)
+      date = sup_message.date
+      assert_equal(Time.parse('Sun, 9 Dec 2007 21:48:19 +0200'), date)
 
-    id = sup_message.id
-    assert_equal('20071209194819.GA25972@example.invalid', id)
+      id = sup_message.id
+      assert_equal('20071209194819.GA25972@example.invalid', id)
 
-    refs = sup_message.refs
-    assert_equal(1, refs.length)
-    assert_equal('E1J1Rvb-0006k2-CE@localhost.localdomain', refs[0])
+      refs = sup_message.refs
+      assert_equal(1, refs.length)
+      assert_equal('E1J1Rvb-0006k2-CE@localhost.localdomain', refs[0])
 
-    replytos = sup_message.replytos
-    assert_equal(1, replytos.length)
-    assert_equal('E1J1Rvb-0006k2-CE@localhost.localdomain', replytos[0])
+      replytos = sup_message.replytos
+      assert_equal(1, replytos.length)
+      assert_equal('E1J1Rvb-0006k2-CE@localhost.localdomain', replytos[0])
 
-    cc = sup_message.cc
-    # there are no ccs
-    assert_equal(0, cc.length)
+      cc = sup_message.cc
+      # there are no ccs
+      assert_equal(0, cc.length)
 
-    bcc = sup_message.bcc
-    # there are no bccs
-    assert_equal(0, bcc.length)
+      bcc = sup_message.bcc
+      # there are no bccs
+      assert_equal(0, bcc.length)
 
-    recipient_email = sup_message.recipient_email
-    assert_equal('fake_receiver@localhost', recipient_email)
+      recipient_email = sup_message.recipient_email
+      assert_equal('fake_receiver@localhost', recipient_email)
 
-    message_source = sup_message.source
-    assert_equal(message_source, source)
+      message_source = sup_message.source
+      assert_equal(message_source, source)
 
-    message_source_info = sup_message.source_info
-    assert_equal(message_source_info, source_info)
+      message_source_info = sup_message.source_info
+      assert_equal(message_source_info, source_info)
 
-    # read the message body chunks
+      # read the message body chunks
 
-    chunks = sup_message.load_from_source!
+      chunks = sup_message.load_from_source!
 
-    # there should be only one chunk
-    assert_equal(1, chunks.length)
+      # there should be only one chunk
+      assert_equal(1, chunks.length)
 
-    lines = chunks[0].lines
+      lines = chunks[0].lines
 
-    # there should be only one line
-    assert_equal(1, lines.length)
+      # there should be only one line
+      assert_equal(1, lines.length)
 
-    assert_equal('Test message!', lines[0])
+      assert_equal('Test message!', lines[0])
 
-  end
+    end
 
-  def test_multipart_message
+    def test_multipart_message
 
-    message = <<EOS
+      message = <<EOS
 From fake_receiver@localhost Sun Dec 09 22:33:37 +0200 2007
 Subject: Re: Test message subject
 From: Fake Receiver <fake_receiver@localhost>
@@ -205,36 +205,36 @@ bin/sup-sync-back
 
 --=-1197232418-506707-26079-6122-2-=--
 EOS
-    source = DummySource.new('sup-test://test_multipart_message')
-    source.messages = [message]
-    source_info = 0
+      source = DummySource.new('sup-test://test_multipart_message')
+      source.messages = [message]
+      source_info = 0
 
-    sup_message = Message.build_from_source(source, source_info)
-    sup_message.load_from_source!
+      sup_message = Message.build_from_source(source, source_info)
+      sup_message.load_from_source!
 
-    # read the message body chunks
+      # read the message body chunks
 
-    chunks = sup_message.load_from_source!
+      chunks = sup_message.load_from_source!
 
-    # this time there should be four chunks: first the quoted part of
-    # the message, then the non-quoted part, then the two attachments
-    assert_equal(4, chunks.length)
+      # this time there should be four chunks: first the quoted part of
+      # the message, then the non-quoted part, then the two attachments
+      assert_equal(4, chunks.length)
 
-    assert_equal(chunks[0].class, Redwood::Chunk::Quote)
-    assert_equal(chunks[1].class, Redwood::Chunk::Text)
-    assert_equal(chunks[2].class, Redwood::Chunk::Attachment)
-    assert_equal(chunks[3].class, Redwood::Chunk::Attachment)
+      assert_equal(chunks[0].class, Redwood::Chunk::Quote)
+      assert_equal(chunks[1].class, Redwood::Chunk::Text)
+      assert_equal(chunks[2].class, Redwood::Chunk::Attachment)
+      assert_equal(chunks[3].class, Redwood::Chunk::Attachment)
 
-    # further testing of chunks will happen in test_message_chunks.rb
-    # (possibly not yet implemented)
+      # further testing of chunks will happen in test_message_chunks.rb
+      # (possibly not yet implemented)
 
-  end
+    end
 
-  def test_broken_message_1
+    def test_broken_message_1
 
-    # an example of a broken message, missing "to" and "from" fields
+      # an example of a broken message, missing "to" and "from" fields
 
-    message = <<EOS
+      message = <<EOS
 Return-path: <fake_sender@example.invalid>
 Envelope-to: fake_receiver@localhost
 Delivery-date: Sun, 09 Dec 2007 21:48:19 +0200
@@ -255,32 +255,32 @@ User-Agent: Sup/0.3
 Test message!
 EOS
 
-    source = DummySource.new('sup-test://test_broken_message_1')
-    source.messages = [message]
-    source_info = 0
+      source = DummySource.new('sup-test://test_broken_message_1')
+      source.messages = [message]
+      source_info = 0
 
-    sup_message = Message.build_from_source(source, source_info)
-    sup_message.load_from_source!
+      sup_message = Message.build_from_source(source, source_info)
+      sup_message.load_from_source!
 
-    to = sup_message.to
+      to = sup_message.to
 
-    # there should no items, since the message doesn't have any
-    # recipients -- still not nil
-    assert_equal(0, to.length)
+      # there should no items, since the message doesn't have any
+      # recipients -- still not nil
+      assert_equal(0, to.length)
 
-    # from will have bogus values
-    from = sup_message.from
-    # very basic email address check
-    assert_match(/\w+@\w+\.\w{2,4}/, from.email)
-    refute_nil(from.name)
+      # from will have bogus values
+      from = sup_message.from
+      # very basic email address check
+      assert_match(/\w+@\w+\.\w{2,4}/, from.email)
+      refute_nil(from.name)
 
-  end
+    end
 
-  def test_broken_message_2
+    def test_broken_message_2
 
-    # an example of a broken message, no body at all
+      # an example of a broken message, no body at all
 
-    message = <<EOS
+      message = <<EOS
 Return-path: <fake_sender@example.invalid>
 From: Fake Sender <fake_sender@example.invalid>
 To: Fake Receiver <fake_receiver@localhost>
@@ -301,26 +301,26 @@ In-Reply-To: <E1J1Rvb-0006k2-CE@localhost.localdomain>
 User-Agent: Sup/0.3
 EOS
 
-    source = DummySource.new('sup-test://test_broken_message_1')
-    source.messages = [message]
-    source_info = 0
+      source = DummySource.new('sup-test://test_broken_message_1')
+      source.messages = [message]
+      source_info = 0
 
-    sup_message = Message.build_from_source(source, source_info)
-    sup_message.load_from_source!
+      sup_message = Message.build_from_source(source, source_info)
+      sup_message.load_from_source!
 
-    # read the message body chunks: no errors should reach this level
+      # read the message body chunks: no errors should reach this level
 
-    chunks = sup_message.load_from_source!
+      chunks = sup_message.load_from_source!
 
-    # the chunks list should be empty
+      # the chunks list should be empty
 
-    assert_equal(0, chunks.length)
+      assert_equal(0, chunks.length)
 
-  end
+    end
 
-  def test_multipart_message_2
+    def test_multipart_message_2
 
-    message = <<EOS
+      message = <<EOS
 Return-path: <vim-mac-return-3938-fake_receiver=localhost@vim.org>
 Envelope-to: fake_receiver@localhost
 Delivery-date: Wed, 14 Jun 2006 19:22:54 +0300
@@ -396,21 +396,21 @@ src=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0></ifra
 
 
 EOS
-    source = DummySource.new('sup-test://test_multipart_message_2')
-    source.messages = [message]
-    source_info = 0
+      source = DummySource.new('sup-test://test_multipart_message_2')
+      source.messages = [message]
+      source_info = 0
 
-    sup_message = Message.build_from_source(source, source_info)
-    sup_message.load_from_source!
+      sup_message = Message.build_from_source(source, source_info)
+      sup_message.load_from_source!
 
-    # read the message body chunks
+      # read the message body chunks
 
-    sup_message.load_from_source!
-  end
+      sup_message.load_from_source!
+    end
 
-  def test_blank_header_lines
+    def test_blank_header_lines
 
-    message = <<EOS
+      message = <<EOS
 Return-Path: <monitor-list-bounces@widget.com>
 X-Original-To: nobody@localhost
 Delivered-To: nobody@localhost.eng.widget.com
@@ -484,29 +484,29 @@ Hi all,
 Michael=
 EOS
 
-    source = DummySource.new('sup-test://test_blank_header_lines')
-    source.messages = [message]
-    source_info = 0
+      source = DummySource.new('sup-test://test_blank_header_lines')
+      source.messages = [message]
+      source_info = 0
 
-    sup_message = Message.build_from_source(source, source_info)
-    sup_message.load_from_source!
+      sup_message = Message.build_from_source(source, source_info)
+      sup_message.load_from_source!
 
-    # See how well parsing the message ID went.
-    id = sup_message.id
-    assert_equal('D3C12B2AD838B44DA9D6B2CA334246D011E72A73A4@PA-EXMBX04.widget.com', id)
+      # See how well parsing the message ID went.
+      id = sup_message.id
+      assert_equal('D3C12B2AD838B44DA9D6B2CA334246D011E72A73A4@PA-EXMBX04.widget.com', id)
 
-    # Look at another header field whose first line was blank.
-    list_unsubscribe = sup_message.list_unsubscribe
-    assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>,\n \t" \
-                 '<mailto:monitor-list-request@widget.com?subject=unsubscribe>',
-                 list_unsubscribe)
+      # Look at another header field whose first line was blank.
+      list_unsubscribe = sup_message.list_unsubscribe
+      assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>,\n \t" \
+                   '<mailto:monitor-list-request@widget.com?subject=unsubscribe>',
+                   list_unsubscribe)
 
-  end
+    end
 
-  def test_malicious_attachment_names
+    def test_malicious_attachment_names
 
 
-    message = <<EOS
+      message = <<EOS
 From: Matthieu Rakotojaona <matthieu.rakotojaona@gmail.com>
 To: reply+0007a7cb7174d1d188fcd420fce83e0f68fe03fc7416cdae92cf0000000110ce4efd92a169ce033d18e1 <reply+0007a7cb7174d1d188fcd420fce83e0f68fe03fc7416cdae92cf0000000110ce4efd92a169ce033d18e1@reply.github.com>
 Subject: Re: [sup] Attachment saving and special characters in filenames (#378)
@@ -564,28 +564,28 @@ script: bundle exec rake travis
 --=-1421270017-526778-1064-1628-1-=--
 EOS
 
-    source = DummySource.new('sup-test://test_blank_header_lines')
-    source.messages = [message]
-    source_info = 0
+      source = DummySource.new('sup-test://test_blank_header_lines')
+      source.messages = [message]
+      source_info = 0
 
-    sup_message = Message.build_from_source(source, source_info)
-    chunks = sup_message.load_from_source!
+      sup_message = Message.build_from_source(source, source_info)
+      chunks = sup_message.load_from_source!
 
-    # See if attachment filenames can be safely used for saving.
-    # We do that by verifying that any folder-related character (/ or \)
-    # are not interpreted: the filename must not be interpreted into a
-    # path.
-    fn = chunks[3].safe_filename
-    assert_equal(fn, File.basename(fn))
+      # See if attachment filenames can be safely used for saving.
+      # We do that by verifying that any folder-related character (/ or \)
+      # are not interpreted: the filename must not be interpreted into a
+      # path.
+      fn = chunks[3].safe_filename
+      assert_equal(fn, File.basename(fn))
 
+    end
+    # TODO: test different error cases, malformed messages etc.
+
+    # TODO: test different quoting styles, see that they are all divided
+    # to chunks properly
+
+    # rubocop:enable Style/Tab
   end
-  # TODO: test different error cases, malformed messages etc.
-
-  # TODO: test different quoting styles, see that they are all divided
-  # to chunks properly
-
-  # rubocop:enable Style/Tab
-end
 
 end
 

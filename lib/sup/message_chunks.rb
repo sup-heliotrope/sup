@@ -60,9 +60,9 @@ end
 
 
 module Redwood
-module Chunk
-  class Attachment
-    HookManager.register 'mime-decode', <<EOS
+  module Chunk
+    class Attachment
+      HookManager.register 'mime-decode', <<EOS
 Decodes a MIME attachment into text form. The text will be displayed
 directly in Sup. For attachments that you wish to use a separate program
 to view (e.g. images), you should use the mime-view hook instead.
@@ -79,7 +79,7 @@ Return value:
 EOS
 
 
-    HookManager.register 'mime-view', <<EOS
+      HookManager.register 'mime-view', <<EOS
 Views a non-text MIME attachment. This hook allows you to run
 third-party programs for attachments that require such a thing (e.g.
 images). To instead display a text version of the attachment directly in
@@ -97,240 +97,240 @@ Return value:
   True if the viewing was successful, false otherwise. If false, calling
   /usr/bin/run-mailcap will be tried.
 EOS
-# ' stupid ruby-mode
+  # ' stupid ruby-mode
 
-    ## raw_content is the post-MIME-decode content. this is used for
-    ## saving the attachment to disk.
-    attr_reader :content_type, :filename, :lines, :raw_content
-    bool_reader :quotable
+      ## raw_content is the post-MIME-decode content. this is used for
+      ## saving the attachment to disk.
+      attr_reader :content_type, :filename, :lines, :raw_content
+      bool_reader :quotable
 
-    ## store tempfile objects as class variables so that they
-    ## are not removed when the viewing process returns. they
-    ## should be garbage collected when the class variable is removed.
-    @@view_tempfiles = []
+      ## store tempfile objects as class variables so that they
+      ## are not removed when the viewing process returns. they
+      ## should be garbage collected when the class variable is removed.
+      @@view_tempfiles = []
 
-    def initialize(content_type, filename, encoded_content, sibling_types)
-      @content_type = content_type.downcase
-      if Shellwords.escape(@content_type) != @content_type
-        warn "content_type #{@content_type} is not safe, changed to application/octet-stream"
-        @content_type = 'application/octet-stream'
-      end
-
-      @filename = filename
-      @quotable = false # changed to true if we can parse it through the
-                        # mime-decode hook, or if it's plain text
-      @raw_content =
-        if encoded_content.body
-          encoded_content.decode
-        else
-          "For some bizarre reason, RubyMail was unable to parse this attachment.\n"
+      def initialize(content_type, filename, encoded_content, sibling_types)
+        @content_type = content_type.downcase
+        if Shellwords.escape(@content_type) != @content_type
+          warn "content_type #{@content_type} is not safe, changed to application/octet-stream"
+          @content_type = 'application/octet-stream'
         end
 
-      text = case @content_type
-      when /^text\/plain\b/
-        @raw_content
-      else
-        HookManager.run 'mime-decode', content_type: @content_type,
-                                       filename: lambda { write_to_disk },
-                                       charset: encoded_content.charset,
-                                       sibling_types: sibling_types
+        @filename = filename
+        @quotable = false # changed to true if we can parse it through the
+                          # mime-decode hook, or if it's plain text
+        @raw_content =
+          if encoded_content.body
+            encoded_content.decode
+          else
+            "For some bizarre reason, RubyMail was unable to parse this attachment.\n"
+          end
+
+        text = case @content_type
+        when /^text\/plain\b/
+          @raw_content
+        else
+          HookManager.run 'mime-decode', content_type: @content_type,
+                                         filename: lambda { write_to_disk },
+                                         charset: encoded_content.charset,
+                                         sibling_types: sibling_types
+        end
+
+        @lines = nil
+        if text
+          text = text.transcode(encoded_content.charset || $encoding, text.encoding)
+          begin
+            @lines = text.gsub("\r\n", "\n").gsub(/\t/, '        ').gsub(/\r/, '').split("\n")
+          rescue Encoding::CompatibilityError
+            @lines = text.fix_encoding!.gsub("\r\n", "\n").gsub(/\t/, '        ').gsub(/\r/, '').split("\n")
+            debug "error while decoding message text, falling back to default encoding, expect errors in encoding: #{text.fix_encoding!}"
+          end
+
+          @quotable = true
+        end
       end
 
-      @lines = nil
-      if text
-        text = text.transcode(encoded_content.charset || $encoding, text.encoding)
+      def color; :text_color end
+      def patina_color; :attachment_color end
+      def patina_text
+        if expandable?
+          "Attachment: #{filename} (#{lines.length} lines)"
+        else
+          "Attachment: #{filename} (#{content_type}; #{@raw_content.size.to_human_size})"
+        end
+      end
+      def safe_filename; Shellwords.escape(@filename).gsub('/', '_') end
+
+      ## an attachment is exapndable if we've managed to decode it into
+      ## something we can display inline. otherwise, it's viewable.
+      def inlineable?; false end
+      def expandable?; !viewable? end
+      def indexable?; expandable? end
+      def initial_state; :open end
+      def viewable?; @lines.nil? end
+      def view_default!(path)
+        case RbConfig::CONFIG['arch']
+          when /darwin/
+            cmd = "open #{path}"
+          else
+            cmd = "/usr/bin/run-mailcap --action=view #{@content_type}:#{path}"
+        end
+        debug "running: #{cmd.inspect}"
+        BufferManager.shell_out(cmd)
+        $? == 0
+      end
+
+      def view!
+        write_to_disk do |path|
+          ret = HookManager.run 'mime-view', content_type: @content_type,
+                                             filename: path
+          ret || view_default!(path)
+        end
+      end
+
+      def write_to_disk
         begin
-          @lines = text.gsub("\r\n", "\n").gsub(/\t/, '        ').gsub(/\r/, '').split("\n")
-        rescue Encoding::CompatibilityError
-          @lines = text.fix_encoding!.gsub("\r\n", "\n").gsub(/\t/, '        ').gsub(/\r/, '').split("\n")
-          debug "error while decoding message text, falling back to default encoding, expect errors in encoding: #{text.fix_encoding!}"
+          # Add the original extension to the generated tempfile name only if the
+          # extension is "safe" (won't be interpreted by the shell).  Since
+          # Tempfile.new always generates safe file names this should prevent
+          # attacking the user with funny attachment file names.
+          tempname = if (File.extname @filename) =~ /^\.[[:alnum:]]+$/
+                       ['sup-attachment', File.extname(@filename)]
+                     else
+                       'sup-attachment'
+                     end
+
+          file = Tempfile.new(tempname)
+          file.print @raw_content
+          file.flush
+
+          @@view_tempfiles.push file # make sure the tempfile is not garbage collected before sup stops
+
+          yield file.path if block_given?
+          return file.path
+        ensure
+          file.close
+        end
+      end
+
+      ## used when viewing the attachment as text
+      def to_s
+        @lines || @raw_content
+      end
+    end
+
+    class Text
+
+      attr_reader :lines
+      def initialize(lines)
+        @lines = lines
+        ## trim off all empty lines except one
+        @lines.pop while @lines.length > 1 && @lines[-1] =~ /^\s*$/ && @lines[-2] =~ /^\s*$/
+      end
+
+      def inlineable?; true end
+      def quotable?; true end
+      def expandable?; false end
+      def indexable?; true end
+      def viewable?; false end
+      def color; :text_color end
+    end
+
+    class Quote
+      attr_reader :lines
+      def initialize(lines)
+        @lines = lines
+      end
+
+      def inlineable?; @lines.length == 1 end
+      def quotable?; true end
+      def expandable?; !inlineable? end
+      def indexable?; expandable? end
+      def viewable?; false end
+
+      def patina_color; :quote_patina_color end
+      def patina_text; "(#{lines.length} quoted lines)" end
+      def color; :quote_color end
+    end
+
+    class Signature
+      attr_reader :lines
+      def initialize(lines)
+        @lines = lines
+      end
+
+      def inlineable?; @lines.length == 1 end
+      def quotable?; false end
+      def expandable?; !inlineable? end
+      def indexable?; expandable? end
+      def viewable?; false end
+
+      def patina_color; :sig_patina_color end
+      def patina_text; "(#{lines.length}-line signature)" end
+      def color; :sig_color end
+    end
+
+    class EnclosedMessage
+      attr_reader :lines
+      def initialize(from, to, cc, date, subj)
+        @from = from ? 'unknown sender' : from.full_address
+        @to = to ? '' : to.map { |p| p.full_address }.join(', ')
+        @cc = cc ? '' : cc.map { |p| p.full_address }.join(', ')
+        if date
+          @date = date.rfc822
+        else
+          @date = ''
         end
 
-        @quotable = true
+        @subj = subj
+
+        @lines = "\nFrom: #{from}\n"
+        @lines += "To: #{to}\n"
+        if !cc.empty?
+          @lines += "Cc: #{cc}\n"
+        end
+        @lines += "Date: #{date}\n"
+        @lines += "Subject: #{subj}\n\n"
       end
+
+      def inlineable?; false end
+      def quotable?; false end
+      def expandable?; true end
+      def indexable?; true end
+      def initial_state; :closed end
+      def viewable?; false end
+
+      def patina_color; :generic_notice_patina_color end
+      def patina_text; "Begin enclosed message sent on #{@date}" end
+
+      def color; :quote_color end
     end
 
-    def color; :text_color end
-    def patina_color; :attachment_color end
-    def patina_text
-      if expandable?
-        "Attachment: #{filename} (#{lines.length} lines)"
-      else
-        "Attachment: #{filename} (#{content_type}; #{@raw_content.size.to_human_size})"
+    class CryptoNotice
+      attr_reader :lines, :status, :patina_text, :unknown_fingerprint
+
+      def initialize(status, description, lines = [], unknown_fingerprint = nil)
+        @status = status
+        @patina_text = description
+        @lines = lines
+        @unknown_fingerprint = unknown_fingerprint
       end
-    end
-    def safe_filename; Shellwords.escape(@filename).gsub('/', '_') end
 
-    ## an attachment is exapndable if we've managed to decode it into
-    ## something we can display inline. otherwise, it's viewable.
-    def inlineable?; false end
-    def expandable?; !viewable? end
-    def indexable?; expandable? end
-    def initial_state; :open end
-    def viewable?; @lines.nil? end
-    def view_default!(path)
-      case RbConfig::CONFIG['arch']
-        when /darwin/
-          cmd = "open #{path}"
-        else
-          cmd = "/usr/bin/run-mailcap --action=view #{@content_type}:#{path}"
+      def patina_color
+        case status
+        when :valid then :cryptosig_valid_color
+        when :valid_untrusted then :cryptosig_valid_untrusted_color
+        when :invalid then :cryptosig_invalid_color
+        else :cryptosig_unknown_color
+        end
       end
-      debug "running: #{cmd.inspect}"
-      BufferManager.shell_out(cmd)
-      $? == 0
-    end
+      def color; patina_color end
 
-    def view!
-      write_to_disk do |path|
-        ret = HookManager.run 'mime-view', content_type: @content_type,
-                                           filename: path
-        ret || view_default!(path)
-      end
-    end
-
-    def write_to_disk
-      begin
-        # Add the original extension to the generated tempfile name only if the
-        # extension is "safe" (won't be interpreted by the shell).  Since
-        # Tempfile.new always generates safe file names this should prevent
-        # attacking the user with funny attachment file names.
-        tempname = if (File.extname @filename) =~ /^\.[[:alnum:]]+$/
-                     ['sup-attachment', File.extname(@filename)]
-                   else
-                     'sup-attachment'
-                   end
-
-        file = Tempfile.new(tempname)
-        file.print @raw_content
-        file.flush
-
-        @@view_tempfiles.push file # make sure the tempfile is not garbage collected before sup stops
-
-        yield file.path if block_given?
-        return file.path
-      ensure
-        file.close
-      end
-    end
-
-    ## used when viewing the attachment as text
-    def to_s
-      @lines || @raw_content
+      def inlineable?; false end
+      def quotable?; false end
+      def expandable?; !@lines.empty? end
+      def indexable?; false end
+      def viewable?; false end
     end
   end
-
-  class Text
-
-    attr_reader :lines
-    def initialize(lines)
-      @lines = lines
-      ## trim off all empty lines except one
-      @lines.pop while @lines.length > 1 && @lines[-1] =~ /^\s*$/ && @lines[-2] =~ /^\s*$/
-    end
-
-    def inlineable?; true end
-    def quotable?; true end
-    def expandable?; false end
-    def indexable?; true end
-    def viewable?; false end
-    def color; :text_color end
-  end
-
-  class Quote
-    attr_reader :lines
-    def initialize(lines)
-      @lines = lines
-    end
-
-    def inlineable?; @lines.length == 1 end
-    def quotable?; true end
-    def expandable?; !inlineable? end
-    def indexable?; expandable? end
-    def viewable?; false end
-
-    def patina_color; :quote_patina_color end
-    def patina_text; "(#{lines.length} quoted lines)" end
-    def color; :quote_color end
-  end
-
-  class Signature
-    attr_reader :lines
-    def initialize(lines)
-      @lines = lines
-    end
-
-    def inlineable?; @lines.length == 1 end
-    def quotable?; false end
-    def expandable?; !inlineable? end
-    def indexable?; expandable? end
-    def viewable?; false end
-
-    def patina_color; :sig_patina_color end
-    def patina_text; "(#{lines.length}-line signature)" end
-    def color; :sig_color end
-  end
-
-  class EnclosedMessage
-    attr_reader :lines
-    def initialize(from, to, cc, date, subj)
-      @from = from ? 'unknown sender' : from.full_address
-      @to = to ? '' : to.map { |p| p.full_address }.join(', ')
-      @cc = cc ? '' : cc.map { |p| p.full_address }.join(', ')
-      if date
-        @date = date.rfc822
-      else
-        @date = ''
-      end
-
-      @subj = subj
-
-      @lines = "\nFrom: #{from}\n"
-      @lines += "To: #{to}\n"
-      if !cc.empty?
-        @lines += "Cc: #{cc}\n"
-      end
-      @lines += "Date: #{date}\n"
-      @lines += "Subject: #{subj}\n\n"
-    end
-
-    def inlineable?; false end
-    def quotable?; false end
-    def expandable?; true end
-    def indexable?; true end
-    def initial_state; :closed end
-    def viewable?; false end
-
-    def patina_color; :generic_notice_patina_color end
-    def patina_text; "Begin enclosed message sent on #{@date}" end
-
-    def color; :quote_color end
-  end
-
-  class CryptoNotice
-    attr_reader :lines, :status, :patina_text, :unknown_fingerprint
-
-    def initialize(status, description, lines = [], unknown_fingerprint = nil)
-      @status = status
-      @patina_text = description
-      @lines = lines
-      @unknown_fingerprint = unknown_fingerprint
-    end
-
-    def patina_color
-      case status
-      when :valid then :cryptosig_valid_color
-      when :valid_untrusted then :cryptosig_valid_untrusted_color
-      when :invalid then :cryptosig_invalid_color
-      else :cryptosig_unknown_color
-      end
-    end
-    def color; patina_color end
-
-    def inlineable?; false end
-    def quotable?; false end
-    def expandable?; !@lines.empty? end
-    def indexable?; false end
-    def viewable?; false end
-  end
-end
 end

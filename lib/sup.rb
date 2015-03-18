@@ -98,7 +98,7 @@ module Redwood
 ## one-stop shop for yamliciousness
   def save_yaml_obj(o, fn, safe = false, backup = false)
     o = if o.is_a?(Array)
-      o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
+          o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
     elsif o.respond_to? :before_marshal
       o.before_marshal
     else
@@ -106,7 +106,7 @@ module Redwood
     end
 
     mode = if File.exist? fn
-      File.stat(fn).mode
+             File.stat(fn).mode
     else
       0600
     end
@@ -140,11 +140,11 @@ module Redwood
 
   def load_yaml_obj(fn, compress = false)
     o = if File.exist? fn
-      if compress
-        Zlib::GzipReader.open(fn) { |f| YAML::load f }
-      else
-        YAML::load_file fn
-      end
+          if compress
+            Zlib::GzipReader.open(fn) { |f| YAML::load f }
+          else
+            YAML::load_file fn
+          end
     end
     if o.is_a?(Array)
       o.each { |x| x.after_unmarshal! if x.respond_to?(:after_unmarshal!) }
@@ -298,9 +298,9 @@ Until this is corrected, messages from these sources cannot be viewed,
 and new messages will not be detected. Luckily, this is easy to correct!
 
 #{desynced_sources.map do |s|
-  "Source: " + s.to_s +
-   "\n Error: " + s.error.message.wrap(70).join("\n        ") +
-   "\n   Fix: sup-sync --changed #{s}"
+    "Source: " + s.to_s +
+     "\n Error: " + s.error.message.wrap(70).join("\n        ") +
+     "\n   Fix: sup-sync --changed #{s}"
   end}
 EOM
 # ' stupid ruby-mode

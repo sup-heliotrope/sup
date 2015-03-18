@@ -5,1035 +5,1035 @@ module Redwood
 ## subclasses should implement:
 ## - is_relevant?
 
-class ThreadIndexMode < LineCursorMode
-  DATE_WIDTH = Time::TO_NICE_S_MAX_LEN
-  MIN_FROM_WIDTH = 15
-  LOAD_MORE_THREAD_NUM = 20
+  class ThreadIndexMode < LineCursorMode
+    DATE_WIDTH = Time::TO_NICE_S_MAX_LEN
+    MIN_FROM_WIDTH = 15
+    LOAD_MORE_THREAD_NUM = 20
 
-  HookManager.register 'index-mode-size-widget', <<EOS
+    HookManager.register 'index-mode-size-widget', <<EOS
 Generates the per-thread size widget for each thread.
 Variables:
   thread: The message thread to be formatted.
 EOS
 
-  HookManager.register 'index-mode-date-widget', <<EOS
+    HookManager.register 'index-mode-date-widget', <<EOS
 Generates the per-thread date widget for each thread.
 Variables:
   thread: The message thread to be formatted.
 EOS
 
-  HookManager.register 'mark-as-spam', <<EOS
+    HookManager.register 'mark-as-spam', <<EOS
 This hook is run when a thread is marked as spam
 Variables:
   thread: The message thread being marked as spam.
 EOS
 
-  register_keymap do |k|
-    k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
-    k.add_multi 'Load all threads (! to confirm) :', '!' do |kk|
-      kk.add :load_all_threads, 'Load all threads (may list a _lot_ of threads)', '!'
+    register_keymap do |k|
+      k.add :load_threads, "Load #{LOAD_MORE_THREAD_NUM} more threads", 'M'
+      k.add_multi 'Load all threads (! to confirm) :', '!' do |kk|
+        kk.add :load_all_threads, 'Load all threads (may list a _lot_ of threads)', '!'
+      end
+      k.add :read_and_archive, 'Archive thread (remove from inbox) and mark read', 'A'
+      k.add :cancel_search, 'Cancel current search', :ctrl_g
+      k.add :reload, 'Refresh view', '@'
+      k.add :toggle_archived, 'Toggle archived status', 'a'
+      k.add :toggle_starred, 'Star or unstar all messages in thread', '*'
+      k.add :toggle_new, 'Toggle new/read status of all messages in thread', 'N'
+      k.add :edit_labels, 'Edit or add labels for a thread', 'l'
+      k.add :edit_message, 'Edit message (drafts only)', 'e'
+      k.add :toggle_spam, 'Mark/unmark thread as spam', 'S'
+      k.add :toggle_deleted, 'Delete/undelete thread', 'd'
+      k.add :kill, 'Kill thread (never to be seen in inbox again)', '&'
+      k.add :flush_index, 'Flush all changes now', '$'
+      k.add :jump_to_next_new, 'Jump to next new thread', :tab
+      k.add :reply, 'Reply to latest message in a thread', 'r'
+      k.add :reply_all, 'Reply to all participants of the latest message in a thread', 'G'
+      k.add :forward, 'Forward latest message in a thread', 'f'
+      k.add :toggle_tagged, 'Tag/untag selected thread', 't'
+      k.add :toggle_tagged_all, 'Tag/untag all threads', 'T'
+      k.add :tag_matching, 'Tag matching threads', 'g'
+      k.add :apply_to_tagged, 'Apply next command to all tagged threads', '+', '='
+      k.add :join_threads, 'Force tagged threads to be joined into the same thread', '#'
+      k.add :undo, 'Undo the previous action', 'u'
     end
-    k.add :read_and_archive, 'Archive thread (remove from inbox) and mark read', 'A'
-    k.add :cancel_search, 'Cancel current search', :ctrl_g
-    k.add :reload, 'Refresh view', '@'
-    k.add :toggle_archived, 'Toggle archived status', 'a'
-    k.add :toggle_starred, 'Star or unstar all messages in thread', '*'
-    k.add :toggle_new, 'Toggle new/read status of all messages in thread', 'N'
-    k.add :edit_labels, 'Edit or add labels for a thread', 'l'
-    k.add :edit_message, 'Edit message (drafts only)', 'e'
-    k.add :toggle_spam, 'Mark/unmark thread as spam', 'S'
-    k.add :toggle_deleted, 'Delete/undelete thread', 'd'
-    k.add :kill, 'Kill thread (never to be seen in inbox again)', '&'
-    k.add :flush_index, 'Flush all changes now', '$'
-    k.add :jump_to_next_new, 'Jump to next new thread', :tab
-    k.add :reply, 'Reply to latest message in a thread', 'r'
-    k.add :reply_all, 'Reply to all participants of the latest message in a thread', 'G'
-    k.add :forward, 'Forward latest message in a thread', 'f'
-    k.add :toggle_tagged, 'Tag/untag selected thread', 't'
-    k.add :toggle_tagged_all, 'Tag/untag all threads', 'T'
-    k.add :tag_matching, 'Tag matching threads', 'g'
-    k.add :apply_to_tagged, 'Apply next command to all tagged threads', '+', '='
-    k.add :join_threads, 'Force tagged threads to be joined into the same thread', '#'
-    k.add :undo, 'Undo the previous action', 'u'
-  end
 
-  def initialize(hidden_labels = [], load_thread_opts = {})
-    super()
-    @mutex = Mutex.new # covers the following variables:
-    @threads = []
-    @hidden_threads = {}
-    @size_widget_width = nil
-    @size_widgets = []
-    @date_widget_width = nil
-    @date_widgets = []
-    @tags = Tagger.new self
+    def initialize(hidden_labels = [], load_thread_opts = {})
+      super()
+      @mutex = Mutex.new # covers the following variables:
+      @threads = []
+      @hidden_threads = {}
+      @size_widget_width = nil
+      @size_widgets = []
+      @date_widget_width = nil
+      @date_widgets = []
+      @tags = Tagger.new self
 
-    ## these guys, and @text and @lines, are not covered
-    @load_thread = nil
-    @load_thread_opts = load_thread_opts
-    @hidden_labels = hidden_labels + LabelManager::HIDDEN_RESERVED_LABELS
-    @date_width = DATE_WIDTH
+      ## these guys, and @text and @lines, are not covered
+      @load_thread = nil
+      @load_thread_opts = load_thread_opts
+      @hidden_labels = hidden_labels + LabelManager::HIDDEN_RESERVED_LABELS
+      @date_width = DATE_WIDTH
 
-    @interrupt_search = false
+      @interrupt_search = false
 
-    initialize_threads # defines @ts and @ts_mutex
-    update # defines @text and @lines
+      initialize_threads # defines @ts and @ts_mutex
+      update # defines @text and @lines
 
-    UpdateManager.register self
+      UpdateManager.register self
 
-    @save_thread_mutex = Mutex.new
+      @save_thread_mutex = Mutex.new
 
-    @last_load_more_size = nil
-    to_load_more do |size|
-      next if @last_load_more_size == 0
-      load_threads num: size,
-                   when_done: lambda { |num| @last_load_more_size = num }
+      @last_load_more_size = nil
+      to_load_more do |size|
+        next if @last_load_more_size == 0
+        load_threads num: size,
+                     when_done: lambda { |num| @last_load_more_size = num }
+      end
     end
-  end
 
-  def unsaved?; dirty? end
-  def lines; @text.length; end
-  def [](i); @text[i]; end
-  def contains_thread?(t); @threads.include?(t) end
+    def unsaved?; dirty? end
+    def lines; @text.length; end
+    def [](i); @text[i]; end
+    def contains_thread?(t); @threads.include?(t) end
 
-  def reload
-    drop_all_threads
-    UndoManager.clear
-    BufferManager.draw_screen
-    load_threads num: buffer.content_height
-  end
+    def reload
+      drop_all_threads
+      UndoManager.clear
+      BufferManager.draw_screen
+      load_threads num: buffer.content_height
+    end
 
-  ## open up a thread view window
-  def select(t = nil, when_done = nil)
-    t ||= cursor_thread or return
+    ## open up a thread view window
+    def select(t = nil, when_done = nil)
+      t ||= cursor_thread or return
 
-    Redwood::reporting_thread('load messages for thread-view-mode') do
-      num = t.size
-      message = "Loading #{num.pluralize 'message body'}..."
-      BufferManager.say(message) do |sid|
-        t.each_with_index do |(m, *_), i|
-          next unless m
-          BufferManager.say "#{message} (#{i}/#{num})", sid if t.size > 1
-          m.load_from_source!
+      Redwood::reporting_thread('load messages for thread-view-mode') do
+        num = t.size
+        message = "Loading #{num.pluralize 'message body'}..."
+        BufferManager.say(message) do |sid|
+          t.each_with_index do |(m, *_), i|
+            next unless m
+            BufferManager.say "#{message} (#{i}/#{num})", sid if t.size > 1
+            m.load_from_source!
+          end
+        end
+        mode = ThreadViewMode.new t, @hidden_labels, self
+        BufferManager.spawn t.subj, mode
+        BufferManager.draw_screen
+        mode.jump_to_first_open if $config[:jump_to_open_message]
+        BufferManager.draw_screen # lame TODO: make this unnecessary
+        ## the first draw_screen is needed before topline and botline
+        ## are set, and the second to show the cursor having moved
+
+        t.remove_label :unread
+        Index.save_thread t
+
+        update_text_for_line curpos
+        UpdateManager.relay self, :read, t.first
+        when_done.call if when_done
+      end
+    end
+
+    def multi_select(threads)
+      threads.each { |t| select t }
+    end
+
+    ## these two methods are called by thread-view-modes when the user
+    ## wants to view the previous/next thread without going back to
+    ## index-mode. we update the cursor as a convenience.
+    def launch_next_thread_after(thread, &b)
+      launch_another_thread thread, 1, &b
+    end
+
+    def launch_prev_thread_before(thread, &b)
+      launch_another_thread thread, -1, &b
+    end
+
+    def launch_another_thread(thread, direction, &b)
+      l = @lines[thread] or return
+      target_l = l + direction
+      t = @mutex.synchronize do
+        if target_l >= 0 && target_l < @threads.length
+          @threads[target_l]
         end
       end
-      mode = ThreadViewMode.new t, @hidden_labels, self
-      BufferManager.spawn t.subj, mode
-      BufferManager.draw_screen
-      mode.jump_to_first_open if $config[:jump_to_open_message]
-      BufferManager.draw_screen # lame TODO: make this unnecessary
-      ## the first draw_screen is needed before topline and botline
-      ## are set, and the second to show the cursor having moved
 
-      t.remove_label :unread
-      Index.save_thread t
-
-      update_text_for_line curpos
-      UpdateManager.relay self, :read, t.first
-      when_done.call if when_done
-    end
-  end
-
-  def multi_select(threads)
-    threads.each { |t| select t }
-  end
-
-  ## these two methods are called by thread-view-modes when the user
-  ## wants to view the previous/next thread without going back to
-  ## index-mode. we update the cursor as a convenience.
-  def launch_next_thread_after(thread, &b)
-    launch_another_thread thread, 1, &b
-  end
-
-  def launch_prev_thread_before(thread, &b)
-    launch_another_thread thread, -1, &b
-  end
-
-  def launch_another_thread(thread, direction, &b)
-    l = @lines[thread] or return
-    target_l = l + direction
-    t = @mutex.synchronize do
-      if target_l >= 0 && target_l < @threads.length
-        @threads[target_l]
+      if t # there's a next thread
+        set_cursor_pos target_l # move out of mutex?
+        select t, b
+      elsif b # no next thread. call the block anyways
+        b.call
       end
     end
 
-    if t # there's a next thread
-      set_cursor_pos target_l # move out of mutex?
-      select t, b
-    elsif b # no next thread. call the block anyways
-      b.call
+    def handle_single_message_labeled_update(sender, m)
+      ## no need to do anything different here; we don't differentiate
+      ## messages from their containing threads
+      handle_labeled_update sender, m
     end
-  end
 
-  def handle_single_message_labeled_update(sender, m)
-    ## no need to do anything different here; we don't differentiate
-    ## messages from their containing threads
-    handle_labeled_update sender, m
-  end
+    def handle_labeled_update(_sender, m)
+      if (t = thread_containing(m))
+        l = @lines[t] or return
+        update_text_for_line l
+      elsif is_relevant?(m)
+        add_or_unhide m
+      end
+    end
 
-  def handle_labeled_update(_sender, m)
-    if (t = thread_containing(m))
+    def handle_simple_update(_sender, m)
+      t = thread_containing(m) or return
       l = @lines[t] or return
       update_text_for_line l
-    elsif is_relevant?(m)
+    end
+
+    %w(read unread archived starred unstarred).each do |state|
+      define_method "handle_#{state}_update" do |*a|
+        handle_simple_update(*a)
+      end
+    end
+
+    ## overwrite me!
+    def is_relevant?(_m); false; end
+
+    def handle_added_update(_sender, m)
+      add_or_unhide m
+      BufferManager.draw_screen
+    end
+
+    def handle_updated_update(_sender, m)
+      t = thread_containing(m) or return
+      l = @lines[t] or return
+      @ts_mutex.synchronize do
+        @ts.delete_message m
+        @ts.add_message m
+      end
+      Index.save_thread t, sync_back = false
+      update_text_for_line l
+    end
+
+    def handle_location_deleted_update(_sender, m)
+      t = thread_containing(m)
+      delete_thread t if t and t.first.id == m.id
+      @ts_mutex.synchronize do
+        @ts.delete_message m if t
+      end
+      update
+    end
+
+    def handle_single_message_deleted_update(_sender, m)
+      @ts_mutex.synchronize do
+        return unless @ts.contains? m
+        @ts.remove_id m.id
+      end
+      update
+    end
+
+    def handle_deleted_update(_sender, m)
+      t = @ts_mutex.synchronize { @ts.thread_for m }
+      return unless t
+      hide_thread t
+      update
+    end
+
+    def handle_killed_update(_sender, m)
+      t = @ts_mutex.synchronize { @ts.thread_for m }
+      return unless t
+      hide_thread t
+      update
+    end
+
+    def handle_spammed_update(_sender, m)
+      t = @ts_mutex.synchronize { @ts.thread_for m }
+      return unless t
+      hide_thread t
+      update
+    end
+
+    def handle_undeleted_update(_sender, m)
       add_or_unhide m
     end
-  end
 
-  def handle_simple_update(_sender, m)
-    t = thread_containing(m) or return
-    l = @lines[t] or return
-    update_text_for_line l
-  end
-
-  %w(read unread archived starred unstarred).each do |state|
-    define_method "handle_#{state}_update" do |*a|
-      handle_simple_update(*a)
+    def handle_unkilled_update(_sender, m)
+      add_or_unhide m
     end
-  end
 
-  ## overwrite me!
-  def is_relevant?(_m); false; end
-
-  def handle_added_update(_sender, m)
-    add_or_unhide m
-    BufferManager.draw_screen
-  end
-
-  def handle_updated_update(_sender, m)
-    t = thread_containing(m) or return
-    l = @lines[t] or return
-    @ts_mutex.synchronize do
-      @ts.delete_message m
-      @ts.add_message m
+    def undo
+      UndoManager.undo
     end
-    Index.save_thread t, sync_back = false
-    update_text_for_line l
-  end
 
-  def handle_location_deleted_update(_sender, m)
-    t = thread_containing(m)
-    delete_thread t if t and t.first.id == m.id
-    @ts_mutex.synchronize do
-      @ts.delete_message m if t
-    end
-    update
-  end
-
-  def handle_single_message_deleted_update(_sender, m)
-    @ts_mutex.synchronize do
-      return unless @ts.contains? m
-      @ts.remove_id m.id
-    end
-    update
-  end
-
-  def handle_deleted_update(_sender, m)
-    t = @ts_mutex.synchronize { @ts.thread_for m }
-    return unless t
-    hide_thread t
-    update
-  end
-
-  def handle_killed_update(_sender, m)
-    t = @ts_mutex.synchronize { @ts.thread_for m }
-    return unless t
-    hide_thread t
-    update
-  end
-
-  def handle_spammed_update(_sender, m)
-    t = @ts_mutex.synchronize { @ts.thread_for m }
-    return unless t
-    hide_thread t
-    update
-  end
-
-  def handle_undeleted_update(_sender, m)
-    add_or_unhide m
-  end
-
-  def handle_unkilled_update(_sender, m)
-    add_or_unhide m
-  end
-
-  def undo
-    UndoManager.undo
-  end
-
-  def update
-    old_cursor_thread = cursor_thread
-    @mutex.synchronize do
-      ## let's see you do THIS in python
-      @threads = @ts.threads.select { |t| !@hidden_threads.member?(t) }.select(&:has_message?).sort_by(&:sort_key)
-      @size_widgets = @threads.map { |t| size_widget_for_thread t }
-      @size_widget_width = @size_widgets.max_of { |w| w.display_length }
-      @date_widgets = @threads.map { |t| date_widget_for_thread t }
-      @date_widget_width = @date_widgets.max_of { |w| w.display_length }
-    end
-    set_cursor_pos @threads.index(old_cursor_thread) || curpos
-
-    regen_text
-  end
-
-  def edit_message
-    return unless (t = cursor_thread)
-    message, *_ = t.find { |m, *_o| m.has_label? :draft }
-    if message
-      mode = ResumeMode.new message
-      BufferManager.spawn 'Edit message', mode
-    else
-      BufferManager.flash 'Not a draft message!'
-    end
-  end
-
-  ## returns an undo lambda
-  def actually_toggle_starred(t)
-    if t.has_label? :starred # if ANY message has a star
-      t.remove_label :starred # remove from all
-      UpdateManager.relay self, :unstarred, t.first
-      lambda do
-        t.first.add_label :starred
-        UpdateManager.relay self, :starred, t.first
-        regen_text
+    def update
+      old_cursor_thread = cursor_thread
+      @mutex.synchronize do
+        ## let's see you do THIS in python
+        @threads = @ts.threads.select { |t| !@hidden_threads.member?(t) }.select(&:has_message?).sort_by(&:sort_key)
+        @size_widgets = @threads.map { |t| size_widget_for_thread t }
+        @size_widget_width = @size_widgets.max_of { |w| w.display_length }
+        @date_widgets = @threads.map { |t| date_widget_for_thread t }
+        @date_widget_width = @date_widgets.max_of { |w| w.display_length }
       end
-    else
-      t.first.add_label :starred # add only to first
-      UpdateManager.relay self, :starred, t.first
-      lambda do
-        t.remove_label :starred
-        UpdateManager.relay self, :unstarred, t.first
-        regen_text
-      end
-    end
-  end
+      set_cursor_pos @threads.index(old_cursor_thread) || curpos
 
-  def toggle_starred
-    t = cursor_thread or return
-    undo = actually_toggle_starred t
-    UndoManager.register 'toggling thread starred status', undo, lambda { Index.save_thread t }
-    update_text_for_line curpos
-    cursor_down
-    Index.save_thread t
-  end
-
-  def multi_toggle_starred(threads)
-    UndoManager.register "toggling #{threads.size.pluralize 'thread'} starred status",
-                         threads.map { |t| actually_toggle_starred t },
-                         lambda { threads.each { |t| Index.save_thread t } }
-    regen_text
-    threads.each { |t| Index.save_thread t }
-  end
-
-  ## returns an undo lambda
-  def actually_toggle_archived(t)
-    thread = t
-    pos = curpos
-    if t.has_label? :inbox
-      t.remove_label :inbox
-      UpdateManager.relay self, :archived, t.first
-      lambda do
-        thread.apply_label :inbox
-        update_text_for_line pos
-        UpdateManager.relay self, :unarchived, thread.first
-      end
-    else
-      t.apply_label :inbox
-      UpdateManager.relay self, :unarchived, t.first
-      lambda do
-        thread.remove_label :inbox
-        update_text_for_line pos
-        UpdateManager.relay self, :unarchived, thread.first
-      end
-    end
-  end
-
-  ## returns an undo lambda
-  def actually_toggle_spammed(t)
-    thread = t
-    if t.has_label? :spam
-      t.remove_label :spam
-      add_or_unhide t.first
-      UpdateManager.relay self, :unspammed, t.first
-      lambda do
-        thread.apply_label :spam
-        self.hide_thread thread
-        UpdateManager.relay self, :spammed, thread.first
-      end
-    else
-      t.apply_label :spam
-      hide_thread t
-      UpdateManager.relay self, :spammed, t.first
-      lambda do
-        thread.remove_label :spam
-        add_or_unhide thread.first
-        UpdateManager.relay self, :unspammed, thread.first
-      end
-    end
-  end
-
-  ## returns an undo lambda
-  def actually_toggle_deleted(t)
-    if t.has_label? :deleted
-      t.remove_label :deleted
-      add_or_unhide t.first
-      UpdateManager.relay self, :undeleted, t.first
-      lambda do
-        t.apply_label :deleted
-        hide_thread t
-        UpdateManager.relay self, :deleted, t.first
-      end
-    else
-      t.apply_label :deleted
-      hide_thread t
-      UpdateManager.relay self, :deleted, t.first
-      lambda do
-        t.remove_label :deleted
-        add_or_unhide t.first
-        UpdateManager.relay self, :undeleted, t.first
-      end
-    end
-  end
-
-  def toggle_archived
-    t = cursor_thread or return
-    undo = actually_toggle_archived t
-    UndoManager.register "deleting/undeleting thread #{t.first.id}", undo, lambda { update_text_for_line curpos },
-                         lambda { Index.save_thread t }
-    update_text_for_line curpos
-    Index.save_thread t
-  end
-
-  def multi_toggle_archived(threads)
-    undos = threads.map { |t| actually_toggle_archived t }
-    UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}", undos, lambda { regen_text },
-                         lambda { threads.each { |t| Index.save_thread t } }
-    regen_text
-    threads.each { |t| Index.save_thread t }
-  end
-
-  def toggle_new
-    t = cursor_thread or return
-    t.toggle_label :unread
-    update_text_for_line curpos
-    cursor_down
-    Index.save_thread t
-  end
-
-  def multi_toggle_new(threads)
-    threads.each { |t| t.toggle_label :unread }
-    regen_text
-    threads.each { |t| Index.save_thread t }
-  end
-
-  def multi_toggle_tagged(_threads)
-    @mutex.synchronize { @tags.drop_all_tags }
-    regen_text
-  end
-
-  def join_threads
-    ## this command has no non-tagged form. as a convenience, allow this
-    ## command to be applied to tagged threads without hitting ';'.
-    @tags.apply_to_tagged :join_threads
-  end
-
-  def multi_join_threads(threads)
-    @ts.join_threads threads or return
-    threads.each { |t| Index.save_thread t }
-    @tags.drop_all_tags # otherwise we have tag pointers to invalid threads!
-    update
-  end
-
-  def jump_to_next_new
-    n = @mutex.synchronize do
-      ((curpos + 1)...lines).find { |i| @threads[i].has_label? :unread } ||
-      (0...curpos).find { |i| @threads[i].has_label? :unread }
-    end
-    if n
-      ## jump there if necessary
-      jump_to_line n unless n >= topline && n < botline
-      set_cursor_pos n
-    else
-      BufferManager.flash 'No new messages.'
-    end
-  end
-
-  def toggle_spam
-    t = cursor_thread or return
-    multi_toggle_spam [t]
-  end
-
-  ## both spam and deleted have the curious characteristic that you
-  ## always want to hide the thread after either applying or removing
-  ## that label. in all thread-index-views except for
-  ## label-search-results-mode, when you mark a message as spam or
-  ## deleted, you want it to disappear immediately; in LSRM, you only
-  ## see deleted or spam emails, and when you undelete or unspam them
-  ## you also want them to disappear immediately.
-  def multi_toggle_spam(threads)
-    undos = threads.map { |t| actually_toggle_spammed t }
-    threads.each { |t| HookManager.run('mark-as-spam', thread: t) }
-    UndoManager.register "marking/unmarking  #{threads.size.pluralize 'thread'} as spam",
-                         undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
-    regen_text
-    threads.each { |t| Index.save_thread t }
-  end
-
-  def toggle_deleted
-    t = cursor_thread or return
-    multi_toggle_deleted [t]
-  end
-
-  ## see comment for multi_toggle_spam
-  def multi_toggle_deleted(threads)
-    undos = threads.map { |t| actually_toggle_deleted t }
-    UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}",
-                         undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
-    regen_text
-    threads.each { |t| Index.save_thread t }
-  end
-
-  def kill
-    t = cursor_thread or return
-    multi_kill [t]
-  end
-
-  def flush_index
-    @flush_id = BufferManager.say 'Flushing index...'
-    Index.save_index
-    BufferManager.clear @flush_id
-  end
-
-  ## m-m-m-m-MULTI-KILL
-  def multi_kill(threads)
-    UndoManager.register "killing/unkilling #{threads.size.pluralize 'threads'}" do
-      threads.each do |t|
-        if t.toggle_label :killed
-          add_or_unhide t.first
-        else
-          hide_thread t
-        end
-      end.each do |t|
-        UpdateManager.relay self, :labeled, t.first
-        Index.save_thread t
-      end
       regen_text
     end
 
-    threads.each do |t|
-      if t.toggle_label :killed
-        hide_thread t
+    def edit_message
+      return unless (t = cursor_thread)
+      message, *_ = t.find { |m, *_o| m.has_label? :draft }
+      if message
+        mode = ResumeMode.new message
+        BufferManager.spawn 'Edit message', mode
       else
-        add_or_unhide t.first
+        BufferManager.flash 'Not a draft message!'
       end
-    end.each do |t|
-      # send 'labeled'... this might be more specific
-      UpdateManager.relay self, :labeled, t.first
+    end
+
+    ## returns an undo lambda
+    def actually_toggle_starred(t)
+      if t.has_label? :starred # if ANY message has a star
+        t.remove_label :starred # remove from all
+        UpdateManager.relay self, :unstarred, t.first
+        lambda do
+          t.first.add_label :starred
+          UpdateManager.relay self, :starred, t.first
+          regen_text
+        end
+      else
+        t.first.add_label :starred # add only to first
+        UpdateManager.relay self, :starred, t.first
+        lambda do
+          t.remove_label :starred
+          UpdateManager.relay self, :unstarred, t.first
+          regen_text
+        end
+      end
+    end
+
+    def toggle_starred
+      t = cursor_thread or return
+      undo = actually_toggle_starred t
+      UndoManager.register 'toggling thread starred status', undo, lambda { Index.save_thread t }
+      update_text_for_line curpos
+      cursor_down
       Index.save_thread t
     end
 
-    killed, unkilled = threads.partition { |t| t.has_label? :killed }.map(&:size)
-    BufferManager.flash "#{killed.pluralize 'thread'} killed, #{unkilled} unkilled"
-    regen_text
-  end
-
-  def cleanup
-    UpdateManager.unregister self
-
-    if @load_thread
-      @load_thread.kill
-      BufferManager.clear @mbid if @mbid
-      sleep 0.1 # TODO: necessary?
-      BufferManager.erase_flash
+    def multi_toggle_starred(threads)
+      UndoManager.register "toggling #{threads.size.pluralize 'thread'} starred status",
+                           threads.map { |t| actually_toggle_starred t },
+                           lambda { threads.each { |t| Index.save_thread t } }
+      regen_text
+      threads.each { |t| Index.save_thread t }
     end
-    dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
-    fail 'dirty threads remain' unless dirty_threads.empty?
-    super
-  end
 
-  def toggle_tagged
-    t = cursor_thread or return
-    @mutex.synchronize { @tags.toggle_tag_for t }
-    update_text_for_line curpos
-    cursor_down
-  end
-
-  def toggle_tagged_all
-    @mutex.synchronize { @threads.each { |t| @tags.toggle_tag_for t } }
-    regen_text
-  end
-
-  def tag_matching
-    query = BufferManager.ask :search, 'tag threads matching (regex): '
-    return if query.nil? || query.empty?
-    query = begin
-      /#{query}/i
-    rescue RegexpError => e
-      BufferManager.flash "error interpreting '#{query}': #{e.message}"
-      return
+    ## returns an undo lambda
+    def actually_toggle_archived(t)
+      thread = t
+      pos = curpos
+      if t.has_label? :inbox
+        t.remove_label :inbox
+        UpdateManager.relay self, :archived, t.first
+        lambda do
+          thread.apply_label :inbox
+          update_text_for_line pos
+          UpdateManager.relay self, :unarchived, thread.first
+        end
+      else
+        t.apply_label :inbox
+        UpdateManager.relay self, :unarchived, t.first
+        lambda do
+          thread.remove_label :inbox
+          update_text_for_line pos
+          UpdateManager.relay self, :unarchived, thread.first
+        end
+      end
     end
-    @mutex.synchronize { @threads.each { |t| @tags.tag t if thread_matches?(t, query) } }
-    regen_text
-  end
 
-  def apply_to_tagged; @tags.apply_to_tagged; end
+    ## returns an undo lambda
+    def actually_toggle_spammed(t)
+      thread = t
+      if t.has_label? :spam
+        t.remove_label :spam
+        add_or_unhide t.first
+        UpdateManager.relay self, :unspammed, t.first
+        lambda do
+          thread.apply_label :spam
+          self.hide_thread thread
+          UpdateManager.relay self, :spammed, thread.first
+        end
+      else
+        t.apply_label :spam
+        hide_thread t
+        UpdateManager.relay self, :spammed, t.first
+        lambda do
+          thread.remove_label :spam
+          add_or_unhide thread.first
+          UpdateManager.relay self, :unspammed, thread.first
+        end
+      end
+    end
 
-  def edit_labels
-    thread = cursor_thread or return
-    speciall = (@hidden_labels + LabelManager::RESERVED_LABELS).uniq
+    ## returns an undo lambda
+    def actually_toggle_deleted(t)
+      if t.has_label? :deleted
+        t.remove_label :deleted
+        add_or_unhide t.first
+        UpdateManager.relay self, :undeleted, t.first
+        lambda do
+          t.apply_label :deleted
+          hide_thread t
+          UpdateManager.relay self, :deleted, t.first
+        end
+      else
+        t.apply_label :deleted
+        hide_thread t
+        UpdateManager.relay self, :deleted, t.first
+        lambda do
+          t.remove_label :deleted
+          add_or_unhide t.first
+          UpdateManager.relay self, :undeleted, t.first
+        end
+      end
+    end
 
-    old_labels = thread.labels
-    pos = curpos
+    def toggle_archived
+      t = cursor_thread or return
+      undo = actually_toggle_archived t
+      UndoManager.register "deleting/undeleting thread #{t.first.id}", undo, lambda { update_text_for_line curpos },
+                           lambda { Index.save_thread t }
+      update_text_for_line curpos
+      Index.save_thread t
+    end
 
-    keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
+    def multi_toggle_archived(threads)
+      undos = threads.map { |t| actually_toggle_archived t }
+      UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}", undos, lambda { regen_text },
+                           lambda { threads.each { |t| Index.save_thread t } }
+      regen_text
+      threads.each { |t| Index.save_thread t }
+    end
 
-    user_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', modifyl.sort_by { |x| x.to_s }, @hidden_labels
-    return unless user_labels
+    def toggle_new
+      t = cursor_thread or return
+      t.toggle_label :unread
+      update_text_for_line curpos
+      cursor_down
+      Index.save_thread t
+    end
 
-    thread.labels = Set.new(keepl) + user_labels
-    user_labels.each { |l| LabelManager << l }
-    update_text_for_line curpos
+    def multi_toggle_new(threads)
+      threads.each { |t| t.toggle_label :unread }
+      regen_text
+      threads.each { |t| Index.save_thread t }
+    end
 
-    UndoManager.register 'labeling thread' do
-      thread.labels = old_labels
-      update_text_for_line pos
+    def multi_toggle_tagged(_threads)
+      @mutex.synchronize { @tags.drop_all_tags }
+      regen_text
+    end
+
+    def join_threads
+      ## this command has no non-tagged form. as a convenience, allow this
+      ## command to be applied to tagged threads without hitting ';'.
+      @tags.apply_to_tagged :join_threads
+    end
+
+    def multi_join_threads(threads)
+      @ts.join_threads threads or return
+      threads.each { |t| Index.save_thread t }
+      @tags.drop_all_tags # otherwise we have tag pointers to invalid threads!
+      update
+    end
+
+    def jump_to_next_new
+      n = @mutex.synchronize do
+        ((curpos + 1)...lines).find { |i| @threads[i].has_label? :unread } ||
+        (0...curpos).find { |i| @threads[i].has_label? :unread }
+      end
+      if n
+        ## jump there if necessary
+        jump_to_line n unless n >= topline && n < botline
+        set_cursor_pos n
+      else
+        BufferManager.flash 'No new messages.'
+      end
+    end
+
+    def toggle_spam
+      t = cursor_thread or return
+      multi_toggle_spam [t]
+    end
+
+    ## both spam and deleted have the curious characteristic that you
+    ## always want to hide the thread after either applying or removing
+    ## that label. in all thread-index-views except for
+    ## label-search-results-mode, when you mark a message as spam or
+    ## deleted, you want it to disappear immediately; in LSRM, you only
+    ## see deleted or spam emails, and when you undelete or unspam them
+    ## you also want them to disappear immediately.
+    def multi_toggle_spam(threads)
+      undos = threads.map { |t| actually_toggle_spammed t }
+      threads.each { |t| HookManager.run('mark-as-spam', thread: t) }
+      UndoManager.register "marking/unmarking  #{threads.size.pluralize 'thread'} as spam",
+                           undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
+      regen_text
+      threads.each { |t| Index.save_thread t }
+    end
+
+    def toggle_deleted
+      t = cursor_thread or return
+      multi_toggle_deleted [t]
+    end
+
+    ## see comment for multi_toggle_spam
+    def multi_toggle_deleted(threads)
+      undos = threads.map { |t| actually_toggle_deleted t }
+      UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}",
+                           undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
+      regen_text
+      threads.each { |t| Index.save_thread t }
+    end
+
+    def kill
+      t = cursor_thread or return
+      multi_kill [t]
+    end
+
+    def flush_index
+      @flush_id = BufferManager.say 'Flushing index...'
+      Index.save_index
+      BufferManager.clear @flush_id
+    end
+
+    ## m-m-m-m-MULTI-KILL
+    def multi_kill(threads)
+      UndoManager.register "killing/unkilling #{threads.size.pluralize 'threads'}" do
+        threads.each do |t|
+          if t.toggle_label :killed
+            add_or_unhide t.first
+          else
+            hide_thread t
+          end
+        end.each do |t|
+          UpdateManager.relay self, :labeled, t.first
+          Index.save_thread t
+        end
+        regen_text
+      end
+
+      threads.each do |t|
+        if t.toggle_label :killed
+          hide_thread t
+        else
+          add_or_unhide t.first
+        end
+      end.each do |t|
+        # send 'labeled'... this might be more specific
+        UpdateManager.relay self, :labeled, t.first
+        Index.save_thread t
+      end
+
+      killed, unkilled = threads.partition { |t| t.has_label? :killed }.map(&:size)
+      BufferManager.flash "#{killed.pluralize 'thread'} killed, #{unkilled} unkilled"
+      regen_text
+    end
+
+    def cleanup
+      UpdateManager.unregister self
+
+      if @load_thread
+        @load_thread.kill
+        BufferManager.clear @mbid if @mbid
+        sleep 0.1 # TODO: necessary?
+        BufferManager.erase_flash
+      end
+      dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
+      fail 'dirty threads remain' unless dirty_threads.empty?
+      super
+    end
+
+    def toggle_tagged
+      t = cursor_thread or return
+      @mutex.synchronize { @tags.toggle_tag_for t }
+      update_text_for_line curpos
+      cursor_down
+    end
+
+    def toggle_tagged_all
+      @mutex.synchronize { @threads.each { |t| @tags.toggle_tag_for t } }
+      regen_text
+    end
+
+    def tag_matching
+      query = BufferManager.ask :search, 'tag threads matching (regex): '
+      return if query.nil? || query.empty?
+      query = begin
+        /#{query}/i
+      rescue RegexpError => e
+        BufferManager.flash "error interpreting '#{query}': #{e.message}"
+        return
+      end
+      @mutex.synchronize { @threads.each { |t| @tags.tag t if thread_matches?(t, query) } }
+      regen_text
+    end
+
+    def apply_to_tagged; @tags.apply_to_tagged; end
+
+    def edit_labels
+      thread = cursor_thread or return
+      speciall = (@hidden_labels + LabelManager::RESERVED_LABELS).uniq
+
+      old_labels = thread.labels
+      pos = curpos
+
+      keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
+
+      user_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', modifyl.sort_by { |x| x.to_s }, @hidden_labels
+      return unless user_labels
+
+      thread.labels = Set.new(keepl) + user_labels
+      user_labels.each { |l| LabelManager << l }
+      update_text_for_line curpos
+
+      UndoManager.register 'labeling thread' do
+        thread.labels = old_labels
+        update_text_for_line pos
+        UpdateManager.relay self, :labeled, thread.first
+        Index.save_thread thread
+      end
+
       UpdateManager.relay self, :labeled, thread.first
       Index.save_thread thread
     end
 
-    UpdateManager.relay self, :labeled, thread.first
-    Index.save_thread thread
-  end
+    def multi_edit_labels(threads)
+      user_labels = BufferManager.ask_for_labels :labels, 'Add/remove labels (use -label to remove): ', [], @hidden_labels
+      return unless user_labels
 
-  def multi_edit_labels(threads)
-    user_labels = BufferManager.ask_for_labels :labels, 'Add/remove labels (use -label to remove): ', [], @hidden_labels
-    return unless user_labels
+      user_labels.map! { |l| (l.to_s =~ /^-/) ? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
+      hl = user_labels.select { |(l, _)| @hidden_labels.member? l }
+      unless hl.empty?
+        BufferManager.flash "'#{hl}' is a reserved label!"
+        return
+      end
 
-    user_labels.map! { |l| (l.to_s =~ /^-/) ? [l.to_s.gsub(/^-?/, '').to_sym, true] : [l, false] }
-    hl = user_labels.select { |(l, _)| @hidden_labels.member? l }
-    unless hl.empty?
-      BufferManager.flash "'#{hl}' is a reserved label!"
-      return
-    end
+      old_labels = threads.map { |t| t.labels.dup }
 
-    old_labels = threads.map { |t| t.labels.dup }
-
-    threads.each do |t|
-      user_labels.each do |(l, to_remove)|
-        if to_remove
-          t.remove_label l
-        else
-          t.apply_label l
-          LabelManager << l
+      threads.each do |t|
+        user_labels.each do |(l, to_remove)|
+          if to_remove
+            t.remove_label l
+          else
+            t.apply_label l
+            LabelManager << l
+          end
         end
-      end
-      UpdateManager.relay self, :labeled, t.first
-    end
-
-    regen_text
-
-    UndoManager.register "labeling #{threads.size.pluralize 'thread'}" do
-      threads.zip(old_labels).map do |t, old_labels|
-        t.labels = old_labels
         UpdateManager.relay self, :labeled, t.first
-        Index.save_thread t
       end
+
       regen_text
-    end
 
-    threads.each { |t| Index.save_thread t }
-  end
-
-  def reply(type_arg = nil)
-    t = cursor_thread or return
-    m = t.latest_message
-    return if m.nil? # probably won't happen
-    m.load_from_source!
-    mode = ReplyMode.new m, type_arg
-    BufferManager.spawn "Reply to #{m.subj}", mode
-  end
-
-  def reply_all; reply :all; end
-
-  def forward
-    t = cursor_thread or return
-    m = t.latest_message
-    return if m.nil? # probably won't happen
-    m.load_from_source!
-    ForwardMode.spawn_nicely message: m
-  end
-
-  def load_n_threads_background(n = LOAD_MORE_THREAD_NUM, opts = {})
-    return if @load_thread # todo: wrap in mutex
-    @load_thread = Redwood::reporting_thread('load threads for thread-index-mode') do
-      num = load_n_threads n, opts
-      opts[:when_done].call(num) if opts[:when_done]
-      @load_thread = nil
-    end
-  end
-
-  ## TODO: figure out @ts_mutex in this method
-  def load_n_threads(n = LOAD_MORE_THREAD_NUM, opts = {})
-    @interrupt_search = false
-    @mbid = BufferManager.say 'Searching for threads...'
-
-    ts_to_load = n
-    ts_to_load = ts_to_load + @ts.size unless n == -1 # -1 means all threads
-
-    orig_size = @ts.size
-    last_update = Time.now
-    @ts.load_n_threads(ts_to_load, opts) do |i|
-      if (Time.now - last_update) >= 0.25
-        BufferManager.say "Loaded #{i.pluralize 'thread'}...", @mbid
-        update
-        BufferManager.draw_screen
-        last_update = Time.now
+      UndoManager.register "labeling #{threads.size.pluralize 'thread'}" do
+        threads.zip(old_labels).map do |t, old_labels|
+          t.labels = old_labels
+          UpdateManager.relay self, :labeled, t.first
+          Index.save_thread t
+        end
+        regen_text
       end
-      ::Thread.pass
-      break if @interrupt_search
-    end
-    @ts.threads.each { |th| th.labels.each { |l| LabelManager << l } }
 
-    update
-    BufferManager.clear @mbid
-    @mbid = nil
-    BufferManager.draw_screen
-    @ts.size - orig_size
-  end
-  ignore_concurrent_calls :load_n_threads
-
-  def status
-    if (l = lines) == 0
-      'line 0 of 0'
-    else
-      "line #{curpos + 1} of #{l}"
-    end
-  end
-
-  def cancel_search
-    @interrupt_search = true
-  end
-
-  def load_all_threads
-    load_threads num: -1
-  end
-
-  def load_threads(opts = {})
-    if opts[:num].nil?
-      n = ThreadIndexMode::LOAD_MORE_THREAD_NUM
-    else
-      n = opts[:num]
+      threads.each { |t| Index.save_thread t }
     end
 
-    myopts = @load_thread_opts.merge({ when_done: (lambda do |num|
-      opts[:when_done].call(num) if opts[:when_done]
+    def reply(type_arg = nil)
+      t = cursor_thread or return
+      m = t.latest_message
+      return if m.nil? # probably won't happen
+      m.load_from_source!
+      mode = ReplyMode.new m, type_arg
+      BufferManager.spawn "Reply to #{m.subj}", mode
+    end
 
-      if num > 0
-        BufferManager.flash "Found #{num.pluralize 'thread'}."
+    def reply_all; reply :all; end
+
+    def forward
+      t = cursor_thread or return
+      m = t.latest_message
+      return if m.nil? # probably won't happen
+      m.load_from_source!
+      ForwardMode.spawn_nicely message: m
+    end
+
+    def load_n_threads_background(n = LOAD_MORE_THREAD_NUM, opts = {})
+      return if @load_thread # todo: wrap in mutex
+      @load_thread = Redwood::reporting_thread('load threads for thread-index-mode') do
+        num = load_n_threads n, opts
+        opts[:when_done].call(num) if opts[:when_done]
+        @load_thread = nil
+      end
+    end
+
+    ## TODO: figure out @ts_mutex in this method
+    def load_n_threads(n = LOAD_MORE_THREAD_NUM, opts = {})
+      @interrupt_search = false
+      @mbid = BufferManager.say 'Searching for threads...'
+
+      ts_to_load = n
+      ts_to_load = ts_to_load + @ts.size unless n == -1 # -1 means all threads
+
+      orig_size = @ts.size
+      last_update = Time.now
+      @ts.load_n_threads(ts_to_load, opts) do |i|
+        if (Time.now - last_update) >= 0.25
+          BufferManager.say "Loaded #{i.pluralize 'thread'}...", @mbid
+          update
+          BufferManager.draw_screen
+          last_update = Time.now
+        end
+        ::Thread.pass
+        break if @interrupt_search
+      end
+      @ts.threads.each { |th| th.labels.each { |l| LabelManager << l } }
+
+      update
+      BufferManager.clear @mbid
+      @mbid = nil
+      BufferManager.draw_screen
+      @ts.size - orig_size
+    end
+    ignore_concurrent_calls :load_n_threads
+
+    def status
+      if (l = lines) == 0
+        'line 0 of 0'
       else
-        BufferManager.flash 'No matches.'
+        "line #{curpos + 1} of #{l}"
       end
-    end) })
-
-    if opts[:background] || opts[:background].nil?
-      load_n_threads_background n, myopts
-    else
-      load_n_threads n, myopts
     end
-  end
-  ignore_concurrent_calls :load_threads
 
-  def read_and_archive
-    return unless cursor_thread
-    thread = cursor_thread # to make sure lambda only knows about 'old' cursor_thread
+    def cancel_search
+      @interrupt_search = true
+    end
 
-    was_unread = thread.labels.member? :unread
-    UndoManager.register 'reading and archiving thread' do
-      thread.apply_label :inbox
-      thread.apply_label :unread if was_unread
-      add_or_unhide thread.first
+    def load_all_threads
+      load_threads num: -1
+    end
+
+    def load_threads(opts = {})
+      if opts[:num].nil?
+        n = ThreadIndexMode::LOAD_MORE_THREAD_NUM
+      else
+        n = opts[:num]
+      end
+
+      myopts = @load_thread_opts.merge({ when_done: (lambda do |num|
+        opts[:when_done].call(num) if opts[:when_done]
+
+        if num > 0
+          BufferManager.flash "Found #{num.pluralize 'thread'}."
+        else
+          BufferManager.flash 'No matches.'
+        end
+      end) })
+
+      if opts[:background] || opts[:background].nil?
+        load_n_threads_background n, myopts
+      else
+        load_n_threads n, myopts
+      end
+    end
+    ignore_concurrent_calls :load_threads
+
+    def read_and_archive
+      return unless cursor_thread
+      thread = cursor_thread # to make sure lambda only knows about 'old' cursor_thread
+
+      was_unread = thread.labels.member? :unread
+      UndoManager.register 'reading and archiving thread' do
+        thread.apply_label :inbox
+        thread.apply_label :unread if was_unread
+        add_or_unhide thread.first
+        Index.save_thread thread
+      end
+
+      cursor_thread.remove_label :unread
+      cursor_thread.remove_label :inbox
+      hide_thread cursor_thread
+      regen_text
       Index.save_thread thread
     end
 
-    cursor_thread.remove_label :unread
-    cursor_thread.remove_label :inbox
-    hide_thread cursor_thread
-    regen_text
-    Index.save_thread thread
-  end
+    def multi_read_and_archive(threads)
+      old_labels = threads.map { |t| t.labels.dup }
 
-  def multi_read_and_archive(threads)
-    old_labels = threads.map { |t| t.labels.dup }
-
-    threads.each do |t|
-      t.remove_label :unread
-      t.remove_label :inbox
-      hide_thread t
-    end
-    regen_text
-
-    UndoManager.register "reading and archiving #{threads.size.pluralize 'thread'}" do
-      threads.zip(old_labels).each do |t, l|
-        t.labels = l
-        add_or_unhide t.first
-        Index.save_thread t
+      threads.each do |t|
+        t.remove_label :unread
+        t.remove_label :inbox
+        hide_thread t
       end
       regen_text
-    end
 
-    threads.each { |t| Index.save_thread t }
-  end
-
-  def resize(rows, cols)
-    regen_text
-    super
-  end
-
-  protected
-
-  def add_or_unhide(m)
-    @ts_mutex.synchronize do
-      if (is_relevant?(m) || @ts.is_relevant?(m)) && !@ts.contains?(m)
-        @ts.load_thread_for_message m, @load_thread_opts
+      UndoManager.register "reading and archiving #{threads.size.pluralize 'thread'}" do
+        threads.zip(old_labels).each do |t, l|
+          t.labels = l
+          add_or_unhide t.first
+          Index.save_thread t
+        end
+        regen_text
       end
 
-      @hidden_threads.delete @ts.thread_for(m)
+      threads.each { |t| Index.save_thread t }
     end
 
-    update
-  end
-
-  def thread_containing(m); @ts_mutex.synchronize { @ts.thread_for m } end
-
-  ## used to tag threads by query. this can be made a lot more sophisticated,
-  ## but for right now we'll do the obvious this.
-  def thread_matches?(t, query)
-    t.subj =~ query || t.snippet =~ query || t.participants.any? { |x| x.longname =~ query }
-  end
-
-  def size_widget_for_thread(t)
-    HookManager.run('index-mode-size-widget', thread: t) || default_size_widget_for(t)
-  end
-
-  def date_widget_for_thread(t)
-    HookManager.run('index-mode-date-widget', thread: t) || default_date_widget_for(t)
-  end
-
-  def cursor_thread; @mutex.synchronize { @threads[curpos] }; end
-
-  def drop_all_threads
-    @tags.drop_all_tags
-    initialize_threads
-    update
-  end
-
-  def delete_thread(t)
-    @mutex.synchronize do
-      i = @threads.index(t) or return
-      @threads.delete_at i
-      @size_widgets.delete_at i
-      @date_widgets.delete_at i
-      @tags.drop_tag_for t
-    end
-  end
-
-  def hide_thread(t)
-    @mutex.synchronize do
-      i = @threads.index(t) or return
-      raise 'already hidden' if @hidden_threads[t]
-      @hidden_threads[t] = true
-      @threads.delete_at i
-      @size_widgets.delete_at i
-      @date_widgets.delete_at i
-      @tags.drop_tag_for t
-    end
-  end
-
-  def update_text_for_line(l)
-    return unless l # not sure why this happens, but it does, occasionally
-
-    need_update = false
-
-    @mutex.synchronize do
-      # and certainly not sure why this happens..
-      #
-      # probably a race condition between thread modification and updating
-      # going on.
-      return if @threads[l].empty?
-
-      @size_widgets[l] = size_widget_for_thread @threads[l]
-      @date_widgets[l] = date_widget_for_thread @threads[l]
-
-      ## if a widget size has increased, we need to redraw everyone
-      need_update =
-        (@size_widgets[l].size > @size_widget_width) or
-        (@date_widgets[l].size > @date_widget_width)
+    def resize(rows, cols)
+      regen_text
+      super
     end
 
-    if need_update
+    protected
+
+    def add_or_unhide(m)
+      @ts_mutex.synchronize do
+        if (is_relevant?(m) || @ts.is_relevant?(m)) && !@ts.contains?(m)
+          @ts.load_thread_for_message m, @load_thread_opts
+        end
+
+        @hidden_threads.delete @ts.thread_for(m)
+      end
+
       update
-    else
-      @text[l] = text_for_thread_at l
+    end
+
+    def thread_containing(m); @ts_mutex.synchronize { @ts.thread_for m } end
+
+    ## used to tag threads by query. this can be made a lot more sophisticated,
+    ## but for right now we'll do the obvious this.
+    def thread_matches?(t, query)
+      t.subj =~ query || t.snippet =~ query || t.participants.any? { |x| x.longname =~ query }
+    end
+
+    def size_widget_for_thread(t)
+      HookManager.run('index-mode-size-widget', thread: t) || default_size_widget_for(t)
+    end
+
+    def date_widget_for_thread(t)
+      HookManager.run('index-mode-date-widget', thread: t) || default_date_widget_for(t)
+    end
+
+    def cursor_thread; @mutex.synchronize { @threads[curpos] }; end
+
+    def drop_all_threads
+      @tags.drop_all_tags
+      initialize_threads
+      update
+    end
+
+    def delete_thread(t)
+      @mutex.synchronize do
+        i = @threads.index(t) or return
+        @threads.delete_at i
+        @size_widgets.delete_at i
+        @date_widgets.delete_at i
+        @tags.drop_tag_for t
+      end
+    end
+
+    def hide_thread(t)
+      @mutex.synchronize do
+        i = @threads.index(t) or return
+        raise 'already hidden' if @hidden_threads[t]
+        @hidden_threads[t] = true
+        @threads.delete_at i
+        @size_widgets.delete_at i
+        @date_widgets.delete_at i
+        @tags.drop_tag_for t
+      end
+    end
+
+    def update_text_for_line(l)
+      return unless l # not sure why this happens, but it does, occasionally
+
+      need_update = false
+
+      @mutex.synchronize do
+        # and certainly not sure why this happens..
+        #
+        # probably a race condition between thread modification and updating
+        # going on.
+        return if @threads[l].empty?
+
+        @size_widgets[l] = size_widget_for_thread @threads[l]
+        @date_widgets[l] = date_widget_for_thread @threads[l]
+
+        ## if a widget size has increased, we need to redraw everyone
+        need_update =
+          (@size_widgets[l].size > @size_widget_width) or
+          (@date_widgets[l].size > @date_widget_width)
+      end
+
+      if need_update
+        update
+      else
+        @text[l] = text_for_thread_at l
+        buffer.mark_dirty if buffer
+      end
+    end
+
+    def regen_text
+      threads = @mutex.synchronize { @threads }
+      @text = threads.map_with_index { |_t, i| text_for_thread_at i }
+      @lines = threads.map_with_index { |t, i| [t, i] }.to_h
       buffer.mark_dirty if buffer
     end
-  end
 
-  def regen_text
-    threads = @mutex.synchronize { @threads }
-    @text = threads.map_with_index { |_t, i| text_for_thread_at i }
-    @lines = threads.map_with_index { |t, i| [t, i] }.to_h
-    buffer.mark_dirty if buffer
-  end
+    def authors; map { |m, *_o| m.from if m }.compact.uniq; end
 
-  def authors; map { |m, *_o| m.from if m }.compact.uniq; end
+    ## preserve author order from the thread
+    def author_names_and_newness_for_thread(t, limit = nil)
+      new = {}
+      seen = {}
+      authors = t.map do |m, *_o|
+        next unless m && m.from
+        new[m.from] ||= m.has_label?(:unread)
+        next if seen[m.from]
+        seen[m.from] = true
+        m.from
+      end.compact
 
-  ## preserve author order from the thread
-  def author_names_and_newness_for_thread(t, limit = nil)
-    new = {}
-    seen = {}
-    authors = t.map do |m, *_o|
-      next unless m && m.from
-      new[m.from] ||= m.has_label?(:unread)
-      next if seen[m.from]
-      seen[m.from] = true
-      m.from
-    end.compact
-
-    result = []
-    authors.each do |a|
-      break if limit && result.size >= limit
-      name = if AccountManager.is_account?(a)
-        'me'
-      elsif t.authors.size == 1
-        a.mediumname
-      else
-        a.shortname
-      end
-
-      result << [name, new[a]]
-    end
-
-    if result.size == 1 && (author_and_newness = result.assoc('me'))
-      unless (recipients = t.participants - t.authors).empty?
-        result = recipients.collect do |r|
-          break if limit && result.size >= limit
-          name = (recipients.size == 1) ? r.mediumname : r.shortname
-          ["(#{name})", author_and_newness[1]]
-        end
-      end
-    end
-
-    result
-  end
-
-  AUTHOR_LIMIT = 5
-  def text_for_thread_at(line)
-    t, size_widget, date_widget = @mutex.synchronize do
-      [@threads[line], @size_widgets[line], @date_widgets[line]]
-    end
-
-    starred = t.has_label? :starred
-
-    ## format the from column
-    cur_width = 0
-    ann = author_names_and_newness_for_thread t, AUTHOR_LIMIT
-    from = []
-    ann.each_with_index do |(name, newness), i|
-      break if cur_width >= from_width
-      last = i == ann.length - 1
-
-      abbrev =
-        if cur_width + name.display_length > from_width
-          name.slice_by_display_length(from_width - cur_width - 1) + '.'
-        elsif cur_width + name.display_length == from_width
-          name.slice_by_display_length(from_width - cur_width)
+      result = []
+      authors.each do |a|
+        break if limit && result.size >= limit
+        name = if AccountManager.is_account?(a)
+                 'me'
+        elsif t.authors.size == 1
+          a.mediumname
         else
-          if last
-            name.slice_by_display_length(from_width - cur_width)
-          else
-            name.slice_by_display_length(from_width - cur_width - 1) + ','
+          a.shortname
+        end
+
+        result << [name, new[a]]
+      end
+
+      if result.size == 1 && (author_and_newness = result.assoc('me'))
+        unless (recipients = t.participants - t.authors).empty?
+          result = recipients.collect do |r|
+            break if limit && result.size >= limit
+            name = (recipients.size == 1) ? r.mediumname : r.shortname
+            ["(#{name})", author_and_newness[1]]
           end
         end
-
-      cur_width += abbrev.display_length
-
-      if last && from_width > cur_width
-        abbrev += ' ' * (from_width - cur_width)
       end
 
-      from << [(newness ? :index_new_color : (starred ? :index_starred_color : :index_old_color)), abbrev]
+      result
     end
 
-    is_me = AccountManager.method(:is_account?)
-    directly_participated = t.direct_participants.any?(&is_me)
-    participated = directly_participated || t.participants.any?(&is_me)
-
-    subj_color =
-      if t.has_label?(:draft)
-        :index_draft_color
-      elsif t.has_label?(:unread)
-        :index_new_color
-      elsif starred
-        :index_starred_color
-      elsif Colormap.sym_is_defined(:index_subject_color)
-        :index_subject_color
-      else
-        :index_old_color
+    AUTHOR_LIMIT = 5
+    def text_for_thread_at(line)
+      t, size_widget, date_widget = @mutex.synchronize do
+        [@threads[line], @size_widgets[line], @date_widgets[line]]
       end
 
-    size_padding = @size_widget_width - size_widget.display_length
-    size_widget_text = sprintf "%#{size_padding}s%s", '', size_widget
+      starred = t.has_label? :starred
 
-    date_padding = @date_widget_width - date_widget.display_length
-    date_widget_text = sprintf "%#{date_padding}s%s", '', date_widget
+      ## format the from column
+      cur_width = 0
+      ann = author_names_and_newness_for_thread t, AUTHOR_LIMIT
+      from = []
+      ann.each_with_index do |(name, newness), i|
+        break if cur_width >= from_width
+        last = i == ann.length - 1
 
-    [
-      [:tagged_color, @tags.tagged?(t) ? '>' : ' '],
-      [:date_color, date_widget_text],
-      [:starred_color, (starred ? '*' : ' ')]
-    ] +
-      from +
+        abbrev =
+          if cur_width + name.display_length > from_width
+            name.slice_by_display_length(from_width - cur_width - 1) + '.'
+          elsif cur_width + name.display_length == from_width
+            name.slice_by_display_length(from_width - cur_width)
+          else
+            if last
+              name.slice_by_display_length(from_width - cur_width)
+            else
+              name.slice_by_display_length(from_width - cur_width - 1) + ','
+            end
+          end
+
+        cur_width += abbrev.display_length
+
+        if last && from_width > cur_width
+          abbrev += ' ' * (from_width - cur_width)
+        end
+
+        from << [(newness ? :index_new_color : (starred ? :index_starred_color : :index_old_color)), abbrev]
+      end
+
+      is_me = AccountManager.method(:is_account?)
+      directly_participated = t.direct_participants.any?(&is_me)
+      participated = directly_participated || t.participants.any?(&is_me)
+
+      subj_color =
+        if t.has_label?(:draft)
+          :index_draft_color
+        elsif t.has_label?(:unread)
+          :index_new_color
+        elsif starred
+          :index_starred_color
+        elsif Colormap.sym_is_defined(:index_subject_color)
+          :index_subject_color
+        else
+          :index_old_color
+        end
+
+      size_padding = @size_widget_width - size_widget.display_length
+      size_widget_text = sprintf "%#{size_padding}s%s", '', size_widget
+
+      date_padding = @date_widget_width - date_widget.display_length
+      date_widget_text = sprintf "%#{date_padding}s%s", '', date_widget
+
       [
-        [:size_widget_color, size_widget_text],
-        [:with_attachment_color, t.labels.member?(:attachment) ? '@' : ' '],
-        [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')]
+        [:tagged_color, @tags.tagged?(t) ? '>' : ' '],
+        [:date_color, date_widget_text],
+        [:starred_color, (starred ? '*' : ' ')]
       ] +
-      (t.labels - @hidden_labels).sort_by { |x| x.to_s }.map { |label|
-        [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]
-      } +
-      [
-        [subj_color, t.subj + (t.subj.empty? ? '' : ' ')],
-        [:snippet_color, t.snippet]
-      ]
-  end
+        from +
+        [
+          [:size_widget_color, size_widget_text],
+          [:with_attachment_color, t.labels.member?(:attachment) ? '@' : ' '],
+          [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')]
+        ] +
+        (t.labels - @hidden_labels).sort_by { |x| x.to_s }.map { |label|
+          [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]
+        } +
+        [
+          [subj_color, t.subj + (t.subj.empty? ? '' : ' ')],
+          [:snippet_color, t.snippet]
+        ]
+    end
 
-  def dirty?; @mutex.synchronize { (@hidden_threads.keys + @threads).any? { |t| t.dirty? } } end
+    def dirty?; @mutex.synchronize { (@hidden_threads.keys + @threads).any? { |t| t.dirty? } } end
 
-  private
+    private
 
-  def default_size_widget_for(t)
-    case t.size
-    when 1
-      ''
-    else
-      "(#{t.size})"
+    def default_size_widget_for(t)
+      case t.size
+      when 1
+        ''
+      else
+        "(#{t.size})"
+      end
+    end
+
+    def default_date_widget_for(t)
+      t.date.getlocal.to_nice_s
+    end
+
+    def from_width
+      [(buffer.content_width.to_f * 0.2).to_i, MIN_FROM_WIDTH].max if buffer else MIN_FROM_WIDTH # not sure why the buffer is gone
+    end
+
+    def initialize_threads
+      @ts = ThreadSet.new Index.instance, $config[:thread_by_subject]
+      @ts_mutex = Mutex.new
+      @hidden_threads = {}
     end
   end
-
-  def default_date_widget_for(t)
-    t.date.getlocal.to_nice_s
-  end
-
-  def from_width
-    [(buffer.content_width.to_f * 0.2).to_i, MIN_FROM_WIDTH].max if buffer else MIN_FROM_WIDTH # not sure why the buffer is gone
-  end
-
-  def initialize_threads
-    @ts = ThreadSet.new Index.instance, $config[:thread_by_subject]
-    @ts_mutex = Mutex.new
-    @hidden_threads = {}
-  end
-end
 
 end
