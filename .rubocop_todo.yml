@@ -262,11 +262,6 @@ Style/GuardClause:
 Style/IfUnlessModifier:
   Enabled: false
 
-# Offense count: 13
-# Cop supports --auto-correct.
-Style/IndentationConsistency:
-  Enabled: false
-
 # Offense count: 103
 # Cop supports --auto-correct.
 # Configuration parameters: Width.

@@ -44,13 +44,13 @@ class FileBrowserMode < LineCursorMode
 
   def view
      name, f = @files[curpos - RESERVED_ROWS]
-    return unless f && f.file?
+     return unless f && f.file?
 
-    begin
-      BufferManager.spawn f.to_s, TextMode.new(f.read.ascii)
-    rescue SystemCallError => e
-      BufferManager.flash e.message
-    end
+     begin
+       BufferManager.spawn f.to_s, TextMode.new(f.read.ascii)
+     rescue SystemCallError => e
+       BufferManager.flash e.message
+     end
   end
 
   def select_file_or_follow_directory

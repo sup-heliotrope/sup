@@ -639,10 +639,10 @@ EOS
     case field
     when 'Subject'
       text = BufferManager.ask :subject, 'Subject: ', @header[field]
-       if text
-         @header[field] = parse_header field, text
-         update
-       end
+      if text
+        @header[field] = parse_header field, text
+        update
+      end
     else
       default = case field
         when *MULTI_HEADERS

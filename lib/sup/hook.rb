@@ -115,14 +115,14 @@ Have #{HookManager.descs.size} registered hooks:
 
 EOS
 
-    HookManager.descs.sort.each do |name, desc|
-      f.puts <<EOS
+HookManager.descs.sort.each do |name, desc|
+  f.puts <<EOS
 #{name}
 #{"-" * name.length}
 File: #{fn_for name}
 #{desc}
 EOS
-    end
+end
   end
 
   def enabled?(name); !hook_for(name).nil? end

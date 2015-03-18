@@ -89,24 +89,24 @@ From: Bob <bob@bob.com>
 
 To: a dear friend
 EOS
-  assert_equal 'Bob <bob@bob.com>', h['from']
-  assert_nil h['to']
+    assert_equal 'Bob <bob@bob.com>', h['from']
+    assert_nil h['to']
 
-  h = Source.parse_raw_email_header StringIO.new(<<EOS)
+    h = Source.parse_raw_email_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 \r
 To: a dear friend
 EOS
-  assert_equal 'Bob <bob@bob.com>', h['from']
-  assert_nil h['to']
+    assert_equal 'Bob <bob@bob.com>', h['from']
+    assert_nil h['to']
 
-  h = Source.parse_raw_email_header StringIO.new(<<EOS)
+    h = Source.parse_raw_email_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 \r\n\r
 To: a dear friend
 EOS
-  assert_equal 'Bob <bob@bob.com>', h['from']
-  assert_nil h['to']
+    assert_equal 'Bob <bob@bob.com>', h['from']
+    assert_nil h['to']
   end
 
   def test_from_line_splitting

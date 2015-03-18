@@ -32,24 +32,24 @@ module Rfc2047
             charset, encoding, text = $1, $2, $3
 
       # B64 or QP decode, as necessary:
-      case encoding
-        when 'b', 'B'
-          # puts text
-          text = text.unpack('m*')[0]
-          # puts text.dump
+            case encoding
+              when 'b', 'B'
+                # puts text
+                text = text.unpack('m*')[0]
+                # puts text.dump
 
-        when 'q', 'Q'
-          # RFC 2047 has a variant of quoted printable where a ' ' character
-          # can be represented as an '_', rather than =32, so convert
-          # any of these that we find before doing the QP decoding.
-          text = text.tr('_', ' ')
-          text = text.unpack('M*')[0]
+              when 'q', 'Q'
+                # RFC 2047 has a variant of quoted printable where a ' ' character
+                # can be represented as an '_', rather than =32, so convert
+                # any of these that we find before doing the QP decoding.
+                text = text.tr('_', ' ')
+                text = text.unpack('M*')[0]
 
-        # Don't need an else, because no other values can be matched in a
-        # WORD.
-      end
+              # Don't need an else, because no other values can be matched in a
+              # WORD.
+            end
 
-      text.transcode(target, charset)
+            text.transcode(target, charset)
     end
   end
 end
