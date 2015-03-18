@@ -348,11 +348,11 @@ EOM
       name = Etc.getpwnam(ENV['USER']).gecos.split(/,/).first.force_encoding($encoding).fix_encoding! rescue nil
       name ||= ENV['USER']
       email = ENV['USER'] + '@' +
-        begin
-          Socket.gethostbyname(Socket.gethostname).first
-        rescue SocketError
-          Socket.gethostname
-        end
+              begin
+                Socket.gethostbyname(Socket.gethostname).first
+              rescue SocketError
+                Socket.gethostname
+              end
 
       config = {
         accounts: {

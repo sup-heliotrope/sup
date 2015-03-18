@@ -121,9 +121,9 @@ module Ncurses
       ## Wrap methods that may change us
       ## and generate new object instead.
       [:"[]=", :"<<", :replace, :insert, :prepend, :append, :concat, :force_encoding, :setbyte].
-      select { |m| public_method_defined?(m) }.
-      concat(public_instance_methods.grep(/!\z/)).
-      each do |m|
+        select { |m| public_method_defined?(m) }.
+        concat(public_instance_methods.grep(/!\z/)).
+        each do |m|
         class_eval <<-EVAL
           def #{m}(*args)
             CharCode.new.#{m}(*args)

@@ -61,13 +61,13 @@ EOS
     mode = ForwardMode.new message: opts[:message], to: to, cc: cc, bcc: bcc, attachments: attachment_hash
 
     title = 'Forwarding ' +
-      if opts[:message]
-        opts[:message].subj
-      elsif attachments
-        attachment_hash.keys.join(', ')
-      else
-        'something'
-      end
+            if opts[:message]
+              opts[:message].subj
+            elsif attachments
+              attachment_hash.keys.join(', ')
+            else
+              'something'
+            end
 
     BufferManager.spawn title, mode
     mode.default_edit_message
@@ -78,10 +78,10 @@ EOS
   def forward_body_lines(m)
     attribution = HookManager.run('forward-attribution', message: m) || default_attribution(m)
     attribution[0, 1] +
-    m.quotable_header_lines +
-    [''] +
-    m.quotable_body_lines +
-    attribution[1, 1]
+      m.quotable_header_lines +
+      [''] +
+      m.quotable_body_lines +
+      attribution[1, 1]
   end
 
   def default_attribution(m)

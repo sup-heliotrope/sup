@@ -657,8 +657,8 @@ EOS
   def minibuf_lines
     @minibuf_mutex.synchronize do
       [(@flash ? 1 : 0) +
-       (@asking ? 1 : 0) +
-       @minibuf_stack.compact.size, 1].max
+        (@asking ? 1 : 0) +
+        @minibuf_stack.compact.size, 1].max
     end
   end
 

@@ -448,7 +448,7 @@ EOS
   def jump_to_next_new
     n = @mutex.synchronize do
       ((curpos + 1)...lines).find { |i| @threads[i].has_label? :unread } ||
-        (0...curpos).find { |i| @threads[i].has_label? :unread }
+      (0...curpos).find { |i| @threads[i].has_label? :unread }
     end
     if n
       ## jump there if necessary

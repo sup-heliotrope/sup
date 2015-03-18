@@ -182,7 +182,7 @@ EOS
     queue = doc.value(THREAD_VALUENO).split(',')
     seen_threads = Set.new
     seen_messages = Set.new [m.id]
-    while not queue.empty?
+    until queue.empty?
       thread_id = queue.pop
       next if seen_threads.member? thread_id
       return true if thread_killed?(thread_id)
@@ -213,7 +213,7 @@ EOS
     msgids = [m.id]
     seen_threads = Set.new
     seen_messages = Set.new [m.id]
-    while not queue.empty?
+    until queue.empty?
       thread_id = queue.pop
       next if seen_threads.member? thread_id
       return false if opts[:skip_killed] && thread_killed?(thread_id)

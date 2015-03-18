@@ -231,11 +231,11 @@ class Container
       f.print '+->'
     end
     line = "[#{thread.nil? ? ' ' : '*'}] " + # "[#{useful? ? 'U' : ' '}] " +
-      if @message
-        message.subj # #{@message.refs.inspect} / #{@message.replytos.inspect}"
-      else
-        '<no message>'
-      end
+           if @message
+             message.subj # #{@message.refs.inspect} / #{@message.replytos.inspect}"
+           else
+             '<no message>'
+           end
 
     f.puts "#{id} #{line}" # [0 .. (105 - indent)]
     indent += 3

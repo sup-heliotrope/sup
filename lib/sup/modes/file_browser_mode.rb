@@ -86,14 +86,14 @@ class FileBrowserMode < LineCursorMode
       end.map do |f|
       real_f = cwd + f
       name = f.basename.to_s +
-        case
-        when real_f.symlink?
-          '@'
-        when real_f.directory?
-          '/'
-        else
-          ''
-        end
+             case
+             when real_f.symlink?
+               '@'
+             when real_f.directory?
+               '/'
+             else
+               ''
+             end
       [name, real_f]
       end
 

@@ -769,8 +769,8 @@ EOS
     # ]
 
     linetext = @text.slice(curpos, @text.length).flatten(1)
-      .take_while { |d| d[0] == :text_color and d[1].strip != '' } # Only take up to the first "" alone on its line
-      .map { |d| d[1].strip }.join('').strip
+               .take_while { |d| d[0] == :text_color and d[1].strip != '' } # Only take up to the first "" alone on its line
+               .map { |d| d[1].strip }.join('').strip
 
     found = false
     (linetext || '').scan(URI::regexp).each do |_matches|
