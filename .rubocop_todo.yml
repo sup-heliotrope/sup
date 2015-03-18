@@ -92,10 +92,6 @@ Metrics/PerceivedComplexity:
 Style/AccessorMethodName:
   Enabled: false
 
-# Offense count: 2
-Style/AsciiComments:
-  Enabled: false
-
 # Offense count: 3
 # Cop supports --auto-correct.
 Style/BlockEndNewline:

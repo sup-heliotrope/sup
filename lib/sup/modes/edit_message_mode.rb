@@ -392,8 +392,10 @@ EOS
 
   RE_ADDRESS = /(.+)( <.*@.*>)/
 
+  # rubocop:disable Style/AsciiComments
   # Encode "bælammet mitt <user@example.com>" into
   # "=?utf-8?q?b=C3=A6lammet_mitt?= <user@example.com>
+  # rubocop:enable Style/AsciiComments
   def mime_encode_address string
     return string if string.ascii_only?
     string.sub(RE_ADDRESS) { |_match| mime_encode($1) + $2 }

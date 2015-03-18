@@ -668,7 +668,7 @@ EOS
 
     lines.each_with_index do |line, i|
       if i >= nextline_index
-        # look for next nonblank line only when needed to avoid O(n²)
+        # look for next nonblank line only when needed to avoid O(n^2)
         # behavior on sequences of blank lines
         if nextline_index = lines[(i + 1)..-1].index { |l| l !~ /^\s*$/ } # skip blank lines
           nextline_index += i + 1
