@@ -58,7 +58,7 @@ class TestCryptoManager < Minitest::Test
     end
 
     def test_sign
-        if CryptoManager.have_crypto? then
+        if CryptoManager.have_crypto?
             signed = CryptoManager.sign @from_email, @to_email, 'ABCDEFG'
             assert_instance_of RMail::Message, signed
             assert_equal 'ABCDEFG', signed.body[0]
@@ -68,7 +68,7 @@ class TestCryptoManager < Minitest::Test
     end
 
     def test_encrypt
-        if CryptoManager.have_crypto? then
+        if CryptoManager.have_crypto?
             encrypted = CryptoManager.encrypt @from_email, [@to_email], 'ABCDEFG'
             assert_instance_of RMail::Message, encrypted
             assert (encrypted.body[1].body.include? '-----BEGIN PGP MESSAGE-----'), 'Expecting PGP armored data'
@@ -76,7 +76,7 @@ class TestCryptoManager < Minitest::Test
     end
 
     def test_sign_and_encrypt
-        if CryptoManager.have_crypto? then
+        if CryptoManager.have_crypto?
             encrypted = CryptoManager.sign_and_encrypt @from_email, [@to_email], 'ABCDEFG'
             assert_instance_of RMail::Message, encrypted
             assert (encrypted.body[1].body.include? '-----BEGIN PGP MESSAGE-----'), 'Expecting PGP armored data'
@@ -84,7 +84,7 @@ class TestCryptoManager < Minitest::Test
     end
 
     def test_decrypt
-        if CryptoManager.have_crypto? then
+        if CryptoManager.have_crypto?
             encrypted = CryptoManager.encrypt @from_email, [@to_email], 'ABCDEFG'
             assert_instance_of RMail::Message, encrypted
             assert_instance_of String, (encrypted.body[1].body)
