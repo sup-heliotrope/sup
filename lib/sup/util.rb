@@ -303,7 +303,7 @@ class String
   ## a very complicated regex found on teh internets to split on
   ## commas, unless they occurr within double quotes.
   def split_on_commas
-    normalize_whitespace().split(/,\s*(?=(?:[^"]*"[^"]*")*(?![^"]*"))/)
+    normalize_whitespace.split(/,\s*(?=(?:[^"]*"[^"]*")*(?![^"]*"))/)
   end
 
   ## ok, here we do it the hard way. got to have a remainder for purposes of

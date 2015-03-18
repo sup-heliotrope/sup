@@ -293,11 +293,6 @@ Style/LeadingCommentSpace:
 Style/LineEndConcatenation:
   Enabled: false
 
-# Offense count: 3
-# Cop supports --auto-correct.
-Style/MethodCallParentheses:
-  Enabled: false
-
 # Offense count: 4
 Style/MultilineBlockChain:
   Enabled: false
