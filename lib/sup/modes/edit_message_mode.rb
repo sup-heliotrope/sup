@@ -309,7 +309,7 @@ EOS
     def edit_message_async_resume(being_killed = false)
       buffer.hidden = false
       @async_mode = nil
-      BufferManager.raise_to_front buffer if !being_killed
+      BufferManager.raise_to_front buffer unless being_killed
 
       @edited = true if File.mtime(@file.path) > @mtime
 
@@ -323,8 +323,8 @@ EOS
     end
 
     def killable?
-      if !@async_mode.nil?
-        return false if !@async_mode.killable?
+      unless @async_mode.nil?
+        return false unless @async_mode.killable?
         if File.mtime(@file.path) > @mtime
           @edited = true
           header, @body = parse_file @file.path
@@ -526,7 +526,7 @@ EOS
         m = build_message date
 
         if HookManager.enabled? 'sendmail'
-          if not HookManager.run 'sendmail', message: m, account: acct
+          unless HookManager.run 'sendmail', message: m, account: acct
             warn 'Sendmail hook was not successful'
             return false
           end

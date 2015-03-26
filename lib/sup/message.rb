@@ -328,7 +328,7 @@ EOS
       ## labels and those we want to merge
       location_labels = location_labels.intersection(merge_labels.to_set)
 
-      if not location_labels.empty?
+      unless location_labels.empty?
         @labels = @labels.union(location_labels)
         @dirty = true
       end
@@ -608,7 +608,7 @@ EOS
       gpg = lines.between(GPG_SIGNED_START, GPG_SIGNED_END)
       # between does not check if GPG_END actually exists
       # Reference: http://permalink.gmane.org/gmane.mail.sup.devel/641
-      if !gpg.empty?
+      unless gpg.empty?
         msg = RMail::Message.new
         msg.body = gpg.join("\n")
 

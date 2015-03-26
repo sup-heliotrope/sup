@@ -118,7 +118,7 @@ EOS
       @searches = []
       counts.each do |name, search_string, total, unread|
         fmt = HookManager.run 'search-list-format', n_width: n_width, tmax: tmax, umax: umax, s_width: s_width
-        if !fmt
+        unless fmt
           fmt = "%#{n_width + 1}s %5d %s, %5d unread: %s"
         end
         @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),

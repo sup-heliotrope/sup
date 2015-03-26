@@ -402,7 +402,7 @@ EOS
     # remove the hex key_id and info in ()
     def simplify_sig_line(sig_line, trusted)
       sig_line.sub!(/from [0-9A-F]{16} /, 'from ')
-      if !trusted
+      unless trusted
         sig_line.sub!(/Good signature/, 'Good (untrusted) signature')
       end
       sig_line

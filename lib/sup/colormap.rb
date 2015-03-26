@@ -97,7 +97,7 @@ module Redwood
 
       @entries[sym] = [fg, bg, attrs, nil]
 
-      if not highlight
+      unless highlight
         highlight = highlight_sym(sym)
         @entries[highlight] = highlight_for(fg, bg, attrs) + [nil]
       end

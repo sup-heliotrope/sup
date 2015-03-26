@@ -180,7 +180,7 @@ module Redwood
     return if bypass_sync_check
 
     if $config[:sync_back_to_maildir]
-      if not File.exist? Redwood::SYNC_OK_FN
+      unless File.exist? Redwood::SYNC_OK_FN
         Redwood.warn_syncback <<EOS
 It appears that the "sync_back_to_maildir" option has been changed
 from false to true since the last execution of sup.

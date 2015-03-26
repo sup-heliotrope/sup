@@ -44,7 +44,7 @@ EOS
 
     def killable?
       if file_being_edited?
-        if !BufferManager.ask_yes_or_no('It appears the file is still being edited. Are you sure?')
+        unless BufferManager.ask_yes_or_no('It appears the file is still being edited. Are you sure?')
           return false
         end
       end
@@ -61,7 +61,7 @@ EOS
 
     def edit_finished
       if file_being_edited?
-        if !BufferManager.ask_yes_or_no('It appears the file is still being edited. Are you sure?')
+        unless BufferManager.ask_yes_or_no('It appears the file is still being edited. Are you sure?')
           return false
         end
       end

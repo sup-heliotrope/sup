@@ -286,7 +286,7 @@ EOS
 
         @lines = "\nFrom: #{from}\n"
         @lines += "To: #{to}\n"
-        if !cc.empty?
+        unless cc.empty?
           @lines += "Cc: #{cc}\n"
         end
         @lines += "Date: #{date}\n"

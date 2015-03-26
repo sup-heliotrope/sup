@@ -198,7 +198,7 @@ if defined? Ncurses
     ## function in ncurses. Some systems (Mac OS X) does not have a working
     ## form_driver that accepts wide chars. We are just falling back to form_driver, expect problems.
     def prepare_form_driver
-      if not defined? Form.form_driver_w
+      unless defined? Form.form_driver_w
         warn 'Your Ncursesw does not have a form_driver_w function (wide char aware), ' \
              'non-ASCII chars may not work on your system.'
         Form.module_eval <<-FRM_DRV, __FILE__, __LINE__ + 1
@@ -219,7 +219,7 @@ if defined? Ncurses
         end
       FRM_DRV
       end # if not defined? Form.form_driver_w
-      if not defined? Ncurses.get_wch
+      unless defined? Ncurses.get_wch
         warn 'Your Ncursesw does not have a get_wch function (wide char aware), ' \
              'non-ASCII chars may not work on your system.'
         Ncurses.module_eval <<-GET_WCH, __FILE__, __LINE__ + 1

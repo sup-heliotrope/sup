@@ -114,7 +114,7 @@ EOS
         end
 
         fmt = HookManager.run 'label-list-format', width: width, tmax: tmax, umax: umax
-        if !fmt
+        unless fmt
           fmt = "%#{width + 1}s %5d %s, %5d unread"
         end
 
