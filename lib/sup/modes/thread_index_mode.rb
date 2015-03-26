@@ -999,9 +999,9 @@ EOS
           [:with_attachment_color, t.labels.member?(:attachment) ? '@' : ' '],
           [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')]
         ] +
-        (t.labels - @hidden_labels).sort_by { |x| x.to_s }.map { |label|
+        (t.labels - @hidden_labels).sort_by { |x| x.to_s }.map do |label|
           [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]
-        } +
+        end +
         [
           [subj_color, t.subj + (t.subj.empty? ? '' : ' ')],
           [:snippet_color, t.snippet]

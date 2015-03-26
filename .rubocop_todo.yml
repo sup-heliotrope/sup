@@ -97,12 +97,6 @@ Style/AccessorMethodName:
 Style/BlockEndNewline:
   Enabled: false
 
-# Offense count: 4
-# Cop supports --auto-correct.
-Style/Blocks:
-  Enabled: false
-
-
 # Offense count: 5
 Style/CaseEquality:
   Enabled: false

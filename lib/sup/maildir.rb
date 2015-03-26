@@ -128,10 +128,10 @@ module Redwood
         @ctimes[d] = ctime
 
         old_ids = benchmark(:maildir_read_index) { Index.instance.enum_for(:each_source_info, self.id, "#{d}/").to_a }
-        new_ids = benchmark(:maildir_read_dir) {
+        new_ids = benchmark(:maildir_read_dir) do
           Dir.open(subdir).select { |f|
-            !File.directory? f}.map { |x|
-            File.join(d, File.basename(x)) }.sort }
+            !File.directory? f}.map do |x|
+            File.join(d, File.basename(x)) end.sort end
         added += new_ids - old_ids
         deleted += old_ids - new_ids
         debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
