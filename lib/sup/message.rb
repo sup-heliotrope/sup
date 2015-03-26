@@ -239,7 +239,7 @@ module Redwood
     end
 
     def location
-      @locations.find { |x| x.valid? } || raise(OutOfSyncSourceError.new)
+      @locations.find(&:valid?) || raise(OutOfSyncSourceError.new)
     end
 
     def source
@@ -339,20 +339,20 @@ EOS
       load_from_source!
       [
         from && from.indexable_content,
-        to.map { |p| p.indexable_content },
-        cc.map { |p| p.indexable_content },
-        bcc.map { |p| p.indexable_content },
-        indexable_chunks.map { |c| c.lines.map { |l| l.fix_encoding! } },
+        to.map(&:indexable_content),
+        cc.map(&:indexable_content),
+        bcc.map(&:indexable_content),
+        indexable_chunks.map { |c| c.lines.map(&:fix_encoding!) },
         indexable_subject
       ].flatten.compact.join ' '
     end
 
     def indexable_body
-      indexable_chunks.map { |c| c.lines }.flatten.compact.map { |l| l.fix_encoding! }.join ' '
+      indexable_chunks.map(&:lines).flatten.compact.map(&:fix_encoding!).join ' '
     end
 
     def indexable_chunks
-      chunks.select { |c| c.indexable? } || []
+      chunks.select(&:indexable?) || []
     end
 
     def indexable_subject
@@ -360,14 +360,14 @@ EOS
     end
 
     def quotable_body_lines
-      chunks.find_all { |c| c.quotable? }.map { |c| c.lines }.flatten
+      chunks.find_all(&:quotable?).map(&:lines).flatten
     end
 
     def quotable_header_lines
       ["From: #{@from.full_address}"] +
-        (@to.empty? ? [] : ['To: ' + @to.map { |p| p.full_address }.join(', ')]) +
-        (@cc.empty? ? [] : ['Cc: ' + @cc.map { |p| p.full_address }.join(', ')]) +
-        (@bcc.empty? ? [] : ['Bcc: ' + @bcc.map { |p| p.full_address }.join(', ')]) +
+        (@to.empty? ? [] : ['To: ' + @to.map(&:full_address).join(', ')]) +
+        (@cc.empty? ? [] : ['Cc: ' + @cc.map(&:full_address).join(', ')]) +
+        (@bcc.empty? ? [] : ['Bcc: ' + @bcc.map(&:full_address).join(', ')]) +
         ["Date: #{@date.rfc822}",
          "Subject: #{@subj}"]
     end
@@ -495,8 +495,8 @@ EOS
           body = body.normalize_whitespace
           payload = RMail::Parser.read(body)
           from = payload.header.from.first ? payload.header.from.first.format : ''
-          to = payload.header.to.map { |p| p.format }.join(', ')
-          cc = payload.header.cc.map { |p| p.format }.join(', ')
+          to = payload.header.to.map(&:format).join(', ')
+          cc = payload.header.cc.map(&:format).join(', ')
           subj = decode_header_field(payload.header.subject) || DEFAULT_SUBJECT
           subj = Message.normalize_subj(subj.gsub(/\s+/, ' ').gsub(/\s+$/, ''))
           msgdate = payload.header.date

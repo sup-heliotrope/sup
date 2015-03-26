@@ -24,7 +24,7 @@ end
 
 class Module
   def yaml_properties(*props)
-    props = props.map { |p| p.to_s }
+    props = props.map(&:to_s)
 
     path = name.gsub(/::/, '/')
     yaml_tag "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
@@ -199,7 +199,7 @@ EOS
   def check_syncback_settings
     # don't check if syncback was never performed
     return unless File.exist? Redwood::SYNC_OK_FN
-    active_sync_sources = File.readlines(Redwood::SYNC_OK_FN).collect { |e| e.strip }.find_all { |e| not e.empty? }
+    active_sync_sources = File.readlines(Redwood::SYNC_OK_FN).collect(&:strip).find_all { |e| not e.empty? }
     return if active_sync_sources.length == 1 and active_sync_sources[0] == Redwood::MAILDIR_SYNC_CHECK_SKIPPED
     sources = SourceManager.sources
     newly_synced = sources.select { |s| s.is_a? Maildir and s.sync_back_enabled? and not active_sync_sources.include? s.uri }

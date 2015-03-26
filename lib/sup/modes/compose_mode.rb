@@ -5,9 +5,9 @@ module Redwood
     def initialize(opts = {})
       header = {}
       header['From'] = (opts[:from] || AccountManager.default_account).full_address
-      header['To'] = opts[:to].map { |p| p.full_address }.join(', ') if opts[:to]
-      header['Cc'] = opts[:cc].map { |p| p.full_address }.join(', ') if opts[:cc]
-      header['Bcc'] = opts[:bcc].map { |p| p.full_address }.join(', ') if opts[:bcc]
+      header['To'] = opts[:to].map(&:full_address).join(', ') if opts[:to]
+      header['Cc'] = opts[:cc].map(&:full_address).join(', ') if opts[:cc]
+      header['Bcc'] = opts[:bcc].map(&:full_address).join(', ') if opts[:bcc]
       header['Subject'] = opts[:subj] if opts[:subj]
       header['References'] = opts[:refs].map { |r| "<#{r}>" }.join(' ') if opts[:refs]
       header['In-Reply-To'] = opts[:replytos].map { |r| "<#{r}>" }.join(' ') if opts[:replytos]

@@ -267,9 +267,9 @@ EOS
         ## let's see you do THIS in python
         @threads = @ts.threads.select { |t| !@hidden_threads.member?(t) }.select(&:has_message?).sort_by(&:sort_key)
         @size_widgets = @threads.map { |t| size_widget_for_thread t }
-        @size_widget_width = @size_widgets.max_of { |w| w.display_length }
+        @size_widget_width = @size_widgets.max_of(&:display_length)
         @date_widgets = @threads.map { |t| date_widget_for_thread t }
-        @date_widget_width = @date_widgets.max_of { |w| w.display_length }
+        @date_widget_width = @date_widgets.max_of(&:display_length)
       end
       set_cursor_pos @threads.index(old_cursor_thread) || curpos
 
@@ -546,7 +546,7 @@ EOS
         sleep 0.1 # TODO: necessary?
         BufferManager.erase_flash
       end
-      dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select { |t| t.dirty? } }
+      dirty_threads = @mutex.synchronize { (@threads + @hidden_threads.keys).select(&:dirty?) }
       fail 'dirty threads remain' unless dirty_threads.empty?
       super
     end
@@ -587,7 +587,7 @@ EOS
 
       keepl, modifyl = thread.labels.partition { |t| speciall.member? t }
 
-      user_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', modifyl.sort_by { |x| x.to_s }, @hidden_labels
+      user_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', modifyl.sort_by(&:to_s), @hidden_labels
       return unless user_labels
 
       thread.labels = Set.new(keepl) + user_labels
@@ -998,7 +998,7 @@ EOS
           [:with_attachment_color, t.labels.member?(:attachment) ? '@' : ' '],
           [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')]
         ] +
-        (t.labels - @hidden_labels).sort_by { |x| x.to_s }.map do |label|
+        (t.labels - @hidden_labels).sort_by(&:to_s).map do |label|
           [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]
         end +
         [
@@ -1007,7 +1007,7 @@ EOS
         ]
     end
 
-    def dirty?; @mutex.synchronize { (@hidden_threads.keys + @threads).any? { |t| t.dirty? } } end
+    def dirty?; @mutex.synchronize { (@hidden_threads.keys + @threads).any?(&:dirty?) } end
 
     private
 

@@ -263,7 +263,7 @@ EOS
       cmd = case (hookcmd = HookManager.run 'bounce-command', from: m.from, to: to)
             when nil, /^$/ then defcmd
             else hookcmd
-            end + ' ' + to.map { |t| t.email }.join(' ')
+            end + ' ' + to.map(&:email).join(' ')
 
       bt = to.size > 1 ? "#{to.size} recipients" : to[0].to_s
 
@@ -309,7 +309,7 @@ EOS
     def edit_labels
       old_labels = @thread.labels
       reserved_labels = old_labels.select { |l| LabelManager::RESERVED_LABELS.include? l }
-      new_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', @thread.labels.sort_by { |x| x.to_s }
+      new_labels = BufferManager.ask_for_labels :label, 'Labels for thread: ', @thread.labels.sort_by(&:to_s)
 
       return unless new_labels
       @thread.labels = Set.new(reserved_labels) + new_labels
@@ -864,7 +864,7 @@ EOS
         (0...text.length).each do |i|
           @chunk_lines[@text.length + i] = m
           @message_lines[@text.length + i] = m
-          lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.display_length }.sum
+          lw = text[i].flatten.select { |x| x.is_a? String }.map(&:display_length).sum
         end
 
         @text += text
@@ -885,7 +885,7 @@ EOS
             (0...text.length).each do |i|
               @chunk_lines[@text.length + i] = c
               @message_lines[@text.length + i] = m
-              lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.display_length }.sum - (depth * INDENT_SPACES)
+              lw = text[i].flatten.select { |x| x.is_a? String }.map(&:display_length).sum - (depth * INDENT_SPACES)
               l.width = lw if lw > l.width
             end
             @text += text
@@ -945,7 +945,7 @@ EOS
 
         show_labels = @thread.labels - LabelManager::HIDDEN_RESERVED_LABELS
         unless show_labels.empty?
-          headers['Labels'] = show_labels.map { |x| x.to_s }.sort.join(', ')
+          headers['Labels'] = show_labels.map(&:to_s).sort.join(', ')
         end
         if parent
           headers['In reply to'] = "#{parent.from.mediumname}'s message of #{parent.date.to_message_nice_s}"

@@ -211,7 +211,7 @@ EOS
       begin
         text = @body.join("\n")
       rescue Encoding::CompatibilityError
-        text = @body.map { |x| x.fix_encoding! }.join("\n")
+        text = @body.map(&:fix_encoding!).join("\n")
         debug "encoding problem while writing message, trying to rescue, but expect errors: #{text}"
       end
 
@@ -223,7 +223,7 @@ EOS
     def set_sig_edit_flag
       sig = sig_lines.join("\n")
       if $config[:edit_signature]
-        pbody = @body.map { |x| x.fix_encoding! }.join("\n").fix_encoding!
+        pbody = @body.map(&:fix_encoding!).join("\n").fix_encoding!
         blen = pbody.length
         slen = sig.length
 
@@ -455,7 +455,7 @@ EOS
     def parse_file(fn)
       File.open(fn) do |f|
         header = Source.parse_raw_email_header(f).inject({}) { |h, (k, v)| h[k.capitalize] = v; h } # lousy HACK
-        body = f.readlines.map { |l| l.chomp }
+        body = f.readlines.map(&:chomp)
 
         header.delete_if { |k, _v| NON_EDITABLE_HEADERS.member? k }
         header.each { |k, v| header[k] = parse_header k, v }
@@ -653,7 +653,7 @@ EOS
 
         contacts = BufferManager.ask_for_contacts :people, "#{field}: ", default
         if contacts
-          text = contacts.map { |s| s.full_address }.join(', ')
+          text = contacts.map(&:full_address).join(', ')
           @header[field] = parse_header field, text
 
           if @account_selector and field == 'From'
@@ -682,7 +682,7 @@ EOS
     end
 
     def top_posting?
-      @body.map { |x| x.fix_encoding! }.join("\n").fix_encoding! =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
+      @body.map(&:fix_encoding!).join("\n").fix_encoding! =~ /(\S+)\s*Excerpts from.*\n(>.*\n)+\s*\Z/
     end
 
     def sig_lines
@@ -701,7 +701,7 @@ EOS
                AccountManager.default_account).signature
 
       if sigfn && File.exist?(sigfn)
-        ['', '-- '] + File.readlines(sigfn).map { |l| l.chomp }
+        ['', '-- '] + File.readlines(sigfn).map(&:chomp)
       else
         []
       end

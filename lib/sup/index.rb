@@ -605,7 +605,7 @@ EOS
     end
 
     def term_docids(term)
-      @xapian.postlist(term).map { |x| x.docid }
+      @xapian.postlist(term).map(&:docid)
     end
 
     def find_docid(id)

@@ -61,7 +61,7 @@ module Redwood
     ## messages).
     def each(fake_root = false)
       adj = 0
-      root = @containers.find_all { |c| c.message && !Message.subj_is_reply?(c.message.subj) }.argmin { |c| c.date }
+      root = @containers.find_all { |c| c.message && !Message.subj_is_reply?(c.message.subj) }.argmin(&:date)
 
       if root
         adj = 1
@@ -223,7 +223,7 @@ module Redwood
     def to_s
       ["<#{id}",
        (@parent.nil? ? nil : "parent=#{@parent.id}"),
-       (@children.empty? ? nil : "children=#{@children.map { |c| c.id }.inspect}")
+       (@children.empty? ? nil : "children=#{@children.map(&:id).inspect}")
       ].compact.join(' ') + '>'
     end
 
@@ -381,7 +381,7 @@ module Redwood
       parent = containers.find { |c| !c.is_reply? }
 
       ## no thread was rooted by a non-reply, so make a fake parent
-      parent ||= @messages['joining-ref-' + containers.map { |c| c.id }.join('-')]
+      parent ||= @messages['joining-ref-' + containers.map(&:id).join('-')]
 
       containers.each do |c|
         next if c == parent

@@ -81,7 +81,7 @@ module Redwood
 
     def multi_search(people)
       mode = PersonSearchResultsMode.new people
-      BufferManager.spawn "search for #{people.map { |p| p.name }.join(', ')}", mode
+      BufferManager.spawn "search for #{people.map(&:name).join(', ')}", mode
       mode.load_threads num: mode.buffer.content_height
     end
 
@@ -110,7 +110,7 @@ module Redwood
       num = [@num - @user_contacts.length, 0].max
       BufferManager.say("Loading #{num} contacts from index...") do
         recentc = Index.load_contacts AccountManager.user_emails, num: num
-        @contacts = (@user_contacts + recentc).sort_by { |p| p.sort_by_me }.uniq
+        @contacts = (@user_contacts + recentc).sort_by(&:sort_by_me).uniq
       end
     end
 

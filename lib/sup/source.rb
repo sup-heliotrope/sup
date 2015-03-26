@@ -176,12 +176,12 @@ module Redwood
   module SerializeLabelsNicely
     def before_marshal # can return an object
       c = clone
-      c.instance_eval { @labels = (@labels.to_a.map { |l| l.to_s }).sort }
+      c.instance_eval { @labels = (@labels.to_a.map(&:to_s)).sort }
       c
     end
 
     def after_unmarshal!
-      @labels = Set.new(@labels.to_a.map { |s| s.to_sym })
+      @labels = Set.new(@labels.to_a.map(&:to_sym))
     end
   end
 
@@ -211,7 +211,7 @@ module Redwood
 
     def sources
       ## favour the inbox by listing non-archived sources first
-      @source_mutex.synchronize { @sources.values }.sort_by { |s| s.id }.partition { |s| !s.archived? }.flatten
+      @source_mutex.synchronize { @sources.values }.sort_by(&:id).partition { |s| !s.archived? }.flatten
     end
 
     def source_for(uri)
@@ -219,7 +219,7 @@ module Redwood
       sources.find { |s| s.is_source_for? expanded_uri }
     end
 
-    def usual_sources; sources.find_all { |s| s.usual? }; end
+    def usual_sources; sources.find_all(&:usual?); end
     def unusual_sources; sources.find_all { |s| !s.usual? }; end
 
     def load_sources(fn = Redwood::SOURCE_FN)

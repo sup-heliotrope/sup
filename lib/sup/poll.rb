@@ -77,7 +77,7 @@ EOS
           flash_msg = "Loaded #{@running_totals[:num].pluralize 'new message'}, #{@running_totals[:numi]} to inbox. " if @running_totals[:num] > 0
           flash_msg += "Updated #{@running_totals[:numu].pluralize 'message'}. " if @running_totals[:numu] > 0
           flash_msg += "Deleted #{@running_totals[:numd].pluralize 'message'}. " if @running_totals[:numd] > 0
-          flash_msg += "Labels: #{@running_totals[:loaded_labels].map { |l| l.to_s }.join(', ')}." if @running_totals[:loaded_labels].size > 0
+          flash_msg += "Labels: #{@running_totals[:loaded_labels].map(&:to_s).join(', ')}." if @running_totals[:loaded_labels].size > 0
           BufferManager.flash flash_msg
         else
           BufferManager.flash 'No new messages.'

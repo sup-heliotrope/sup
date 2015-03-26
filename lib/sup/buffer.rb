@@ -489,7 +489,7 @@ EOS
 
       # here I would prefer to give more control and allow all_labels instead of
       # user_defined_labels only
-      applyable_labels = (LabelManager.user_defined_labels - forbidden_labels).map { |l| LabelManager.string_for l }.sort_by { |s| s.downcase }
+      applyable_labels = (LabelManager.user_defined_labels - forbidden_labels).map { |l| LabelManager.string_for l }.sort_by(&:downcase)
 
       answer = ask_many_with_completions domain, question, applyable_labels, default
 
@@ -506,7 +506,7 @@ EOS
     end
 
     def ask_for_contacts(domain, question, default_contacts = [])
-      default = default_contacts.is_a?(String) ? default_contacts : default_contacts.map { |s| s.to_s }.join(', ')
+      default = default_contacts.is_a?(String) ? default_contacts : default_contacts.map(&:to_s).join(', ')
       default += ' ' unless default.empty?
 
       recent = Index.load_contacts(AccountManager.user_emails, num: 10).map { |c| [c.full_address, c.email] }
@@ -589,7 +589,7 @@ EOS
     def ask_getch(question, accept = nil)
       raise 'impossible!' if @asking
 
-      accept = accept.split(//).map { |x| x.ord } if accept
+      accept = accept.split(//).map(&:ord) if accept
 
       status, title = get_status_and_title @focus_buf
       Ncurses.sync do

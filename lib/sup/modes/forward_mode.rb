@@ -24,9 +24,9 @@ EOS
           'Fwd: ' + opts[:attachments].keys.join(', ')
         end
 
-      header['To'] = opts[:to].map { |p| p.full_address }.join(', ') if opts[:to]
-      header['Cc'] = opts[:cc].map { |p| p.full_address }.join(', ') if opts[:cc]
-      header['Bcc'] = opts[:bcc].map { |p| p.full_address }.join(', ') if opts[:bcc]
+      header['To'] = opts[:to].map(&:full_address).join(', ') if opts[:to]
+      header['Cc'] = opts[:cc].map(&:full_address).join(', ') if opts[:cc]
+      header['Bcc'] = opts[:bcc].map(&:full_address).join(', ') if opts[:bcc]
 
       body =
         if @m

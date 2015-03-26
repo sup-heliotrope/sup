@@ -23,7 +23,7 @@ module Redwood
     def undo
       unless @@actionlist.empty?
         actionset = @@actionlist.pop
-        actionset[:actions].each { |action| action.call }
+        actionset[:actions].each(&:call)
         BufferManager.flash "undid #{actionset[:desc]}"
       else
         BufferManager.flash 'nothing more to undo!'
