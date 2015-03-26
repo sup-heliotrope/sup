@@ -101,7 +101,6 @@ Style/CaseEquality:
 Style/CaseIndentation:
   Enabled: false
 
-
 # Offense count: 2
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/ClassAndModuleChildren:
@@ -113,10 +112,6 @@ Style/ClassAndModuleChildren:
 Style/ClassCheck:
   Enabled: false
 
-# Offense count: 3
-# Cop supports --auto-correct.
-Style/ClassMethods:
-  Enabled: false
 
 # Offense count: 7
 Style/ClassVars:

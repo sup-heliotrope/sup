@@ -166,7 +166,7 @@ module Redwood
     ## convenience function
     def parse_raw_email_header(f); self.class.parse_raw_email_header f end
 
-    def Source.expand_filesystem_uri(uri)
+    def self.expand_filesystem_uri(uri)
       uri.gsub '~', File.expand_path('~')
     end
   end
