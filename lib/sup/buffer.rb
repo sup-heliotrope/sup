@@ -626,7 +626,7 @@ EOS
     ## returns true (y), false (n), or nil (ctrl-g / cancel)
     def ask_yes_or_no(question)
       case (r = ask_getch question, 'ynYN')
-      when ?y, ?Y
+      when 'y', 'Y'
         true
       when nil
         nil

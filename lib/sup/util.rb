@@ -327,14 +327,14 @@ class String
       end
 
       case char
-      when ?"
+      when '"'
         state = case state
           when :outstring then :instring
           when :instring then :outstring
           when :escaped_instring then :instring
           when :escaped_outstring then :outstring
         end
-      when ?,, nil
+      when ',', nil
         state = case state
           when :outstring, :escaped_outstring then
             ret << self[region_start...newpos].gsub(/^\s+|\s+$/, '')
@@ -343,7 +343,7 @@ class String
           when :instring then :instring
           when :escaped_instring then :instring
         end
-      when ?\\
+      when '\\'
         state = case state
           when :instring then :escaped_instring
           when :outstring then :escaped_outstring

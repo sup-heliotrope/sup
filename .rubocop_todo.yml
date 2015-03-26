@@ -101,10 +101,6 @@ Style/CaseEquality:
 Style/CaseIndentation:
   Enabled: false
 
-# Offense count: 7
-# Cop supports --auto-correct.
-Style/CharacterLiteral:
-  Enabled: false
 
 # Offense count: 2
 # Configuration parameters: EnforcedStyle, SupportedStyles.

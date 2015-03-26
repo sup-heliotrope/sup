@@ -213,9 +213,9 @@ module Redwood
       ## cursor <= end of text
       elsif v_index < v.length
         # is the character before the cursor a space?
-        if v[v_index - 1] == ?\s
+        if v[v_index - 1] == "\s"
           # if there is a non-space char under cursor then go back
-          if v[v_index] != ?\s
+          if v[v_index] != "\s"
             Ncurses::Form::REQ_PREV_CHAR
           # otherwise delete the space
           else
