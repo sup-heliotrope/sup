@@ -570,7 +570,7 @@ EOS
 
         m.add_part body_m
         @attachments.each do |a|
-          a.body = a.body.fix_encoding! if a.body.kind_of? String
+          a.body = a.body.fix_encoding! if a.body.is_a? String
           m.add_part a
         end
       end

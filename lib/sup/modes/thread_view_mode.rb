@@ -980,7 +980,7 @@ EOS
           width = buffer.content_width
         end
         # lines can apparently be both String and Array, convert to Array for map.
-        if lines.kind_of? String
+        if lines.is_a? String
           lines = lines.lines.to_a
         end
         lines = lines.map { |l| l.chomp.wrap width if l }.flatten

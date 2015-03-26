@@ -50,7 +50,7 @@ module Redwood
         [:name, :sendmail, :signature, :gpgkey].each { |k| hash[k] ||= @default_account.send(k) }
       end
       hash[:alternates] ||= []
-      fail "alternative emails are not an array: #{hash[:alternates]}" unless hash[:alternates].kind_of? Array
+      fail "alternative emails are not an array: #{hash[:alternates]}" unless hash[:alternates].is_a? Array
 
       [:name, :signature].each { |x| hash[x] ? hash[x].fix_encoding! : nil }
 
