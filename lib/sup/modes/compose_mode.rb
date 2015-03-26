@@ -17,7 +17,7 @@ module Redwood
 
     def default_edit_message
       edited = super
-      BufferManager.kill_buffer self.buffer unless edited
+      BufferManager.kill_buffer buffer unless edited
       edited
     end
 

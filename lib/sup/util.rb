@@ -267,7 +267,7 @@ class String
     # if Unicode.width fails and returns -1, fall back to
     # regular String#length, see pull-request: #256.
     if @display_length < 0
-      @display_length = self.length
+      @display_length = length
     end
 
     @display_length
@@ -281,7 +281,7 @@ class String
   end
 
   def camel_to_hyphy
-    self.gsub(/([a-z])([A-Z0-9])/, '\1-\2').downcase
+    gsub(/([a-z])([A-Z0-9])/, '\1-\2').downcase
   end
 
   def find_all_positions(x)
@@ -535,7 +535,7 @@ end
 
 class Hash
   def -(o)
-    Hash[*self.map { |k, v| [k, v] unless o.include? k }.compact.flatten_one_level]
+    Hash[*map { |k, v| [k, v] unless o.include? k }.compact.flatten_one_level]
   end
 
   def select_by_value(v = true)

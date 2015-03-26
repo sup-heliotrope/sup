@@ -357,7 +357,7 @@ EOS
         UpdateManager.relay self, :unspammed, t.first
         lambda do
           thread.apply_label :spam
-          self.hide_thread thread
+          hide_thread thread
           UpdateManager.relay self, :spammed, thread.first
         end
       else

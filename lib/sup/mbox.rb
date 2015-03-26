@@ -166,7 +166,7 @@ module Redwood
     ## TODO optimize this by iterating over allterms list backwards or
     ## storing source_info negated
     def last_indexed_message
-      benchmark(:mbox_read_index) { Index.instance.enum_for(:each_source_info, self.id).map(&:to_i).max }
+      benchmark(:mbox_read_index) { Index.instance.enum_for(:each_source_info, id).map(&:to_i).max }
     end
 
     ## offset of first new message or nil

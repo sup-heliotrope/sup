@@ -448,7 +448,7 @@ EOS
       if m.is_draft?
         mode = ResumeMode.new m
         BufferManager.spawn 'Edit message', mode
-        BufferManager.kill_buffer self.buffer
+        BufferManager.kill_buffer buffer
         mode.default_edit_message
       else
         BufferManager.flash 'Not a draft message!'
@@ -460,7 +460,7 @@ EOS
       if m.is_draft?
         mode = ResumeMode.new m
         BufferManager.spawn 'Send message', mode
-        BufferManager.kill_buffer self.buffer
+        BufferManager.kill_buffer buffer
         mode.send_message
       else
         BufferManager.flash 'Not a draft message!'

@@ -32,7 +32,7 @@ EOS
 
   def to_nice_distance_s(from = Time.now)
     later_than = (self < from)
-    diff = (self.to_i - from.to_i).abs.to_f
+    diff = (to_i - from.to_i).abs.to_f
     text =
       [['second', 60],
        ['minute', 60],

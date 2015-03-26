@@ -196,11 +196,6 @@ Style/PredicateName:
 Style/RaiseArgs:
   Enabled: false
 
-# Offense count: 24
-# Cop supports --auto-correct.
-Style/RedundantSelf:
-  Enabled: false
-
 # Offense count: 9
 # Configuration parameters: MaxSlashes.
 Style/RegexpLiteral:

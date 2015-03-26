@@ -128,7 +128,7 @@ module Redwood
 
       def from_address_list(ss)
         return [] if ss.nil?
-        ss.dup.split_on_commas.map { |s| self.from_address s }
+        ss.dup.split_on_commas.map { |s| from_address s }
       end
     end
   end

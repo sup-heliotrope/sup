@@ -162,8 +162,8 @@ EOS
 
     def move_cursor_right
       super
-      if @headers[@type_selector.val] != self.header
-        self.header = self.header.merge @headers[@type_selector.val]
+      if @headers[@type_selector.val] != header
+        self.header = header.merge @headers[@type_selector.val]
         rerun_crypto_selector_hook
         update
       end
@@ -171,8 +171,8 @@ EOS
 
     def move_cursor_left
       super
-      if @headers[@type_selector.val] != self.header
-        self.header = self.header.merge @headers[@type_selector.val]
+      if @headers[@type_selector.val] != header
+        self.header = header.merge @headers[@type_selector.val]
         rerun_crypto_selector_hook
         update
       end
@@ -197,8 +197,8 @@ EOS
       old_header = @headers[@type_selector.val]
       if old_header.any? { |k, v| new_header[k] != v }
         @type_selector.set_to :user
-        self.header['To'] = @headers[:user]['To'] = new_header['To']
-        self.header['Cc'] = @headers[:user]['Cc'] = new_header['Cc']
+        header['To'] = @headers[:user]['To'] = new_header['To']
+        header['Cc'] = @headers[:user]['Cc'] = new_header['Cc']
         update
       end
     end
@@ -211,8 +211,8 @@ EOS
       edited_field = super
       if edited_field and (field == 'To' or field == 'Cc')
         @type_selector.set_to :user
-        @headers[:user]['To'] = self.header['To']
-        @headers[:user]['Cc'] = self.header['Cc']
+        @headers[:user]['To'] = header['To']
+        @headers[:user]['Cc'] = header['Cc']
         update
       end
     end

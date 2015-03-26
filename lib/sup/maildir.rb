@@ -126,7 +126,7 @@ module Redwood
         next if prev_ctime >= ctime
         @ctimes[d] = ctime
 
-        old_ids = benchmark(:maildir_read_index) { Index.instance.enum_for(:each_source_info, self.id, "#{d}/").to_a }
+        old_ids = benchmark(:maildir_read_index) { Index.instance.enum_for(:each_source_info, id, "#{d}/").to_a }
         new_ids = benchmark(:maildir_read_dir) do
           Dir.open(subdir).select do |f|
             !File.directory? f
