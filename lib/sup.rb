@@ -277,7 +277,7 @@ Hi there. It looks like one or more message sources is reporting
 errors. Until this is corrected, messages from these sources cannot
 be viewed, and new messages will not be detected.
 
-#{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.error.message.wrap(70).join("\n        ") }.join("\n\n")}
+#{broken_sources.map { |s| 'Source: ' + s.to_s + "\n Error: " + s.error.message.wrap(70).join("\n        ") }.join("\n\n")}
 EOM
         # ' stupid ruby-mode
       end
@@ -298,7 +298,7 @@ Until this is corrected, messages from these sources cannot be viewed,
 and new messages will not be detected. Luckily, this is easy to correct!
 
 #{desynced_sources.map do |s|
-    "Source: " + s.to_s +
+    'Source: ' + s.to_s +
      "\n Error: " + s.error.message.wrap(70).join("\n        ") +
      "\n   Fix: sup-sync --changed #{s}"
   end}

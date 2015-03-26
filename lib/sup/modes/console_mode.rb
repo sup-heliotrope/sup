@@ -106,7 +106,7 @@ module Redwood
     def run
       self << <<EOS
 Sup v#{VERSION} console session started.
-Available extra commands: #{(@console.special_methods) * ", "}
+Available extra commands: #{(@console.special_methods) * ', '}
 Ctrl-G stops evaluation; 'e' restarts it.
 
 EOS

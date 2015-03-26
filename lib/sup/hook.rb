@@ -116,7 +116,7 @@ EOS
 
       HookManager.descs.sort.each do |name, desc|
         f.puts "#{name}"
-        f.puts "#{"-" * name.length}"
+        f.puts "#{'-' * name.length}"
         f.puts "File: #{fn_for name}"
         f.puts "#{desc}"
       end

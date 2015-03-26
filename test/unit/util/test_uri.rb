@@ -13,7 +13,7 @@ describe Redwood::Util::Uri do
     it 'expands ~ in path' do
       components = { path: '~/foo', scheme: 'maildir' }
       uri = Redwood::Util::Uri.build(components)
-      uri.to_s.must_equal "maildir:#{ENV["HOME"]}/foo"
+      uri.to_s.must_equal "maildir:#{ENV['HOME']}/foo"
     end
   end
 end
