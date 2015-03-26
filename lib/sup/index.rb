@@ -630,7 +630,7 @@ EOS
     end
 
     def thread_killed?(thread_id)
-      not run_query(Q.new(Q::OP_AND, mkterm(:thread, thread_id), mkterm(:label, :Killed)), 0, 1).empty?
+      !run_query(Q.new(Q::OP_AND, mkterm(:thread, thread_id), mkterm(:label, :Killed)), 0, 1).empty?
     end
 
     def synchronize(&b)

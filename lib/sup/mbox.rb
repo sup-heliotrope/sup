@@ -157,7 +157,7 @@ module Redwood
       @mutex.synchronize do
         ensure_open
         @f.seek offset
-        nil while line = @f.gets and not MBox.is_break_line? line
+        nil while line = @f.gets and !MBox.is_break_line? line
         offset = @f.tell
         offset != File.size(@f) ? offset : nil
       end

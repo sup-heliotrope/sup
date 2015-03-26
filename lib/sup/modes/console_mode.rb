@@ -49,7 +49,7 @@ module Redwood
       old_features = $".dup
       begin
         fs = $".grep(/^sup\//)
-        fs.reject! { |f| not RELOAD_WHITELIST.member? f }
+        fs.reject! { |f| !RELOAD_WHITELIST.member? f }
         fs.each { |f| $".delete f }
         fs.each do |f|
           @mode << "reloading #{f}\n"

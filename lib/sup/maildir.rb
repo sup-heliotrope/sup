@@ -237,7 +237,7 @@ module Redwood
       if labels.member? :starred then new_flags.add?('F') else new_flags.delete?('F') end
       if labels.member? :forwarded then new_flags.add?('P') else new_flags.delete?('P') end
       if labels.member? :replied then new_flags.add?('R') else new_flags.delete?('R') end
-      if not labels.member? :unread then new_flags.add?('S') else new_flags.delete?('S') end
+      if !labels.member? :unread then new_flags.add?('S') else new_flags.delete?('S') end
       if labels.member? :deleted or labels.member? :killed then new_flags.add?('T') else new_flags.delete?('T') end
 
       ## Flags must be stored in ASCII order according to Maildir

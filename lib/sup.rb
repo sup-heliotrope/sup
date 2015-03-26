@@ -191,7 +191,7 @@ Should I complain about this again? (Y/n)
 EOS
         File.open(Redwood::SYNC_OK_FN, 'w') { |f| f.write(Redwood::MAILDIR_SYNC_CHECK_SKIPPED) } if STDIN.gets.chomp.downcase == 'n'
       end
-    elsif not $config[:sync_back_to_maildir] and File.exist? Redwood::SYNC_OK_FN
+    elsif !$config[:sync_back_to_maildir] and File.exist? Redwood::SYNC_OK_FN
       File.delete(Redwood::SYNC_OK_FN)
     end
   end
@@ -199,10 +199,10 @@ EOS
   def check_syncback_settings
     # don't check if syncback was never performed
     return unless File.exist? Redwood::SYNC_OK_FN
-    active_sync_sources = File.readlines(Redwood::SYNC_OK_FN).collect(&:strip).find_all { |e| not e.empty? }
+    active_sync_sources = File.readlines(Redwood::SYNC_OK_FN).collect(&:strip).find_all { |e| !e.empty? }
     return if active_sync_sources.length == 1 and active_sync_sources[0] == Redwood::MAILDIR_SYNC_CHECK_SKIPPED
     sources = SourceManager.sources
-    newly_synced = sources.select { |s| s.is_a? Maildir and s.sync_back_enabled? and not active_sync_sources.include? s.uri }
+    newly_synced = sources.select { |s| s.is_a? Maildir and s.sync_back_enabled? and !active_sync_sources.include? s.uri }
     unless newly_synced.empty?
 
       details = <<EOS

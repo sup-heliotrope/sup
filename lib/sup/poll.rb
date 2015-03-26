@@ -152,7 +152,7 @@ EOS
             elsif action == :add
               if old_m
                 new_locations = (m.locations - old_m.locations)
-                if not new_locations.empty?
+                if !new_locations.empty?
                   yield "Message at #{new_locations[0].info} has changed its source location. Updating labels from #{old_m.labels.to_a * ','} => #{m.labels.to_a * ','}"
                   numu += 1
                 else
@@ -221,7 +221,7 @@ EOS
               ## the same message was found at a different location
               if old_m
                 UpdateManager.relay self, :updated, m
-              elsif !old_m or not old_m.locations.member? m.location
+              elsif !old_m or !old_m.locations.member? m.location
                 UpdateManager.relay self, :added, m
               end
             when :delete

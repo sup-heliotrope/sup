@@ -83,7 +83,7 @@ module Redwood
         mid = header['message-id'] =~ /<(.+?)>/ ? $1 : header['message-id']
         @id = sanitize_message_id mid
       end
-      if (not @id.include? '@') || @id.length < 6
+      if (!@id.include? '@') || @id.length < 6
         @id = 'sup-faked-' + Digest::MD5.hexdigest(raw_header)
         # from = header["from"]
         # debug "faking non-existent message-id for message from #{from}: #{id}"
