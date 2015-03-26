@@ -19,7 +19,7 @@ module Redwood
 
     def to_s
       if @name
-        "#@name <#@email>"
+        "#{@name} <#{@email}>"
       else
         @email
       end

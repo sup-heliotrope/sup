@@ -43,7 +43,7 @@ module Redwood
     end
 
     def status
-      super + " (follow: #@follow)"
+      super + " (follow: #{@follow})"
     end
 
     def cleanup

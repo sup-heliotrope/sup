@@ -293,11 +293,6 @@ Style/TrivialAccessors:
 Style/UnlessElse:
   Enabled: false
 
-# Offense count: 5
-# Cop supports --auto-correct.
-Style/VariableInterpolation:
-  Enabled: false
-
 # Offense count: 1
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/VariableName:

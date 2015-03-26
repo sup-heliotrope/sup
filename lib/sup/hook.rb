@@ -27,7 +27,7 @@ module Redwood
       end
 
       def log(s)
-        info "hook[#@__name]: #{s}"
+        info "hook[#{@__name}]: #{s}"
       end
 
       def ask_yes_or_no(q)

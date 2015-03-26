@@ -288,7 +288,7 @@ module Redwood
 
     def error_message
       <<EOS
-  #@snippet...
+  #{@snippet}...
 
 ***********************************************************************
  An error occurred while loading this message.
