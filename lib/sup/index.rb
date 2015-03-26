@@ -160,7 +160,7 @@ EOS
     ## You should probably not call this on a block that doesn't break
     ## rather quickly because the results can be very large.
     def each_id_by_date(query = {})
-      each_id(query) { |id| yield id, lambda { build_message id } }
+      each_id(query) { |id| yield id, -> { build_message id } }
     end
 
     ## Return the number of matches for query in the index
@@ -225,7 +225,7 @@ EOS
           queue.concat doc.value(THREAD_VALUENO).split(',')
         end
       end
-      msgids.each { |id| yield id, lambda { build_message id } }
+      msgids.each { |id| yield id, -> { build_message id } }
       true
     end
 
@@ -246,7 +246,7 @@ EOS
 
       # Try to find person from contacts before falling back to
       # generating it from the address.
-      mk_person = lambda { |x| Person.from_name_and_email(*x.reverse!) }
+      mk_person = ->(x) { Person.from_name_and_email(*x.reverse!) }
       entry[:from] = mk_person[entry[:from]]
       entry[:to].map!(&mk_person)
       entry[:cc].map!(&mk_person)

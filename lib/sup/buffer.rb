@@ -752,10 +752,10 @@ EOS
 
     def get_status_and_title(buf)
       opts = {
-        num_inbox: lambda { Index.num_results_for label: :inbox },
-        num_inbox_unread: lambda { Index.num_results_for labels: [:inbox, :unread] },
-        num_total: lambda { Index.size },
-        num_spam: lambda { Index.num_results_for label: :spam },
+        num_inbox: -> { Index.num_results_for label: :inbox },
+        num_inbox_unread: -> { Index.num_results_for labels: [:inbox, :unread] },
+        num_total: -> { Index.size },
+        num_spam: -> { Index.num_results_for label: :spam },
         title: buf.title,
         mode: buf.mode.name,
         status: buf.mode.status

@@ -160,12 +160,6 @@ Style/GuardClause:
 Style/IfUnlessModifier:
   Enabled: false
 
-
-# Offense count: 20
-# Cop supports --auto-correct.
-Style/Lambda:
-  Enabled: false
-
 # Offense count: 4
 Style/MultilineBlockChain:
   Enabled: false

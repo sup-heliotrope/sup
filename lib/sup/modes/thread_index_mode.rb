@@ -86,7 +86,7 @@ EOS
       to_load_more do |size|
         next if @last_load_more_size == 0
         load_threads num: size,
-                     when_done: lambda { |num| @last_load_more_size = num }
+                     when_done: ->(num) { @last_load_more_size = num }
       end
     end
 
@@ -311,7 +311,7 @@ EOS
     def toggle_starred
       t = cursor_thread or return
       undo = actually_toggle_starred t
-      UndoManager.register 'toggling thread starred status', undo, lambda { Index.save_thread t }
+      UndoManager.register 'toggling thread starred status', undo, -> { Index.save_thread t }
       update_text_for_line curpos
       cursor_down
       Index.save_thread t
@@ -320,7 +320,7 @@ EOS
     def multi_toggle_starred(threads)
       UndoManager.register "toggling #{threads.size.pluralize 'thread'} starred status",
                            threads.map { |t| actually_toggle_starred t },
-                           lambda { threads.each { |t| Index.save_thread t } }
+                           -> { threads.each { |t| Index.save_thread t } }
       regen_text
       threads.each { |t| Index.save_thread t }
     end
@@ -398,16 +398,16 @@ EOS
     def toggle_archived
       t = cursor_thread or return
       undo = actually_toggle_archived t
-      UndoManager.register "deleting/undeleting thread #{t.first.id}", undo, lambda { update_text_for_line curpos },
-                           lambda { Index.save_thread t }
+      UndoManager.register "deleting/undeleting thread #{t.first.id}", undo, -> { update_text_for_line curpos },
+                           -> { Index.save_thread t }
       update_text_for_line curpos
       Index.save_thread t
     end
 
     def multi_toggle_archived(threads)
       undos = threads.map { |t| actually_toggle_archived t }
-      UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}", undos, lambda { regen_text },
-                           lambda { threads.each { |t| Index.save_thread t } }
+      UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}", undos, -> { regen_text },
+                           -> { threads.each { |t| Index.save_thread t } }
       regen_text
       threads.each { |t| Index.save_thread t }
     end
@@ -474,7 +474,7 @@ EOS
       undos = threads.map { |t| actually_toggle_spammed t }
       threads.each { |t| HookManager.run('mark-as-spam', thread: t) }
       UndoManager.register "marking/unmarking  #{threads.size.pluralize 'thread'} as spam",
-                           undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
+                           undos, -> { regen_text }, -> { threads.each { |t| Index.save_thread t } }
       regen_text
       threads.each { |t| Index.save_thread t }
     end
@@ -488,7 +488,7 @@ EOS
     def multi_toggle_deleted(threads)
       undos = threads.map { |t| actually_toggle_deleted t }
       UndoManager.register "deleting/undeleting #{threads.size.pluralize 'thread'}",
-                           undos, lambda { regen_text }, lambda { threads.each { |t| Index.save_thread t } }
+                           undos, -> { regen_text }, -> { threads.each { |t| Index.save_thread t } }
       regen_text
       threads.each { |t| Index.save_thread t }
     end
