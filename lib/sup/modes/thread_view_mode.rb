@@ -744,7 +744,6 @@ EOS
       end
     end
 
-
     def status
       user_labels = @thread.labels.to_a.map do |l|
         l.to_s if LabelManager.user_defined_labels.member?(l)

@@ -505,7 +505,6 @@ EOS
 
     def test_malicious_attachment_names
 
-
       message = <<EOS
 From: Matthieu Rakotojaona <matthieu.rakotojaona@gmail.com>
 To: reply+0007a7cb7174d1d188fcd420fce83e0f68fe03fc7416cdae92cf0000000110ce4efd92a169ce033d18e1 <reply+0007a7cb7174d1d188fcd420fce83e0f68fe03fc7416cdae92cf0000000110ce4efd92a169ce033d18e1@reply.github.com>

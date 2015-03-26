@@ -308,7 +308,6 @@ EOM
     end
   end
 
-
   ## set up default configuration file
   def load_config(filename)
     default_config = {

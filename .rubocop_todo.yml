@@ -131,11 +131,6 @@ Style/EachWithObject:
 Style/EmptyElse:
   Enabled: false
 
-# Offense count: 10
-# Cop supports --auto-correct.
-Style/EmptyLines:
-  Enabled: false
-
 # Offense count: 1
 # Cop supports --auto-correct.
 Style/EmptyLinesAroundAccessModifier:

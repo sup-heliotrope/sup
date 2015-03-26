@@ -58,7 +58,6 @@ if RUBY_VERSION < '1.8.7'
   end
 end
 
-
 module Redwood
   module Chunk
     class Attachment
@@ -77,7 +76,6 @@ Variables:
 Return value:
   The decoded text of the attachment, or nil if not decoded.
 EOS
-
 
       HookManager.register 'mime-view', <<EOS
 Views a non-text MIME attachment. This hook allows you to run

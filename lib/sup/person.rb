@@ -71,7 +71,6 @@ module Redwood
     def eql?(o); email.eql? o.email end
     def hash; email.hash end
 
-
     ## see comments in self.from_address
     def indexable_content
       [name, email, email.split(/@/).first].join(' ')

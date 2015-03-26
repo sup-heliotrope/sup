@@ -63,7 +63,6 @@ EOS
       @running_totals[:numd] += numd
       @running_totals[:loaded_labels] += loaded_labels || []
 
-
       if HookManager.enabled? 'after-poll'
         hook_args = { num: num, num_inbox: numi,
                       num_total: @running_totals[:num], num_inbox_total: @running_totals[:numi],

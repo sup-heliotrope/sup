@@ -287,7 +287,6 @@ module Redwood
       load_from_source!
     end
 
-
     def error_message
       <<EOS
   #@snippet...
