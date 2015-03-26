@@ -361,8 +361,8 @@ EOS
       end
       layout = if chunk.is_a?(Message)
                  @layout[chunk]
-      elsif chunk.expandable?
-        @chunk_layout[chunk]
+               elsif chunk.expandable?
+                 @chunk_layout[chunk]
       end
       if layout
         layout.state = (layout.state != :closed ? :closed : :open)
@@ -568,12 +568,12 @@ EOS
       ## calculate leftmost colum
       left = if force_alignment # force mode: align exactly
                message_left
-      else # regular: minimize cursor movement
-        ## leftmost and rightmost are boundaries of all valid left-column
-        ## alignments.
-        leftmost = [message_left, message_right - buffer.content_width + 1].min
-        rightmost = message_left
-        leftcol.clamp(leftmost, rightmost)
+             else # regular: minimize cursor movement
+               ## leftmost and rightmost are boundaries of all valid left-column
+               ## alignments.
+               leftmost = [message_left, message_right - buffer.content_width + 1].min
+               rightmost = message_left
+               leftcol.clamp(leftmost, rightmost)
       end
 
       jump_to_line l.top    # move vertically
@@ -904,8 +904,8 @@ EOS
       new_widget = [color, (m.has_label?(:unread) ? 'N' : ' ')]
       starred_widget = if m.has_label?(:starred)
                          [star_color, '*']
-        else
-          [color, ' ']
+                       else
+                         [color, ' ']
         end
       attach_widget = [color, (m.has_label?(:attachment) ? '@' : ' ')]
 

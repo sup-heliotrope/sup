@@ -905,10 +905,10 @@ EOS
         break if limit && result.size >= limit
         name = if AccountManager.is_account?(a)
                  'me'
-        elsif t.authors.size == 1
-          a.mediumname
-        else
-          a.shortname
+               elsif t.authors.size == 1
+                 a.mediumname
+               else
+                 a.shortname
         end
 
         result << [name, new[a]]

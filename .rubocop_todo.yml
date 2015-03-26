@@ -127,11 +127,6 @@ Style/DoubleNegation:
 Style/EachWithObject:
   Enabled: false
 
-# Offense count: 15
-# Cop supports --auto-correct.
-Style/ElseAlignment:
-  Enabled: false
-
 # Offense count: 4
 Style/EmptyElse:
   Enabled: false

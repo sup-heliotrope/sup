@@ -92,10 +92,10 @@ module Redwood
 
       @from = Person.from_address(if header['from']
                                     header['from']
-      else
-        name = 'Sup Auto-generated Fake Sender <sup@fake.sender.example.com>'
-        # debug "faking non-existent sender for message #@id: #{name}"
-        name
+                                  else
+                                    name = 'Sup Auto-generated Fake Sender <sup@fake.sender.example.com>'
+                                    # debug "faking non-existent sender for message #@id: #{name}"
+                                    name
       end)
 
       @date = case (date = header['date'])
@@ -132,12 +132,12 @@ module Redwood
       @list_address = if header['list-post']
                         address = if header['list-post'] =~ /mailto:(.*?)[>\s$]/
                                     $1
-                        elsif header['list-post'] =~ /@/
-                          header['list-post'] # just try the whole fucking thing
+                                  elsif header['list-post'] =~ /@/
+                                    header['list-post'] # just try the whole fucking thing
                         end
                         address && Person.from_address(address)
-      elsif header['x-mailing-list']
-        Person.from_address header['x-mailing-list']
+                      elsif header['x-mailing-list']
+                        Person.from_address header['x-mailing-list']
       end
 
       @recipient_email = header['envelope-to'] || header['x-original-to'] || header['delivered-to']
@@ -651,8 +651,8 @@ EOS
         chunks = if decryptedm # managed to decrypt
                    children = message_to_chunks(decryptedm, true)
                    [notice, sig].compact + children
-        else
-          [notice]
+                 else
+                   [notice]
         end
         return [text_to_chunks(before, false),
                 chunks,

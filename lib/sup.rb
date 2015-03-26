@@ -99,16 +99,16 @@ module Redwood
   def save_yaml_obj(o, fn, safe = false, backup = false)
     o = if o.is_a?(Array)
           o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
-    elsif o.respond_to? :before_marshal
-      o.before_marshal
-    else
-      o
+        elsif o.respond_to? :before_marshal
+          o.before_marshal
+        else
+          o
     end
 
     mode = if File.exist? fn
              File.stat(fn).mode
-    else
-      0600
+           else
+             0600
     end
 
     if backup

@@ -14,8 +14,8 @@ module Redwood
       mins = secs / 60
       time = if mins == 0
                pluralize secs, 'second'
-      else
-        pluralize mins, 'minute'
+             else
+               pluralize mins, 'minute'
       end
     end
 
