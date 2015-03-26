@@ -20,7 +20,7 @@ module Redwood
     end
 
     def level; LEVELS[@level] end
-    def level=(level); @level = LEVELS.index(level) || raise(ArgumentError, "invalid log level #{level.inspect}: should be one of #{LEVELS * ', '}"); end
+    def level=(level); @level = LEVELS.index(level) || fail(ArgumentError, "invalid log level #{level.inspect}: should be one of #{LEVELS * ', '}"); end
 
     def add_sink(s, copy_current = true)
       @mutex.synchronize do

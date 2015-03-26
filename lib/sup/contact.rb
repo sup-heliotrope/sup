@@ -17,8 +17,9 @@ module Redwood
 
       if File.exist? fn
         IO.foreach(fn) do |l|
-          l =~ /^([^:]*): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
-          aalias, addr = $1, $2
+          l =~ /^([^:]*): (.*)$/ or fail "can't parse #{fn} line #{l.inspect}"
+          aalias, addr = Regexp.last_match(1), Regexp.last_match(2)
+
           update_alias Person.from_address(addr), aalias
         end
       end

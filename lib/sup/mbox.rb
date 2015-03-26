@@ -28,9 +28,9 @@ module Redwood
           @path = uri.path
         end
 
-        raise ArgumentError, 'not an mbox uri' unless uri.scheme == 'mbox'
-        raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
-        raise ArgumentError, 'mbox URI must have a path component' unless uri.path
+        fail ArgumentError, 'not an mbox uri' unless uri.scheme == 'mbox'
+        fail ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
+        fail ArgumentError, 'mbox URI must have a path component' unless uri.path
         @f = nil
       else
         @f = uri_or_fp

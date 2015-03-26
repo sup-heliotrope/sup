@@ -4,7 +4,7 @@ require 'monitor'
 module Redwood
   class SourceError < StandardError
     def initialize(*a)
-      raise "don't instantiate me!" if SourceError.is_a?(self.class)
+      fail "don't instantiate me!" if SourceError.is_a?(self.class)
       super
     end
   end
@@ -57,7 +57,7 @@ module Redwood
     attr_accessor :id
 
     def initialize(uri, usual = true, archived = false, id = nil)
-      raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
+      fail ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
 
       @uri = uri
       @usual = usual
@@ -200,7 +200,7 @@ module Redwood
 
     def add_source(source)
       @source_mutex.synchronize do
-        raise 'duplicate source!' if @sources.include? source
+        fail 'duplicate source!' if @sources.include? source
         @sources_dirty = true
         max = @sources.max_of { |id, s| s.is_a?(DraftLoader) || s.is_a?(SentLoader) ? 0 : id }
         source.id ||= (max || 0) + 1

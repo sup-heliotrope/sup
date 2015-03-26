@@ -15,7 +15,7 @@ module Redwood
     end
 
     def set_to(val)
-      raise UnknownValue, val.inspect unless can_set_to? val
+      fail UnknownValue, val.inspect unless can_set_to? val
       @selection = @vals.index(val)
     end
 

@@ -840,7 +840,7 @@ EOS
     def hide_thread(t)
       @mutex.synchronize do
         i = @threads.index(t) or return
-        raise 'already hidden' if @hidden_threads[t]
+        fail 'already hidden' if @hidden_threads[t]
         @hidden_threads[t] = true
         @threads.delete_at i
         @size_widgets.delete_at i

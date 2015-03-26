@@ -226,8 +226,8 @@ EOS
     def [](n); @name_map[n]; end
 
     def []=(n, b)
-      raise ArgumentError, 'duplicate buffer name' if b && @name_map.member?(n)
-      raise ArgumentError, 'title must be a string' unless n.is_a? String
+      fail ArgumentError, 'duplicate buffer name' if b && @name_map.member?(n)
+      fail ArgumentError, 'title must be a string' unless n.is_a? String
       @name_map[n] = b
     end
 
@@ -258,7 +258,7 @@ EOS
         if opts.member? :status
           [opts[:status], opts[:title]]
         else
-          raise 'status must be supplied if draw_screen is called within a sync' if opts[:sync] == false
+          fail 'status must be supplied if draw_screen is called within a sync' if opts[:sync] == false
           get_status_and_title @focus_buf # must be called outside of the ncurses lock
         end
 
@@ -310,7 +310,7 @@ EOS
     end
 
     def spawn(title, mode, opts = {})
-      raise ArgumentError, 'title must be a string' unless title.is_a? String
+      fail ArgumentError, 'title must be a string' unless title.is_a? String
       realtitle = title
       num = 2
       while @name_map.member? realtitle
@@ -382,7 +382,7 @@ EOS
     end
 
     def kill_buffer(buf)
-      raise ArgumentError, "buffer not on stack: #{buf}: #{buf.title.inspect}" unless @buffers.member? buf
+      fail ArgumentError, "buffer not on stack: #{buf}: #{buf.title.inspect}" unless @buffers.member? buf
 
       buf.mode.cleanup
       @buffers.delete buf
@@ -424,7 +424,7 @@ EOS
           when /^(.*\s+)?(.*?)$/
             [$1 || '', $2]
           else
-            raise "william screwed up completion: #{partial.inspect}"
+            fail "william screwed up completion: #{partial.inspect}"
           end
 
         prefix.fix_encoding!
@@ -532,8 +532,8 @@ EOS
     ## for simplicitly, we always place the question at the very bottom of the
     ## screen
     def ask(domain, question, default = nil, &block)
-      raise 'impossible!' if @asking
-      raise 'Question too long' if Ncurses.cols <= question.length
+      fail 'impossible!' if @asking
+      fail 'Question too long' if Ncurses.cols <= question.length
       @asking = true
 
       @textfields[domain] ||= TextField.new
@@ -587,7 +587,7 @@ EOS
     end
 
     def ask_getch(question, accept = nil)
-      raise 'impossible!' if @asking
+      fail 'impossible!' if @asking
 
       accept = accept.split(//).map(&:ord) if accept
 
@@ -647,7 +647,7 @@ EOS
         key = BufferManager.ask_getch text
         unless key # user canceled, abort
           erase_flash
-          raise InputSequenceAborted
+          fail InputSequenceAborted
         end
         action, text = action.action_for(key) if action.key?(key)
       end

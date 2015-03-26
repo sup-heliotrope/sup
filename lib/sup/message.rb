@@ -49,7 +49,7 @@ module Redwood
     ## if you specify a :header, will use values from that. otherwise,
     ## will try and load the header from the source.
     def initialize(opts)
-      @locations = opts[:locations] or raise ArgumentError, "locations can't be nil"
+      @locations = opts[:locations] or fail ArgumentError, "locations can't be nil"
       @snippet = opts[:snippet]
       @snippet_contains_encrypted_content = false
       @have_snippet = !(opts[:snippet].nil? || opts[:snippet].empty?)
@@ -184,7 +184,7 @@ module Redwood
     def is_draft?; @labels.member? :draft; end
 
     def draft_filename
-      raise 'not a draft' unless is_draft?
+      fail 'not a draft' unless is_draft?
       source.fn_for_offset source_info
     end
 
@@ -226,8 +226,8 @@ module Redwood
     end
 
     def labels=(l)
-      raise ArgumentError, 'not a set' unless l.is_a?(Set)
-      raise ArgumentError, 'not a set of labels' unless l.all? { |ll| ll.is_a?(Symbol) }
+      fail ArgumentError, 'not a set' unless l.is_a?(Set)
+      fail ArgumentError, 'not a set of labels' unless l.all? { |ll| ll.is_a?(Symbol) }
       return if @labels == l
       @labels = l
       @dirty = true
@@ -239,7 +239,7 @@ module Redwood
     end
 
     def location
-      @locations.find(&:valid?) || raise(OutOfSyncSourceError.new)
+      @locations.find(&:valid?) || fail(OutOfSyncSourceError.new)
     end
 
     def source
@@ -490,7 +490,7 @@ EOS
           when '7bit', '8bit', nil
             m.body
           else
-            raise RMail::EncodingUnsupportedError, encoding.inspect
+            fail RMail::EncodingUnsupportedError, encoding.inspect
           end
           body = body.normalize_whitespace
           payload = RMail::Parser.read(body)

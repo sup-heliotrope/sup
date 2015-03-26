@@ -13,8 +13,8 @@ module Redwood
       @searches = {}
       if File.exist? fn
         IO.foreach(fn) do |l|
-          l =~ /^([^:]*): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
-          @searches[$1] = $2
+          l =~ /^([^:]*): (.*)$/ or fail "can't parse #{fn} line #{l.inspect}"
+          @searches[Regexp.last_match(1)] = Regexp.last_match(2)
         end
       end
       @modified = false
@@ -94,7 +94,7 @@ module Redwood
         end
         if error_message
           warn error_message
-          raise ExpansionError, error_message
+          fail ExpansionError, error_message
         end
         matches.each { |n| expanded.gsub! "{#{n}}", "(#{@searches[n]})" if @searches.key? n }
       end

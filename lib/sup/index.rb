@@ -236,7 +236,7 @@ EOS
 
       locations = entry[:locations].map do |source_id, source_info|
         source = SourceManager[source_id]
-        raise "invalid source #{source_id}" unless source
+        fail "invalid source #{source_id}" unless source
         Location.new source, source_info
       end
 
@@ -492,7 +492,7 @@ EOS
             "date:#{realdate.begin.to_i}..#{realdate.end.to_i}"
           end
         else
-          raise ParseError, "can't understand date #{datestr.inspect}"
+          fail ParseError, "can't understand date #{datestr.inspect}"
         end
       end
 
@@ -503,7 +503,7 @@ EOS
           query[:limit] = lim.to_i
           ''
         else
-          raise ParseError, "non-numeric limit #{lim.inspect}"
+          fail ParseError, "non-numeric limit #{lim.inspect}"
         end
       end
 
@@ -526,7 +526,7 @@ EOS
 
       debug "parsed xapian query: #{Util::Query.describe(xapian_query, subs)}"
 
-      raise ParseError if xapian_query.nil? or xapian_query.empty?
+      fail ParseError if xapian_query.nil? or xapian_query.empty?
       query[:qobj] = xapian_query
       query[:text] = s
       query
@@ -833,7 +833,7 @@ EOS
         case args[0]
         when :from then PREFIX['from_email'][:prefix]
         when :to then PREFIX['to_email'][:prefix]
-        else raise "Invalid email term type #{args[0]}"
+        else fail "Invalid email term type #{args[0]}"
         end + args[1].to_s.downcase
       when :source_id
         PREFIX['source_id'][:prefix] + args[0].to_s.downcase
@@ -844,7 +844,7 @@ EOS
       when :msgid, :ref, :thread
         PREFIX[type.to_s][:prefix] + args[0][0...(MAX_TERM_LENGTH - 1)]
       else
-        raise "Invalid term type #{type}"
+        fail "Invalid term type #{type}"
       end
     end
   end

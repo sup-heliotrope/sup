@@ -54,7 +54,7 @@ module Redwood
 
     def ensure_mode_validity
       super
-      raise @curpos.inspect unless @curpos.is_a?(Integer)
+      fail @curpos.inspect unless @curpos.is_a?(Integer)
       c = @curpos.clamp topline, botline - 1
       c = @cursor_top if c < @cursor_top
       buffer.mark_dirty unless c == @curpos

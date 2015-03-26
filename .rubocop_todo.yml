@@ -211,12 +211,6 @@ Style/RescueModifier:
 Style/Semicolon:
   Enabled: false
 
-# Offense count: 82
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/SignalException:
-  Enabled: false
-
 # Offense count: 2
 # Configuration parameters: Methods.
 Style/SingleLineBlockParams:

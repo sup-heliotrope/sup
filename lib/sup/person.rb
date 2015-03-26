@@ -3,7 +3,7 @@ module Redwood
     attr_accessor :name, :email
 
     def initialize(name, email)
-      raise ArgumentError, "email can't be nil" unless email
+      fail ArgumentError, "email can't be nil" unless email
 
       email.fix_encoding!
 

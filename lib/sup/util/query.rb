@@ -7,7 +7,7 @@ module Redwood
         d = query.description.force_encoding('UTF-8')
 
         unless d.valid_encoding?
-          raise QueryDescriptionError.new(d) unless fallback
+          fail QueryDescriptionError.new(d) unless fallback
           d = fallback
         end
         d

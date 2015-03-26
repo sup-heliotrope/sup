@@ -16,7 +16,7 @@ module Redwood
     def register(desc, *actions, &b)
       actions = [*actions.flatten]
       actions << b if b
-      raise ArgumentError, 'need at least one action' unless actions.length > 0
+      fail ArgumentError, 'need at least one action' unless actions.length > 0
       @@actionlist.push desc: desc, actions: actions
     end
 

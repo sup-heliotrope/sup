@@ -36,7 +36,7 @@ module Redwood
     def initialize
       ## ah, the joys of a multithreaded application with a class called
       ## "Thread". i keep instantiating the wrong one...
-      raise 'wrong Thread class, buddy!' if block_given?
+      fail 'wrong Thread class, buddy!' if block_given?
       @containers = []
     end
 
@@ -46,7 +46,7 @@ module Redwood
 
     def empty?; @containers.empty?; end
     def empty!; @containers.clear; end
-    def drop(c); @containers.delete(c) or raise 'bad drop'; end
+    def drop(c); @containers.delete(c) or fail 'bad drop'; end
 
     ## unused
     def dump(f = $stdout)
@@ -131,7 +131,7 @@ module Redwood
     def labels; inject(Set.new) { |s, (m, *_o)| m ? s | m.labels : s } end
 
     def labels=(l)
-      raise ArgumentError, 'not a set' unless l.is_a?(Set)
+      fail ArgumentError, 'not a set' unless l.is_a?(Set)
       each { |m, *_o| m && m.labels = l.dup }
     end
 
@@ -168,7 +168,7 @@ module Redwood
     attr_accessor :message, :parent, :children, :id, :thread
 
     def initialize(id)
-      raise "non-String #{id.inspect}" unless id.is_a? String
+      fail "non-String #{id.inspect}" unless id.is_a? String
       @id = id
       @message, @parent, @thread = nil, nil, nil
       @children = []
@@ -228,7 +228,7 @@ module Redwood
     end
 
     def dump_recursive(f = $stdout, indent = 0, root = true, parent = nil)
-      raise 'inconsistency' unless parent.nil? || parent.children.include?(self)
+      fail 'inconsistency' unless parent.nil? || parent.children.include?(self)
       unless root
         f.print ' ' * indent
         f.print '+->'
@@ -362,7 +362,7 @@ module Redwood
 
     ## merges in a pre-loaded thread
     def add_thread(t)
-      raise 'duplicate' if @threads.values.member? t
+      fail 'duplicate' if @threads.values.member? t
       t.each { |m, *_o| add_message m }
     end
 
@@ -373,7 +373,7 @@ module Redwood
 
       containers = threads.map do |t|
         c = @messages.member?(t.first.id) ? @messages[t.first.id] : nil
-        raise "not in threadset: #{t.first.id}" unless c && c.message
+        fail "not in threadset: #{t.first.id}" unless c && c.message
         c
       end
 

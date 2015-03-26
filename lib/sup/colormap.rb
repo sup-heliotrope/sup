@@ -72,7 +72,7 @@ module Redwood
     }
 
     def initialize
-      raise 'only one instance can be created' if @@instance
+      fail 'only one instance can be created' if @@instance
       @@instance = self
       @color_pairs = { [Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK] => 0 }
       @users = []
@@ -90,9 +90,9 @@ module Redwood
     end
 
     def add(sym, fg, bg, attr = nil, highlight = nil)
-      raise ArgumentError, "color for #{sym} already defined" if @entries.member? sym
-      raise ArgumentError, "color '#{fg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? fg
-      raise ArgumentError, "color '#{bg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? bg
+      fail ArgumentError, "color for #{sym} already defined" if @entries.member? sym
+      fail ArgumentError, "color '#{fg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? fg
+      fail ArgumentError, "color '#{bg}' unknown" unless (-1...Ncurses::NUM_COLORS).include? bg
       attrs = [attr].flatten.compact
 
       @entries[sym] = [fg, bg, attrs, nil]
@@ -147,7 +147,7 @@ module Redwood
     def color_for(sym, highlight = false)
       sym = @highlights[sym] if highlight
       return Ncurses::COLOR_BLACK if sym == :none
-      raise ArgumentError, "undefined color #{sym}" unless @entries.member? sym
+      fail ArgumentError, "undefined color #{sym}" unless @entries.member? sym
 
       ## if this color is cached, return it
       fg, bg, attrs, color = @entries[sym]
@@ -160,8 +160,8 @@ module Redwood
         @next_id += 1 if @next_id == 0 # 0 is always white on black
         id = @next_id
         debug "colormap: for color #{sym}, using id #{id} -> #{fg}, #{bg}"
-        Ncurses.init_pair id, fg, bg or raise ArgumentError,
-                                              "couldn't initialize curses color pair #{fg}, #{bg} (key #{id})"
+        Ncurses.init_pair id, fg, bg or fail ArgumentError,
+                                             "couldn't initialize curses color pair #{fg}, #{bg} (key #{id})"
 
         cp = @color_pairs[[fg, bg]] = Ncurses.COLOR_PAIR(id)
         ## delete the old mapping, if it exists

@@ -273,7 +273,7 @@ EOS
           IO.popen(cmd, 'w') do |sm|
             sm.puts m.raw_message
           end
-          raise SendmailCommandFailed, "Couldn't execute #{cmd}" unless $? == 0
+          fail SendmailCommandFailed, "Couldn't execute #{cmd}" unless $? == 0
           m.add_label :forwarded
           Index.save_message m
         rescue SystemCallError, SendmailCommandFailed => e
@@ -708,7 +708,7 @@ EOS
       when :kill
         l.call
       else
-        raise ArgumentError, "unknown thread dispatch operation #{op.inspect}"
+        fail ArgumentError, "unknown thread dispatch operation #{op.inspect}"
       end
     end
     private :dispatch
@@ -1000,7 +1000,7 @@ EOS
           (chunk.is_draft? ? [[[:draft_notification_color, prefix + " >>> This message is a draft. Hit 'e' to edit, 'y' to send. <<<"]]] : [])
 
       else
-        raise "Bad chunk: #{chunk.inspect}" unless chunk.respond_to?(:inlineable?) ## debugging
+        fail "Bad chunk: #{chunk.inspect}" unless chunk.respond_to?(:inlineable?) ## debugging
         if chunk.inlineable?
           lines = maybe_wrap_text(chunk.lines)
           lines.map { |line| [[chunk.color, "#{prefix}#{line}"]] }

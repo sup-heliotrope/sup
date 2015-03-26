@@ -3,8 +3,8 @@ module Redwood
     attr_accessor :sendmail, :signature, :gpgkey
 
     def initialize(h)
-      raise ArgumentError, 'no name for account' unless h[:name]
-      raise ArgumentError, 'no email for account' unless h[:email]
+      fail ArgumentError, 'no name for account' unless h[:name]
+      fail ArgumentError, 'no email for account' unless h[:email]
       super h[:name], h[:email]
       @sendmail = h[:sendmail]
       @signature = h[:signature]
@@ -44,7 +44,7 @@ module Redwood
     ## must be called first with the default account. fills in missing
     ## values from the default account.
     def add_account(hash, default = false)
-      raise ArgumentError, 'no email specified for account' unless hash[:email]
+      fail ArgumentError, 'no email specified for account' unless hash[:email]
       unless default
         [:name, :sendmail, :signature, :gpgkey].each { |k| hash[k] ||= @default_account.send(k) }
       end
@@ -57,7 +57,7 @@ module Redwood
       @accounts[a] = true
 
       if default
-        raise ArgumentError, 'multiple default accounts' if @default_account
+        fail ArgumentError, 'multiple default accounts' if @default_account
         @default_account = a
       end
 

@@ -104,7 +104,7 @@ module RMail
         when '7bit', '8bit', nil
           payload
         else
-          raise EncodingUnsupportedError, encoding.inspect
+          fail EncodingUnsupportedError, encoding.inspect
         end
       a
     end
@@ -634,7 +634,7 @@ module Redwood
       def deinstantiate!; @instance = nil; end
 
       def method_missing(meth, *a, &b)
-        raise "no #{name} instance defined in method call to #{meth}!" unless defined? @instance
+        fail "no #{name} instance defined in method call to #{meth}!" unless defined? @instance
 
         ## if we've been deinstantiated, just drop all calls. this is
         ## useful because threads that might be active during the
@@ -654,7 +654,7 @@ module Redwood
       end
 
       def init(*args)
-        raise 'there can be only one! (instance)' if instantiated?
+        fail 'there can be only one! (instance)' if instantiated?
         @instance = new(*args)
       end
     end

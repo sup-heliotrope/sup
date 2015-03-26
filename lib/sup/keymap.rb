@@ -34,7 +34,7 @@ EOS
         if k.is_a?(String) && k.length == 1
           k.ord
         else
-          raise ArgumentError, "unknown key name '#{k}'"
+          fail ArgumentError, "unknown key name '#{k}'"
         end
       end
     end
@@ -63,7 +63,7 @@ EOS
       @order << entry
       keys.each do |k|
         kc = Keymap.keysym_to_keycode k
-        raise ArgumentError, "key '#{k}' already defined (as #{@map[kc].first})" if @map.include? kc
+        fail ArgumentError, "key '#{k}' already defined (as #{@map[kc].first})" if @map.include? kc
         @map[kc] = entry
       end
     end
@@ -86,7 +86,7 @@ EOS
       kc = Keymap.keysym_to_keycode(key)
       if @map.member? kc
         action = @map[kc].first
-        raise 'existing action is not a keymap' unless action.is_a?(Keymap)
+        fail 'existing action is not a keymap' unless action.is_a?(Keymap)
         yield action
       else
         submap = Keymap.new

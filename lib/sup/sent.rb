@@ -12,7 +12,7 @@ module Redwood
     def source_id; @source.id; end
 
     def source=(s)
-      raise FatalSourceError.new("Configured sent_source [#{s.uri}] can't store mail.  Correct your configuration.") unless s.respond_to? :store_message
+      fail FatalSourceError.new("Configured sent_source [#{s.uri}] can't store mail.  Correct your configuration.") unless s.respond_to? :store_message
       @source_uri = s.uri
       @source = s
     end

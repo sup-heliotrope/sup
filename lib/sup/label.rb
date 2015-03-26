@@ -62,7 +62,7 @@ module Redwood
     end
 
     def <<(t)
-      raise ArgumentError, 'expecting a symbol' unless t.is_a? Symbol
+      fail ArgumentError, 'expecting a symbol' unless t.is_a? Symbol
       unless @labels.member?(t) || RESERVED_LABELS.member?(t)
         @labels[t] = true
         @new_labels[t] = true

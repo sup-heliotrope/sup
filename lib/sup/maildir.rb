@@ -21,9 +21,9 @@ module Redwood
         @path = uri.path
       end
 
-      raise ArgumentError, 'not a maildir URI' unless uri.scheme == 'maildir'
-      raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
-      raise ArgumentError, 'maildir URI must have a path component' unless uri.path
+      fail ArgumentError, 'not a maildir URI' unless uri.scheme == 'maildir'
+      fail ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
+      fail ArgumentError, 'maildir URI must have a path component' unless uri.path
 
       @sync_back = sync_back
       # sync by default if not specified
@@ -121,7 +121,7 @@ module Redwood
       @ctimes.each do |d, prev_ctime|
         subdir = File.join @dir, d
         debug "polling maildir #{subdir}"
-        raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
+        fail FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
         ctime = File.ctime subdir
         next if prev_ctime >= ctime
         @ctimes[d] = ctime

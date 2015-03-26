@@ -199,7 +199,7 @@ module Redwood
           draw_line_from_array ln, s, opts
         end
       else
-        raise "unknown drawable object: #{s.inspect} in #{self} for line #{ln}" # good for debugging
+        fail "unknown drawable object: #{s.inspect} in #{self} for line #{ln}" # good for debugging
       end
 
       ## speed test
@@ -222,7 +222,7 @@ module Redwood
     def draw_line_from_array(ln, a, opts)
       xpos = 0
       a.each_with_index do |(color, text), i|
-        raise "nil text for color '#{color}'" if text.nil? # good for debugging
+        fail "nil text for color '#{color}'" if text.nil? # good for debugging
         l = text.display_length
         no_fill = i != a.size - 1
 

@@ -145,7 +145,7 @@ EOS
       # if the key (or gpg-agent) is not available GPGME does not complain
       # but just returns a zero length string. Let's catch that
       if sig.length == 0
-        raise Error, gpgme_exc_msg('GPG failed to generate signature: check that gpg-agent is running and your key is available.')
+        fail Error, gpgme_exc_msg('GPG failed to generate signature: check that gpg-agent is running and your key is available.')
       end
 
       envelope = RMail::Message.new
@@ -184,7 +184,7 @@ EOS
       # if the key (or gpg-agent) is not available GPGME does not complain
       # but just returns a zero length string. Let's catch that
       if cipher.length == 0
-        raise Error, gpgme_exc_msg('GPG failed to generate cipher text: check that gpg-agent is running and your key is available.')
+        fail Error, gpgme_exc_msg('GPG failed to generate cipher text: check that gpg-agent is running and your key is available.')
       end
 
       encrypted_payload = RMail::Message.new
