@@ -45,7 +45,7 @@ module Redwood
 
     def add(name, search_string)
       return unless valid_name? name
-      if @predefined_searches.has_key? name
+      if @predefined_searches.key? name
         warn "cannot add search: #{name} is already taken by a predefined search"
         return
       end
@@ -54,8 +54,8 @@ module Redwood
     end
 
     def rename(old, new)
-      return unless @searches.has_key? old
-      if [old, new].any? { |x| @predefined_searches.has_key? x }
+      return unless @searches.key? old
+      if [old, new].any? { |x| @predefined_searches.key? x }
         warn "cannot rename search: #{old} or #{new} is already taken by a predefined search"
         return
       end
@@ -64,8 +64,8 @@ module Redwood
     end
 
     def edit(name, search_string)
-      return unless @searches.has_key? name
-      if @predefined_searches.has_key? name
+      return unless @searches.key? name
+      if @predefined_searches.key? name
         warn "cannot edit predefined search: #{name}."
         return
       end
@@ -74,8 +74,8 @@ module Redwood
     end
 
     def delete(name)
-      return unless @searches.has_key? name
-      if @predefined_searches.has_key? name
+      return unless @searches.key? name
+      if @predefined_searches.key? name
         warn "cannot delete predefined search: #{name}."
         return
       end
@@ -95,7 +95,7 @@ module Redwood
           warn error_message
           raise ExpansionError, error_message
         end
-        matches.each { |n| expanded.gsub! "{#{n}}", "(#{@searches[n]})" if @searches.has_key? n }
+        matches.each { |n| expanded.gsub! "{#{n}}", "(#{@searches[n]})" if @searches.key? n }
       end
       return expanded
     end

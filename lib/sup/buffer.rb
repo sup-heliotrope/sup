@@ -649,7 +649,7 @@ EOS
           erase_flash
           raise InputSequenceAborted
         end
-        action, text = action.action_for(key) if action.has_key?(key)
+        action, text = action.action_for(key) if action.key?(key)
       end
       action
     end

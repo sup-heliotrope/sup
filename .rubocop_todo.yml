@@ -115,11 +115,6 @@ Style/ClassVars:
 Style/CommentAnnotation:
   Enabled: false
 
-# Offense count: 15
-# Cop supports --auto-correct.
-Style/DeprecatedHashMethods:
-  Enabled: false
-
 # Offense count: 120
 Style/Documentation:
   Enabled: false

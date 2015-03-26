@@ -195,8 +195,8 @@ module Redwood
       end
 
       ## Set attachment sybmol to sane default for existing colorschemes
-      if user_colors and user_colors.has_key? :to_me
-        user_colors[:with_attachment] = user_colors[:to_me] unless user_colors.has_key? :with_attachment
+      if user_colors and user_colors.key? :to_me
+        user_colors[:with_attachment] = user_colors[:to_me] unless user_colors.key? :with_attachment
       end
 
       Colormap::DEFAULT_COLORS.merge(user_colors || {}).each_pair do |k, v|

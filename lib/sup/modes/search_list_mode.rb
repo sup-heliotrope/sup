@@ -86,7 +86,7 @@ EOS
       counted = searches.map do |name|
         search_string = SearchManager.search_string_for name
         begin
-          if SearchManager.predefined_queries.has_key? search_string
+          if SearchManager.predefined_queries.key? search_string
             query = SearchManager.predefined_queries[search_string]
           else
             query = Index.parse_query search_string
@@ -146,7 +146,7 @@ EOS
       old_name, num_unread = @searches[curpos]
       return unless old_name
 
-      if SearchManager.predefined_searches.has_key? old_name
+      if SearchManager.predefined_searches.key? old_name
         BufferManager.flash 'Cannot be edited: predefined search.'
         return
       end
@@ -170,7 +170,7 @@ EOS
       name, num_unread = @searches[curpos]
       return unless name
 
-      if SearchManager.predefined_searches.has_key? name
+      if SearchManager.predefined_searches.key? name
         BufferManager.flash 'Cannot be edited: predefined search.'
         return
       end

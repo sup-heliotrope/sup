@@ -40,7 +40,7 @@ module Redwood
 
     def self.spawn_from_query(text)
       begin
-        if SearchManager.predefined_queries.has_key? text
+        if SearchManager.predefined_queries.key? text
           query = SearchManager.predefined_queries[text]
         else
           query = Index.parse_query(text)
