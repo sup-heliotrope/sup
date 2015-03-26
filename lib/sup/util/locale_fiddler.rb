@@ -9,9 +9,9 @@ module LocaleFiddler
   extend Fiddle::Importer
 
   SETLOCALE_LIB = case RbConfig::CONFIG['arch']
-                  when /darwin/; 'libc.dylib'
-                  when /cygwin/; 'cygwin1.dll'
-                  when /freebsd/; 'libc.so.7'
+                  when /darwin/ then 'libc.dylib'
+                  when /cygwin/ then 'cygwin1.dll'
+                  when /freebsd/ then 'libc.so.7'
                   else; 'libc.so.6'
                   end
 

@@ -298,11 +298,6 @@ Style/UnlessElse:
 Style/VariableName:
   Enabled: false
 
-# Offense count: 8
-# Cop supports --auto-correct.
-Style/WhenThen:
-  Enabled: false
-
 # Offense count: 4
 # Configuration parameters: MaxLineLength.
 Style/WhileUntilModifier:

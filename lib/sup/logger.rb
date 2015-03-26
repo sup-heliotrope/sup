@@ -49,8 +49,8 @@ module Redwood
     ## level can be nil!
     def format_message(level, time, msg)
       prefix = case level
-        when 'warn'; 'WARNING: '
-        when 'error'; 'ERROR: '
+        when 'warn' then 'WARNING: '
+        when 'error' then 'ERROR: '
         else ''
       end
       "[#{time}] #{prefix}#{msg.rstrip}\n"
