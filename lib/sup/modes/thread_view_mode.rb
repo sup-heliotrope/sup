@@ -984,7 +984,7 @@ EOS
         end
         lines = lines.map { |l| l.chomp.wrap width if l }.flatten
       end
-      return lines
+      lines
     end
 
     ## todo: check arguments on this overly complex function

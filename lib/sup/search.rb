@@ -31,14 +31,14 @@ module Redwood
       end
     end
 
-    def predefined_queries; return @predefined_queries; end
-    def all_searches; return @searches.keys.sort; end
+    def predefined_queries; @predefined_queries; end
+    def all_searches; @searches.keys.sort; end
 
     def search_string_for(name);
       if @predefined_searches.keys.member? name
         return name.to_sym
       end
-      return @searches[name];
+      @searches[name];
     end
 
     def valid_name?(name); name =~ /^[\w-]+$/; end
@@ -98,7 +98,7 @@ module Redwood
         end
         matches.each { |n| expanded.gsub! "{#{n}}", "(#{@searches[n]})" if @searches.key? n }
       end
-      return expanded
+      expanded
     end
 
     def save

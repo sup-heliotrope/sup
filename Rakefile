@@ -20,7 +20,7 @@ task build: [:man]
 task travis: [:test, :build]
 
 def test_pandoc
-  return system('pandoc -v > /dev/null 2>&1')
+  system('pandoc -v > /dev/null 2>&1')
 end
 
 task :man do

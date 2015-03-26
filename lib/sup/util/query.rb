@@ -10,7 +10,7 @@ module Redwood
           raise QueryDescriptionError.new(d) unless fallback
           d = fallback
         end
-        return d
+        d
       end
     end
   end

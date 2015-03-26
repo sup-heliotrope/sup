@@ -20,7 +20,7 @@ module Redwood
 
     def end_offset
       # should contain the number of test messages -1
-      return @messages ? @messages.length - 1 : 0
+      @messages ? @messages.length - 1 : 0
     end
 
     def load_header(offset)

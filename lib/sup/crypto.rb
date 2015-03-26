@@ -378,7 +378,7 @@ EOS
 
       GPGME::Key.import(match[0])
 
-      return nil
+      nil
     end
 
     private
@@ -453,7 +453,7 @@ EOS
         output_lines << HookManager.run('sig-output',
                                         { signature: signature, from_key: from_key })
       end
-      return output_lines, trusted, unknown_fpr
+      [output_lines, trusted, unknown_fpr]
     end
 
     def key_type(key, fpr)
