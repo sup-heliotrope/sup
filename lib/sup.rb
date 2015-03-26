@@ -141,9 +141,9 @@ module Redwood
   def load_yaml_obj(fn, compress = false)
     o = if File.exist? fn
           if compress
-            Zlib::GzipReader.open(fn) { |f| YAML::load f }
+            Zlib::GzipReader.open(fn) { |f| YAML.load f }
           else
-            YAML::load_file fn
+            YAML.load_file fn
           end
     end
     if o.is_a?(Array)
@@ -339,7 +339,7 @@ EOM
       always_edit_async: false
     }
     if File.exist? filename
-      config = Redwood::load_yaml_obj filename
+      config = Redwood.load_yaml_obj filename
       abort "#{filename} is not a valid configuration file (it's a #{config.class}, not a hash)" unless config.is_a?(Hash)
       default_config.merge config
     else
@@ -368,7 +368,7 @@ EOM
       }
       config.merge! default_config
       begin
-        Redwood::save_yaml_obj config, filename, false, true
+        Redwood.save_yaml_obj config, filename, false, true
       rescue StandardError => e
         $stderr.puts "warning: #{e.message}"
       end

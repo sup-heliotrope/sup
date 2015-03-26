@@ -224,7 +224,7 @@ module Redwood
     def unusual_sources; sources.find_all { |s| !s.usual? }; end
 
     def load_sources(fn = Redwood::SOURCE_FN)
-      source_array = Redwood::load_yaml_obj(fn) || []
+      source_array = Redwood.load_yaml_obj(fn) || []
       @source_mutex.synchronize do
         @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
         @sources_dirty = false
@@ -234,7 +234,7 @@ module Redwood
     def save_sources(fn = Redwood::SOURCE_FN, force = false)
       @source_mutex.synchronize do
         if @sources_dirty || force
-          Redwood::save_yaml_obj sources, fn, false, true
+          Redwood.save_yaml_obj sources, fn, false, true
         end
         @sources_dirty = false
       end

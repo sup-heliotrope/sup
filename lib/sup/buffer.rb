@@ -411,7 +411,7 @@ EOS
     def ask_with_completions(domain, question, completions, default = nil)
       ask domain, question, default do |s|
         s.fix_encoding!
-        completions.select { |x| x =~ /^#{Regexp::escape s}/iu }.map { |x| [x, x] }
+        completions.select { |x| x =~ /^#{Regexp.escape s}/iu }.map { |x| [x, x] }
       end
     end
 
@@ -429,7 +429,7 @@ EOS
 
         prefix.fix_encoding!
         target.fix_encoding!
-        completions.select { |x| x =~ /^#{Regexp::escape target}/iu }.map { |x| [prefix + x, x] }
+        completions.select { |x| x =~ /^#{Regexp.escape target}/iu }.map { |x| [prefix + x, x] }
       end
     end
 
@@ -442,7 +442,7 @@ EOS
         prefix = prefix.join(', ') + (prefix.empty? ? '' : ', ')
         prefix.fix_encoding!
 
-        completions.select { |x| x =~ /^#{Regexp::escape target}/iu }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
+        completions.select { |x| x =~ /^#{Regexp.escape target}/iu }.sort_by { |c| [ContactManager.contact_for(c) ? 0 : 1, c] }.map { |x| [prefix + x, x] }
       end
     end
 
@@ -455,7 +455,7 @@ EOS
           if dir
             [[s.sub(full, dir), "~#{name}"]]
           else
-            users.select { |u| u =~ /^#{Regexp::escape name}/u }.map do |u|
+            users.select { |u| u =~ /^#{Regexp.escape name}/u }.map do |u|
               [s.sub("~#{name}", "~#{u}"), "~#{u}"]
             end
           end

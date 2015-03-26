@@ -210,7 +210,7 @@ module Redwood
     private
 
     def new_maildir_basefn
-      Kernel::srand
+      Kernel.srand
       "#{Time.now.to_i}.#{$$}#{Kernel.rand(1000000)}.#{MYHOSTNAME}"
     end
 

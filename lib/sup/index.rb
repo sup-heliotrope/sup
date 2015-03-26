@@ -78,7 +78,7 @@ EOS
     end
 
     def start_lock_update_thread
-      @lock_update_thread = Redwood::reporting_thread('lock update') do
+      @lock_update_thread = Redwood.reporting_thread('lock update') do
         loop do
           sleep 30
           @lock.touch_yourself
@@ -550,7 +550,7 @@ EOS
     end
 
     def start_sync_worker
-      @sync_worker = Redwood::reporting_thread('index sync') { run_sync_worker }
+      @sync_worker = Redwood.reporting_thread('index sync') { run_sync_worker }
     end
 
     def stop_sync_worker

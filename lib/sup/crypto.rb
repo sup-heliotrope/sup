@@ -223,7 +223,7 @@ EOS
         all_output_lines.flatten!
         all_trusted &&= trusted
 
-        err_code = GPGME::gpgme_err_code(signature.status)
+        err_code = GPGME.gpgme_err_code(signature.status)
         if err_code == GPGME::GPG_ERR_BAD_SIGNATURE
           valid = false
         elsif err_code != GPGME::GPG_ERR_NO_ERROR
@@ -415,7 +415,7 @@ EOS
       ctx = GPGME::Ctx.new
       begin
         from_key = ctx.get_key(signature.fingerprint)
-        if GPGME::gpgme_err_code(signature.status) == GPGME::GPG_ERR_GENERAL
+        if GPGME.gpgme_err_code(signature.status) == GPGME::GPG_ERR_GENERAL
           first_sig = "General error on signature verification for #{signature.fingerprint}"
         elsif signature.to_s
           first_sig = signature.to_s.sub(/from [0-9A-F]{16} /, 'from "') + '"'

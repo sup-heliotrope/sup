@@ -191,7 +191,7 @@ module Redwood
     def populate_colormap
       user_colors = if File.exist? Redwood::COLOR_FN
                       debug "loading user colors from #{Redwood::COLOR_FN}"
-                      Redwood::load_yaml_obj Redwood::COLOR_FN
+                      Redwood.load_yaml_obj Redwood::COLOR_FN
       end
 
       ## Set attachment sybmol to sane default for existing colorschemes

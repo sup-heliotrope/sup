@@ -110,11 +110,6 @@ Style/ClassAndModuleChildren:
 Style/ClassVars:
   Enabled: false
 
-# Offense count: 29
-# Cop supports --auto-correct.
-Style/ColonMethodCall:
-  Enabled: false
-
 # Offense count: 4
 # Configuration parameters: Keywords.
 Style/CommentAnnotation:

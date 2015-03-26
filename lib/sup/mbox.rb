@@ -86,7 +86,7 @@ module Redwood
           ## don't use RMail::Mailbox::MBoxReader because it doesn't properly ignore
           ## "From" at the start of a message body line.
           string = ''
-          until @f.eof? || MBox::is_break_line?(l = @f.gets)
+          until @f.eof? || MBox.is_break_line?(l = @f.gets)
             string << l
           end
           RMail::Parser.read string
@@ -131,7 +131,7 @@ module Redwood
       @mutex.synchronize do
         ensure_open
         @f.seek offset
-        until @f.eof? || MBox::is_break_line?(l = @f.gets)
+        until @f.eof? || MBox.is_break_line?(l = @f.gets)
           yield l
         end
       end
@@ -158,7 +158,7 @@ module Redwood
       @mutex.synchronize do
         ensure_open
         @f.seek offset
-        nil while line = @f.gets and not MBox::is_break_line? line
+        nil while line = @f.gets and not MBox.is_break_line? line
         offset = @f.tell
         offset != File.size(@f) ? offset : nil
       end

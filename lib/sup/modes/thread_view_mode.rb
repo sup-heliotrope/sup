@@ -773,7 +773,7 @@ EOS
                  .map { |d| d[1].strip }.join('').strip
 
       found = false
-      (linetext || '').scan(URI::regexp).each do |_matches|
+      (linetext || '').scan(URI.regexp).each do |_matches|
         begin
           link = $& # ruby magic: $& is the whole regexp match
           u = URI.parse(link)

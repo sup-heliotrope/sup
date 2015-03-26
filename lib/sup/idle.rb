@@ -22,7 +22,7 @@ module Redwood
     end
 
     def start
-      @thread = Redwood::reporting_thread('checking for idleness') do
+      @thread = Redwood.reporting_thread('checking for idleness') do
         loop do
           sleep 1
           if !@idle and Time.now.to_i - @no_activity_since.to_i >= IDLE_THRESHOLD

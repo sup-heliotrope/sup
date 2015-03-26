@@ -98,7 +98,7 @@ module Redwood
     end
 
     def load_in_background
-      Redwood::reporting_thread('contact manager load in bg') do
+      Redwood.reporting_thread('contact manager load in bg') do
         load
         update
         BufferManager.draw_screen

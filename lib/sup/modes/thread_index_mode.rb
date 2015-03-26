@@ -107,7 +107,7 @@ EOS
     def select(t = nil, when_done = nil)
       t ||= cursor_thread or return
 
-      Redwood::reporting_thread('load messages for thread-view-mode') do
+      Redwood.reporting_thread('load messages for thread-view-mode') do
         num = t.size
         message = "Loading #{num.pluralize 'message body'}..."
         BufferManager.say(message) do |sid|
@@ -666,7 +666,7 @@ EOS
 
     def load_n_threads_background(n = LOAD_MORE_THREAD_NUM, opts = {})
       return if @load_thread # todo: wrap in mutex
-      @load_thread = Redwood::reporting_thread('load threads for thread-index-mode') do
+      @load_thread = Redwood.reporting_thread('load threads for thread-index-mode') do
         num = load_n_threads n, opts
         opts[:when_done].call(num) if opts[:when_done]
         @load_thread = nil

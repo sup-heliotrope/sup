@@ -56,7 +56,7 @@ EOS
       when :tab then 'tab'
       when ' ' then '<space>'
       else
-        Ncurses::keyname(keysym_to_keycode(k))
+        Ncurses.keyname(keysym_to_keycode(k))
       end
     end
 

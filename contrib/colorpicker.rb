@@ -13,8 +13,8 @@ Ncurses.clear
 Ncurses.refresh
 cc = Ncurses.COLORS
 
-Ncurses::keypad(Ncurses::stdscr, 1)
-Ncurses::mousemask(Ncurses::ALL_MOUSE_EVENTS | Ncurses::REPORT_MOUSE_POSITION, [])
+Ncurses.keypad(Ncurses.stdscr, 1)
+Ncurses.mousemask(Ncurses::ALL_MOUSE_EVENTS | Ncurses::REPORT_MOUSE_POSITION, [])
 
 fail "color count is #{cc}, expected 256" unless cc == 256
 
