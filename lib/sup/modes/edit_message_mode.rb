@@ -216,7 +216,7 @@ EOS
       end
 
       @file.puts text
-      @file.puts sig if ($config[:edit_signature] and !@sig_edited)
+      @file.puts sig if $config[:edit_signature] and !@sig_edited
       @file.close
     end
 
@@ -709,8 +709,8 @@ EOS
 
     def transfer_encode(msg_part)
       ## return the message unchanged if it's already encoded
-      if (msg_part.header['Content-Transfer-Encoding'] == 'base64' ||
-          msg_part.header['Content-Transfer-Encoding'] == 'quoted-printable')
+      if msg_part.header['Content-Transfer-Encoding'] == 'base64' ||
+         msg_part.header['Content-Transfer-Encoding'] == 'quoted-printable'
         return msg_part
       end
 
