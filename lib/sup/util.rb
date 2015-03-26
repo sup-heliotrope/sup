@@ -698,7 +698,7 @@ end
 class SavingHash
   def initialize(&b)
     @constructor = b
-    @hash = Hash.new
+    @hash = {}
   end
 
   def [](k)
