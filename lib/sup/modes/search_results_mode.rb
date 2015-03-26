@@ -38,20 +38,18 @@ module Redwood
     ## but that seems pretty insane.
 
     def self.spawn_from_query(text)
-      begin
-        if SearchManager.predefined_queries.key? text
-          query = SearchManager.predefined_queries[text]
-        else
-          query = Index.parse_query(text)
-        end
-        return unless query
-        short_text = text.length < 20 ? text : text[0...20] + '...'
-        mode = SearchResultsMode.new query
-        BufferManager.spawn "search: \"#{short_text}\"", mode
-        mode.load_threads num: mode.buffer.content_height
-      rescue Index::ParseError => e
-        BufferManager.flash "Problem: #{e.message}!"
+      if SearchManager.predefined_queries.key? text
+        query = SearchManager.predefined_queries[text]
+      else
+        query = Index.parse_query(text)
       end
+      return unless query
+      short_text = text.length < 20 ? text : text[0...20] + '...'
+      mode = SearchResultsMode.new query
+      BufferManager.spawn "search: \"#{short_text}\"", mode
+      mode.load_threads num: mode.buffer.content_height
+    rescue Index::ParseError => e
+      BufferManager.flash "Problem: #{e.message}!"
     end
   end
 end

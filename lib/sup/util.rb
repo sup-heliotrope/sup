@@ -49,11 +49,9 @@ end
 class File
   # platform safe file.link which attempts a copy if hard-linking fails
   def self.safe_link(src, dest)
-    begin
-      File.link src, dest
-    rescue
-      FileUtils.copy src, dest
-    end
+    File.link src, dest
+  rescue
+    FileUtils.copy src, dest
   end
 end
 
@@ -69,11 +67,9 @@ class Pathname
   end
 
   def human_time
-    begin
-      ctime.strftime('%Y-%m-%d %H:%M')
-    rescue SystemCallError
-      '?'
-    end
+    ctime.strftime('%Y-%m-%d %H:%M')
+  rescue SystemCallError
+    '?'
   end
 end
 
@@ -454,12 +450,10 @@ class String
 
   class CheckError < ArgumentError; end
   def check
-    begin
-      fail "unexpected encoding #{encoding}" if respond_to?(:encoding) && !(encoding == Encoding::UTF_8 || encoding == Encoding::ASCII)
-      fail 'invalid encoding' if respond_to?(:valid_encoding?) && !valid_encoding?
-    rescue
-      raise CheckError.new($!.message)
-    end
+    fail "unexpected encoding #{encoding}" if respond_to?(:encoding) && !(encoding == Encoding::UTF_8 || encoding == Encoding::ASCII)
+    fail 'invalid encoding' if respond_to?(:valid_encoding?) && !valid_encoding?
+  rescue
+    raise CheckError.new($!.message)
   end
 
   def ascii

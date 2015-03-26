@@ -595,13 +595,11 @@ EOS
 
     # XXX is there a better way?
     def docid_exists?(docid)
-      begin
-        @xapian.doclength docid
-        true
-      rescue RuntimeError # Xapian::DocNotFoundError
-        raise unless $!.message =~ /DocNotFoundError/
-        false
-      end
+      @xapian.doclength docid
+      true
+    rescue RuntimeError # Xapian::DocNotFoundError
+      raise unless $!.message =~ /DocNotFoundError/
+      false
     end
 
     def term_docids(term)

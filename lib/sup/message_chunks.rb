@@ -190,28 +190,22 @@ EOS
       end
 
       def write_to_disk
-        begin
-          # Add the original extension to the generated tempfile name only if the
-          # extension is "safe" (won't be interpreted by the shell).  Since
-          # Tempfile.new always generates safe file names this should prevent
-          # attacking the user with funny attachment file names.
-          tempname = if (File.extname @filename) =~ /^\.[[:alnum:]]+$/
-                       ['sup-attachment', File.extname(@filename)]
-                     else
-                       'sup-attachment'
-                     end
+        tempname = if (File.extname @filename) =~ /^\.[[:alnum:]]+$/
+                     ['sup-attachment', File.extname(@filename)]
+                   else
+                     'sup-attachment'
+                   end
 
-          file = Tempfile.new(tempname)
-          file.print @raw_content
-          file.flush
+        file = Tempfile.new(tempname)
+        file.print @raw_content
+        file.flush
 
-          @@view_tempfiles.push file # make sure the tempfile is not garbage collected before sup stops
+        @@view_tempfiles.push file # make sure the tempfile is not garbage collected before sup stops
 
-          yield file.path if block_given?
-          return file.path
-        ensure
-          file.close
-        end
+        yield file.path if block_given?
+        return file.path
+      ensure
+        file.close
       end
 
       ## used when viewing the attachment as text

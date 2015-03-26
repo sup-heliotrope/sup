@@ -52,13 +52,11 @@ if defined? Ncurses
       ## Gets character from input.
       ## Pretends ctrl-c's are ctrl-g's.
       def self.get(handle_interrupt = true)
-        begin
-          status, code = nonblocking_getwch
-          generate code, status
-        rescue Interrupt => e
-          raise e unless handle_interrupt
-          keycode Ncurses::KEY_CANCEL
-        end
+        status, code = nonblocking_getwch
+        generate code, status
+      rescue Interrupt => e
+        raise e unless handle_interrupt
+        keycode Ncurses::KEY_CANCEL
       end
 
       ## Enables dumb mode for any new instance.
@@ -154,25 +152,23 @@ if defined? Ncurses
 
       ## Tries to make external character right.
       def enc_char(c)
+        character = c.chr($encoding)
+      rescue RangeError, ArgumentError
         begin
-          character = c.chr($encoding)
-        rescue RangeError, ArgumentError
+          character = [c].pack('U')
+        rescue RangeError
           begin
-            character = [c].pack('U')
-          rescue RangeError
+            character = c.chr
+          rescue
             begin
-              character = c.chr
+              character = [c].pack('C')
             rescue
-              begin
-                character = [c].pack('C')
-              rescue
-                character = ''
-                @status = Ncurses::ERR
-              end
+              character = ''
+              @status = Ncurses::ERR
             end
           end
-          character.fix_encoding!
         end
+        character.fix_encoding!
       end
     end # class CharCode
 

@@ -87,16 +87,14 @@ module Redwood
     end
 
     def execute(cmd)
-      begin
-        self << ">> #{cmd}\n"
-        ret = eval cmd, @binding
-        self << "=> #{ret.pretty_inspect}\n"
-      rescue Exception
-        self << "#{$!.class}: #{$!.message}\n"
-        clean_backtrace = []
-        $!.backtrace.each { |l| break if l =~ /console-mode/; clean_backtrace << l }
-        clean_backtrace.each { |l| self << "#{l}\n" }
-      end
+      self << ">> #{cmd}\n"
+      ret = eval cmd, @binding
+      self << "=> #{ret.pretty_inspect}\n"
+    rescue Exception
+      self << "#{$!.class}: #{$!.message}\n"
+      clean_backtrace = []
+      $!.backtrace.each { |l| break if l =~ /console-mode/; clean_backtrace << l }
+      clean_backtrace.each { |l| self << "#{l}\n" }
     end
 
     def prompt
