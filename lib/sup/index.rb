@@ -684,7 +684,7 @@ EOS
       m.sync_back if sync_back
 
       doc = synchronize { find_doc(m.id) }
-      existed = doc != nil
+      existed = !doc.nil?
       doc ||= Xapian::Document.new
       do_index_static = overwrite || !existed
       old_entry = !do_index_static && doc.entry

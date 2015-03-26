@@ -173,12 +173,6 @@ Style/NestedTernaryOperator:
 Style/Next:
   Enabled: false
 
-# Offense count: 1
-# Cop supports --auto-correct.
-# Configuration parameters: IncludeSemanticChanges.
-Style/NonNilCheck:
-  Enabled: false
-
 # Offense count: 22
 # Cop supports --auto-correct.
 Style/Not:
