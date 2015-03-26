@@ -1,6 +1,6 @@
 module Redwood
 
-## extends ScrollMode to have a line-based cursor.
+  ## extends ScrollMode to have a line-based cursor.
   class LineCursorMode < ScrollMode
     register_keymap do |k|
       ## overwrite scrollmode binding on arrow keys for cursor movement

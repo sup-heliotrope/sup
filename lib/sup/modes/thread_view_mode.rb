@@ -67,7 +67,7 @@ EOS
       k.add :align_current_message, 'Align current message in buffer', 'z'
       k.add :toggle_starred, 'Star or unstar message', '*'
       k.add :toggle_new, 'Toggle unread/read status of message', 'N'
-  #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
+      #    k.add :collapse_non_new_messages, "Collapse all but unread messages", 'N'
       k.add :reply, 'Reply to a message', 'r'
       k.add :reply_all, 'Reply to all participants of this message', 'G'
       k.add :forward, 'Forward a message or attachment', 'f'

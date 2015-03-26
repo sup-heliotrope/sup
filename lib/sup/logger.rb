@@ -4,9 +4,9 @@ require 'thread'
 
 module Redwood
 
-## simple centralized logger. outputs to multiple sinks by calling << on them.
-## also keeps a record of all messages, so that adding a new sink will send all
-## previous messages to it by default.
+  ## simple centralized logger. outputs to multiple sinks by calling << on them.
+  ## also keeps a record of all messages, so that adding a new sink will send all
+  ## previous messages to it by default.
   class Logger
     include Redwood::Singleton
 
@@ -69,7 +69,7 @@ module Redwood
     end
   end
 
-## include me to have top-level #debug, #info, etc. methods.
+  ## include me to have top-level #debug, #info, etc. methods.
   module LogsStuff
     Logger::LEVELS.each { |l| define_method(l) { |s| Logger.instance.send(l, s) } }
   end

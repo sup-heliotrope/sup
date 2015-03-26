@@ -26,8 +26,8 @@ module Redwood
       end
     end
 
-  #   def == o; o && o.email == email; end
-  #   alias :eql? :==
+    #   def == o; o && o.email == email; end
+    #   alias :eql? :==
 
     def shortname
       case @name

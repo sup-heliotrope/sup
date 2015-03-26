@@ -31,7 +31,7 @@ module Redwood
       @from_email = 'sup-test-1@foo.bar'
       @from_email_ecc = 'sup-fake-ecc@fake.fake'
       @to_email   = 'sup-test-2@foo.bar'
-        # Use test gnupg setup
+      # Use test gnupg setup
       @orig_gnupghome = ENV['GNUPGHOME']
       ENV['GNUPGHOME'] = File.join(File.dirname(__FILE__), 'gnupg_test_home')
 

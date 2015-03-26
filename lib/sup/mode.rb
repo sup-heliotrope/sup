@@ -80,7 +80,7 @@ EOS
       end.compact.join "\n"
     end
 
-  ### helper functions
+    ### helper functions
 
     def save_to_file(fn, talk = true)
       if File.exist? fn

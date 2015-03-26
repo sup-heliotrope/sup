@@ -4,13 +4,13 @@ require 'time'
 
 module Redwood
 
-## a Message is what's threaded.
-##
-## it is also where the parsing for quotes and signatures is done, but
-## that should be moved out to a separate class at some point (because
-## i would like, for example, to be able to add in a ruby-talk
-## specific module that would detect and link to /ruby-talk:\d+/
-## sequences in the text of an email. (how sweet would that be?)
+  ## a Message is what's threaded.
+  ##
+  ## it is also where the parsing for quotes and signatures is done, but
+  ## that should be moved out to a separate class at some point (because
+  ## i would like, for example, to be able to add in a ruby-talk
+  ## specific module that would detect and link to /ruby-talk:\d+/
+  ## sequences in the text of an email. (how sweet would that be?)
 
   class Message
     SNIPPET_LEN = 80

@@ -97,7 +97,7 @@ Return value:
   True if the viewing was successful, false otherwise. If false, calling
   /usr/bin/run-mailcap will be tried.
 EOS
-  # ' stupid ruby-mode
+      # ' stupid ruby-mode
 
       ## raw_content is the post-MIME-decode content. this is used for
       ## saving the attachment to disk.
@@ -118,7 +118,7 @@ EOS
 
         @filename = filename
         @quotable = false # changed to true if we can parse it through the
-                          # mime-decode hook, or if it's plain text
+        # mime-decode hook, or if it's plain text
         @raw_content =
           if encoded_content.body
             encoded_content.decode

@@ -31,7 +31,7 @@ module Redwood
     def initialize(opts = {})
       @topline, @botline, @leftcol = 0, 0, 0
       @slip_rows = opts[:slip_rows] || 0 # when we pgup/pgdown,
-                                         # how many lines do we keep?
+      # how many lines do we keep?
       @twiddles = opts.member?(:twiddles) ? opts[:twiddles] : true
       @search_query = nil
       @search_line = nil
@@ -202,10 +202,10 @@ module Redwood
         raise "unknown drawable object: #{s.inspect} in #{self} for line #{ln}" # good for debugging
       end
 
-        ## speed test
-        # str = s.map { |color, text| text }.join
-        # buffer.write ln - @topline, 0, str, :color => :none, :highlight => opts[:highlight]
-        # return
+      ## speed test
+      # str = s.map { |color, text| text }.join
+      # buffer.write ln - @topline, 0, str, :color => :none, :highlight => opts[:highlight]
+      # return
     end
 
     def matching_text_array(s, regex, oldcolor = :text_color)

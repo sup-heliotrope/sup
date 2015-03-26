@@ -2,21 +2,21 @@ require 'sup/util/ncurses'
 
 module Redwood
 
-## a fully-functional text field supporting completions, expansions,
-## history--everything!
-##
-## writing this fucking sucked. if you thought ncurses was some 1970s
-## before-people-knew-how-to-program bullshit, wait till you see
-## ncurses forms.
-##
-## completion comments: completion is done emacs-style, and mostly
-## depends on outside support, as we merely signal the existence of a
-## new set of completions to show (#new_completions?)  or that the
-## current list of completions should be rolled if they're too large
-## to fill the screen (#roll_completions?).
-##
-## in sup, completion support is implemented through BufferManager#ask
-## and CompletionMode.
+  ## a fully-functional text field supporting completions, expansions,
+  ## history--everything!
+  ##
+  ## writing this fucking sucked. if you thought ncurses was some 1970s
+  ## before-people-knew-how-to-program bullshit, wait till you see
+  ## ncurses forms.
+  ##
+  ## completion comments: completion is done emacs-style, and mostly
+  ## depends on outside support, as we merely signal the existence of a
+  ## new set of completions to show (#new_completions?)  or that the
+  ## current list of completions should be rolled if they're too large
+  ## to fill the screen (#roll_completions?).
+  ##
+  ## in sup, completion support is implemented through BufferManager#ask
+  ## and CompletionMode.
   class TextField
     include Ncurses::Form::DriverHelpers
 

@@ -2,9 +2,9 @@ require 'fileutils'
 
 module Redwood
 
-## wrap a nice interactive layer on top of anything that has a #lock method
-## which throws a LockError which responds to #user, #host, #mtim, #pname, and
-## #pid.
+  ## wrap a nice interactive layer on top of anything that has a #lock method
+  ## which throws a LockError which responds to #user, #host, #mtim, #pname, and
+  ## #pid.
 
   module InteractiveLock
     def pluralize(number_of, kind); "#{number_of} #{kind}" + (number_of == 1 ? '' : 's') end

@@ -156,12 +156,12 @@ module Redwood
     end
   end
 
-## recursive structure used internally to represent message trees as
-## described by reply-to: and references: headers.
-##
-## the 'id' field is the same as the message id. but the message might
-## be empty, in the case that we represent a message that was referenced
-## by another message (as an ancestor) but never received.
+  ## recursive structure used internally to represent message trees as
+  ## described by reply-to: and references: headers.
+  ##
+  ## the 'id' field is the same as the message id. but the message might
+  ## be empty, in the case that we represent a message that was referenced
+  ## by another message (as an ancestor) but never received.
   class Container
     attr_accessor :message, :parent, :children, :id, :thread
 
@@ -247,16 +247,16 @@ module Redwood
     end
   end
 
-## A set of threads, so a forest. Is integrated with the index and
-## builds thread structures by reading messages from it.
-##
-## If 'thread_by_subj' is true, puts messages with the same subject in
-## one thread, even if they don't reference each other. This is
-## helpful for crappy MUAs that don't set In-reply-to: or References:
-## headers, but means that messages may be threaded unnecessarily.
-##
-## The following invariants are maintained: every Thread has at least one
-## Container tree, and every Container tree has at least one Message.
+  ## A set of threads, so a forest. Is integrated with the index and
+  ## builds thread structures by reading messages from it.
+  ##
+  ## If 'thread_by_subj' is true, puts messages with the same subject in
+  ## one thread, even if they don't reference each other. This is
+  ## helpful for crappy MUAs that don't set In-reply-to: or References:
+  ## headers, but means that messages may be threaded unnecessarily.
+  ##
+  ## The following invariants are maintained: every Thread has at least one
+  ## Container tree, and every Container tree has at least one Message.
   class ThreadSet
     attr_reader :num_messages
     bool_reader :thread_by_subj

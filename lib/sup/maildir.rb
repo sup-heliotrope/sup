@@ -233,7 +233,7 @@ module Redwood
     def maildir_reconcile_flags(id, labels)
       new_flags = Set.new(maildir_data(id)[2].each_char)
 
-        # Set flags based on labels for the six flags we recognize
+      # Set flags based on labels for the six flags we recognize
       if labels.member? :draft then new_flags.add?('D') else new_flags.delete?('D') end
       if labels.member? :starred then new_flags.add?('F') else new_flags.delete?('F') end
       if labels.member? :forwarded then new_flags.add?('P') else new_flags.delete?('P') end
@@ -241,8 +241,8 @@ module Redwood
       if not labels.member? :unread then new_flags.add?('S') else new_flags.delete?('S') end
       if labels.member? :deleted or labels.member? :killed then new_flags.add?('T') else new_flags.delete?('T') end
 
-        ## Flags must be stored in ASCII order according to Maildir
-        ## documentation
+      ## Flags must be stored in ASCII order according to Maildir
+      ## documentation
       new_flags.to_a.sort.join
     end
 

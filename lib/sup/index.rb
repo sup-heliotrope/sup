@@ -26,9 +26,9 @@ end
 
 module Redwood
 
-# This index implementation uses Xapian for searching and storage. It
-# tends to be slightly faster than Ferret for indexing and significantly faster
-# for searching due to precomputing thread membership.
+  # This index implementation uses Xapian for searching and storage. It
+  # tends to be slightly faster than Ferret for indexing and significantly faster
+  # for searching due to precomputing thread membership.
   class Index
     include InteractiveLock
 

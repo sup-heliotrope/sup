@@ -66,7 +66,7 @@ module Redwood
     def [](i)
       return nil unless i < @lines.length
       @text[@lines[i]...(i + 1 < @lines.length ? @lines[i + 1] - 1 : @text.length)].normalize_whitespace
-  #    (@lines[i] ... (i + 1 < @lines.length ? @lines[i + 1] - 1 : @text.length)).inspect
+      #    (@lines[i] ... (i + 1 < @lines.length ? @lines[i + 1] - 1 : @text.length)).inspect
     end
 
     private

@@ -1,11 +1,11 @@
 module Redwood
 
-## Implements a single undo list for the Sup instance
-##
-## The basic idea is to keep a list of lambdas to undo
-## things. When an action is called (such as 'archive'),
-## a lambda is registered with UndoManager that will
-## undo the archival action
+  ## Implements a single undo list for the Sup instance
+  ##
+  ## The basic idea is to keep a list of lambdas to undo
+  ## things. When an action is called (such as 'archive'),
+  ## a lambda is registered with UndoManager that will
+  ## undo the archival action
 
   class UndoManager
     include Redwood::Singleton

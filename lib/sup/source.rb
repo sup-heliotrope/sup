@@ -171,9 +171,9 @@ module Redwood
     end
   end
 
-## if you have a @labels instance variable, include this
-## to serialize them nicely as an array, rather than as a
-## nasty set.
+  ## if you have a @labels instance variable, include this
+  ## to serialize them nicely as an array, rather than as a
+  ## nasty set.
   module SerializeLabelsNicely
     def before_marshal # can return an object
       c = clone

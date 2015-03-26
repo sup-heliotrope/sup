@@ -95,7 +95,7 @@ module Redwood
 
   module_function :reporting_thread, :record_exception, :exceptions
 
-## one-stop shop for yamliciousness
+  ## one-stop shop for yamliciousness
   def save_yaml_obj(o, fn, safe = false, backup = false)
     o = if o.is_a?(Array)
           o.map { |x| (x.respond_to?(:before_marshal) && x.before_marshal) || x }
@@ -279,7 +279,7 @@ be viewed, and new messages will not be detected.
 
 #{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.error.message.wrap(70).join("\n        ") }.join("\n\n")}
 EOM
-# ' stupid ruby-mode
+        # ' stupid ruby-mode
       end
     end
 
@@ -303,7 +303,7 @@ and new messages will not be detected. Luckily, this is easy to correct!
      "\n   Fix: sup-sync --changed #{s}"
   end}
 EOM
-# ' stupid ruby-mode
+        # ' stupid ruby-mode
       end
     end
   end

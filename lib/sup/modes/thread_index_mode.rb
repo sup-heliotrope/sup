@@ -2,8 +2,8 @@ require 'set'
 
 module Redwood
 
-## subclasses should implement:
-## - is_relevant?
+  ## subclasses should implement:
+  ## - is_relevant?
 
   class ThreadIndexMode < LineCursorMode
     DATE_WIDTH = Time::TO_NICE_S_MAX_LEN

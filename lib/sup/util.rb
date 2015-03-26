@@ -472,7 +472,7 @@ class String
       end
     end
     out = out.fix_encoding! # this should now be an utf-8 string of ascii
-                           # compat chars.
+    # compat chars.
   end
 
   unless method_defined? :ascii_only?
