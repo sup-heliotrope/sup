@@ -16,3 +16,6 @@ Style/BracesAroundHashParameters:
 
 Style/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
+
+Style/SingleLineMethods:
+  Enabled: false
