@@ -3,7 +3,7 @@ require 'test_helper'
 require 'sup/horizontal_selector'
 
 describe Redwood::HorizontalSelector do
-  let(:values) { %w[foo@example.com bar@example.com] }
+  let(:values) { %w(foo@example.com bar@example.com) }
   let(:strange_value) { 'strange@example.com' }
 
   before do

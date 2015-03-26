@@ -177,7 +177,7 @@ end
 
 class Module
   def bool_reader(*args)
-    args.each { |sym| class_eval %{ def #{sym}?; @#{sym}; end } }
+    args.each { |sym| class_eval %( def #{sym}?; @#{sym}; end ) }
   end
 
   def bool_writer(*args); attr_writer(*args); end
