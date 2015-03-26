@@ -112,7 +112,7 @@ module Redwood
     end
 
     def jump_to_col(col)
-      col = col - (col % col_jump)
+      col -= (col % col_jump)
       buffer.mark_dirty unless @leftcol == col
       @leftcol = col
     end

@@ -678,7 +678,7 @@ EOS
       @mbid = BufferManager.say 'Searching for threads...'
 
       ts_to_load = n
-      ts_to_load = ts_to_load + @ts.size unless n == -1 # -1 means all threads
+      ts_to_load += @ts.size unless n == -1 # -1 means all threads
 
       orig_size = @ts.size
       last_update = Time.now

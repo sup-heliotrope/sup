@@ -120,7 +120,7 @@ module Redwood
           unless !@i || @history.empty?
             value = get_cursed_value
             # debug "history before #{@history.inspect}"
-            @i = @i + (c.is_keycode?(Ncurses::KEY_UP) ? -1 : 1)
+            @i += (c.is_keycode?(Ncurses::KEY_UP) ? -1 : 1)
             @i = 0 if @i < 0
             @i = @history.size if @i > @history.size
             @value = @history[@i] || ''
