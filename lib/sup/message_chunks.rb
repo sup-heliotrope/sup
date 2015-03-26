@@ -152,6 +152,7 @@ EOS
 
       def color; :text_color end
       def patina_color; :attachment_color end
+
       def patina_text
         if expandable?
           "Attachment: #{filename} (#{lines.length} lines)"
@@ -159,6 +160,7 @@ EOS
           "Attachment: #{filename} (#{content_type}; #{@raw_content.size.to_human_size})"
         end
       end
+
       def safe_filename; Shellwords.escape(@filename).gsub('/', '_') end
 
       ## an attachment is exapndable if we've managed to decode it into
@@ -168,6 +170,7 @@ EOS
       def indexable?; expandable? end
       def initial_state; :open end
       def viewable?; @lines.nil? end
+
       def view_default!(path)
         case RbConfig::CONFIG['arch']
           when /darwin/
@@ -324,6 +327,7 @@ EOS
         else :cryptosig_unknown_color
         end
       end
+
       def color; patina_color end
 
       def inlineable?; false end

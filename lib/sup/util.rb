@@ -181,7 +181,9 @@ class Module
   def bool_reader(*args)
     args.each { |sym| class_eval %{ def #{sym}?; @#{sym}; end } }
   end
+
   def bool_writer(*args); attr_writer(*args); end
+
   def bool_accessor(*args)
     bool_reader(*args)
     bool_writer(*args)
@@ -638,6 +640,7 @@ module Redwood
       def instance; @instance; end
       def instantiated?; defined?(@instance) && !@instance.nil?; end
       def deinstantiate!; @instance = nil; end
+
       def method_missing(meth, *a, &b)
         raise "no #{name} instance defined in method call to #{meth}!" unless defined? @instance
 
@@ -657,6 +660,7 @@ module Redwood
 
         @instance.send meth, *a, &b
       end
+
       def init(*args)
         raise 'there can be only one! (instance)' if instantiated?
         @instance = new(*args)

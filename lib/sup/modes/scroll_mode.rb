@@ -93,6 +93,7 @@ module Redwood
         jump_to_col [rightcol - buffer.content_width + 1, 0].max # move right
       end
     end
+
     def search_start_line; @topline end
     def search_goto_line(line); jump_to_line line end
 

@@ -175,6 +175,7 @@ EOS
         super
       end
     end
+
     def lines; @text.length; end
     def [](i); @text[i]; end
 

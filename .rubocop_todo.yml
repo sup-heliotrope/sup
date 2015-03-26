@@ -136,12 +136,6 @@ Style/ElseAlignment:
 Style/EmptyElse:
   Enabled: false
 
-# Offense count: 190
-# Cop supports --auto-correct.
-# Configuration parameters: AllowAdjacentOneLineDefs.
-Style/EmptyLineBetweenDefs:
-  Enabled: false
-
 # Offense count: 10
 # Cop supports --auto-correct.
 Style/EmptyLines:

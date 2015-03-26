@@ -104,6 +104,7 @@ module Redwood
     end
 
     def start_offset; 0; end
+
     def end_offset
       ids = get_ids
       ids.empty? ? 0 : (ids.last + 1)

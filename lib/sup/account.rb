@@ -74,6 +74,7 @@ module Redwood
 
     def is_account?(p); is_account_email? p.email end
     def is_account_email?(email); !account_for(email).nil? end
+
     def account_for(email)
       if (a = @email_map[email])
         a
@@ -81,6 +82,7 @@ module Redwood
         @regexen.argfind { |re, a| re =~ email && a }
       end
     end
+
     def full_address_for(email)
       a = account_for email
       Person.full_address a.name, email

@@ -90,6 +90,7 @@ module Redwood
     def has_message?; any? { |m, *_o| m.is_a? Message }; end
     def dirty?; any? { |m, *_o| m && m.dirty? }; end
     def date; map { |m, *_o| m.date if m }.compact.max; end
+
     def snippet
       with_snippets = select { |m, *_o| m && m.snippet && !m.snippet.empty? }
       first_unread, * = with_snippets.select { |m, *_o| m.has_label?(:unread) }.sort_by { |m, *_o| m.date }.first
@@ -98,6 +99,7 @@ module Redwood
       return last_read.snippet if last_read
       ''
     end
+
     def authors; map { |m, *_o| m.from if m }.compact.uniq; end
 
     def apply_label(t); each { |m, *_o| m && m.add_label(t) }; end
@@ -128,6 +130,7 @@ module Redwood
     def size; map { |m, *_o| m ? 1 : 0 }.sum; end
     def subj; argfind { |m, *_o| m && m.subj }; end
     def labels; inject(Set.new) { |s, (m, *_o)| m ? s | m.labels : s } end
+
     def labels=(l)
       raise ArgumentError, 'not a set' unless l.is_a?(Set)
       each { |m, *_o| m && m.labels = l.dup }
@@ -212,6 +215,7 @@ module Redwood
         @message.send attr
       end
     end
+
     def subj; find_attr :subj; end
     def date; find_attr :date; end
 

@@ -13,3 +13,6 @@ Style/NumericLiterals:
 
 Style/BracesAroundHashParameters:
   Enabled: false
+
+Style/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: true

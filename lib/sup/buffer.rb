@@ -225,6 +225,7 @@ EOS
 
     def exists?(n); @name_map.member? n; end
     def [](n); @name_map[n]; end
+
     def []=(n, b)
       raise ArgumentError, 'duplicate buffer name' if b && @name_map.member?(n)
       raise ArgumentError, 'title must be a string' unless n.is_a? String

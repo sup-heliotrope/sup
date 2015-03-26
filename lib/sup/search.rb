@@ -34,12 +34,14 @@ module Redwood
 
     def predefined_queries; return @predefined_queries; end
     def all_searches; return @searches.keys.sort; end
+
     def search_string_for(name);
       if @predefined_searches.keys.member? name
         return name.to_sym
       end
       return @searches[name];
     end
+
     def valid_name?(name); name =~ /^[\w-]+$/; end
     def name_format_hint; 'letters, numbers, underscores and dashes only'; end
 

@@ -183,6 +183,7 @@ module Redwood
     attr_reader :snippet
     def is_list_message?; !@list_address.nil?; end
     def is_draft?; @labels.member? :draft; end
+
     def draft_filename
       raise 'not a draft' unless is_draft?
       source.fn_for_offset source_info
@@ -206,12 +207,14 @@ module Redwood
     end
 
     def has_label?(t); @labels.member? t; end
+
     def add_label(l)
       l = l.to_sym
       return if @labels.member? l
       @labels << l
       @dirty = true
     end
+
     def remove_label(l)
       l = l.to_sym
       return unless @labels.member? l

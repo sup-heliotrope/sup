@@ -41,6 +41,7 @@ module Redwood
     def in_search?; false end
     def status; ''; end
     def resize(_rows, _cols); end
+
     def cleanup
       @buffer = nil
     end
