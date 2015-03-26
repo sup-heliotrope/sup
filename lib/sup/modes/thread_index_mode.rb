@@ -1,7 +1,6 @@
 require 'set'
 
 module Redwood
-
   ## subclasses should implement:
   ## - is_relevant?
 
@@ -1035,5 +1034,4 @@ EOS
       @hidden_threads = {}
     end
   end
-
 end

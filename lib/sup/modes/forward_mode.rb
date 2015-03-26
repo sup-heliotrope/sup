@@ -1,7 +1,5 @@
 module Redwood
-
   class ForwardMode < EditMessageMode
-
     HookManager.register 'forward-attribution', <<EOS
 Generates the attribution for the forwarded message
 (["--- Begin forwarded message from John Doe ---",
@@ -97,5 +95,4 @@ EOS
       end
     end
   end
-
 end

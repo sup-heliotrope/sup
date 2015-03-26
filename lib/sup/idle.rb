@@ -1,7 +1,6 @@
 require 'thread'
 
 module Redwood
-
   class IdleManager
     include Redwood::Singleton
 
@@ -38,5 +37,4 @@ module Redwood
       @thread = nil
     end
   end
-
 end

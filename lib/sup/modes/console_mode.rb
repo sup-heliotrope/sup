@@ -3,7 +3,6 @@ require 'pp'
 require 'sup/service/label_service'
 
 module Redwood
-
   class Console
     def initialize(mode)
       @mode = mode
@@ -121,5 +120,4 @@ EOS
       end
     end
   end
-
 end

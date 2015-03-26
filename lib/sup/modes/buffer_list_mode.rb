@@ -1,5 +1,4 @@
 module Redwood
-
   class BufferListMode < LineCursorMode
     register_keymap do |k|
       k.add :jump_to_buffer, 'Jump to selected buffer', :enter
@@ -46,5 +45,4 @@ module Redwood
       reload if BufferManager.kill_buffer_safely @bufs[curpos][1]
     end
   end
-
 end

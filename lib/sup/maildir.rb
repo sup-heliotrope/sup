@@ -2,7 +2,6 @@ require 'uri'
 require 'set'
 
 module Redwood
-
   class Maildir < Source
     include SerializeLabelsNicely
     MYHOSTNAME = Socket.gethostname
@@ -267,5 +266,4 @@ module Redwood
       end
     end
   end
-
 end

@@ -1,5 +1,4 @@
 module Redwood
-
   ## Classic listener/broadcaster paradigm. Handles communication between various
   ## parts of Sup.
   ##
@@ -26,5 +25,4 @@ module Redwood
       @targets.keys.each { |o| o.send meth, sender, *args unless o == sender if o.respond_to? meth }
     end
   end
-
 end

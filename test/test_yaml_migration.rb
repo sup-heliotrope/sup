@@ -28,7 +28,6 @@ if RUBY_VERSION < '2.1'
 
         Psych.load_tags[expected_yaml_tag].must_equal cls
         Psych.dump_tags[cls].must_equal expected_yaml_tag
-
       end
 
       it 'Loads legacy YAML format as well' do

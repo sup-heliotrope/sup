@@ -1,5 +1,4 @@
 module Redwood
-
   class DraftManager
     include Redwood::Singleton
 
@@ -116,5 +115,4 @@ module Redwood
       Dir.entries(@dir).select { |x| x =~ /^\d+$/ }.map { |x| x.to_i }.sort
     end
   end
-
 end

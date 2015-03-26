@@ -1,5 +1,4 @@
 module Redwood
-
   class SearchResultsMode < ThreadIndexMode
     def initialize(query)
       @query = query
@@ -55,5 +54,4 @@ module Redwood
       end
     end
   end
-
 end

@@ -1,5 +1,4 @@
 module Redwood
-
   class ScrollMode < Mode
     ## we define topline and botline as the top and bottom lines of any
     ## content in the currentview.
@@ -248,5 +247,4 @@ module Redwood
       buffer.write ln - @topline, 0, s[@leftcol..-1], highlight: opts[:highlight], color: opts[:color]
     end
   end
-
 end

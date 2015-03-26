@@ -1,5 +1,4 @@
 module Redwood
-
   class SentManager
     include Redwood::Singleton
 
@@ -54,5 +53,4 @@ module Redwood
     def default_labels; []; end
     def read?; true; end
   end
-
 end

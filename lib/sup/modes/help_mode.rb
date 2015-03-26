@@ -1,5 +1,4 @@
 module Redwood
-
   class HelpMode < TextMode
     def initialize(mode, global_keymap)
       title = "Help for #{mode.name}"
@@ -14,5 +13,4 @@ Global keybindings
 EOS
     end
   end
-
 end

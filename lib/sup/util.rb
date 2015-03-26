@@ -128,10 +128,8 @@ module RMail
   end
 
   class Header
-
     # Convert to ASCII before trying to match with regexp
     class Field
-
       class << self
         def parse(field)
           field = field.dup.to_s

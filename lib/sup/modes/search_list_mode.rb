@@ -1,5 +1,4 @@
 module Redwood
-
   class SearchListMode < LineCursorMode
     register_keymap do |k|
       k.add :select_search, 'Open search results', :enter
@@ -200,5 +199,4 @@ EOS
       set_cursor_pos @searches.index(@searches.assoc(name)) || curpos
     end
   end
-
 end

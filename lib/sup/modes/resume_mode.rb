@@ -1,5 +1,4 @@
 module Redwood
-
   class ResumeMode < EditMessageMode
     def initialize(m)
       @m = m
@@ -48,5 +47,4 @@ module Redwood
       DraftManager.discard @m if super
     end
   end
-
 end

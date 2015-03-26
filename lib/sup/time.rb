@@ -1,5 +1,4 @@
 class Time
-
   Redwood::HookManager.register 'time-to-nice-string', <<EOS
 Formats time nicely as string.
 Variables:

@@ -3,7 +3,6 @@ require 'socket' # just for gethostname!
 require 'pathname'
 
 module Redwood
-
   class SendmailCommandFailed < StandardError; end
 
   class EditMessageMode < LineCursorMode
@@ -727,5 +726,4 @@ EOS
       msg_part
     end
   end
-
 end

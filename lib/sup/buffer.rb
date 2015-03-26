@@ -7,7 +7,6 @@ require 'ncursesw'
 require 'sup/util/ncurses'
 
 module Redwood
-
   class InputSequenceAborted < StandardError; end
 
   class Buffer

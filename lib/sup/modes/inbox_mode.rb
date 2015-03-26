@@ -1,7 +1,6 @@
 require 'sup/modes/thread_index_mode'
 
 module Redwood
-
   class InboxMode < ThreadIndexMode
     register_keymap do |k|
       ## overwrite toggle_archived with archive
@@ -81,5 +80,4 @@ module Redwood
       super + "    #{Index.size} messages in index"
     end
   end
-
 end

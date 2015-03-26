@@ -1,7 +1,6 @@
 require 'fileutils'
 
 module Redwood
-
   ## wrap a nice interactive layer on top of anything that has a #lock method
   ## which throws a LockError which responds to #user, #host, #mtim, #pname, and
   ## #pid.
@@ -85,5 +84,4 @@ EOS
       return true
     end
   end
-
 end

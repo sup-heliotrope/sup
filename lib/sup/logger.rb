@@ -3,7 +3,6 @@ require 'stringio'
 require 'thread'
 
 module Redwood
-
   ## simple centralized logger. outputs to multiple sinks by calling << on them.
   ## also keeps a record of all messages, so that adding a new sink will send all
   ## previous messages to it by default.
@@ -73,5 +72,4 @@ module Redwood
   module LogsStuff
     Logger::LEVELS.each { |l| define_method(l) { |s| Logger.instance.send(l, s) } }
   end
-
 end

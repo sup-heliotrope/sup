@@ -1,7 +1,5 @@
 module Redwood
-
   class EditMessageAsyncMode < LineCursorMode
-
     HookManager.register 'async-edit', <<EOS
 Runs when 'H' is pressed in async edit mode. You can run whatever code
 you want here - though the default case would be launching a text
@@ -104,7 +102,5 @@ EOS
     def file_has_been_edited?
       File.mtime(@file_path) > @orig_mtime
     end
-
   end
-
 end

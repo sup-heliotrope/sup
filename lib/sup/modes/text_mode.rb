@@ -1,5 +1,4 @@
 module Redwood
-
   class TextMode < ScrollMode
     attr_reader :text
     register_keymap do |k|
@@ -77,5 +76,4 @@ module Redwood
       @lines = [0] + pos.map { |x| x + 1 }
     end
   end
-
 end

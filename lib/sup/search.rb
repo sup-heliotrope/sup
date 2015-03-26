@@ -1,7 +1,6 @@
 # encoding: utf-8
 
 module Redwood
-
   class SearchManager
     include Redwood::Singleton
 
@@ -108,5 +107,4 @@ module Redwood
       @modified = false
     end
   end
-
 end

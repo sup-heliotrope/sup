@@ -1,5 +1,4 @@
 module Redwood
-
   class LabelSearchResultsMode < ThreadIndexMode
     def initialize(labels)
       @labels = labels
@@ -34,5 +33,4 @@ module Redwood
       end
     end
   end
-
 end

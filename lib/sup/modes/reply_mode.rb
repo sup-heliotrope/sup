@@ -1,5 +1,4 @@
 module Redwood
-
   class ReplyMode < EditMessageMode
     REPLY_TYPES = [:sender, :recipient, :list, :all, :user]
     TYPE_DESCRIPTIONS = {
@@ -224,5 +223,4 @@ EOS
       Index.save_message @m
     end
   end
-
 end

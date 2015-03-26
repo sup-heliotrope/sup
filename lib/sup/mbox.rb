@@ -2,7 +2,6 @@ require 'uri'
 require 'set'
 
 module Redwood
-
   class MBox < Source
     BREAK_RE = /^From \S+ (.+)$/
 

@@ -24,6 +24,7 @@ module Redwood
     end
 
     private
+
     def run_on_each_message(query, &operation)
       count = 0
 

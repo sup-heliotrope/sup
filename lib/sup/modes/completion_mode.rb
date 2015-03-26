@@ -1,5 +1,4 @@
 module Redwood
-
   class CompletionMode < ScrollMode
     INTERSTITIAL = '  '
 
@@ -51,5 +50,4 @@ module Redwood
       end
     end
   end
-
 end

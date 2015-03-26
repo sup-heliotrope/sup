@@ -7,9 +7,7 @@ require 'stringio'
 require 'dummy_source'
 
 module Redwood
-
   class TestMessage < Minitest::Test
-
     # rubocop:disable Style/Tab
     def setup
       @path = Dir.mktmpdir
@@ -22,7 +20,6 @@ module Redwood
     end
 
     def test_simple_message
-
       message = <<EOS
 Return-path: <fake_sender@example.invalid>
 Envelope-to: fake_receiver@localhost
@@ -137,11 +134,9 @@ EOS
       assert_equal(1, lines.length)
 
       assert_equal('Test message!', lines[0])
-
     end
 
     def test_multipart_message
-
       message = <<EOS
 From fake_receiver@localhost Sun Dec 09 22:33:37 +0200 2007
 Subject: Re: Test message subject
@@ -227,11 +222,9 @@ EOS
 
       # further testing of chunks will happen in test_message_chunks.rb
       # (possibly not yet implemented)
-
     end
 
     def test_broken_message_1
-
       # an example of a broken message, missing "to" and "from" fields
 
       message = <<EOS
@@ -273,11 +266,9 @@ EOS
       # very basic email address check
       assert_match(/\w+@\w+\.\w{2,4}/, from.email)
       refute_nil(from.name)
-
     end
 
     def test_broken_message_2
-
       # an example of a broken message, no body at all
 
       message = <<EOS
@@ -315,11 +306,9 @@ EOS
       # the chunks list should be empty
 
       assert_equal(0, chunks.length)
-
     end
 
     def test_multipart_message_2
-
       message = <<EOS
 Return-path: <vim-mac-return-3938-fake_receiver=localhost@vim.org>
 Envelope-to: fake_receiver@localhost
@@ -409,7 +398,6 @@ EOS
     end
 
     def test_blank_header_lines
-
       message = <<EOS
 Return-Path: <monitor-list-bounces@widget.com>
 X-Original-To: nobody@localhost
@@ -500,11 +488,9 @@ EOS
       assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>,\n \t" \
                    '<mailto:monitor-list-request@widget.com?subject=unsubscribe>',
                    list_unsubscribe)
-
     end
 
     def test_malicious_attachment_names
-
       message = <<EOS
 From: Matthieu Rakotojaona <matthieu.rakotojaona@gmail.com>
 To: reply+0007a7cb7174d1d188fcd420fce83e0f68fe03fc7416cdae92cf0000000110ce4efd92a169ce033d18e1 <reply+0007a7cb7174d1d188fcd420fce83e0f68fe03fc7416cdae92cf0000000110ce4efd92a169ce033d18e1@reply.github.com>
@@ -576,7 +562,6 @@ EOS
       # path.
       fn = chunks[3].safe_filename
       assert_equal(fn, File.basename(fn))
-
     end
     # TODO: test different error cases, malformed messages etc.
 
@@ -585,7 +570,6 @@ EOS
 
     # rubocop:enable Style/Tab
   end
-
 end
 
 # vim:noai:ts=2:sw=2:

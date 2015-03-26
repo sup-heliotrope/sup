@@ -221,7 +221,6 @@ EOS
     end
 
     class Text
-
       attr_reader :lines
       def initialize(lines)
         @lines = lines

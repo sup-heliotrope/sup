@@ -1,7 +1,6 @@
 require 'sup/util'
 
 module Redwood
-
   class HookManager
     class HookContext
       def initialize(name)
@@ -153,5 +152,4 @@ EOS
       info('hook: ' + m)
     end
   end
-
 end

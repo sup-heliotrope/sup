@@ -1,7 +1,6 @@
 require 'sup/util/ncurses'
 
 module Redwood
-
   ## a fully-functional text field supporting completions, expansions,
   ## history--everything!
   ##

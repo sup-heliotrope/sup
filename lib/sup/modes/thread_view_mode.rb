@@ -1,5 +1,4 @@
 module Redwood
-
   class ThreadViewMode < LineCursorMode
     ## this holds all info we need to lay out a message
     class MessageLayout
@@ -1030,5 +1029,4 @@ EOS
       end
     end
   end
-
 end

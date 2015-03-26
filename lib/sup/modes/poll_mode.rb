@@ -1,5 +1,4 @@
 module Redwood
-
   class PollMode < LogMode
     def initialize
       @new = true
@@ -15,5 +14,4 @@ module Redwood
       PollManager.do_poll { |s| self << (s + "\n") }
     end
   end
-
 end

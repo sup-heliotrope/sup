@@ -2,7 +2,6 @@ require 'test_helper'
 require 'sup'
 
 module Redwood
-
   class TestPerson < Minitest::Test
     def setup
       @person = Person.new('Thomassen, Bob', 'bob@thomassen.com')
@@ -33,5 +32,4 @@ module Redwood
       assert_equal 'alice@alice.com', @no_name.full_address
     end
   end
-
 end

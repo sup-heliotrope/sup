@@ -1,7 +1,6 @@
 # encoding: utf-8
 
 module Redwood
-
   class ContactManager
     include Redwood::Singleton
 
@@ -65,5 +64,4 @@ module Redwood
       end
     end
   end
-
 end

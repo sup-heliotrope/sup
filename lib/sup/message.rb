@@ -3,7 +3,6 @@
 require 'time'
 
 module Redwood
-
   ## a Message is what's threaded.
   ##
   ## it is also where the parsing for quotes and signatures is done, but
@@ -815,5 +814,4 @@ EOS
       [source.id, info].hash
     end
   end
-
 end

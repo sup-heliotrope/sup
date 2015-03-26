@@ -24,7 +24,6 @@ module Ncurses
 end
 
 module Redwood
-
   class Colormap
     @@instance = nil
 
@@ -238,5 +237,4 @@ module Redwood
     # Performance shortcut
     def self.color_for(*a); @@instance.color_for *a; end
   end
-
 end

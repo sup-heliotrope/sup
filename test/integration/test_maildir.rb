@@ -1,7 +1,6 @@
 require 'test_helper'
 
 class TestMaildir < Minitest::Test
-
   def setup
     @path = Dir.mktmpdir
 
@@ -12,7 +11,6 @@ To: a dear friend
 Hello there friend. How are you? Blah is blah blah.
 Wow. Maildir FTW, am I right?
 EOS
-
   end
 
   def teardown
@@ -46,7 +44,6 @@ EOS
   # and now, let the tests begin!
 
   def test_can_index_a_maildir_directory
-
     maildir = create_a_maildir
     create_a_maildir_email(File.join(maildir, 'cur'), @test_message_1)
     start_sup_and_add_source Maildir.new "maildir:#{maildir}"
@@ -55,11 +52,9 @@ EOS
     Index.instance.each_message { |a| messages_in_index << a }
     refute_empty messages_in_index, 'There are no messages in the index'
     assert_equal(messages_in_index.first.raw_message, @test_message_1)
-
   end
 
   def test_can_index_a_maildir_directory_with_special_characters
-
     maildir = create_a_maildir URI_ENCODE_CHARS
     create_a_maildir_email(File.join(maildir, 'cur'), @test_message_1)
     start_sup_and_add_source Maildir.new "maildir:#{maildir}"
@@ -68,7 +63,5 @@ EOS
     Index.instance.each_message { |a| messages_in_index << a }
     refute_empty messages_in_index, 'There are no messages in the index'
     assert_equal(messages_in_index.first.raw_message, @test_message_1)
-
   end
-
 end

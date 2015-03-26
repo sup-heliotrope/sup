@@ -1,5 +1,4 @@
 module Redwood
-
   class LabelListMode < LineCursorMode
     register_keymap do |k|
       k.add :select_label, 'Search by label', :enter
@@ -134,5 +133,4 @@ EOS
       LabelSearchResultsMode.spawn_nicely label
     end
   end
-
 end

@@ -1,5 +1,4 @@
 module Redwood
-
   class Account < Person
     attr_accessor :sendmail, :signature, :gpgkey
 
@@ -88,5 +87,4 @@ module Redwood
       Person.full_address a.name, email
     end
   end
-
 end

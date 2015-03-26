@@ -1,7 +1,6 @@
 # encoding: utf-8
 
 module Redwood
-
   class ComposeMode < EditMessageMode
     def initialize(opts = {})
       header = {}
@@ -34,5 +33,4 @@ module Redwood
       mode.default_edit_message
     end
   end
-
 end

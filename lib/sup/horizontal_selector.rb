@@ -1,5 +1,4 @@
 module Redwood
-
   class HorizontalSelector
     class UnknownValue < StandardError; end
 
@@ -55,5 +54,4 @@ module Redwood
       @changed_by_user = true
     end
   end
-
 end

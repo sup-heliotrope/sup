@@ -7,7 +7,6 @@ require 'stringio'
 include Redwood
 
 class TestMBoxParsing < Minitest::Test
-
   def setup
     @path = Dir.mktmpdir
     @mbox = File.join(@path, 'test_mbox')

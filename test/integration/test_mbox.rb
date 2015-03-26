@@ -1,7 +1,6 @@
 require 'test_helper'
 
 class TestMbox < MiniTest::Test
-
   def setup
     @path = Dir.mktmpdir
 
@@ -13,7 +12,6 @@ To: Joe <joe@joe.com>
 Hello there friend. How are you? Blah is blah blah.
 I like mboxes, don't you?
 EOS
-
   end
 
   def teardown
@@ -41,7 +39,6 @@ EOS
   # and now, let the tests begin!
 
   def test_can_index_a_mbox_directory
-
     mbox = create_a_mbox
     start_sup_and_add_source MBox.new "mbox:#{mbox}"
 
@@ -50,11 +47,9 @@ EOS
     refute_empty messages_in_index, 'There are no messages in the index'
     test_message_without_first_line = @test_message_1.sub(/^.*\n/, '')
     assert_equal(messages_in_index.first.raw_message, test_message_without_first_line)
-
   end
 
   def test_can_index_a_mbox_directory_with_special_characters
-
     mbox = create_a_mbox URI_ENCODE_CHARS
     start_sup_and_add_source MBox.new "mbox:#{mbox}"
 
@@ -63,7 +58,5 @@ EOS
     refute_empty messages_in_index, 'There are no messages in the index'
     test_message_without_first_line = @test_message_1.sub(/^.*\n/, '')
     assert_equal(messages_in_index.first.raw_message, test_message_without_first_line)
-
   end
-
 end

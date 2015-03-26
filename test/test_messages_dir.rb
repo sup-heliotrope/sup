@@ -7,9 +7,7 @@ require 'stringio'
 require 'dummy_source'
 
 module Redwood
-
   class TestMessagesDir < ::Minitest::Test
-
     def setup
       @path = Dir.mktmpdir
       Redwood::HookManager.init File.join(@path, 'hooks')
@@ -120,10 +118,8 @@ module Redwood
 
       badline = lines[0]
       assert (badline.display_length > 0), "The length of this line should greater than 0: #{badline}"
-
     end
   end
-
 end
 
 # vim:noai:ts=2:sw=2:

@@ -29,7 +29,6 @@
 require 'set'
 
 module Redwood
-
   class Thread
     include Enumerable
 
@@ -452,5 +451,4 @@ module Redwood
       @num_messages += 1
     end
   end
-
 end

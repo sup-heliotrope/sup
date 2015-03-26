@@ -1,9 +1,7 @@
 require 'sup/util/ncurses'
 
 module Redwood
-
   class Keymap
-
     HookManager.register 'keybindings', <<EOS
 Add custom keybindings.
 Methods:
@@ -136,5 +134,4 @@ EOS
       HookManager.run 'keybindings', locals
     end
   end
-
 end

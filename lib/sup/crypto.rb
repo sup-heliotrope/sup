@@ -4,7 +4,6 @@ rescue LoadError
 end
 
 module Redwood
-
   class CryptoManager
     include Redwood::Singleton
 

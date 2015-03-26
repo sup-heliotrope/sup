@@ -1,7 +1,6 @@
 require 'sup/util/ncurses'
 
 module Redwood
-
   class Tagger
     def initialize(mode, noun = 'thread', plural_noun = nil)
       @mode = mode
@@ -44,7 +43,5 @@ module Redwood
         BufferManager.flash "Unknown command #{c.to_character}."
       end
     end
-
   end
-
 end

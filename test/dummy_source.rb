@@ -6,9 +6,7 @@ require 'rmail'
 require 'uri'
 
 module Redwood
-
   class DummySource < Source
-
     attr_accessor :messages
 
     def initialize(uri, _last_date = nil, usual = true, archived = false, id = nil, _labels = [])
@@ -54,7 +52,6 @@ module Redwood
       end
     end
   end
-
 end
 
 # vim:noai:ts=2:sw=2:

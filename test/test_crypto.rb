@@ -24,9 +24,7 @@ require 'stringio'
 require 'tmpdir'
 
 module Redwood
-
   class TestCryptoManager < Minitest::Test
-
     def setup
       @from_email = 'sup-test-1@foo.bar'
       @from_email_ecc = 'sup-fake-ecc@fake.fake'
@@ -115,5 +113,4 @@ module Redwood
       end
     end
   end
-
 end

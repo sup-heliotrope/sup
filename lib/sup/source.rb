@@ -2,7 +2,6 @@ require 'sup/rfc2047'
 require 'monitor'
 
 module Redwood
-
   class SourceError < StandardError
     def initialize(*a)
       raise "don't instantiate me!" if SourceError.is_a?(self.class)
@@ -240,5 +239,4 @@ module Redwood
       end
     end
   end
-
 end

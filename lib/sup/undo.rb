@@ -1,5 +1,4 @@
 module Redwood
-
   ## Implements a single undo list for the Sup instance
   ##
   ## The basic idea is to keep a list of lambdas to undo

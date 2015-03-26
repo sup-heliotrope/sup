@@ -1,7 +1,6 @@
 # encoding: utf-8
 
 module Redwood
-
   class LabelManager
     include Redwood::Singleton
 
@@ -83,5 +82,4 @@ module Redwood
       @new_labels = {}
     end
   end
-
 end

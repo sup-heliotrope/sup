@@ -2,7 +2,6 @@ require 'test_helper'
 require 'sup/contact'
 
 module Redwood
-
   class TestContact < Minitest::Test
     def setup
       @contact = ContactManager.init(File.expand_path('../fixtures/contacts.txt', __FILE__))
@@ -29,5 +28,4 @@ module Redwood
       assert_equal 'TN', @contact.alias_for(@person)
     end
   end
-
 end

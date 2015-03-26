@@ -1,5 +1,4 @@
 module Redwood
-
   module CanAliasContacts
     def alias_contact(p)
       aalias = BufferManager.ask(:alias, "Alias for #{p.longname}: ", ContactManager.alias_for(p))
@@ -144,5 +143,4 @@ module Redwood
       @text = @contacts.map { |p| text_for_contact p }
     end
   end
-
 end

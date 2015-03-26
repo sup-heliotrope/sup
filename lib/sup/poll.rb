@@ -1,7 +1,6 @@
 require 'thread'
 
 module Redwood
-
   class PollManager
     include Redwood::Singleton
 
@@ -84,7 +83,6 @@ EOS
           BufferManager.flash 'No new messages.'
         end
       end
-
     end
 
     def poll
@@ -267,5 +265,4 @@ EOS
     def handle_unidle_update(_sender, _idle_since); @should_clear_running_totals = true; clear_running_totals; end
     def clear_running_totals; @running_totals = { num: 0, numi: 0, numu: 0, numd: 0, loaded_labels: Set.new }; end
   end
-
 end

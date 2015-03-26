@@ -1,7 +1,6 @@
 require 'pathname'
 
 module Redwood
-
   ## meant to be spawned via spawn_modal!
   class FileBrowserMode < LineCursorMode
     RESERVED_ROWS = 1
@@ -105,5 +104,4 @@ module Redwood
       end
     end
   end
-
 end

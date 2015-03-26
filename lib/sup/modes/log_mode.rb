@@ -1,6 +1,5 @@
 require 'stringio'
 module Redwood
-
   ## a variant of text mode that allows the user to automatically follow text,
   ## and respawns when << is called if necessary.
 
@@ -53,5 +52,4 @@ module Redwood
       super
     end
   end
-
 end

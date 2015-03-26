@@ -1,5 +1,4 @@
 module Redwood
-
   class Person
     attr_accessor :name, :email
 
@@ -77,7 +76,6 @@ module Redwood
     end
 
     class << self
-
       def full_address(name, email)
         if name && email
           if name =~ /[",@]/
@@ -132,9 +130,6 @@ module Redwood
         return [] if ss.nil?
         ss.dup.split_on_commas.map { |s| self.from_address s }
       end
-
     end
-
   end
-
 end

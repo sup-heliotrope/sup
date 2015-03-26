@@ -3,7 +3,6 @@ require 'sup/util'
 
 if defined? Ncurses
   module Ncurses
-
     ## Helper class for storing keycodes
     ## and multibyte characters.
     class CharCode < String
@@ -269,6 +268,5 @@ if defined? Ncurses
         end
       end # module DriverHelpers
     end # module Form
-
   end # module Ncurses
 end # if defined? Ncurses

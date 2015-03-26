@@ -1,6 +1,5 @@
 require 'open3'
 module Redwood
-
   class Mode
     attr_accessor :buffer
     @@keymaps = {}
@@ -142,5 +141,4 @@ EOS
       end
     end
   end
-
 end
