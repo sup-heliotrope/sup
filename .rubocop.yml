@@ -10,3 +10,6 @@ Style/AndOr:
 
 Style/NumericLiterals:
   Enabled: false
+
+Style/BracesAroundHashParameters:
+  Enabled: false

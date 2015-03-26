@@ -102,11 +102,6 @@ Style/BlockEndNewline:
 Style/Blocks:
   Enabled: false
 
-# Offense count: 11
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/BracesAroundHashParameters:
-  Enabled: false
 
 # Offense count: 5
 Style/CaseEquality:
