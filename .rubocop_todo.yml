@@ -1,8 +1,3 @@
-# Offense count: 13
-# Configuration parameters: AllowSafeAssignment.
-Lint/AssignmentInCondition:
-  Enabled: false
-
 # Offense count: 19
 # Configuration parameters: AlignWith, SupportedStyles.
 Lint/EndAlignment:

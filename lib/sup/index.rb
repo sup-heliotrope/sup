@@ -176,7 +176,7 @@ EOS
     ## killed message that hasn't been initially added
     ## to the indexi s this way
     def message_joining_killed?(m)
-      return false unless doc = find_doc(m.id)
+      return false unless (doc = find_doc(m.id))
       queue = doc.value(THREAD_VALUENO).split(',')
       seen_threads = Set.new
       seen_messages = Set.new [m.id]
@@ -206,7 +206,7 @@ EOS
     ## is found.
     def each_message_in_thread_for(m, opts = {})
       # TODO thread by subject
-      return unless doc = find_doc(m.id)
+      return unless (doc = find_doc(m.id))
       queue = doc.value(THREAD_VALUENO).split(',')
       msgids = [m.id]
       seen_threads = Set.new
@@ -552,14 +552,14 @@ EOS
     end
 
     def stop_sync_worker
-      return unless worker = @sync_worker
+      return unless (worker = @sync_worker)
       @sync_worker = nil
       @sync_queue << :die
       worker.join
     end
 
     def run_sync_worker
-      while m = @sync_queue.deq
+      while (m = @sync_queue.deq)
         return if m == :die
         update_message_state m
         # Necessary to keep Xapian calls from lagging the UI too much.
@@ -612,17 +612,17 @@ EOS
     end
 
     def find_doc(id)
-      return unless docid = find_docid(id)
+      return unless (docid = find_docid(id))
       @xapian.document docid
     end
 
     def get_id(docid)
-      return unless doc = @xapian.document(docid)
+      return unless (doc = @xapian.document(docid))
       doc.value MSGID_VALUENO
     end
 
     def get_entry(id)
-      return unless doc = find_doc(id)
+      return unless (doc = find_doc(id))
       doc.entry
     end
 
@@ -714,7 +714,7 @@ EOS
       doc.entry = entry
 
       synchronize do
-        unless docid = existed ? doc.docid : assign_docid(m, truncate_date(m.date))
+        unless (docid = existed ? doc.docid : assign_docid(m, truncate_date(m.date)))
           # Could be triggered by spam
           warn "docid underflow, dropping #{m.id.inspect}"
           return

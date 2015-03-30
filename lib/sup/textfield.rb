@@ -151,7 +151,7 @@ module Redwood
           nop
           Ncurses::Form::REQ_BEG_FIELD
         when ?\C-w
-          while action = remove_extra_space
+          while (action = remove_extra_space)
             form_driver_key action
           end
           form_driver_key Ncurses::Form::REQ_PREV_CHAR

@@ -505,7 +505,7 @@ EOS
       return continue_search_in_buffer if in_search? # hack: allow 'n' to apply to both operations
       m = (curpos...@message_lines.length).argfind { |i| @message_lines[i] }
       return unless m
-      while nextm = @layout[m].next
+      while (nextm = @layout[m].next)
         break if @layout[nextm].state != :closed
         m = nextm
       end

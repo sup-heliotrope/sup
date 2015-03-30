@@ -6,6 +6,8 @@ AllCops:
   DisplayCopNames: true
 
 # Config of cops
+Lint/AssignmentInCondition:
+  AllowSafeAssignment: true
 
 Style/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
