@@ -31,14 +31,14 @@ module Redwood
       end
     end
 
-    def predefined_queries; @predefined_queries; end
+    attr_reader :predefined_queries
     def all_searches; @searches.keys.sort; end
 
-    def search_string_for(name);
+    def search_string_for(name)
       if @predefined_searches.keys.member? name
         return name.to_sym
       end
-      @searches[name];
+      @searches[name]
     end
 
     def valid_name?(name); name =~ /^[\w-]+$/; end

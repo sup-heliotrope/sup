@@ -121,7 +121,7 @@ EOS
     end
 
     def have_crypto?; @not_working_reason.nil? end
-    def not_working_reason; @not_working_reason end
+    attr_reader :not_working_reason
 
     def sign(from, _to, payload)
       return unknown_status(@not_working_reason) unless @not_working_reason.nil?

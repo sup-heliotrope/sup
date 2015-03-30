@@ -629,7 +629,7 @@ end
 module Redwood
   module Singleton
     module ClassMethods
-      def instance; @instance; end
+      attr_reader :instance
       def instantiated?; defined?(@instance) && !@instance.nil?; end
       def deinstantiate!; @instance = nil; end
 
