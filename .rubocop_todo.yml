@@ -195,8 +195,3 @@ Style/PredicateName:
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/RaiseArgs:
   Enabled: false
-
-# Offense count: 9
-# Configuration parameters: MaxSlashes.
-Style/RegexpLiteral:
-  Enabled: false
