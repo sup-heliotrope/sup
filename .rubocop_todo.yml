@@ -20,10 +20,6 @@ Lint/HandleExceptions:
 Lint/LiteralInCondition:
   Enabled: false
 
-# Offense count: 1
-Lint/Loop:
-  Enabled: false
-
 # Offense count: 8
 Lint/ParenthesesAsGroupedExpression:
   Enabled: false
