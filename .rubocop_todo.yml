@@ -204,8 +204,3 @@ Style/RegexpLiteral:
 # Offense count: 5
 Style/RescueModifier:
   Enabled: false
-
-# Offense count: 2
-# Configuration parameters: Methods.
-Style/SingleLineBlockParams:
-  Enabled: false

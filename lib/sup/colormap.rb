@@ -175,7 +175,7 @@ module Redwood
       end
 
       ## by now we have a color pair
-      color = attrs.inject(cp) { |color, attr| color | attr }
+      color = attrs.inject(cp) { |a, e| a | e }
       @entries[sym][3] = color # fill the cache
       (@users[cp] ||= []) << sym # record entry as a user of that color pair
       color

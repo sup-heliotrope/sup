@@ -595,7 +595,7 @@ EOS
     def expand_all_quotes
       if (m = @message_lines[curpos])
         quotes = m.chunks.select { |c| (c.is_a?(Chunk::Quote) || c.is_a?(Chunk::Signature)) && c.lines.length > 1 }
-        numopen = quotes.inject(0) { |s, c| s + (@chunk_layout[c].state == :open ? 1 : 0) }
+        numopen = quotes.inject(0) { |a, e| a + (@chunk_layout[e].state == :open ? 1 : 0) }
         newstate = numopen > quotes.length / 2 ? :closed : :open
         quotes.each { |c| @chunk_layout[c].state = newstate }
         update
