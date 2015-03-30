@@ -77,12 +77,12 @@ def add_source
       Redwood::Util::Uri.build components
     rescue URI::Error => e
       say "Whoopsie! I couldn't build a URI from that: #{e.message}"
-      if axe_yes('Try again?') then next else return end
+      axe_yes('Try again?') ? next : return
     end
 
     say "I'm going to add this source: #{uri}"
     unless axe('Does that look right?', 'y') =~ /^y|yes$/i
-      if axe_yes('Try again?') then next else return end
+      axe_yes('Try again?') ? next : return
     end
 
     usual = axe_yes 'Does this source ever receive new messages?', 'y'
@@ -113,7 +113,7 @@ def add_source
       break
     else
       say 'Rats, that failed. You may have to do it manually.'
-      if axe_yes('Try again?') then next else return end
+      axe_yes('Try again?') ? next : return
     end
   end
 end
@@ -223,7 +223,7 @@ if axe_yes 'Run sup-sync to import all messages now?'
       break
     else
       say 'Rats, that failed. You may have to do it manually.'
-      if axe_yes('Try again?') then next else break end
+      axe_yes('Try again?') ? next : break
     end
   end
 end

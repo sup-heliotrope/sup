@@ -231,12 +231,15 @@ module Redwood
       new_flags = Set.new(maildir_data(id)[2].each_char)
 
       # Set flags based on labels for the six flags we recognize
-      if labels.member? :draft then new_flags.add?('D') else new_flags.delete?('D') end
-      if labels.member? :starred then new_flags.add?('F') else new_flags.delete?('F') end
-      if labels.member? :forwarded then new_flags.add?('P') else new_flags.delete?('P') end
-      if labels.member? :replied then new_flags.add?('R') else new_flags.delete?('R') end
-      if !labels.member? :unread then new_flags.add?('S') else new_flags.delete?('S') end
-      if labels.member? :deleted or labels.member? :killed then new_flags.add?('T') else new_flags.delete?('T') end
+      # rubocop:disable Style/OneLineConditional
+      if labels.member? :draft      then new_flags.add?('D') else new_flags.delete?('D') end
+      if labels.member? :starred    then new_flags.add?('F') else new_flags.delete?('F') end
+      if labels.member? :forwarded  then new_flags.add?('P') else new_flags.delete?('P') end
+      if labels.member? :replied    then new_flags.add?('R') else new_flags.delete?('R') end
+      if !labels.member? :unread    then new_flags.add?('S') else new_flags.delete?('S') end
+      # rubocop:enable Style/OneLineConditional
+
+      labels.member? :deleted or labels.member? :killed ? new_flags.add?('T') : new_flags.delete?('T')
 
       ## Flags must be stored in ASCII order according to Maildir
       ## documentation

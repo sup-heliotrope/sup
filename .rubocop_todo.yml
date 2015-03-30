@@ -173,10 +173,6 @@ Style/NestedTernaryOperator:
 Style/Next:
   Enabled: false
 
-# Offense count: 11
-Style/OneLineConditional:
-  Enabled: false
-
 # Offense count: 25
 # Configuration parameters: NamePrefix, NamePrefixBlacklist.
 Style/PredicateName:

@@ -20,7 +20,7 @@ module Redwood
       @lines[i]
     end
 
-    def roll; if at_bottom? then jump_to_start else page_down end end
+    def roll; at_bottom? ? jump_to_start : page_down end
 
     private
 
