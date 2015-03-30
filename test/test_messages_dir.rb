@@ -49,7 +49,7 @@ module Redwood
       lines = chunks[0].lines
 
       # lines should contain an error message
-      assert (lines.join.include? 'An error occurred while loading this message.'), 'This message should not load successfully'
+      assert lines.join.include?('An error occurred while loading this message.'), 'This message should not load successfully'
     end
 
     def test_bad_content_transfer_encoding
@@ -83,7 +83,7 @@ module Redwood
       lines = chunks[0].lines
 
       # lines should contain an error message
-      assert (lines.join.include? 'An error occurred while loading this message.'), 'This message should not load successfully'
+      assert lines.join.include?('An error occurred while loading this message.'), 'This message should not load successfully'
     end
 
     def test_missing_line
@@ -117,9 +117,7 @@ module Redwood
       lines = chunks[0].lines
 
       badline = lines[0]
-      assert (badline.display_length > 0), "The length of this line should greater than 0: #{badline}"
+      assert badline.display_length > 0, "The length of this line should greater than 0: #{badline}"
     end
   end
 end
-
-# vim:noai:ts=2:sw=2:

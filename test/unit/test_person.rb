@@ -9,7 +9,7 @@ module Redwood
     end
 
     def test_email_must_be_supplied
-      assert_raises (ArgumentError) { Person.new('Alice', nil) }
+      assert_raises(ArgumentError) { Person.new('Alice', nil) }
     end
 
     def test_to_string

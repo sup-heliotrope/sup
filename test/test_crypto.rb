@@ -61,7 +61,7 @@ module Redwood
         assert_instance_of RMail::Message, signed
         assert_equal 'ABCDEFG', signed.body[0]
         assert signed.body[1].body.length > 0, 'signature length must be > 0'
-        assert (signed.body[1].body.include? '-----BEGIN PGP SIGNATURE-----'), 'Expecting PGP armored data'
+        assert(signed.body[1].body.include?('-----BEGIN PGP SIGNATURE-----'), 'Expecting PGP armored data')
       end
     end
 
@@ -69,7 +69,7 @@ module Redwood
       if CryptoManager.have_crypto?
         encrypted = CryptoManager.encrypt @from_email, [@to_email], 'ABCDEFG'
         assert_instance_of RMail::Message, encrypted
-        assert (encrypted.body[1].body.include? '-----BEGIN PGP MESSAGE-----'), 'Expecting PGP armored data'
+        assert(encrypted.body[1].body.include?('-----BEGIN PGP MESSAGE-----'), 'Expecting PGP armored data')
       end
     end
 
@@ -77,7 +77,7 @@ module Redwood
       if CryptoManager.have_crypto?
         encrypted = CryptoManager.sign_and_encrypt @from_email, [@to_email], 'ABCDEFG'
         assert_instance_of RMail::Message, encrypted
-        assert (encrypted.body[1].body.include? '-----BEGIN PGP MESSAGE-----'), 'Expecting PGP armored data'
+        assert(encrypted.body[1].body.include?('-----BEGIN PGP MESSAGE-----'), 'Expecting PGP armored data')
       end
     end
 

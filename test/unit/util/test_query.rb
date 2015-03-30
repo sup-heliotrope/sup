@@ -26,7 +26,7 @@ describe Redwood::Util::Query do
 
       # this is now possibly UTF-8 string with possibly invalid chars
       assert_raises Redwood::Util::Query::QueryDescriptionError do
-        desc = Redwood::Util::Query.describe (query)
+        desc = Redwood::Util::Query.describe(query)
       end
 
       assert_raises Encoding::CompatibilityError do
