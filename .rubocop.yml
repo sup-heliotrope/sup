@@ -34,3 +34,6 @@ Style/SingleLineMethods:
 # changed behavior.
 Style/SpecialGlobalVars:
   Enabled: false
+
+Style/RescueModifier:
+  Enabled: false

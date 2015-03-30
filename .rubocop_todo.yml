@@ -200,7 +200,3 @@ Style/RaiseArgs:
 # Configuration parameters: MaxSlashes.
 Style/RegexpLiteral:
   Enabled: false
-
-# Offense count: 5
-Style/RescueModifier:
-  Enabled: false
