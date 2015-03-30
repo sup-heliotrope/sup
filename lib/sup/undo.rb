@@ -21,12 +21,12 @@ module Redwood
     end
 
     def undo
-      unless @@actionlist.empty?
+      if @@actionlist.empty?
+        BufferManager.flash 'nothing more to undo!'
+      else
         actionset = @@actionlist.pop
         actionset[:actions].each(&:call)
         BufferManager.flash "undid #{actionset[:desc]}"
-      else
-        BufferManager.flash 'nothing more to undo!'
       end
     end
 

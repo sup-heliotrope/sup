@@ -5,6 +5,13 @@ AllCops:
     - 'tmp/**/*'
   DisplayCopNames: true
 
+# Config of cops
+
+Style/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: true
+
+# Disabled cops
+
 Style/AndOr:
   Enabled: false
 
@@ -13,9 +20,6 @@ Style/NumericLiterals:
 
 Style/BracesAroundHashParameters:
   Enabled: false
-
-Style/EmptyLineBetweenDefs:
-  AllowAdjacentOneLineDefs: true
 
 Style/SingleLineMethods:
   Enabled: false
