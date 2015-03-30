@@ -6,10 +6,6 @@ Lint/Eval:
 Lint/HandleExceptions:
   Enabled: false
 
-# Offense count: 9
-Lint/LiteralInCondition:
-  Enabled: false
-
 # Offense count: 8
 Lint/ParenthesesAsGroupedExpression:
   Enabled: false

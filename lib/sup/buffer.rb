@@ -278,11 +278,11 @@ EOS
       end
 
       ## quick hack
-      if true
-        buf = @buffers.last
-        buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
-        @dirty ? buf.draw(status) : buf.redraw(status)
-      end
+      # if true
+      buf = @buffers.last
+      buf.resize Ncurses.rows - minibuf_lines, Ncurses.cols
+      @dirty ? buf.draw(status) : buf.redraw(status)
+      # end
 
       draw_minibuf sync: false unless opts[:skip_minibuf]
 
