@@ -77,9 +77,7 @@ module Redwood
 
     def each_raw_message_line(id)
       with_file_for(id) do |f|
-        until f.eof?
-          yield f.gets
-        end
+        yield f.gets until f.eof?
       end
     end
 

@@ -587,9 +587,8 @@ EOS
     def assign_docid(_m, truncated_date)
       t = (truncated_date.to_i - MIDDLE_DATE.to_i).to_f
       docid = (DOCID_SCALE - DOCID_SCALE / (Math::E**(-(t / TIME_SCALE)) + 1)).to_i
-      while docid > 0 and docid_exists? docid
-        docid -= 1
-      end
+
+      docid -= 1 while docid > 0 and docid_exists? docid
       docid > 0 ? docid : nil
     end
 

@@ -61,9 +61,8 @@ module Redwood
 
     def gen_offset
       i = 0
-      while File.exist? fn_for_offset(i)
-        i += 1
-      end
+      i += 1 while File.exist? fn_for_offset(i)
+
       i
     end
 

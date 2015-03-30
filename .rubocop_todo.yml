@@ -221,8 +221,3 @@ Style/SingleLineBlockParams:
 # Configuration parameters: ExactNameMatch, AllowPredicates, AllowDSLWriters, Whitelist.
 Style/TrivialAccessors:
   Enabled: false
-
-# Offense count: 4
-# Configuration parameters: MaxLineLength.
-Style/WhileUntilModifier:
-  Enabled: false
