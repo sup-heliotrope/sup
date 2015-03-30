@@ -101,7 +101,7 @@ module Redwood
     end
 
     def synchronize(&block)
-      @poll_lock.synchronize &block
+      @poll_lock.synchronize(&block)
     end
 
     def try_lock

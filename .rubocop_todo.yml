@@ -1,7 +1,3 @@
-# Offense count: 5
-Lint/AmbiguousOperator:
-  Enabled: false
-
 # Offense count: 13
 # Configuration parameters: AllowSafeAssignment.
 Lint/AssignmentInCondition:
