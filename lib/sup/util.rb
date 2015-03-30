@@ -534,8 +534,8 @@ class Fixnum
 end
 
 class Hash
-  def -(o)
-    Hash[*map { |k, v| [k, v] unless o.include? k }.compact.flatten_one_level]
+  def -(other)
+    Hash[*map { |k, v| [k, v] unless other.include? k }.compact.flatten_one_level]
   end
 
   def select_by_value(v = true)

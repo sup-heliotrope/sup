@@ -806,8 +806,8 @@ EOS
       source.labels? info
     end
 
-    def ==(o)
-      o.source.id == source.id and o.info == info
+    def ==(other)
+      other.source.id == source.id and other.info == info
     end
 
     def hash

@@ -71,7 +71,7 @@ module Redwood
     def file_path; nil end
 
     def to_s; @uri.to_s; end
-    def ==(o); o.uri == uri; end
+    def ==(other); other.uri == uri; end
     def is_source_for?(uri); uri == @uri; end
 
     def read?; false; end

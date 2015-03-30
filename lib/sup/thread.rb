@@ -189,7 +189,7 @@ module Redwood
       end
     end
 
-    def ==(o); Container === o && id == o.id; end
+    def ==(other); Container === other && id == other.id; end
 
     def empty?; @message.nil?; end
     def root?; @parent.nil?; end

@@ -177,10 +177,6 @@ Style/Next:
 Style/OneLineConditional:
   Enabled: false
 
-# Offense count: 5
-Style/OpMethod:
-  Enabled: false
-
 # Offense count: 25
 # Configuration parameters: NamePrefix, NamePrefixBlacklist.
 Style/PredicateName:

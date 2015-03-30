@@ -67,7 +67,7 @@ module Redwood
       end.downcase
     end
 
-    def eql?(o); email.eql? o.email end
+    def eql?(other); email.eql? other.email end
     def hash; email.hash end
 
     ## see comments in self.from_address
