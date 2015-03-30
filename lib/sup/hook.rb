@@ -47,21 +47,21 @@ module Redwood
         HookManager.tags[tag] = value
       end
 
-      def __run(__hook, __filename, __locals)
-        __binding = binding
-        __lprocs, __lvars = __locals.partition { |_k, v| v.is_a?(Proc) }
-        eval __lvars.map { |k, _v| "#{k} = __locals[#{k.inspect}];" }.join, __binding
+      def __run(hook, filename, locals)
+        bindings = binding
+        lprocs, lvars = locals.partition { |_k, v| v.is_a?(Proc) }
+        eval lvars.map { |k, _v| "#{k} = locals[#{k.inspect}];" }.join, bindings
         ## we also support closures for delays evaluation. unfortunately
         ## we have to do this via method calls, so you don't get all the
         ## semantics of a regular variable. not ideal.
-        __lprocs.each do |k, v|
+        lprocs.each do |k, v|
           self.class.instance_eval do
             define_method k do
               @__cache[k] ||= v.call
             end
           end
         end
-        ret = eval __hook, __binding, __filename
+        ret = eval hook, bindings, filename
         BufferManager.clear @__say_id if @__say_id
         @__cache = {}
         ret
