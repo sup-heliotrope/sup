@@ -961,7 +961,16 @@ EOS
           abbrev += ' ' * (from_width - cur_width)
         end
 
-        from << [(newness ? :index_new_color : (starred ? :index_starred_color : :index_old_color)), abbrev]
+        color =
+          if newness
+            :index_new_color
+          elsif starred
+            :index_starred_color
+          else
+            :index_old_color
+          end
+
+        from << [color, abbrev]
       end
 
       is_me = AccountManager.method(:is_account?)
@@ -996,7 +1005,7 @@ EOS
         [
           [:size_widget_color, size_widget_text],
           [:with_attachment_color, t.labels.member?(:attachment) ? '@' : ' '],
-          [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')]
+          [:to_me_color, directly_participated ? '>' : (participated ? '+' : ' ')] # rubocop:disable Style/NestedTernaryOperator
         ] +
         (t.labels - @hidden_labels).sort_by(&:to_s).map do |label|
           [Colormap.sym_is_defined("label_#{label}_color".to_sym) || :label_color, "#{label} "]

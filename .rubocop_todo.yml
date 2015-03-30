@@ -164,10 +164,6 @@ Style/IfUnlessModifier:
 Style/MultilineBlockChain:
   Enabled: false
 
-# Offense count: 2
-Style/NestedTernaryOperator:
-  Enabled: false
-
 # Offense count: 5
 # Configuration parameters: EnforcedStyle, MinBodyLength, SupportedStyles.
 Style/Next:
