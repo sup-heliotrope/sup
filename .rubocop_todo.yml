@@ -10,10 +10,6 @@ Lint/HandleExceptions:
 Lint/RescueException:
   Enabled: false
 
-# Offense count: 12
-Lint/ShadowingOuterLocalVariable:
-  Enabled: false
-
 # Offense count: 6
 Lint/UnderscorePrefixedVariableName:
   Enabled: false

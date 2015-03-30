@@ -633,8 +633,8 @@ EOS
       regen_text
 
       UndoManager.register "labeling #{threads.size.pluralize 'thread'}" do
-        threads.zip(old_labels).map do |t, old_labels|
-          t.labels = old_labels
+        threads.zip(old_labels).map do |t, old_label|
+          t.labels = old_label
           UpdateManager.relay self, :labeled, t.first
           Index.save_thread t
         end

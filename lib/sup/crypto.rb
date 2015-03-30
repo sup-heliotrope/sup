@@ -458,7 +458,7 @@ EOS
 
     def key_type(key, fpr)
       return '' if key.nil?
-      subkey = key.subkeys.find { |subkey| subkey.fpr == fpr || subkey.keyid == fpr }
+      subkey = key.subkeys.find { |sub_key| sub_key.fpr == fpr || sub_key.keyid == fpr }
       return '' if subkey.nil?
 
       case subkey.pubkey_algo

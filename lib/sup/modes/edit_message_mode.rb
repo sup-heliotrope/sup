@@ -595,7 +595,7 @@ EOS
           when String
             (k.match(/subject/i) ? mime_encode_subject(v).dup.fix_encoding! : mime_encode_address(v)).dup.fix_encoding!
           when Array
-            (v.map { |v| mime_encode_address v }.join ', ').dup.fix_encoding!
+            (v.map { |value| mime_encode_address value }.join ', ').dup.fix_encoding!
           end
       end
 

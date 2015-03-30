@@ -183,11 +183,11 @@ EOS
         return true if thread_killed?(thread_id)
         seen_threads << thread_id
         docs = term_docids(mkterm(:thread, thread_id)).map { |x| @xapian.document x }
-        docs.each do |doc|
-          msgid = doc.value MSGID_VALUENO
+        docs.each do |d|
+          msgid = d.value MSGID_VALUENO
           next if seen_messages.member? msgid
           seen_messages << msgid
-          queue.concat doc.value(THREAD_VALUENO).split(',')
+          queue.concat d.value(THREAD_VALUENO).split(',')
         end
       end
       false
@@ -214,12 +214,12 @@ EOS
         return false if opts[:skip_killed] && thread_killed?(thread_id)
         seen_threads << thread_id
         docs = term_docids(mkterm(:thread, thread_id)).map { |x| @xapian.document x }
-        docs.each do |doc|
-          msgid = doc.value MSGID_VALUENO
+        docs.each do |d|
+          msgid = d.value MSGID_VALUENO
           next if seen_messages.member? msgid
           msgids << msgid
           seen_messages << msgid
-          queue.concat doc.value(THREAD_VALUENO).split(',')
+          queue.concat d.value(THREAD_VALUENO).split(',')
         end
       end
       msgids.each { |id| yield id, -> { build_message id } }
@@ -403,8 +403,8 @@ EOS
       subs = HookManager.run('custom-search', subs: s) || s
       begin
         subs = SearchManager.expand subs
-      rescue SearchManager::ExpansionError => e
-        raise ParseError, e.message
+      rescue SearchManager::ExpansionError => ex
+        raise ParseError, ex.message
       end
       subs = subs.gsub(/\b(to|from):(\S+)\b/) do
         field, value = Regexp.last_match(1), Regexp.last_match(2)

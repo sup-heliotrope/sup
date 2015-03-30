@@ -225,26 +225,27 @@ EOS
                 UpdateManager.relay self, :added, m
               end
             when :delete
-              Index.each_message({ location: [source.id, args[:info]] }, false) do |m|
-                m.locations.delete Location.new(source, args[:info])
-                Index.sync_message m, false
-                if m.locations.size == 0
-                  yield :delete, m, [source, args[:info]], args[:progress] if block_given?
-                  Index.delete m.id
-                  UpdateManager.relay self, :location_deleted, m
+              Index.each_message({ location: [source.id, args[:info]] }, false) do |message|
+                message.locations.delete Location.new(source, args[:info])
+                Index.sync_message message, false
+                if message.locations.size == 0
+                  yield :delete, message, [source, args[:info]], args[:progress] if block_given?
+                  Index.delete message.id
+                  UpdateManager.relay self, :location_deleted, message
                 end
               end
             when :update
-              Index.each_message({ location: [source.id, args[:old_info]] }, false) do |m|
-                old_m = Index.build_message m.id
-                m.locations.delete Location.new(source, args[:old_info])
-                m.locations.push Location.new(source, args[:new_info])
+              Index.each_message({ location: [source.id, args[:old_info]] }, false) do |message|
+                old_m = Index.build_message message.id
+                message.locations.delete Location.new(source, args[:old_info])
+                message.locations.push Location.new(source, args[:new_info])
+
                 ## Update labels that might have been modified remotely
-                m.labels -= source.supported_labels?
-                m.labels += args[:labels]
-                yield :update, m, old_m if block_given?
-                Index.sync_message m, true
-                UpdateManager.relay self, :updated, m
+                message.labels -= source.supported_labels?
+                message.labels += args[:labels]
+                yield :update, message, old_m if block_given?
+                Index.sync_message message, true
+                UpdateManager.relay self, :updated, message
               end
             end
           end

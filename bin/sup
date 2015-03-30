@@ -400,9 +400,9 @@ module Redwood
 
   unless Redwood.exceptions.empty?
     File.open(File.join(BASE_DIR, 'exception-log.txt'), 'w') do |f|
-      Redwood.exceptions.each do |e, name|
-        f.puts "--- #{e.class.name} from thread: #{name}"
-        f.puts e.message, e.backtrace
+      Redwood.exceptions.each do |ex, name|
+        f.puts "--- #{ex.class.name} from thread: #{name}"
+        f.puts ex.message, ex.backtrace
       end
     end
     $stderr.puts <<EOS
@@ -419,7 +419,7 @@ The Sup Developers
 EOS
     Redwood.exceptions.each do |ex, name|
       puts "--- #{ex.class.name} from thread: #{name}"
-      puts e.message, e.backtrace
+      puts ex.message, ex.backtrace
     end
   end
 end

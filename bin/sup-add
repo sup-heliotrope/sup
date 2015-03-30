@@ -59,8 +59,8 @@ def get_login_info(uri, sources)
     else
       say "Would you like to use the same account as for a previous source for #{uri}?"
       choose do |menu|
-        accounts.each do |host, olduser, oldpw|
-          menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
+        accounts.each do |host_name, olduser, oldpw|
+          menu.choice("Use the account info for #{olduser}@#{host_name}") { username, password = olduser, oldpw }
         end
         menu.choice('Use a new account') {}
         menu.prompt = 'Account selection? '

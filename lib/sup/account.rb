@@ -78,7 +78,7 @@ module Redwood
       if (a = @email_map[email])
         a
       else
-        @regexen.argfind { |re, a| re =~ email && a }
+        @regexen.argfind { |re, account| re =~ email && account }
       end
     end
 
