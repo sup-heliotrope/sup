@@ -10,6 +10,12 @@ AllCops:
 Style/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
 
+Style/Semicolon:
+  AllowAsExpressionSeparator: true
+
+Style/TrivialAccessors:
+  ExactNameMatch: true
+
 # Disabled cops
 
 Style/AndOr:
