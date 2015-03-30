@@ -96,7 +96,7 @@ def add_source
                nil
              else
                labels_str.split(/\s+/)
-    end
+             end
 
     cmd = build_cmd 'sup-add'
     cmd += ' --unusual' unless usual

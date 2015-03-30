@@ -908,7 +908,7 @@ EOS
                  a.mediumname
                else
                  a.shortname
-        end
+               end
 
         result << [name, new[a]]
       end

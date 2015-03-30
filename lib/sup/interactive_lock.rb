@@ -15,7 +15,7 @@ module Redwood
                pluralize secs, 'second'
              else
                pluralize mins, 'minute'
-      end
+             end
     end
 
     DELAY = 5 # seconds

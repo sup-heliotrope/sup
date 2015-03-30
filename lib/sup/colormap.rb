@@ -191,7 +191,7 @@ module Redwood
       user_colors = if File.exist? Redwood::COLOR_FN
                       debug "loading user colors from #{Redwood::COLOR_FN}"
                       Redwood.load_yaml_obj Redwood::COLOR_FN
-      end
+                    end
 
       ## Set attachment sybmol to sane default for existing colorschemes
       if user_colors and user_colors.key? :to_me

@@ -77,7 +77,8 @@ begin
                  ARGV.map do |uri|
                    Redwood::SourceManager.source_for uri or Trollop.die "Unknown source: #{uri}. Did you add it with sup-add first?"
                  end
-  end.map(&:id)
+               end.map(&:id)
+
   Trollop.die 'nothing to do: no sources' if source_ids.empty?
 
   query = '(' + source_ids.map { |id| "source_id:#{id}" }.join(' OR ') + ')'

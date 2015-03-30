@@ -95,7 +95,7 @@ module Redwood
                                     name = 'Sup Auto-generated Fake Sender <sup@fake.sender.example.com>'
                                     # debug "faking non-existent sender for message #@id: #{name}"
                                     name
-      end)
+                                  end)
 
       @date = case (date = header['date'])
       when Time
@@ -133,11 +133,11 @@ module Redwood
                                     Regexp.last_match(1)
                                   elsif header['list-post'] =~ /@/
                                     header['list-post'] # just try the whole fucking thing
-                        end
+                                  end
                         address && Person.from_address(address)
                       elsif header['x-mailing-list']
                         Person.from_address header['x-mailing-list']
-      end
+                      end
 
       @recipient_email = header['envelope-to'] || header['x-original-to'] || header['delivered-to']
       @source_marked_read = header['status'] == 'RO'
@@ -651,7 +651,7 @@ EOS
                    [notice, sig].compact + children
                  else
                    [notice]
-        end
+                 end
         return [text_to_chunks(before, false),
                 chunks,
                 text_to_chunks(after, false)].flatten.compact

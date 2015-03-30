@@ -12,7 +12,7 @@ module Redwood
                 name = name.strip.gsub(/\s+/, ' ')
                 name =~ /^(['"]\s*)(.*?)(\s*["'])$/ ? Regexp.last_match(2) : name
                 name.gsub('\\\\', '\\')
-      end
+              end
 
       @email = email.strip.gsub(/\s+/, ' ')
     end

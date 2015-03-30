@@ -101,7 +101,7 @@ restored_state = if opts[:restore]
                    dump
                  else
                    {}
-end
+                 end
 
 seen = {}
 index.lock_interactively or exit
@@ -122,7 +122,7 @@ begin
               ARGV.map do |uri|
                 Redwood::SourceManager.source_for uri or Trollop.die "Unknown source: #{uri}. Did you add it with sup-add first?"
               end
-  end
+            end
 
   sources.each do |source|
     puts "Scanning #{source}..."

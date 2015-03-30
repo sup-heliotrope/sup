@@ -362,7 +362,7 @@ EOS
                  @layout[chunk]
                elsif chunk.expandable?
                  @chunk_layout[chunk]
-      end
+               end
       if layout
         layout.state = (layout.state != :closed ? :closed : :open)
         # cursor_down if layout.state == :closed # too annoying
@@ -573,7 +573,7 @@ EOS
                leftmost = [message_left, message_right - buffer.content_width + 1].min
                rightmost = message_left
                leftcol.clamp(leftmost, rightmost)
-      end
+             end
 
       jump_to_line l.top    # move vertically
       jump_to_col left      # move horizontally
@@ -904,7 +904,7 @@ EOS
                          [star_color, '*']
                        else
                          [color, ' ']
-        end
+                       end
       attach_widget = [color, (m.has_label?(:attachment) ? '@' : ' ')]
 
       case state

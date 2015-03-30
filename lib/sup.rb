@@ -103,13 +103,13 @@ module Redwood
           o.before_marshal
         else
           o
-    end
+        end
 
-    mode = if File.exist? fn
-             File.stat(fn).mode
-           else
-             0600
-    end
+    mode =  if File.exist? fn
+              File.stat(fn).mode
+            else
+              0600
+            end
 
     if backup
       backup_fn = fn + '.bak'
@@ -145,7 +145,7 @@ module Redwood
           else
             YAML.load_file fn
           end
-    end
+        end
     if o.is_a?(Array)
       o.each { |x| x.after_unmarshal! if x.respond_to?(:after_unmarshal!) }
     else

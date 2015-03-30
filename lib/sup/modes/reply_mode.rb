@@ -77,7 +77,7 @@ EOS
              ## if all else fails, use the default
              else
                AccountManager.default_account
-      end
+             end
 
       ## now, determine to: and cc: addressess. we ignore reply-to for list
       ## messages because it's typically set to the list address, which we
