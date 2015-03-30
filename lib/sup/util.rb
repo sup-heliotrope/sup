@@ -86,7 +86,7 @@ module RMail
 
     def charset
       if header.field?('content-type') && header.fetch('content-type') =~ /charset="?(.*?)"?(;|$)/i
-        $1
+        Regexp.last_match(1)
       end
     end
 
@@ -131,7 +131,7 @@ module RMail
           field = field.dup.to_s
           field = field.fix_encoding!.ascii
           if field =~ EXTRACT_FIELD_NAME_RE
-            [$1, $'.chomp]
+            [Regexp.last_match(1), $'.chomp]
           else
             ['', Field.value_strip(field)]
           end
@@ -525,7 +525,7 @@ class Fixnum
         s
       else
         if s =~ /(.*)y$/
-          $1 + 'ies'
+          Regexp.last_match(1) + 'ies'
         else
           s + 's'
         end

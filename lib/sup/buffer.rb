@@ -422,7 +422,7 @@ EOS
           when /^\s*$/
             ['', '']
           when /^(.*\s+)?(.*?)$/
-            [$1 || '', $2]
+            [Regexp.last_match(1) || '', Regexp.last_match(2)]
           else
             fail "william screwed up completion: #{partial.inspect}"
           end
@@ -449,8 +449,8 @@ EOS
     def ask_for_filename(domain, question, default = nil, allow_directory = false)
       answer = ask domain, question, default do |s|
         if s =~ /(~([^\s\/]*))/ # twiddle directory expansion
-          full = $1
-          name = $2.empty? ? Etc.getlogin : $2
+          full = Regexp.last_match(1)
+          name = Regexp.last_match(2).empty? ? Etc.getlogin : Regexp.last_match(2)
           dir = Etc.getpwnam(name).dir rescue nil
           if dir
             [[s.sub(full, dir), "~#{name}"]]

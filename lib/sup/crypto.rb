@@ -324,7 +324,7 @@ EOS
         # Look for Charset, they are put before the base64 crypted part
         charsets = payload.body.split("\n").grep(/^Charset:/)
         if !charsets.empty? and charsets[0] =~ /^Charset: (.+)$/
-          output.transcode($encoding, $1)
+          output.transcode($encoding, Regexp.last_match(1))
         end
         msg.body = output
       else

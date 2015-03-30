@@ -133,11 +133,11 @@ module Redwood
       while (line = f.gets)
         case line
         ## these three can occur multiple times, and we want the first one
-        when /^(Delivered-To|X-Original-To|Envelope-To):\s*(.*?)\s*$/i then header[last = $1.downcase] ||= $2
+        when /^(Delivered-To|X-Original-To|Envelope-To):\s*(.*?)\s*$/i then header[last = Regexp.last_match(1).downcase] ||= Regexp.last_match(2)
         ## regular header: overwrite (not that we should see more than one)
         ## TODO: figure out whether just using the first occurrence changes
         ## anything (which would simplify the logic slightly)
-        when /^([^:\s]+):\s*(.*?)\s*$/i then header[last = $1.downcase] = $2
+        when /^([^:\s]+):\s*(.*?)\s*$/i then header[last = Regexp.last_match(1).downcase] = Regexp.last_match(2)
         when /^\r*$/ then break # blank line signifies end of header
         else
           if last

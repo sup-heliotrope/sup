@@ -176,7 +176,7 @@ module Redwood
 
     def self.is_break_line?(l)
       l =~ BREAK_RE or return false
-      time = $1
+      time = Regexp.last_match(1)
       begin
         ## hack -- make Time.parse fail when trying to substitute values from Time.now
         Time.parse time, Time.at(0)

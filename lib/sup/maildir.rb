@@ -224,7 +224,7 @@ module Redwood
       id = File.basename id
       # Flags we recognize are DFPRST
       id =~ %r{^([^:]+):([12]),([A-Za-z]*)$}
-      [($1 || id), ($2 || '2'), ($3 || '')]
+      [(Regexp.last_match(1) || id), (Regexp.last_match(2) || '2'), (Regexp.last_match(3) || '')]
     end
 
     def maildir_reconcile_flags(id, labels)

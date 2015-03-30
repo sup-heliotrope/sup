@@ -410,7 +410,7 @@ EOS
         raise ParseError, e.message
       end
       subs = subs.gsub(/\b(to|from):(\S+)\b/) do
-        field, value = $1, $2
+        field, value = Regexp.last_match(1), Regexp.last_match(2)
         email_field, name_field = %w(email name).map { |x| "#{field}_#{x}" }
         if (p = ContactManager.contact_for(value))
           "#{email_field}:#{p.email}"
@@ -423,7 +423,7 @@ EOS
 
       ## gmail style "is" operator
       subs = subs.gsub(/\b(is|has):(\S+)\b/) do
-        field, label = $1, $2
+        field, label = Regexp.last_match(1), Regexp.last_match(2)
         case label
         when 'read'
           '-label:unread'
@@ -434,13 +434,13 @@ EOS
           query[:load_deleted] = true
           'label:deleted'
         else
-          "label:#{$2}"
+          "label:#{Regexp.last_match(2)}"
         end
       end
 
       ## labels are stored lower-case in the index
       subs = subs.gsub(/\blabel:(\S+)\b/) do
-        label = $1
+        label = Regexp.last_match(1)
         "label:#{label.downcase}"
       end
 
@@ -463,7 +463,7 @@ EOS
 
       ## gmail style attachments "filename" and "filetype" searches
       subs = subs.gsub(/\b(filename|filetype):(\((.+?)\)\B|(\S+)\b)/) do
-        field, name = $1, ($3 || $4)
+        field, name = Regexp.last_match(1), (Regexp.last_match(3) || Regexp.last_match(4))
         case field
         when 'filename'
           debug "filename: translated #{field}:#{name} to attachment:\"#{name.downcase}\""
@@ -477,7 +477,7 @@ EOS
       lastdate = 2 << 32 - 1
       firstdate = 0
       subs = subs.gsub(/\b(before|on|in|during|after):(\((.+?)\)\B|(\S+)\b)/) do
-        field, datestr = $1, ($3 || $4)
+        field, datestr = Regexp.last_match(1), (Regexp.last_match(3) || Regexp.last_match(4))
         realdate = Chronic.parse datestr, guess: false, context: :past
         if realdate
           case field
@@ -498,7 +498,7 @@ EOS
 
       ## limit:42 restrict the search to 42 results
       subs = subs.gsub(/\blimit:(\S+)\b/) do
-        lim = $1
+        lim = Regexp.last_match(1)
         if lim =~ /^\d+$/
           query[:limit] = lim.to_i
           ''
@@ -753,7 +753,7 @@ EOS
       doc.add_term mkterm(:msgid, m.id)
       m.attachments.each do |a|
         a =~ /\.(\w+)$/ or next
-        doc.add_term mkterm(:attachment_extension, $1)
+        doc.add_term mkterm(:attachment_extension, Regexp.last_match(1))
       end
 
       # Date value for range queries

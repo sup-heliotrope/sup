@@ -10,7 +10,7 @@ module Redwood
       @name = if name
                 name.fix_encoding!
                 name = name.strip.gsub(/\s+/, ' ')
-                name =~ /^(['"]\s*)(.*?)(\s*["'])$/ ? $2 : name
+                name =~ /^(['"]\s*)(.*?)(\s*["'])$/ ? Regexp.last_match(2) : name
                 name.gsub('\\\\', '\\')
       end
 
@@ -31,9 +31,9 @@ module Redwood
     def shortname
       case @name
       when /\S+, (\S+)/
-        $1
+        Regexp.last_match(1)
       when /(\S+) \S+/
-        $1
+        Regexp.last_match(1)
       when nil
         @email
       else
@@ -55,11 +55,11 @@ module Redwood
     def sort_by_me
       case @name
       when /^(\S+), \S+/
-        $1
+        Regexp.last_match(1)
       when /^\S+ \S+ (\S+)/
-        $1
+        Regexp.last_match(1)
       when /^\S+ (\S+)/
-        $1
+        Regexp.last_match(1)
       when nil
         @email
       else
@@ -111,14 +111,14 @@ module Redwood
             ## match any of those parts. a more robust solution would be to store a
             ## separate, non-indexed field with the proper headers. but this way we
             ## save precious bits, and it's backwards-compatible with older indexes.
-            [$1, $2]
+            [Regexp.last_match(1), Regexp.last_match(2)]
           when /["'](.*?)["'] <(.*?)>/, /([^,]+) <(.*?)>/
-            a, b = $1, $2
+            a, b = Regexp.last_match(1), Regexp.last_match(2)
             [a.gsub('\"', '"'), b]
           when /<((\S+?)@\S+?)>/
-            [$2, $1]
+            [Regexp.last_match(2), Regexp.last_match(1)]
           when /((\S+?)@\S+)/
-            [$2, $1]
+            [Regexp.last_match(2), Regexp.last_match(1)]
           else
             [nil, s]
           end

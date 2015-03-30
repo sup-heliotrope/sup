@@ -29,7 +29,7 @@ module Rfc2047
   def self.decode_to(target, from)
     from = from.gsub(WORDSEQ, '\1')
     out = from.gsub(WORD) do |_word|
-      charset, encoding, text = $1, $2, $3
+      charset, encoding, text = Regexp.last_match(1), Regexp.last_match(2), Regexp.last_match(3)
 
       # B64 or QP decode, as necessary:
       case encoding

@@ -15,7 +15,7 @@ module Redwood
     # deduced from #sendmail
     def bounce_sendmail
       sendmail.sub(/\s(\-(ti|it|t))\b/) do |_match|
-        case $1
+        case Regexp.last_match(1)
         when '-t' then ''
         else ' -i'
         end

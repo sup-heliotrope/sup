@@ -143,7 +143,7 @@ EOS
         if @header['From'] =~ /<?(\S+@(\S+?))>?$/
           # TODO: this is ugly. might implement an AccountSelector and handle
           # special cases more transparently.
-          account_from = @account_selector.can_set_to?($1) ? $1 : nil
+          account_from = @account_selector.can_set_to?(Regexp.last_match(1)) ? Regexp.last_match(1) : nil
           @account_selector.set_to account_from
         else
           @account_selector.set_to nil
@@ -397,7 +397,7 @@ EOS
     # rubocop:enable Style/AsciiComments
     def mime_encode_address(string)
       return string if string.ascii_only?
-      string.sub(RE_ADDRESS) { |_match| mime_encode($1) + $2 }
+      string.sub(RE_ADDRESS) { |_match| mime_encode(Regexp.last_match(1)) + Regexp.last_match(2) }
     end
 
     def move_cursor_left
@@ -513,7 +513,7 @@ EOS
 
       from_email =
         if @header['From'] =~ /<?(\S+@(\S+?))>?$/
-          $1
+          Regexp.last_match(1)
         else
           AccountManager.default_account.email
         end

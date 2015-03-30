@@ -80,7 +80,7 @@ module Redwood
 
       @id = ''
       if header['message-id']
-        mid = header['message-id'] =~ /<(.+?)>/ ? $1 : header['message-id']
+        mid = header['message-id'] =~ /<(.+?)>/ ? Regexp.last_match(1) : header['message-id']
         @id = sanitize_message_id mid
       end
       if (!@id.include? '@') || @id.length < 6
@@ -130,7 +130,7 @@ module Redwood
       @replyto = Person.from_address header['reply-to']
       @list_address = if header['list-post']
                         address = if header['list-post'] =~ /mailto:(.*?)[>\s$]/
-                                    $1
+                                    Regexp.last_match(1)
                                   elsif header['list-post'] =~ /@/
                                     header['list-post'] # just try the whole fucking thing
                         end
@@ -536,9 +536,9 @@ EOS
           ## RFC 2183 (Content-Disposition) specifies that disposition-parms are
           ## separated by ";". So, we match everything up to " and ; (if present).
           if m.header['Content-Disposition'] && m.header['Content-Disposition'] =~ /filename="?(.*?[^\\])("|;|\z)/m
-            $1
+            Regexp.last_match(1)
           elsif m.header['Content-Type'] && m.header['Content-Type'] =~ /name="?(.*?[^\\])("|;|\z)/im
-            $1
+            Regexp.last_match(1)
 
           ## haven't found one, but it's a non-text message. fake
           ## it.
@@ -548,7 +548,7 @@ EOS
             extension =
               case m.header['Content-Type']
               when /text\/html/ then 'html'
-              when /image\/(.*)/ then $1
+              when /image\/(.*)/ then Regexp.last_match(1)
               end
 
             ["sup-attachment-#{Time.now.to_i}-#{rand 10000}", extension].join('.')

@@ -54,7 +54,7 @@ Lint/UselessElseWithoutRescue:
 
 # Offense count: 179
 Metrics/AbcSize:
-  Max: 136
+  Max: 140
 
 # Offense count: 7
 Metrics/BlockNesting:
@@ -179,11 +179,6 @@ Style/OneLineConditional:
 
 # Offense count: 5
 Style/OpMethod:
-  Enabled: false
-
-# Offense count: 68
-# Cop supports --auto-correct.
-Style/PerlBackrefs:
   Enabled: false
 
 # Offense count: 25
