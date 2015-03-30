@@ -19,3 +19,8 @@ Style/EmptyLineBetweenDefs:
 
 Style/SingleLineMethods:
   Enabled: false
+
+# Even though there's a --auto-correct available, this
+# changed behavior.
+Style/SpecialGlobalVars:
+  Enabled: false

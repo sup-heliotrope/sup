@@ -216,11 +216,6 @@ Style/Semicolon:
 Style/SingleLineBlockParams:
   Enabled: false
 
-# Offense count: 18
-# Cop supports --auto-correct.
-Style/SpecialGlobalVars:
-  Enabled: false
-
 # Offense count: 12
 # Cop supports --auto-correct.
 # Configuration parameters: ExactNameMatch, AllowPredicates, AllowDSLWriters, Whitelist.
