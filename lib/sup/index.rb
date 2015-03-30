@@ -334,8 +334,8 @@ EOS
     ## Yields each term in the index that starts with prefix
     def each_prefixed_term(prefix)
       term = @xapian._dangerous_allterms_begin prefix
-      lastTerm = @xapian._dangerous_allterms_end prefix
-      until term.equals lastTerm
+      last_term = @xapian._dangerous_allterms_end prefix
+      until term.equals last_term
         yield term.term
         term.next
       end
