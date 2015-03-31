@@ -68,11 +68,6 @@ Style/FlipFlop:
 Style/FormatString:
   Enabled: false
 
-# Offense count: 40
-# Configuration parameters: MinBodyLength.
-Style/GuardClause:
-  Enabled: false
-
 # Offense count: 22
 # Configuration parameters: MaxLineLength.
 Style/IfUnlessModifier:
