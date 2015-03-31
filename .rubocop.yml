@@ -54,3 +54,6 @@ Style/DoubleNegation:
 
 Style/Documentation:
   Enabled: false
+
+Style/EachWithObject:
+  Enabled: false
