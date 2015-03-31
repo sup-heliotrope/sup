@@ -48,3 +48,6 @@ Style/ClassAndModuleChildren:
 
 Style/CommentAnnotation:
   Enabled: false
+
+Style/DoubleNegation:
+  Enabled: false

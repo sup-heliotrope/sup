@@ -63,10 +63,6 @@ Style/ClassVars:
 Style/Documentation:
   Enabled: false
 
-# Offense count: 2
-Style/DoubleNegation:
-  Enabled: false
-
 # Offense count: 3
 Style/EachWithObject:
   Enabled: false
