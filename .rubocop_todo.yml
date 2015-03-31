@@ -59,10 +59,6 @@ Style/AccessorMethodName:
 Style/ClassVars:
   Enabled: false
 
-# Offense count: 120
-Style/Documentation:
-  Enabled: false
-
 # Offense count: 1
 Style/FlipFlop:
   Enabled: false
@@ -70,11 +66,6 @@ Style/FlipFlop:
 # Offense count: 18
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/FormatString:
-  Enabled: false
-
-# Offense count: 141
-# Configuration parameters: AllowedVariables.
-Style/GlobalVars:
   Enabled: false
 
 # Offense count: 40

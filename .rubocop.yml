@@ -22,6 +22,8 @@ Style/FileName:
   Exclude: [sup-add, sup-config, sup-dump, sup-import-dump, sup-psych-ify-config-files, sup-recover-sources,
             sup-sync, sup-sync-back-maildir, sup-tweak-labels]
 
+Style/GlobalVars:
+  AllowedVariables: [$config, $cursing, $die, $encoding, $last_fn, $opts, $terminal]
 # Disabled cops
 
 Style/AndOr:
