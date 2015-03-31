@@ -67,6 +67,9 @@ Style/EachWithObject:
 Style/FileName:
   Enabled: false
 
-# TBH, no clue what this is supposed to do
 Style/GuardClause:
+  Enabled: false
+
+# Detection at this point flawed.. Maybe later
+Style/Next:
   Enabled: false

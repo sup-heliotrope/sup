@@ -72,11 +72,6 @@ Style/FormatString:
 Style/MultilineBlockChain:
   Enabled: false
 
-# Offense count: 5
-# Configuration parameters: EnforcedStyle, MinBodyLength, SupportedStyles.
-Style/Next:
-  Enabled: false
-
 # Offense count: 25
 # Configuration parameters: NamePrefix, NamePrefixBlacklist.
 Style/PredicateName:
