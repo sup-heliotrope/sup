@@ -51,3 +51,6 @@ Style/CommentAnnotation:
 
 Style/DoubleNegation:
   Enabled: false
+
+Style/Documentation:
+  Enabled: false
