@@ -189,7 +189,7 @@ module Redwood
       end
     end
 
-    def ==(other); other.is_a? Container && id == other.id; end
+    def ==(other); other.is_a?(Container) && id == other.id; end
 
     def empty?; @message.nil?; end
     def root?; @parent.nil?; end

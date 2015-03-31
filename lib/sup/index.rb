@@ -656,7 +656,7 @@ EOS
       pos_terms << mkterm(:location, *opts[:location]) if opts[:location]
 
       if opts[:participants]
-        participant_terms = opts[:participants].map { |p| [:from, :to].map { |d| mkterm(:email, d, (p.is_a? Redwood::Person ) ? p.email : p) } }.flatten
+        participant_terms = opts[:participants].map { |p| [:from, :to].map { |d| mkterm(:email, d, (p.is_a? Redwood::Person) ? p.email : p) } }.flatten
         pos_terms << Q.new(Q::OP_OR, participant_terms)
       end
 

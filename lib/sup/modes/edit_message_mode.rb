@@ -644,12 +644,12 @@ EOS
         end
       else
         default = case field
-          when *MULTI_HEADERS
-            @header[field] ||= []
-            @header[field].join(', ')
-          else
-            @header[field]
-          end
+                  when *MULTI_HEADERS
+                    @header[field] ||= []
+                    @header[field].join(', ')
+                  else
+                    @header[field]
+                  end
 
         contacts = BufferManager.ask_for_contacts :people, "#{field}: ", default
         if contacts

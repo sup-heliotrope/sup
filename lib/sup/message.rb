@@ -98,19 +98,19 @@ module Redwood
                                   end)
 
       @date = case (date = header['date'])
-      when Time
-        date
-      when String
-        begin
-          Time.parse date
-        rescue ArgumentError
-          # debug "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
-          Time.now
-        end
-      else
-        # debug "faking non-existent date header for #{@id}"
-        Time.now
-      end
+              when Time
+                date
+              when String
+                begin
+                  Time.parse date
+                rescue ArgumentError
+                  # debug "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
+                  Time.now
+                end
+              else
+                # debug "faking non-existent date header for #{@id}"
+                Time.now
+              end
 
       subj = header['subject']
       subj = subj ? subj.fix_encoding! : nil

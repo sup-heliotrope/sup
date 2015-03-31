@@ -54,24 +54,24 @@ def add_source
   loop do
     say 'Ok, now for the details.'
 
-    default_labels, components = case type
-    when :mbox
-      $last_fn ||= ENV['MAIL']
-      fn = axe "What's the full path to the mbox file?", $last_fn
-      return if fn.nil? || fn.empty?
+    default_labels, components =  case type
+                                  when :mbox
+                                    $last_fn ||= ENV['MAIL']
+                                    fn = axe "What's the full path to the mbox file?", $last_fn
+                                    return if fn.nil? || fn.empty?
 
-      $last_fn = fn
-      [Redwood::MBox.suggest_labels_for(fn),
-       { scheme: 'mbox', path: fn }]
-    when :maildir
-      $last_fn ||= ENV['MAIL']
-      fn = axe "What's the full path to the maildir directory?", $last_fn
-      return if fn.nil? || fn.empty?
+                                    $last_fn = fn
+                                    [Redwood::MBox.suggest_labels_for(fn),
+                                     { scheme: 'mbox', path: fn }]
+                                  when :maildir
+                                    $last_fn ||= ENV['MAIL']
+                                    fn = axe "What's the full path to the maildir directory?", $last_fn
+                                    return if fn.nil? || fn.empty?
 
-      $last_fn = fn
-      [Redwood::Maildir.suggest_labels_for(fn),
-       { scheme: 'maildir', path: fn }]
-    end
+                                    $last_fn = fn
+                                    [Redwood::Maildir.suggest_labels_for(fn),
+                                     { scheme: 'maildir', path: fn }]
+                                  end
 
     uri = begin
       Redwood::Util::Uri.build components

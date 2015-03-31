@@ -135,28 +135,28 @@ module Redwood
 
       # handle keysyms
       # ctrl_c: control char
-      ctrl_c = case c
-        when ?\177                          # backspace (octal)
-          Ncurses::Form::REQ_DEL_PREV
-        when ?\C-a                          # home
-          nop
-          Ncurses::Form::REQ_BEG_FIELD
-        when ?\C-e                          # end keysym
-          Ncurses::Form::REQ_END_FIELD
-        when ?\C-k
-          Ncurses::Form::REQ_CLR_EOF
-        when ?\C-u
-          set_cursed_value cursed_value_after_point
-          form_driver_key Ncurses::Form::REQ_END_FIELD
-          nop
-          Ncurses::Form::REQ_BEG_FIELD
-        when ?\C-w
-          while (action = remove_extra_space)
-            form_driver_key action
-          end
-          form_driver_key Ncurses::Form::REQ_PREV_CHAR
-          form_driver_key Ncurses::Form::REQ_DEL_WORD
-        end if ctrl_c.nil?
+      ctrl_c =  case c
+                when ?\177                          # backspace (octal)
+                  Ncurses::Form::REQ_DEL_PREV
+                when ?\C-a                          # home
+                  nop
+                  Ncurses::Form::REQ_BEG_FIELD
+                when ?\C-e                          # end keysym
+                  Ncurses::Form::REQ_END_FIELD
+                when ?\C-k
+                  Ncurses::Form::REQ_CLR_EOF
+                when ?\C-u
+                  set_cursed_value cursed_value_after_point
+                  form_driver_key Ncurses::Form::REQ_END_FIELD
+                  nop
+                  Ncurses::Form::REQ_BEG_FIELD
+                when ?\C-w
+                  while (action = remove_extra_space)
+                    form_driver_key action
+                  end
+                  form_driver_key Ncurses::Form::REQ_PREV_CHAR
+                  form_driver_key Ncurses::Form::REQ_DEL_WORD
+                end if ctrl_c.nil?
 
       c.replace(ctrl_c).keycode! if ctrl_c  # no effect for dumb CharCode
       form_driver c if c.present?

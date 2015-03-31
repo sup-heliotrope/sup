@@ -310,10 +310,10 @@ class String
     pos = 0
     region_start = 0
     while pos <= length
-      newpos = case state
-        when :escaped_instring, :escaped_outstring then pos
-        else index(/[,"\\]/, pos)
-      end
+      newpos =  case state
+                when :escaped_instring, :escaped_outstring then pos
+                else index(/[,"\\]/, pos)
+                end
 
       if newpos
         char = self[newpos]
@@ -325,37 +325,37 @@ class String
       case char
       when '"'
         state = case state
-          when :outstring then :instring
-          when :instring then :outstring
-          when :escaped_instring then :instring
-          when :escaped_outstring then :outstring
-        end
+                when :outstring then :instring
+                when :instring then :outstring
+                when :escaped_instring then :instring
+                when :escaped_outstring then :outstring
+                end
       when ',', nil
         state = case state
-          when :outstring, :escaped_outstring then
-            ret << self[region_start...newpos].gsub(/^\s+|\s+$/, '')
-            region_start = newpos + 1
-            :outstring
-          when :instring then :instring
-          when :escaped_instring then :instring
-        end
+                when :outstring, :escaped_outstring then
+                  ret << self[region_start...newpos].gsub(/^\s+|\s+$/, '')
+                  region_start = newpos + 1
+                  :outstring
+                when :instring then :instring
+                when :escaped_instring then :instring
+                end
       when '\\'
         state = case state
-          when :instring then :escaped_instring
-          when :outstring then :escaped_outstring
-          when :escaped_instring then :instring
-          when :escaped_outstring then :outstring
-        end
+                when :instring then :escaped_instring
+                when :outstring then :escaped_outstring
+                when :escaped_instring then :instring
+                when :escaped_outstring then :outstring
+                end
       end
       pos = newpos + 1
     end
 
     remainder = case state
-      when :instring
-        self[region_start..-1].gsub(/^\s+/, '')
-      else
-        nil
-      end
+                when :instring
+                  self[region_start..-1].gsub(/^\s+/, '')
+                else
+                  nil
+                end
 
     [ret, remainder]
   end

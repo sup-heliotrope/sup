@@ -124,15 +124,15 @@ EOS
             "For some bizarre reason, RubyMail was unable to parse this attachment.\n"
           end
 
-        text = case @content_type
-        when /^text\/plain\b/
-          @raw_content
-        else
-          HookManager.run 'mime-decode', content_type: @content_type,
-                                         filename: -> { write_to_disk },
-                                         charset: encoded_content.charset,
-                                         sibling_types: sibling_types
-        end
+        text =  case @content_type
+                when /^text\/plain\b/
+                  @raw_content
+                else
+                  HookManager.run 'mime-decode', content_type: @content_type,
+                                                 filename: -> { write_to_disk },
+                                                 charset: encoded_content.charset,
+                                                 sibling_types: sibling_types
+                end
 
         @lines = nil
         if text
@@ -171,10 +171,10 @@ EOS
 
       def view_default!(path)
         case RbConfig::CONFIG['arch']
-          when /darwin/
-            cmd = "open #{path}"
-          else
-            cmd = "/usr/bin/run-mailcap --action=view #{@content_type}:#{path}"
+        when /darwin/
+          cmd = "open #{path}"
+        else
+          cmd = "/usr/bin/run-mailcap --action=view #{@content_type}:#{path}"
         end
         debug "running: #{cmd.inspect}"
         BufferManager.shell_out(cmd)
