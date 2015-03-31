@@ -63,11 +63,6 @@ Style/ClassVars:
 Style/Documentation:
   Enabled: false
 
-# Offense count: 11
-# Configuration parameters: Exclude.
-Style/FileName:
-  Enabled: false
-
 # Offense count: 1
 Style/FlipFlop:
   Enabled: false

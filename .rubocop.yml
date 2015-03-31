@@ -18,6 +18,10 @@ Style/Semicolon:
 Style/TrivialAccessors:
   ExactNameMatch: true
 
+Style/FileName:
+  Exclude: [sup-add, sup-config, sup-dump, sup-import-dump, sup-psych-ify-config-files, sup-recover-sources,
+            sup-sync, sup-sync-back-maildir, sup-tweak-labels]
+
 # Disabled cops
 
 Style/AndOr:
@@ -56,4 +60,7 @@ Style/Documentation:
   Enabled: false
 
 Style/EachWithObject:
+  Enabled: false
+
+Style/FileName:
   Enabled: false
