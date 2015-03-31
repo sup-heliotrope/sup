@@ -10,6 +10,7 @@ Lint/HandleExceptions:
 Lint/RescueException:
   Enabled: false
 
+# If I recall correctly, this one is fixed allready by another PR. Remove me later.
 # Offense count: 1
 Lint/UselessElseWithoutRescue:
   Enabled: false
@@ -52,10 +53,6 @@ Metrics/PerceivedComplexity:
 
 # Offense count: 8
 Style/AccessorMethodName:
-  Enabled: false
-
-# Offense count: 5
-Style/CaseEquality:
   Enabled: false
 
 # Offense count: 39

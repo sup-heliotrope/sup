@@ -39,7 +39,7 @@ module Redwood
     end
 
     def user_accounts; @accounts.keys; end
-    def user_emails; @email_map.keys.select { |e| String === e }; end
+    def user_emails; @email_map.keys.select { |e| e.is_a? String }; end
 
     ## must be called first with the default account. fills in missing
     ## values from the default account.

@@ -42,7 +42,7 @@ if defined? Ncurses
       ## but for empty or erroneous objects
       ## it returns empty singleton.
       def self.generate(c = nil, status = Ncurses::OK)
-        if status == Ncurses::ERR || c.nil? || c === Ncurses::ERR
+        if status == Ncurses::ERR || c.nil? || c.is_a?(Ncurses::ERR)
           empty
         else
           new(c, status)

@@ -495,7 +495,7 @@ EOS
           [header]
         else
           things.map_with_index do |name, i|
-            fail "an array: #{name.inspect} (things #{things.inspect})" if Array === name
+            fail "an array: #{name.inspect} (things #{things.inspect})" if name.is_a? Array
             if i == 0
               header + ' ' + name
             else
