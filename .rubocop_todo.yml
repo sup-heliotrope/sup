@@ -59,11 +59,6 @@ Style/AccessorMethodName:
 Style/ClassVars:
   Enabled: false
 
-# Offense count: 4
-# Configuration parameters: Keywords.
-Style/CommentAnnotation:
-  Enabled: false
-
 # Offense count: 120
 Style/Documentation:
   Enabled: false

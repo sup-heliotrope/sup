@@ -45,3 +45,6 @@ Style/RegexpLiteral:
 
 Style/ClassAndModuleChildren:
   Enabled: false
+
+Style/CommentAnnotation:
+  Enabled: false
