@@ -128,7 +128,7 @@ EOS
     end
 
     def select_label
-      label, num_unread = @labels[curpos]
+      label = @labels[curpos].first
       return unless label
       LabelSearchResultsMode.spawn_nicely label
     end

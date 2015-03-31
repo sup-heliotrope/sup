@@ -52,7 +52,7 @@ def get_login_info(uri, sources)
   username, password = nil, nil
   unless accounts.empty? || $opts[:force_new]
     if $opts[:force_account]
-      host, username, password = accounts.find { |h, u, _p| $opts[:force_account] == "#{u}@#{h}" }
+      _, username, password = accounts.find { |h, u, _p| $opts[:force_account] == "#{u}@#{h}" }
       unless username && password
         say "No previous account #{$opts[:force_account].inspect} found."
       end

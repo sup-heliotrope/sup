@@ -25,7 +25,6 @@ module Redwood
     private
 
     def update_lines
-      width = buffer.content_width
       max_length = @list.max_of(&:length)
       num_per = [1, buffer.content_width / (max_length + INTERSTITIAL.length)].max
       @lines = [@header].compact

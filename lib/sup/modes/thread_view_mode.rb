@@ -237,7 +237,7 @@ EOS
 
         begin
           u = URI.parse(Regexp.last_match(1))
-        rescue URI::InvalidURIError => e
+        rescue URI::InvalidURIError
           BufferManager.flash('Invalid unsubscribe link')
           return
         end
@@ -752,7 +752,7 @@ EOS
     end
 
     def goto_uri
-      unless (chunk = @chunk_lines[curpos])
+      unless @chunk_lines[curpos]
         BufferManager.flash 'No URI found.'
         return
       end
@@ -864,7 +864,7 @@ EOS
         (0...text.length).each do |i|
           @chunk_lines[@text.length + i] = m
           @message_lines[@text.length + i] = m
-          lw = text[i].flatten.select { |x| x.is_a? String }.map(&:display_length).sum
+          _lw = text[i].flatten.select { |x| x.is_a? String }.map(&:display_length).sum
         end
 
         @text += text

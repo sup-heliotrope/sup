@@ -152,7 +152,7 @@ module Redwood
         next unless Rfc2047.is_encoded? v
         header[k] = begin
           Rfc2047.decode_to $encoding, v
-        rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence => e
+        rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence
           # debug "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
           v
         end

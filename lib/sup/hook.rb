@@ -135,7 +135,7 @@ EOS
           returning IO.read(fn_for(name)) do
             debug "read '#{name}' from #{fn_for(name)}"
           end
-        rescue SystemCallError => e
+        rescue SystemCallError
           # debug "disabled hook for '#{name}': #{e.message}"
           nil
         end

@@ -103,7 +103,7 @@ module Redwood
       when String
         begin
           Time.parse date
-        rescue ArgumentError => e
+        rescue ArgumentError
           # debug "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
           Time.now
         end

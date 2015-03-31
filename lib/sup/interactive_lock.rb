@@ -16,6 +16,7 @@ module Redwood
              else
                pluralize mins, 'minute'
              end
+      time
     end
 
     DELAY = 5 # seconds
@@ -72,7 +73,7 @@ EOS
           begin
             sleep DELAY
             Index.lock
-          rescue Index::LockError => e
+          rescue Index::LockError
             stream.puts "I couldn't unlock the index."
             return false
           end

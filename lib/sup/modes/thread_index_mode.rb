@@ -207,7 +207,7 @@ EOS
         @ts.delete_message m
         @ts.add_message m
       end
-      Index.save_thread t, sync_back = false
+      Index.save_thread t, false # 2nd arg is sync back parameter
       update_text_for_line l
     end
 

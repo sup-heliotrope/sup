@@ -130,13 +130,13 @@ EOS
     end
 
     def select_search
-      name, num_unread = @searches[curpos]
+      name = @searches[curpos].first
       return unless name
       SearchResultsMode.spawn_from_query SearchManager.search_string_for(name)
     end
 
     def delete_selected_search
-      name, num_unread = @searches[curpos]
+      name = @searches[curpos].first
       return unless name
       reload if SearchManager.delete name
     end

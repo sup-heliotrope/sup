@@ -420,7 +420,7 @@ EOS
 
       ## gmail style "is" operator
       subs = subs.gsub(/\b(is|has):(\S+)\b/) do
-        field, label = Regexp.last_match(1), Regexp.last_match(2)
+        _field, label = Regexp.last_match(1), Regexp.last_match(2)
         case label
         when 'read'
           '-label:unread'

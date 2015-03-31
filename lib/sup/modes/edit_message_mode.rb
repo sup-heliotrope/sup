@@ -579,7 +579,7 @@ EOS
         from_email = Person.from_address(@header['From']).email
         to_email = [@header['To'], @header['Cc'], @header['Bcc']].flatten.compact.map { |p| Person.from_address(p).email }
         if m.multipart?
-          m.each_part { |p| p = transfer_encode p }
+          m.each_part { |p| _p = transfer_encode p }
         else
           m = transfer_encode m
         end

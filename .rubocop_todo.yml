@@ -10,10 +10,6 @@ Lint/HandleExceptions:
 Lint/RescueException:
   Enabled: false
 
-# Offense count: 30
-Lint/UselessAssignment:
-  Enabled: false
-
 # Offense count: 1
 Lint/UselessElseWithoutRescue:
   Enabled: false

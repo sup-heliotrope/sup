@@ -194,7 +194,7 @@ else
 
     menu.choice('Default (an mbox in ~/.sup, aka sup://sent)') { $config[:sent_source] = 'sup://sent' } unless have_sup_sent
 
-    valid_sents = Redwood::SourceManager.sources.each do |s|
+    _valid_sents = Redwood::SourceManager.sources.each do |s|
       have_sup_sent = true if s.to_s.eql?('sup://sent')
       menu.choice(s.to_s) { $config[:sent_source] = s.to_s } if s.respond_to? :store_message
     end

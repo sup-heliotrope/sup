@@ -118,7 +118,7 @@ module Redwood
           Ncurses::Form::REQ_END_FIELD
         when Ncurses::KEY_UP, Ncurses::KEY_DOWN
           unless !@i || @history.empty?
-            value = get_cursed_value
+            _value = get_cursed_value
             # debug "history before #{@history.inspect}"
             @i += (c.is_keycode?(Ncurses::KEY_UP) ? -1 : 1)
             @i = 0 if @i < 0

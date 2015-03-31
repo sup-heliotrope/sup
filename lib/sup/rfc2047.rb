@@ -51,5 +51,6 @@ module Rfc2047
 
       text.transcode(target, charset)
     end
+    out
   end
 end

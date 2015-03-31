@@ -45,7 +45,6 @@ module Redwood
     end
 
     def each_raw_message_line(offset)
-      ret = ''
       f = StringIO.new(@messages[offset])
 
       yield f.gets until f.eof?

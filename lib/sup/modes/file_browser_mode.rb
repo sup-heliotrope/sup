@@ -42,7 +42,7 @@ module Redwood
     end
 
     def view
-      name, f = @files[curpos - RESERVED_ROWS]
+      _name, f = @files[curpos - RESERVED_ROWS]
       return unless f && f.file?
 
       begin
@@ -53,7 +53,7 @@ module Redwood
     end
 
     def select_file_or_follow_directory
-      name, f = @files[curpos - RESERVED_ROWS]
+      _name, f = @files[curpos - RESERVED_ROWS]
       return unless f
 
       if f.directory? && f.to_s != '.'
