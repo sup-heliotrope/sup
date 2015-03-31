@@ -71,9 +71,7 @@ module Redwood
     end
 
     def delete(t)
-      if @labels.delete(t)
-        @modified = true
-      end
+      @modified = true if @labels.delete(t)
     end
 
     def save

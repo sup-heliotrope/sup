@@ -111,16 +111,13 @@ EOS
       umax    = counts.max_of { |_n, _s, _t, u| u }
       s_width = counts.max_of { |_n, s, _t, _u| s.length }
 
-      if @unread_only
-        counts.delete_if { |_n, _s, _t, u| u == 0 }
-      end
+      counts.delete_if { |_n, _s, _t, u| u == 0 } if @unread_only
 
       @searches = []
       counts.each do |name, search_string, total, unread|
         fmt = HookManager.run 'search-list-format', n_width: n_width, tmax: tmax, umax: umax, s_width: s_width
-        unless fmt
-          fmt = "%#{n_width + 1}s %5d %s, %5d unread: %s"
-        end
+        fmt = "%#{n_width + 1}s %5d %s, %5d unread: %s" unless fmt
+
         @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),
                    sprintf(fmt, name, total, total == 1 ? ' message' : 'messages', unread, search_string)]]
         @searches << [name, unread]

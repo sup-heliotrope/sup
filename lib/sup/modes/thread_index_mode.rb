@@ -152,9 +152,7 @@ EOS
       l = @lines[thread] or return
       target_l = l + direction
       t = @mutex.synchronize do
-        if target_l >= 0 && target_l < @threads.length
-          @threads[target_l]
-        end
+        @threads[target_l] if target_l >= 0 && target_l < @threads.length
       end
 
       if t # there's a next thread

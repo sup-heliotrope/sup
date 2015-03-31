@@ -393,9 +393,7 @@ EOS
         fn = BufferManager.ask_for_filename :filename, 'Save attachment to file or directory: ', default_fn, true
 
         # if user selects directory use file name from message
-        if fn and File.directory? fn
-          fn = File.join(fn, chunk.filename)
-        end
+        fn = File.join(fn, chunk.filename) if fn and File.directory? fn
 
         save_to_file(fn) { |f| f.print chunk.raw_content } if fn
       else
@@ -979,9 +977,8 @@ EOS
           width = buffer.content_width
         end
         # lines can apparently be both String and Array, convert to Array for map.
-        if lines.is_a? String
-          lines = lines.lines.to_a
-        end
+        lines = lines.lines.to_a if lines.is_a? String
+
         lines = lines.map { |l| l.chomp.wrap width if l }.flatten
       end
       lines

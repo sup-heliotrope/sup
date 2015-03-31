@@ -94,9 +94,7 @@ EOS
       tmax  = counts.max_of { |_l, _s, t, _u| t }
       umax  = counts.max_of { |_l, _s, _t, u| u }
 
-      if @unread_only
-        counts.delete_if { |_l, _s, _t, u| u == 0 }
-      end
+      counts.delete_if { |_l, _s, _t, u| u == 0 } if @unread_only
 
       @labels = []
       counts.map do |label, string, total, unread|
@@ -114,9 +112,8 @@ EOS
         end
 
         fmt = HookManager.run 'label-list-format', width: width, tmax: tmax, umax: umax
-        unless fmt
-          fmt = "%#{width + 1}s %5d %s, %5d unread"
-        end
+
+        fmt = "%#{width + 1}s %5d %s, %5d unread" unless fmt
 
         @text << [[(unread == 0 ? :labellist_old_color : :labellist_new_color),
                    sprintf(fmt, string, total, total == 1 ? ' message' : 'messages', unread)]]

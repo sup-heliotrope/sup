@@ -36,9 +36,7 @@ task :man do
     return
   end
 
-  unless Dir.exist? 'man'
-    Dir.mkdir 'man'
-  end
+  Dir.mkdir 'man' unless Dir.exist? 'man'
 
   Dir.glob('doc/wiki/man/*.md').each do |md|
     m = /^.*\/(?<manpage>[^\/]*)\.md$/.match(md)[:manpage]

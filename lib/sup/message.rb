@@ -319,9 +319,7 @@ EOS
       location_labels = Set.new([])
 
       @locations.each do |l|
-        if l.valid?
-          location_labels = location_labels.union(l.labels?)
-        end
+        location_labels = location_labels.union(l.labels?) if l.valid?
       end
 
       ## Add to the message labels the intersection between all location

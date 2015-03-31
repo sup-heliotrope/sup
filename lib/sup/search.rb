@@ -35,9 +35,8 @@ module Redwood
     def all_searches; @searches.keys.sort; end
 
     def search_string_for(name)
-      if @predefined_searches.keys.member? name
-        return name.to_sym
-      end
+      return name.to_sym if @predefined_searches.keys.member? name
+
       @searches[name]
     end
 

@@ -280,9 +280,7 @@ EOS
 
         @lines = "\nFrom: #{from}\n"
         @lines += "To: #{to}\n"
-        unless cc.empty?
-          @lines += "Cc: #{cc}\n"
-        end
+        @lines += "Cc: #{cc}\n" unless cc.empty?
         @lines += "Date: #{date}\n"
         @lines += "Subject: #{subj}\n\n"
       end

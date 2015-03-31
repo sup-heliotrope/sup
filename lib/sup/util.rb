@@ -209,7 +209,10 @@ class Object
   def returning(x); yield x; x; end
 
   unless method_defined? :tap
-    def tap; yield self; self; end
+    def tap
+      yield self
+      self
+    end
   end
 
   ## clone of java-style whole-method synchronization
@@ -266,9 +269,7 @@ class String
 
     # if Unicode.width fails and returns -1, fall back to
     # regular String#length, see pull-request: #256.
-    if @display_length < 0
-      @display_length = length
-    end
+    @display_length = length if @display_length < 0
 
     @display_length
   end
@@ -568,9 +569,7 @@ module Enumerable
     best, bestval = nil, nil
     each do |e|
       val = yield e
-      if bestval.nil? || val < bestval
-        best, bestval = e, val
-      end
+      best, bestval = e, val if bestval.nil? || val < bestval
     end
     best
   end
@@ -599,9 +598,8 @@ module Enumerable
   end
 end
 
-unless Object.const_defined? :Enumerator
-  Enumerator = Enumerable::Enumerator
-end
+# TODO *should* be safe to remove
+Enumerator = Enumerable::Enumerator unless Object.const_defined? :Enumerator
 
 class Array
   def flatten_one_level

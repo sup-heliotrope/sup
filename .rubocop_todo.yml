@@ -68,11 +68,6 @@ Style/FlipFlop:
 Style/FormatString:
   Enabled: false
 
-# Offense count: 22
-# Configuration parameters: MaxLineLength.
-Style/IfUnlessModifier:
-  Enabled: false
-
 # Offense count: 4
 Style/MultilineBlockChain:
   Enabled: false

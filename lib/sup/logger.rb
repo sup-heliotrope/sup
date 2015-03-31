@@ -35,9 +35,7 @@ module Redwood
 
     LEVELS.each_with_index do |l, method_level|
       define_method(l) do |s|
-        if method_level >= @level
-          send_message format_message(l, Time.now, s)
-        end
+        send_message format_message(l, Time.now, s) if method_level >= @level
       end
     end
 
