@@ -153,15 +153,9 @@ begin
                       num_restored += 1
                       m.labels = restored_state[m.id]
                       :add_message
-                    else
-                      # labels are the same; don't do anything
                     end
                   when op == :discard
-                    if old_m && (old_m.labels != m.labels)
-                      :update_message_state
-                    else
-                      # labels are the same; don't do anything
-                    end
+                    :update_message_state if old_m && (old_m.labels != m.labels)
                   else
                     if old_m
                       :update_message

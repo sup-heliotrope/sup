@@ -63,14 +63,6 @@ Style/ClassVars:
 Style/Documentation:
   Enabled: false
 
-# Offense count: 3
-Style/EachWithObject:
-  Enabled: false
-
-# Offense count: 4
-Style/EmptyElse:
-  Enabled: false
-
 # Offense count: 11
 # Configuration parameters: Exclude.
 Style/FileName:

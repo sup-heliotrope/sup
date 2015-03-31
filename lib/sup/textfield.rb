@@ -220,7 +220,7 @@ module Redwood
           else
             Ncurses::Form::REQ_DEL_PREV
           end
-        else
+        else # rubocop:disable Style/EmptyElse
           nil
         end
       elsif v_index == v.length

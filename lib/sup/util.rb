@@ -353,8 +353,6 @@ class String
     remainder = case state
                 when :instring
                   self[region_start..-1].gsub(/^\s+/, '')
-                else
-                  nil
                 end
 
     [ret, remainder]
