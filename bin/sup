@@ -206,14 +206,14 @@ module Redwood
       end
     end unless $opts[:no_initial_poll]
 
-    imode.load_threads num: ibuf.content_height, when_done: lambda do |_num|
+    imode.load_threads num: ibuf.content_height, when_done: lambda { |_num|
       unless $opts[:no_threads] || $opts[:no_initial_poll]
         reporting_thread('poll after loading inbox') do
           sleep 1 # Why?
           PollManager.poll
         end
       end
-    end
+    }
 
     if $opts[:compose]
       to = Person.from_address_list $opts[:compose]
