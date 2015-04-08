@@ -366,8 +366,6 @@ class String
 
   # Fix the damn string! make sure it is valid utf-8, then convert to
   # user encoding.
-  #
-  # Not Ruby 1.8 compatible
   def fix_encoding!
     # first try to encode to utf-8 from whatever current encoding
     encode!('UTF-8', :invalid => :replace, :undef => :replace)
@@ -390,8 +388,6 @@ class String
 
   # transcode the string if original encoding is know
   # fix if broken.
-  #
-  # Not Ruby 1.8 compatible
   def transcode to_encoding, from_encoding
     begin
       encode!(to_encoding, from_encoding, :invalid => :replace, :undef => :replace)
