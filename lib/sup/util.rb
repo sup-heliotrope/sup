@@ -454,13 +454,6 @@ class String
     out = out.fix_encoding! # this should now be an utf-8 string of ascii
                            # compat chars.
   end
-
-  unless method_defined? :ascii_only?
-    def ascii_only?
-      size.times { |i| return false if self[i] & 128 != 0 }
-      return true
-    end
-  end
 end
 
 class Numeric
