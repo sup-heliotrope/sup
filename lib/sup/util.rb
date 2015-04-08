@@ -10,15 +10,6 @@ require 'benchmark'
 require 'unicode'
 require 'fileutils'
 
-## time for some monkeypatching!
-class Symbol
-  unless method_defined? :to_proc
-    def to_proc
-      proc {  |obj, *args| obj.send(self, *args) }
-    end
-  end
-end
-
 class Lockfile
   def gen_lock_id
     Hash[
