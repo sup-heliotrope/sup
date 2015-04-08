@@ -182,17 +182,6 @@ class Module
 end
 
 class Object
-  def ancestors
-    ret = []
-    klass = self.class
-
-    until klass == Object
-      ret << klass
-      klass = klass.superclass
-    end
-    ret
-  end
-
   ## "k combinator"
   def returning x; yield x; x; end
 

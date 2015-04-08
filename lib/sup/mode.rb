@@ -46,7 +46,7 @@ class Mode
   end
 
   def resolve_input c
-    ancestors.each do |klass| # try all keymaps in order of ancestry
+    self.class.ancestors.each do |klass| # try all keymaps in order of ancestry
       next unless @@keymaps.member?(klass)
       action = BufferManager.resolve_input_with_keymap c, @@keymaps[klass]
       return action if action
@@ -62,7 +62,7 @@ class Mode
 
   def help_text
     used_keys = {}
-    ancestors.map do |klass|
+    self.class.ancestors.map do |klass|
       km = @@keymaps[klass] or next
       title = "Keybindings from #{Mode.make_name klass.name}"
       s = <<EOS
