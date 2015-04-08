@@ -574,10 +574,6 @@ module Enumerable
   end
 end
 
-unless Object.const_defined? :Enumerator
-  Enumerator = Enumerable::Enumerator
-end
-
 class Array
   def flatten_one_level
     inject([]) { |a, e| a + e }
