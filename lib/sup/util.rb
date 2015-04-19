@@ -80,7 +80,7 @@ module RMail
     end
 
     def charset
-      if header.field?("content-type") && header.fetch("content-type") =~ /charset="?(.*?)"?(;|$)/i
+      if header.field?("content-type") && header.fetch("content-type") =~ /charset\s*=\s*"?(.*?)"?(;|$)/i
         $1
       end
     end
