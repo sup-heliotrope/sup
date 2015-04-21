@@ -1,4 +1,3 @@
-require 'rubygems'
 require 'ruby-prof'
 require "redwood"
 

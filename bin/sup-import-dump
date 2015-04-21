@@ -3,7 +3,6 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'uri'
-require 'rubygems'
 require 'trollop'
 require "sup"
 
