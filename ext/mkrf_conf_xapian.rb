@@ -1,6 +1,3 @@
-require 'rubygems'
-require 'rubygems/command.rb'
-require 'rubygems/dependency_installer.rb'
 require 'rbconfig'
 
 begin
