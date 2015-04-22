@@ -1,0 +1,61 @@
+From fake_receiver@localhost Sun Dec 09 22:33:37 +0200 2007
+Subject: Re: Test message subject
+From: Fake Receiver <fake_receiver@localhost>
+To: Fake Sender <fake_sender@example.invalid>
+References: <E1J1Rvb-0006k2-CE@localhost.localdomain> <20071209194819.GA25972example.invalid>
+In-Reply-To: <20071209194819.GA25972example.invalid>
+Date: Sun, 09 Dec 2007 22:33:37 +0200
+Message-Id: <1197232243-sup-2663example.invalid>
+User-Agent: Sup/0.3
+Content-Type: multipart/mixed; boundary="=-1197232418-506707-26079-6122-2-="
+MIME-Version: 1.0
+
+
+--=-1197232418-506707-26079-6122-2-=
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Excerpts from Fake Sender's message of Sun Dec 09 21:48:19 +0200 2007:
+> Test message!
+
+Thanks for the message!
+--=-1197232418-506707-26079-6122-2-=
+Content-Disposition: attachment; filename="HACKING"
+Content-Type: application/octet-stream; name="HACKING"
+Content-Transfer-Encoding: base64
+
+UnVubmluZyBTdXAgbG9jYWxseQotLS0tLS0tLS0tLS0tLS0tLS0tCkludm9r
+ZSBpdCBsaWtlIHRoaXM6CgpydWJ5IC1JIGxpYiAtdyBiaW4vc3VwCgpZb3Un
+bGwgaGF2ZSB0byBpbnN0YWxsIGFsbCBnZW1zIG1lbnRpb25lZCBpbiB0aGUg
+UmFrZWZpbGUgKGxvb2sgZm9yIHRoZSBsaW5lCnNldHRpbmcgcC5leHRyYV9k
+ZXBzKS4gSWYgeW91J3JlIG9uIGEgRGViaWFuIG9yIERlYmlhbi1iYXNlZCBz
+eXN0ZW0gKGUuZy4KVWJ1bnR1KSwgeW91J2xsIGhhdmUgdG8gbWFrZSBzdXJl
+IHlvdSBoYXZlIGEgY29tcGxldGUgUnVieSBpbnN0YWxsYXRpb24sCmVzcGVj
+aWFsbHkgbGlic3NsLXJ1YnkuCgpDb2Rpbmcgc3RhbmRhcmRzCi0tLS0tLS0t
+LS0tLS0tLS0KCi0gRG9uJ3Qgd3JhcCBjb2RlIHVubGVzcyBpdCByZWFsbHkg
+YmVuZWZpdHMgZnJvbSBpdC4gVGhlIGRheXMgb2YKICA4MC1jb2x1bW4gZGlz
+cGxheXMgYXJlIGxvbmcgb3Zlci4gQnV0IGRvIHdyYXAgY29tbWVudHMgYW5k
+IG90aGVyCiAgdGV4dCBhdCB3aGF0ZXZlciBFbWFjcyBtZXRhLVEgZG9lcy4K
+LSBJIGxpa2UgcG9ldHJ5IG1vZGUuCi0gVXNlIHt9IGZvciBvbmUtbGluZXIg
+YmxvY2tzIGFuZCBkby9lbmQgZm9yIG11bHRpLWxpbmUgYmxvY2tzLgoK
+
+--=-1197232418-506707-26079-6122-2-=
+Content-Disposition: attachment; filename="Manifest.txt"
+Content-Type: text/plain; name="Manifest.txt"
+Content-Transfer-Encoding: quoted-printable
+
+HACKING
+History.txt
+LICENSE
+Manifest.txt
+README.txt
+Rakefile
+bin/sup
+bin/sup-add
+bin/sup-config
+bin/sup-dump
+bin/sup-recover-sources
+bin/sup-sync
+bin/sup-sync-back
+
+--=-1197232418-506707-26079-6122-2-=--
