@@ -220,11 +220,28 @@ class TestMessage < Minitest::Test
     fn = chunks[3].safe_filename
     assert_equal(fn, File.basename(fn))
   end
+
+  def test_rfc_2047_subject_with_spaces
+    message = fixture('rfc_2047_subject_with_spaces.eml')
+
+    source = DummySource.new("sup-test://test_rfc_2047_subject_with_spaces")
+    source.messages = [ message ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+    sup_message.load_from_source!
+
+    # read the message body chunks
+    sup_message.load_from_source!
+
+    # check that subject was properly decoded
+    assert_equal("Some text that contains encoded chars äåæ, spaces and some-text-without-spaces", sup_message.subj)
+  end
+
   # TODO: test different error cases, malformed messages etc.
 
   # TODO: test different quoting styles, see that they are all divided
   # to chunks properly
-
 end
 
 end
