@@ -25,10 +25,11 @@ require 'tmpdir'
 
 module Redwood
 
-class TestCryptoManager < ::Minitest::Unit::TestCase
+class TestCryptoManager < Minitest::Test
 
     def setup
         @from_email = 'sup-test-1@foo.bar'
+        @from_email_ecc = 'sup-fake-ecc@fake.fake'
         @to_email   = 'sup-test-2@foo.bar'
         # Use test gnupg setup
         @orig_gnupghome = ENV['GNUPGHOME']
@@ -37,7 +38,7 @@ class TestCryptoManager < ::Minitest::Unit::TestCase
         @path = Dir.mktmpdir
         Redwood::HookManager.init File.join(@path, 'hooks')
 
-        am = {:default=> {:name => "test", :email=> 'sup-test-1@foo.bar'}}
+        am = {:default=> {name: "test", email: @from_email, alternates: [@from_email_ecc]}}
         Redwood::AccountManager.init am
 
         Redwood::CryptoManager.init
@@ -99,6 +100,15 @@ class TestCryptoManager < ::Minitest::Unit::TestCase
     def test_verify
         if CryptoManager.have_crypto?
             signed = CryptoManager.sign @from_email, @to_email, "ABCDEFG"
+            assert_instance_of RMail::Message, signed
+            assert_instance_of String, (signed.body[1].body)
+            CryptoManager.verify signed.body[0], signed.body[1], true
+        end
+    end
+
+    def test_verify_unknown_keytype
+        if CryptoManager.have_crypto?
+            signed = CryptoManager.sign @from_email_ecc, @to_email, "ABCDEFG"
             assert_instance_of RMail::Message, signed
             assert_instance_of String, (signed.body[1].body)
             CryptoManager.verify signed.body[0], signed.body[1], true

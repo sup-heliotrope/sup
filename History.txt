@@ -1,3 +1,32 @@
+== 0.21.0 / 2015-02-12
+
+* Key binding to fetch GPG key from keyserver (Matthieu Rakotojaona)
+* Replace occurences of File.exists? with File.exist? (Zeger-Jan van de
+  Weg)
+* You can now unsubscribe from mailinglists using an url, if you have a
+  goto-hook setup (Timon Vonk).
+* Forward attribution can be customized using the forward-attribution
+  hook (Ruthard Baudach)
+* Do a few more checks for buffer not nil in the hope to fix a few
+  random crashes
+* Add bash completion (Per Andersson)
+* Replace dl/import with Fiddle (Timon Vonk)
+* Drop support for ruby 1.9.3
+* Add tests for contact manager and persons (Zeger-Jan van de Weg)
+
+== 0.20.0 / 2014-10-06
+
+* add man-pages (generated from wiki) (Per Andersson)!
+* HTML messages or messages that are decoded with the mime-decode hook
+  are now indexed if the mime-decode hook is set up (Scott Bonds).
+* OpenBSD support (Scott Bonds)!
+* goto-hook for keybinding to open URLs.
+* support special charaters in source URIs (Scott Bonds).
+* output message id and locations on all load_from_source failures
+* fix long-standing getlocal bug
+* make new test GPG keys (old ones expired), valid for one year, script
+  now available in devel/ for making new ones.
+
 == 0.19.0 / 2014-07-05
 
 * new check-attachment hook

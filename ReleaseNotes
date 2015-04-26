@@ -1,3 +1,20 @@
+Release 0.21.0:
+
+Several small features as well as polishing (including fetching a GPG key with
+a shortcut and unsubscribing from mailinglist using an url). Several old
+deprecated parts of sup have been modernized. Support for Ruby 1.9.3 has been
+dropped. Have a look in History.txt for the details.
+
+Release 0.20.0:
+
+We've got man pages (Mr. Andersson)! We've got OpenBSD support (Scott Bonds)!
+It is now possible to get your HTML emails indexed by setting up a mime-decode
+hook before you index (Scott Bonds)! Scott Bonds also fixed up special character handing in source URIs. It is now possible to set up a goto hook
+for opening the URL below the cursor.
+
+Also a few long standing bugs have been fixed, and new GPG keys have been made
+for the tests.
+
 Release 0.19.0:
 
 New hook: check-attachment and a new option to shows dates in 24h format.

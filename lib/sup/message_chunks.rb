@@ -153,11 +153,13 @@ EOS
         "Attachment: #{filename} (#{content_type}; #{@raw_content.size.to_human_size})"
       end
     end
+    def safe_filename; Shellwords.escape(@filename).gsub("/", "_") end
 
     ## an attachment is exapndable if we've managed to decode it into
     ## something we can display inline. otherwise, it's viewable.
     def inlineable?; false end
     def expandable?; !viewable? end
+    def indexable?; expandable? end
     def initial_state; :open end
     def viewable?; @lines.nil? end
     def view_default! path
@@ -223,6 +225,7 @@ EOS
     def inlineable?; true end
     def quotable?; true end
     def expandable?; false end
+    def indexable?; true end
     def viewable?; false end
     def color; :text_color end
   end
@@ -236,6 +239,7 @@ EOS
     def inlineable?; @lines.length == 1 end
     def quotable?; true end
     def expandable?; !inlineable? end
+    def indexable?; expandable? end
     def viewable?; false end
 
     def patina_color; :quote_patina_color end
@@ -252,6 +256,7 @@ EOS
     def inlineable?; @lines.length == 1 end
     def quotable?; false end
     def expandable?; !inlineable? end
+    def indexable?; expandable? end
     def viewable?; false end
 
     def patina_color; :sig_patina_color end
@@ -285,6 +290,7 @@ EOS
     def inlineable?; false end
     def quotable?; false end
     def expandable?; true end
+    def indexable?; true end
     def initial_state; :closed end
     def viewable?; false end
 
@@ -295,12 +301,13 @@ EOS
   end
 
   class CryptoNotice
-    attr_reader :lines, :status, :patina_text
+    attr_reader :lines, :status, :patina_text, :unknown_fingerprint
 
-    def initialize status, description, lines=[]
+    def initialize status, description, lines=[], unknown_fingerprint=nil
       @status = status
       @patina_text = description
       @lines = lines
+      @unknown_fingerprint = unknown_fingerprint
     end
 
     def patina_color
@@ -316,6 +323,7 @@ EOS
     def inlineable?; false end
     def quotable?; false end
     def expandable?; !@lines.empty? end
+    def indexable?; false end
     def viewable?; false end
   end
 end

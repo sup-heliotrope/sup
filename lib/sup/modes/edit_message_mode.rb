@@ -20,6 +20,7 @@ Variables:
               to the raw headers for the message. E.g., header["From"],
               header["To"], etc.
   from_email: the email part of the From: line, or nil if empty
+  message_id: the unique message id of the message
 Return value:
   A string (multi-line ok) containing the text of the signature, or nil to
   use the default signature, or :none for no signature.
@@ -688,7 +689,7 @@ private
     from_email = p && p.email
 
     ## first run the hook
-    hook_sig = HookManager.run "signature", :header => @header, :from_email => from_email
+    hook_sig = HookManager.run "signature", :header => @header, :from_email => from_email, :message_id => @message_id
 
     return [] if hook_sig == :none
     return ["", "-- "] + hook_sig.split("\n") if hook_sig
@@ -698,7 +699,7 @@ private
     sigfn = (AccountManager.account_for(from_email) ||
              AccountManager.default_account).signature
 
-    if sigfn && File.exists?(sigfn)
+    if sigfn && File.exist?(sigfn)
       ["", "-- "] + File.readlines(sigfn).map { |l| l.chomp }
     else
       []

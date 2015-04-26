@@ -12,7 +12,15 @@ class Maildir < Source
   def initialize uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
-    uri = URI(@expanded_uri)
+    parts = @expanded_uri.match /^([a-zA-Z0-9]*:(\/\/)?)(.*)/
+    if parts
+      prefix = parts[1]
+      @path = parts[3]
+      uri = URI(prefix + URI.encode(@path, URI_ENCODE_CHARS))
+    else
+      uri = URI(URI.encode @expanded_uri, URI_ENCODE_CHARS)
+      @path = uri.path
+    end
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
@@ -22,7 +30,7 @@ class Maildir < Source
     # sync by default if not specified
     @sync_back = true if @sync_back.nil?
 
-    @dir = uri.path
+    @dir = URI.decode uri.path
     @labels = Set.new(labels || [])
     @mutex = Mutex.new
     @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }
@@ -60,7 +68,7 @@ class Maildir < Source
           File.safe_link tmp_path, new_path
           stored = true
         ensure
-          File.unlink tmp_path if File.exists? tmp_path
+          File.unlink tmp_path if File.exist? tmp_path
         end
       end #rescue Errno...
     end #Dir.chdir
@@ -126,7 +134,10 @@ class Maildir < Source
       @ctimes[d] = ctime
 
       old_ids = benchmark(:maildir_read_index) { Index.instance.enum_for(:each_source_info, self.id, "#{d}/").to_a }
-      new_ids = benchmark(:maildir_read_dir) { Dir.glob("#{subdir}/*").map { |x| File.join(d,File.basename(x)) }.sort }
+      new_ids = benchmark(:maildir_read_dir) {
+        Dir.open(subdir).select {
+          |f| !File.directory? f}.map {
+            |x| File.join(d,File.basename(x)) }.sort }
       added += new_ids - old_ids
       deleted += old_ids - new_ids
       debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
@@ -196,7 +207,7 @@ class Maildir < Source
   def trashed? id; maildir_data(id)[2].include? "T"; end
 
   def valid? id
-    File.exists? File.join(@dir, id)
+    File.exist? File.join(@dir, id)
   end
 
 private

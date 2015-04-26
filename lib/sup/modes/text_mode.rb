@@ -24,8 +24,13 @@ class TextMode < ScrollMode
     command = BufferManager.ask(:shell, "pipe command: ")
     return if command.nil? || command.empty?
 
-    output = pipe_to_process(command) do |stream|
+    output, success = pipe_to_process(command) do |stream|
       @text.each { |l| stream.puts l }
+    end
+
+    unless success
+      BufferManager.flash "Invalid command: '#{command}' is not an executable"
+      return
     end
 
     if output

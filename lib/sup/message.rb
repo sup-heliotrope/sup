@@ -288,6 +288,12 @@ class Message
       end
   end
 
+  def reload_from_source!
+    @chunks = nil
+    load_from_source!
+  end
+
+
   def error_message
     <<EOS
 #@snippet...
@@ -344,7 +350,7 @@ EOS
       to.map { |p| p.indexable_content },
       cc.map { |p| p.indexable_content },
       bcc.map { |p| p.indexable_content },
-      indexable_chunks.map { |c| c.lines },
+      indexable_chunks.map { |c| c.lines.map { |l| l.fix_encoding! } },
       indexable_subject,
     ].flatten.compact.join " "
   end
@@ -354,7 +360,7 @@ EOS
   end
 
   def indexable_chunks
-    chunks.select { |c| c.is_a? Chunk::Text } || []
+    chunks.select { |c| c.indexable? } || []
   end
 
   def indexable_subject

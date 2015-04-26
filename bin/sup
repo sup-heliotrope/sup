@@ -3,10 +3,10 @@
 
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
-require 'rubygems'
 require 'ncursesw'
 
 require 'sup/util/ncurses'
+require 'sup/util/locale_fiddler'
 
 no_gpgme = false
 begin
@@ -102,27 +102,14 @@ global_keymap = Keymap.new do |k|
   end
 end
 
-## the following magic enables wide characters when used with a ruby
-## ncurses.so that's been compiled against libncursesw. (note the w.) why
-## this works, i have no idea. much like pretty much every aspect of
-## dealing with curses.  cargo cult programming at its best.
-require 'dl/import'
 require 'rbconfig'
-module LibC
-  extend DL.const_defined?(:Importer) ? DL::Importer : DL::Importable
-  setlocale_lib = case RbConfig::CONFIG['arch']
-    when /darwin/; "libc.dylib"
-    when /cygwin/; "cygwin1.dll"
-    when /freebsd/; "libc.so.7"
-    else; "libc.so.6"
-  end
 
-  debug "dynamically loading setlocale() from #{setlocale_lib}"
+unless RbConfig::CONFIG['arch'] =~ /openbsd/
+  debug "dynamically loading setlocale()"
   begin
-    dlload setlocale_lib
-    extern "void setlocale(int, const char *)"
+    class LibC; extend LocaleFiddler; end
     debug "setting locale..."
-    LibC.setlocale(6, "")  # LC_ALL == 6
+    LibC.setlocale(6, "")
   rescue RuntimeError => e
     warn "cannot dlload setlocale(); ncurses wide character support probably broken."
     warn "dlload error was #{e.class}: #{e.message}"

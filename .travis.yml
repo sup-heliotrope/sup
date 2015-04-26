@@ -3,7 +3,7 @@ language: ruby
 rvm:
   - 2.1.1
   - 2.0.0
-  - 1.9.3
+  - 2.2.0
 
 before_install:
   - sudo apt-get update -qq

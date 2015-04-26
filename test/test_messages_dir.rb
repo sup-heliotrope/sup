@@ -6,27 +6,9 @@ require 'stringio'
 
 require 'dummy_source'
 
-# override File.exists? to make it work with StringIO for testing.
-# FIXME: do aliasing to avoid breaking this when sup moves from
-# File.exists? to File.exist?
-
-class File
-
-  def File.exists? file
-    # puts "fake File::exists?"
-
-    if file.is_a?(StringIO)
-      return false
-    end
-    # use the different function
-    File.exist?(file)
-  end
-
-end
-
 module Redwood
 
-class TestMessagesDir < ::Minitest::Unit::TestCase
+class TestMessagesDir < ::Minitest::Test
 
   def setup
     @path = Dir.mktmpdir
@@ -40,9 +22,7 @@ class TestMessagesDir < ::Minitest::Unit::TestCase
 
   def test_binary_content_transfer_encoding
     message = ''
-    File.open 'test/messages/binary-content-transfer-encoding-2.eml' do |f|
-      message = f.read
-    end
+    File.open('test/fixtures/binary-content-transfer-encoding-2.eml') { |f| message = f.read }
 
     source = DummySource.new("sup-test://test_messages")
     source.messages = [ message ]
@@ -73,9 +53,7 @@ class TestMessagesDir < ::Minitest::Unit::TestCase
 
   def test_bad_content_transfer_encoding
     message = ''
-    File.open 'test/messages/bad-content-transfer-encoding-1.eml' do |f|
-      message = f.read
-    end
+    File.open('test/fixtures/bad-content-transfer-encoding-1.eml') { |f| message = f.read }
 
     source = DummySource.new("sup-test://test_messages")
     source.messages = [ message ]
@@ -107,9 +85,7 @@ class TestMessagesDir < ::Minitest::Unit::TestCase
 
   def test_missing_line
     message = ''
-    File.open 'test/messages/missing-line.eml' do |f|
-      message = f.read
-    end
+    File.open('test/fixtures/missing-line.eml') { |f| message = f.read }
 
     source = DummySource.new("sup-test://test_messages")
     source.messages = [ message ]

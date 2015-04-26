@@ -856,6 +856,12 @@ protected
     need_update = false
 
     @mutex.synchronize do
+      # and certainly not sure why this happens..
+      #
+      # probably a race condition between thread modification and updating
+      # going on.
+      return if @threads[l].empty?
+
       @size_widgets[l] = size_widget_for_thread @threads[l]
       @date_widgets[l] = date_widget_for_thread @threads[l]
 
@@ -1020,7 +1026,11 @@ private
   end
 
   def from_width
-    [(buffer.content_width.to_f * 0.2).to_i, MIN_FROM_WIDTH].max
+    if buffer
+      [(buffer.content_width.to_f * 0.2).to_i, MIN_FROM_WIDTH].max
+    else
+      MIN_FROM_WIDTH # not sure why the buffer is gone
+    end
   end
 
   def initialize_threads

@@ -19,16 +19,24 @@ class MBox < Source
     case uri_or_fp
     when String
       @expanded_uri = Source.expand_filesystem_uri(uri_or_fp)
-      uri = URI(@expanded_uri)
+      parts = @expanded_uri.match /^([a-zA-Z0-9]*:(\/\/)?)(.*)/
+      if parts
+        prefix = parts[1]
+        @path = parts[3]
+        uri = URI(prefix + URI.encode(@path, URI_ENCODE_CHARS))
+      else
+        uri = URI(URI.encode @expanded_uri, URI_ENCODE_CHARS)
+        @path = uri.path
+      end
+
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
       raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
       raise ArgumentError, "mbox URI must have a path component" unless uri.path
       @f = nil
-      @path = uri.path
     else
       @f = uri_or_fp
       @path = uri_or_fp.path
-      @expanded_uri = "mbox://#{@path}"
+      @expanded_uri = "mbox://#{URI.encode @path, URI_ENCODE_CHARS}"
     end
 
     super uri_or_fp, usual, archived, id
@@ -107,7 +115,7 @@ class MBox < Source
   end
 
   def store_message date, from_email, &block
-    need_blank = File.exists?(@path) && !File.zero?(@path)
+    need_blank = File.exist?(@path) && !File.zero?(@path)
     File.open(@path, "ab") do |f|
       f.puts if need_blank
       f.puts "From #{from_email} #{date.asctime}"
@@ -172,7 +180,7 @@ class MBox < Source
     time = $1
     begin
       ## hack -- make Time.parse fail when trying to substitute values from Time.now
-      Time.parse time, 0
+      Time.parse time, Time.at(0)
       true
     rescue NoMethodError, ArgumentError
       warn "found invalid date in potential mbox split line, not splitting: #{l.inspect}"
