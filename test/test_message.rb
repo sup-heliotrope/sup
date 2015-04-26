@@ -196,7 +196,7 @@ class TestMessage < Minitest::Test
 
     # Look at another header field whose first line was blank.
     list_unsubscribe = sup_message.list_unsubscribe
-    assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>,\n\t" +
+    assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>, " +
                  "<mailto:monitor-list-request@widget.com?subject=unsubscribe>",
                  list_unsubscribe)
 
