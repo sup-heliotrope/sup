@@ -1,3 +1,7 @@
+==
+
+* Use mime-types 2
+
 == 0.21.0 / 2015-02-12
 
 * Key binding to fetch GPG key from keyserver (Matthieu Rakotojaona)
