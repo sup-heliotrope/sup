@@ -61,7 +61,7 @@ class DraftLoader < Source
   end
 
   def gen_offset
-    i = 0
+    i = @cur_offset
     while File.exist? fn_for_offset(i)
       i += 1
     end
