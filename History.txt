@@ -1,6 +1,8 @@
 ==
 
 * Use mime-types 2
+* Johannes Larsen: fix long-standing bug with draft-id mixups causing
+  drafts to disappear.
 
 == 0.21.0 / 2015-02-12
 
