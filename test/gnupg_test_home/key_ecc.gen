@@ -1,0 +1,13 @@
+ %echo Generating a standard key
+ Key-Type: eddsa
+ Key-Curve: Ed25519
+ Name-Real: Sup Test ECC
+ Name-Comment: Test ECC key
+ Name-Email: sup-test-ecc@foo.bar
+ Expire-Date: 1y
+ %no-protection
+ %pubring pubring.gpg
+ %secring secring.gpg
+ # Do a commit here, so that we can later print "done" :-)
+ %commit
+ %echo done

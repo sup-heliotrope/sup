@@ -1,0 +1,18 @@
+Return-path: <fake_sender@example.invalid>
+From: Fake Sender <fake_sender@example.invalid>
+To: Fake Receiver <fake_receiver@localhost>
+Envelope-to: fake_receiver@localhost
+Delivery-date: Sun, 09 Dec 2007 21:48:19 +0200
+Received: from fake_sender by localhost.localdomain with local (Exim 4.67)
+      (envelope-from <fake_sender@example.invalid>)
+      id 1J1S8R-0006lA-MJ
+      for fake_receiver@localhost; Sun, 09 Dec 2007 21:48:19 +0200
+Date: Sun, 9 Dec 2007 21:48:19 +0200
+Subject: Re: Test message subject
+Message-ID: <20071209194819.GA25972@example.invalid>
+References: <E1J1Rvb-0006k2-CE@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <E1J1Rvb-0006k2-CE@localhost.localdomain>
+User-Agent: Sup/0.3

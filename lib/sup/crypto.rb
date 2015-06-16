@@ -10,11 +10,11 @@ class CryptoManager
 
   class Error < StandardError; end
 
-  OUTGOING_MESSAGE_OPERATIONS = OrderedHash.new(
-    [:sign, "Sign"],
-    [:sign_and_encrypt, "Sign and encrypt"],
-    [:encrypt, "Encrypt only"]
-  )
+  OUTGOING_MESSAGE_OPERATIONS = {
+    sign: "Sign",
+    sign_and_encrypt: "Sign and encrypt",
+    encrypt: "Encrypt only"
+  }
 
   KEY_PATTERN = /(-----BEGIN PGP PUBLIC KEY BLOCK.*-----END PGP PUBLIC KEY BLOCK)/m
   KEYSERVER_URL = "http://pool.sks-keyservers.net:11371/pks/lookup"
@@ -467,6 +467,7 @@ private
     when GPGME::PK_DSA then "DSA "
     when GPGME::PK_ELG then "ElGamel "
     when GPGME::PK_ELG_E then "ElGamel "
+    else "unknown key type (#{subkey.pubkey_algo}) "
     end
   end
 
@@ -475,7 +476,7 @@ private
   # elsif only one account,            then leave blank so gpg default will be user
   # else                                    set --local-user from_email_address
   # NOTE: multiple signers doesn't seem to work with gpgme (2.0.2, 1.0.8)
-  #       
+  #
   def gen_sign_user_opts from
     account = AccountManager.account_for from
     account ||= AccountManager.default_account

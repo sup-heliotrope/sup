@@ -1,5 +1,3 @@
-require 'rubygems'
-
 require 'ncursesw'
 
 Ncurses.initscr

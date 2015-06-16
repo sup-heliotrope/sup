@@ -940,9 +940,10 @@ private
         addressee_lines += format_person_list "   Bcc: ", m.bcc
       end
 
-      headers = OrderedHash.new
-      headers["Date"] = "#{m.date.to_message_nice_s} (#{m.date.to_nice_distance_s})"
-      headers["Subject"] = m.subj
+      headers = {
+        "Date" => "#{m.date.to_message_nice_s} (#{m.date.to_nice_distance_s})",
+        "Subject" => m.subj
+      }
 
       show_labels = @thread.labels - LabelManager::HIDDEN_RESERVED_LABELS
       unless show_labels.empty?

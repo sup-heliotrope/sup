@@ -10,15 +10,6 @@ require 'benchmark'
 require 'unicode'
 require 'fileutils'
 
-## time for some monkeypatching!
-class Symbol
-  unless method_defined? :to_proc
-    def to_proc
-      proc {  |obj, *args| obj.send(self, *args) }
-    end
-  end
-end
-
 class Lockfile
   def gen_lock_id
     Hash[
@@ -89,7 +80,7 @@ module RMail
     end
 
     def charset
-      if header.field?("content-type") && header.fetch("content-type") =~ /charset="?(.*?)"?(;|$)/i
+      if header.field?("content-type") && header.fetch("content-type") =~ /charset\s*=\s*"?(.*?)"?(;|$)/i
         $1
       end
     end
@@ -170,13 +161,6 @@ module RMail
   end
 end
 
-class Range
-  ## only valid for integer ranges (unless I guess it's exclusive)
-  def size
-    last - first + (exclude_end? ? 0 : 1)
-  end
-end
-
 class Module
   def bool_reader *args
     args.each { |sym| class_eval %{ def #{sym}?; @#{sym}; end } }
@@ -198,17 +182,6 @@ class Module
 end
 
 class Object
-  def ancestors
-    ret = []
-    klass = self.class
-
-    until klass == Object
-      ret << klass
-      klass = klass.superclass
-    end
-    ret
-  end
-
   ## "k combinator"
   def returning x; yield x; x; end
 
@@ -382,8 +355,6 @@ class String
 
   # Fix the damn string! make sure it is valid utf-8, then convert to
   # user encoding.
-  #
-  # Not Ruby 1.8 compatible
   def fix_encoding!
     # first try to encode to utf-8 from whatever current encoding
     encode!('UTF-8', :invalid => :replace, :undef => :replace)
@@ -406,8 +377,6 @@ class String
 
   # transcode the string if original encoding is know
   # fix if broken.
-  #
-  # Not Ruby 1.8 compatible
   def transcode to_encoding, from_encoding
     begin
       encode!(to_encoding, from_encoding, :invalid => :replace, :undef => :replace)
@@ -474,13 +443,6 @@ class String
     out = out.fix_encoding! # this should now be an utf-8 string of ascii
                            # compat chars.
   end
-
-  unless method_defined? :ascii_only?
-    def ascii_only?
-      size.times { |i| return false if self[i] & 128 != 0 }
-      return true
-    end
-  end
 end
 
 class Numeric
@@ -515,12 +477,6 @@ class Fixnum
       chr
     else
       "<#{self}>"
-    end
-  end
-
-  unless method_defined?(:ord)
-    def ord
-      self
     end
   end
 
@@ -605,10 +561,6 @@ module Enumerable
   def between startline, endline
     select { |l| true if l == startline .. l == endline }
   end
-end
-
-unless Object.const_defined? :Enumerator
-  Enumerator = Enumerable::Enumerator
 end
 
 class Array
@@ -704,32 +656,6 @@ class SavingHash
   end
 
   defer_all_other_method_calls_to :hash
-end
-
-class OrderedHash < Hash
-  alias_method :store, :[]=
-  alias_method :each_pair, :each
-  attr_reader :keys
-
-  def initialize *a
-    @keys = []
-    a.each { |k, v| self[k] = v }
-  end
-
-  def []= key, val
-    @keys << key unless member?(key)
-    super
-  end
-
-  def values; keys.map { |k| self[k] } end
-  def index key; @keys.index key end
-
-  def delete key
-    @keys.delete key
-    super
-  end
-
-  def each; @keys.each { |k| yield k, self[k] } end
 end
 
 ## easy thread-safe class for determining who's the "winner" in a race (i.e.

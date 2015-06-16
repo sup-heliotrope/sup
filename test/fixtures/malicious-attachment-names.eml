@@ -1,0 +1,55 @@
+From: Matthieu Rakotojaona <matthieu.rakotojaona@gmail.com>
+To: reply+0007a7cb7174d1d188fcd420fce83e0f68fe03fc7416cdae92cf0000000110ce4efd92a169ce033d18e1 <reply+0007a7cb7174d1d188fcd420fce83e0f68fe03fc7416cdae92cf0000000110ce4efd92a169ce033d18e1@reply.github.com>
+Subject: Re: [sup] Attachment saving and special characters in filenames (#378)
+In-reply-to: <sup-heliotrope/sup/issues/378@github.com>
+References: <sup-heliotrope/sup/issues/378@github.com>
+X-pgp-key: http://otokar.looc2011.eu/static/matthieu.rakotojaona.asc
+Date: Wed, 14 Jan 2015 22:13:37 +0100
+Message-Id: <1421269972-sup-5245@kpad>
+User-Agent: Sup/git
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="=-1421270017-526778-1064-1628-1-="
+
+
+--=-1421270017-526778-1064-1628-1-=
+Content-Type: text/plain; charset=UTF-8
+Content-Disposition: inline
+
+Excerpts from Felix Kaiser's message of 2015-01-14 16:36:29 +0100:
+> When saving attachments, sup should replace special characters when suggesting a filename to save the attachment to.
+>
+> I just got an attachment with a name like "foo/2.pdf". sup suggests saving it to /home/fxkr/foo/2.pdf (and fails to save it, of course, if /home/fxkr/foo isn't a directory).
+>
+> I haven't tested the "Save All" feature, but I hope nothing bad happens when there's an attachment called "../../../../../../../home/fxkr/.bashrc" ;-)
+>
+> ---
+> Reply to this email directly or view it on GitHub:
+> https://github.com/sup-heliotrope/sup/issues/378
+
+For tests, here's an email with an attachment filename set to
+sup/.travis.yml (really, this time)
+
+--
+Matthieu Rakotojaona
+
+--=-1421270017-526778-1064-1628-1-=
+Content-Disposition: attachment; filename="sup/.travis.yml"
+Content-Type: text/x-yaml; name="sup/.travis.yml"
+Content-Transfer-Encoding: 8bit
+
+language: ruby
+
+rvm:
+  - 2.1.1
+  - 2.0.0
+  - 1.9.3
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq uuid-dev uuid libncursesw5-dev libncursesw5 gnupg2 pandoc
+  - git submodule update --init --recursive
+
+script: bundle exec rake travis
+
+--=-1421270017-526778-1064-1628-1-=--
