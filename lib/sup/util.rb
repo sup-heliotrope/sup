@@ -252,7 +252,9 @@ class String
 
   def slice_by_display_length len
     each_char.each_with_object "" do |c, buffer|
-      len -= c.display_length
+      width = Unicode.width(c, false)
+      width = 1 if width < 0
+      len -= width
       return buffer if len < 0
       buffer << c
     end
