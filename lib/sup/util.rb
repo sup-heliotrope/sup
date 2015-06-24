@@ -253,7 +253,8 @@ class String
   def slice_by_display_length len
     each_char.each_with_object "" do |c, buffer|
       len -= c.display_length
-      buffer << c if len >= 0
+      return buffer if len < 0
+      buffer << c
     end
   end
 
