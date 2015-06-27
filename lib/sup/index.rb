@@ -528,7 +528,11 @@ EOS
 
     debug "parsed xapian query: #{Util::Query.describe(xapian_query, subs)}"
 
-    raise ParseError if xapian_query.nil? or xapian_query.empty?
+    if xapian_query.nil? or xapian_query.empty?
+      raise ParseError, "couldn't parse \"#{s}\" as xapian query " \
+                        "(special characters aren't indexed)"
+    end
+
     query[:qobj] = xapian_query
     query[:text] = s
     query
