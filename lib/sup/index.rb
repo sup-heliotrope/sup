@@ -516,12 +516,21 @@ EOS
     qp.stemmer = Xapian::Stem.new($config[:stem_language])
     qp.stemming_strategy = Xapian::QueryParser::STEM_SOME
     qp.default_op = Xapian::Query::OP_AND
-    qp.add_valuerangeprocessor(Xapian::NumberValueRangeProcessor.new(DATE_VALUENO, 'date:', true))
-    NORMAL_PREFIX.each { |k,info| info[:prefix].each { |v| qp.add_prefix k, v } }
-    BOOLEAN_PREFIX.each { |k,info| info[:prefix].each { |v| qp.add_boolean_prefix k, v, info[:exclusive] } }
+    valuerangeprocessor = Xapian::NumberValueRangeProcessor.new(DATE_VALUENO,
+                                                                'date:', true)
+    qp.add_valuerangeprocessor(valuerangeprocessor)
+    NORMAL_PREFIX.each { |k,info| info[:prefix].each {
+      |v| qp.add_prefix k, v }
+    }
+    BOOLEAN_PREFIX.each { |k,info| info[:prefix].each {
+      |v| qp.add_boolean_prefix k, v, info[:exclusive] }
+    }
 
     begin
-      xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE|Xapian::QueryParser::FLAG_BOOLEAN|Xapian::QueryParser::FLAG_LOVEHATE|Xapian::QueryParser::FLAG_WILDCARD)
+      xapian_query = qp.parse_query(subs, Xapian::QueryParser::FLAG_PHRASE   |
+                                          Xapian::QueryParser::FLAG_BOOLEAN  |
+                                          Xapian::QueryParser::FLAG_LOVEHATE |
+                                          Xapian::QueryParser::FLAG_WILDCARD)
     rescue RuntimeError => e
       raise ParseError, "xapian query parser error: #{e}"
     end
