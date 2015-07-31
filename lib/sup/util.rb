@@ -464,13 +464,13 @@ class Numeric
 
   def to_human_size
     if self < 1024
-      to_s + "b"
+      to_s + "B"
     elsif self < (1024 * 1024)
-      (self / 1024).to_s + "k"
+      (self / 1024).to_s + "KiB"
     elsif self < (1024 * 1024 * 1024)
-      (self / 1024 / 1024).to_s + "m"
+      (self / 1024 / 1024).to_s + "MiB"
     else
-      (self / 1024 / 1024 / 1024).to_s + "g"
+      (self / 1024 / 1024 / 1024).to_s + "GiB"
     end
   end
 end
