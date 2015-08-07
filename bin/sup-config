@@ -5,6 +5,7 @@ $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 require 'highline/import'
 require 'trollop'
 require "sup"
+require 'sup/util/axe'
 
 $opts = Trollop::options do
   version "sup-config (sup #{Redwood::VERSION})"
@@ -17,20 +18,6 @@ Usage:
 
 No options.
 EOS
-end
-
-def axe q, default=nil
-  question = if default && !default.empty?
-               "#{q} (enter for \"#{default}\"): "
-             else
-               "#{q}: "
-             end
-  ans = ask question
-  ans.empty? ? default : ans.to_s
-end
-
-def axe_yes q, default="n"
-  axe(q, default) =~ /^y|yes$/i
 end
 
 def build_cmd cmd
