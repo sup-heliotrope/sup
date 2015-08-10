@@ -3,11 +3,11 @@
 
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
-require 'rubygems'
 require 'ncursesw'
 
 require 'sup/util/ncurses'
 require 'sup/util/locale_fiddler'
+require 'sup/util/axe'
 
 no_gpgme = false
 begin
@@ -42,7 +42,7 @@ if Dir.exist?((old_sup_dir = File.join(ENV["HOME"], ".sup"))) && !ENV['SUP_BASE'
   FileUtils.mkdir_p xdg_data_dir
 
   FileUtils.cd old_sup_dir do
-    config_files = Dir.entries(old_sup_dir).select do |file| 
+    config_files = Dir.entries(old_sup_dir).select do |file|
       file =~ /(config|sources|colors)\.?\w*\.yaml(.bak)?/i
     end
 
@@ -51,7 +51,13 @@ if Dir.exist?((old_sup_dir = File.join(ENV["HOME"], ".sup"))) && !ENV['SUP_BASE'
     FileUtils.mv Dir.glob("*"), xdg_data_dir
   end
   FileUtils.remove_dir old_sup_dir
+
+  if axe_yes("sup has moved configuration files, xapian index and all contents of ~/.sup to the default XDG directories, do you need to make any manual changes?", "y")
+    exit
+  end
+
 end
+
 require 'sup'
 
 if ENV['SUP_PROFILE']

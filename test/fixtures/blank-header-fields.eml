@@ -1,0 +1,71 @@
+Return-Path: <monitor-list-bounces@widget.com>
+X-Original-To: nobody@localhost
+Delivered-To: nobody@localhost.eng.widget.com
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by soquel.eng.widget.com (Postfix) with ESMTP id 609BC13C0DB1
+	for <nobody@localhost>; Thu, 19 Mar 2009 13:43:21 -0700 (PDT)
+MIME-Version: 1.0
+Received: from pa-excas-vip.widget.com [10.16.67.200]
+	by localhost with IMAP (fetchmail-6.2.5)
+	for nobody@localhost (single-drop); Thu, 19 Mar 2009 13:43:21 -0700 (PDT)
+Received: from pa-exht01.widget.com (10.113.81.167) by pa-excaht11.widget.com
+ (10.113.81.197) with Microsoft SMTP Server (TLS) id 8.1.311.2; Thu, 19 Mar
+ 2009 13:42:30 -0700
+Received: from mailman2.widget.com (10.16.64.159) by pa-exht01.widget.com
+ (10.113.81.167) with Microsoft SMTP Server id 8.1.336.0; Thu, 19 Mar 2009
+ 13:42:30 -0700
+Received: by mailman2.widget.com (Postfix)	id 47095AE30856; Thu, 19 Mar 2009
+ 13:42:29 -0700 (PDT)
+Received: from countchocula.widget.com (localhost.localdomain [127.0.0.1])	by
+ mailman2.widget.com (Postfix) with ESMTP id 5F782ABC5948;	Thu, 19 Mar 2009
+ 13:42:28 -0700 (PDT)
+Received: from mailhost4.widget.com (mailhost4.widget.com [10.16.67.124])	by
+ mailman2.widget.com (Postfix) with ESMTP id 6CDCCABC5948	for
+ <monitor-list@mailman2.widget.com>;	Thu, 19 Mar 2009 13:42:26 -0700 (PDT)
+Received: by mailhost4.widget.com (Postfix)	id 2364AC9AC4; Thu, 19 Mar 2009
+ 13:42:26 -0700 (PDT)
+Received: from pa-exht01.widget.com (pa-exht01.widget.com [10.113.81.167])	by
+ mailhost4.widget.com (Postfix) with ESMTP id 17A68C9AC3	for
+ <monitor-list@widget.com>; Thu, 19 Mar 2009 13:42:26 -0700 (PDT)
+Received: from PA-EXMBX04.widget.com ([10.113.81.142]) by pa-exht01.widget.com
+	([10.113.81.167]) with mapi; Thu, 19 Mar 2009 13:42:26 -0700
+From: Some User <someuser@widget.com>
+To: "monitor-list@widget.com" <monitor-list@widget.com>
+Sender: "monitor-list-bounces@widget.com" <monitor-list-bounces@widget.com>
+Date: Thu, 19 Mar 2009 13:42:25 -0700
+Subject: Looking for a mac
+Thread-Topic: Looking for a mac
+Thread-Index: AQHJqNM1xIqqjNRWuUCUBaxzPFK5eQ==
+Message-ID:
+ <D3C12B2AD838B44DA9D6B2CA334246D011E72A73A4@PA-EXMBX04.widget.com>
+List-Help: <mailto:monitor-list-request@widget.com?subject=help>
+List-Subscribe: <http://mailman2.widget.com/mailman/listinfo/monitor-list>,
+	<mailto:monitor-list-request@widget.com?subject=subscribe>
+List-Unsubscribe:
+ <http://mailman2.widget.com/mailman/listinfo/monitor-list>,
+	<mailto:monitor-list-request@widget.com?subject=unsubscribe>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: pa-exht01.widget.com
+X-MS-Has-Attach:
+X-Auto-Response-Suppress: All
+X-MS-TNEF-Correlator:
+acceptlanguage: en-US
+delivered-to: monitor-list@widget.com
+errors-to: monitor-list-bounces@widget.com
+list-id: engineering monitor related <monitor-list.widget.com>
+x-mailman-version: 2.1.8
+x-beenthere: monitor-list@widget.com
+x-original-to: monitor-list@mailman2.widget.com
+list-post: <mailto:monitor-list@widget.com>
+list-archive: <http://mailman2.widget.com/pipermail/monitor-list>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+Hi all,
+
+		Just wondering if anybody can lend me a mac to reproduce PR 384931 ?
+		Thanks.
+
+Michael=

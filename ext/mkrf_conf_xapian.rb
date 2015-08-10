@@ -16,7 +16,7 @@ begin
   if !RbConfig::CONFIG['arch'].include?('openbsd')
     # update version in Gemfile as well
     name    = "xapian-ruby"
-    version = "~> 1.2.15"
+    version = "~> 1.2"
 
     begin
       # try to load gem

@@ -2,7 +2,6 @@
 
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
-require 'rubygems'
 require 'trollop'
 require "sup"
 
@@ -83,7 +82,7 @@ begin
     ## query to only messages with those labels
     query += " (" + remove_labels.map { |l| "label:#{l}" }.join(" OR ") + ")"
   end
-  query += ' ' + opts[:query] if opts[:query]
+  query += ' AND ' + opts[:query] if opts[:query]
 
   parsed_query = index.parse_query query
   parsed_query.merge! :load_spam => true, :load_deleted => true, :load_killed => true

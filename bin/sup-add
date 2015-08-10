@@ -3,7 +3,6 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'uri'
-require 'rubygems'
 require 'highline/import'
 require 'trollop'
 require "sup"
@@ -95,7 +94,7 @@ begin
       next
     end
 
-    parsed_uri = URI(uri)
+    parsed_uri = URI(URI.escape(uri))
 
     source =
       case parsed_uri.scheme

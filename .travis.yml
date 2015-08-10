@@ -1,13 +1,16 @@
 language: ruby
 
 rvm:
-  - 2.1.1
-  - 2.0.0
-  - 2.2.0
+  - 2.0
+  - 2.1
+  - 2.2
 
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq uuid-dev uuid libncursesw5-dev libncursesw5 gnupg2 pandoc
   - git submodule update --init --recursive
 
-script: bundle exec rake travis
+script:
+  - bundle exec rake travis
+  - bundle exec gem install pkg/sup-*.gem
+

@@ -1,4 +1,3 @@
-require 'rubygems'
 require 'rake/testtask'
 require "bundler/gem_tasks"
 

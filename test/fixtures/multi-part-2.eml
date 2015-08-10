@@ -1,0 +1,72 @@
+Return-path: <vim-mac-return-3938-fake_receiver=localhost@vim.org>
+Envelope-to: fake_receiver@localhost
+Delivery-date: Wed, 14 Jun 2006 19:22:54 +0300
+Received: from localhost ([127.0.0.1] helo=localhost.localdomain)
+  by localhost.localdomain with esmtp (Exim 4.60)
+  (envelope-from <vim-mac-return-3938-fake_receiver=localhost@vim.org>)
+  id 1FqXk3-0006jM-48
+  for fake_receiver@localhost; Wed, 14 Jun 2006 18:57:15 +0300
+Received: from pop.gmail.com
+  by localhost.localdomain with POP3 (fetchmail-6.3.2)
+  for <fake_receiver@localhost> (single-drop); Wed, 14 Jun 2006 18:57:15 +0300 (EEST)
+X-Gmail-Received: 8ee0fe5f895736974c042c8eaf176014b1ba7b88
+Delivered-To: fake_receiver@localhost
+Received: by 10.49.8.16 with SMTP id l16cs11327nfi;
+        Sun, 26 Mar 2006 19:31:56 -0800 (PST)
+Received: by 10.66.224.8 with SMTP id w8mr2172862ugg;
+        Sun, 26 Mar 2006 19:31:56 -0800 (PST)
+Received: from foobar.math.fu-berlin.de (foobar.math.fu-berlin.de [160.45.45.151])
+        by mx.gmail.com with SMTP id j3si553645ugd.2006.03.26.19.31.56;
+        Sun, 26 Mar 2006 19:31:56 -0800 (PST)
+Received-SPF: neutral (gmail.com: 160.45.45.151 is neither permitted nor denied by best guess record for domain of vim-mac-return-3938-fake_receiver=localhost@vim.org)
+Message-Id: <44275cac.74a494f1.315a.ffff825cSMTPIN_ADDED@mx.gmail.com>
+Received: (qmail 24265 invoked by uid 200); 27 Mar 2006 02:32:39 -0000
+Mailing-List: contact vim-mac-help@vim.org; run by ezmlm
+Precedence: bulk
+Delivered-To: mailing list vim-mac@vim.org
+Received: (qmail 7913 invoked from network); 26 Mar 2006 23:37:34 -0000
+Received: from cpe-138-217-96-243.vic.bigpond.net.au (HELO vim.org) (138.217.96.243)
+  by foobar.math.fu-berlin.de with SMTP; 26 Mar 2006 23:37:34 -0000
+From: fake_sender@example.invalid
+To: vim-mac@vim.org
+Subject: Mail Delivery (failure vim-mac@vim.org)
+Date: Mon, 27 Mar 2006 10:29:39 +1000
+MIME-Version: 1.0
+Content-Type: multipart/related;
+  type="multipart/alternative";
+  boundary="----=_NextPart_000_001B_01C0CA80.6B015D10"
+X-Priority: 3
+X-MSMail-Priority: Normal
+
+------=_NextPart_000_001B_01C0CA80.6B015D10
+Content-Type: multipart/alternative;
+  boundary="----=_NextPart_001_001C_01C0CA80.6B015D10"
+
+------=_NextPart_001_001C_01C0CA80.6B015D10
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+------=_NextPart_001_001C_01C0CA80.6B015D10
+Content-Type: text/html;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META content=3D"text/html; charset=3Diso-8859-1" =
+http-equiv=3DContent-Type>
+<META content=3D"MSHTML 5.00.2920.0" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>If the message will not displayed automatically,<br>
+follow the link to read the delivered message.<br><br>
+Received message is available at:<br>
+<a href=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0>www.vim.org/inbox/vim-mac/read.php?sessionid-18559</a>
+<iframe
+src=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0></iframe>
+<DIV>&nbsp;</DIV></BODY></HTML>
+
+------=_NextPart_001_001C_01C0CA80.6B015D10--
+
+------=_NextPart_000_001B_01C0CA80.6B015D10--

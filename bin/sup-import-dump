@@ -3,7 +3,6 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'uri'
-require 'rubygems'
 require 'trollop'
 require "sup"
 
@@ -82,7 +81,7 @@ begin
     next if opts[:dry_run]
 
     m.labels = new_labels
-    index.update_message_state m
+    index.update_message_state [m, false]
   end
 
   index.commit_transaction if opts[:atomic]
