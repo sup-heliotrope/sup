@@ -696,7 +696,7 @@ EOS
     @ts.threads.each { |th| th.labels.each { |l| LabelManager << l } }
 
     update
-    BufferManager.clear @mbid
+    BufferManager.clear @mbid if @mbid
     @mbid = nil
     BufferManager.draw_screen
     @ts.size - orig_size
