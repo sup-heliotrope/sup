@@ -1,4 +1,5 @@
-require 'highline/import'
+require 'highline'
+@cli = HighLine.new
 
 def axe q, default=nil
   question = if default && !default.empty?
@@ -6,7 +7,7 @@ def axe q, default=nil
              else
                "#{q}: "
              end
-  ans = ask question
+  ans = @cli.ask question
   ans.empty? ? default : ans.to_s
 end
 
