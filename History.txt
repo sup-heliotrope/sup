@@ -1,9 +1,5 @@
 ==
 
-* Zeger-Jan van de Weg: Moved .sup to XDG compliant folders like
-  XDG_DATA_DIR and XDG_CONFIG_DIR. The move should be completely
-  automatic unless you have a setup based on non-sup files in .sup.
-
 * Update xapian dependency to 1.2
 
 == 0.22.1 / 2015-06-18
