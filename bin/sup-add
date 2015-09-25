@@ -76,7 +76,7 @@ def get_login_info uri, sources
   [username, password]
 end
 
-$terminal.wrap_at = :auto
+@cli.wrap_at = :auto
 Redwood::start
 index = Redwood::Index.init
 index.load
