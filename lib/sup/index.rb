@@ -57,7 +57,7 @@ EOS
 
   include Redwood::Singleton
 
-  def initialize dir=DATA_DIR
+  def initialize dir=BASE_DIR
     @dir = dir
     FileUtils.mkdir_p @dir
     @lock = Lockfile.new lockfile, :retries => 0, :max_age => nil

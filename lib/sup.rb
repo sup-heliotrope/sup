@@ -45,36 +45,20 @@ class Module
 end
 
 module Redwood
-  if ENV['SUP_BASE']
-    CONFIG_DIR = ENV['SUP_BASE']
-    DATA_DIR = ENV['SUP_BASE']
-  else
-   CONFIG_DIR = if ENV['XDG_CONFIG_HOME'] 
-		  File.join(ENV['XDG_CONFIG_DIR'], "sup")
-		else
-		  File.join(ENV['HOME'], ".config/sup")
-		end
-   DATA_DIR = 	if ENV['XDG_DATA_HOME']
-		  File.join(['XDG_DATA_HOME'], "sup")
-		else
-		  File.join(ENV['HOME'], ".local/share/sup")
-		end
-  end
-
-  CONFIG_FN  = File.join(CONFIG_DIR, "config.yaml")
-  COLOR_FN   = File.join(CONFIG_DIR, "colors.yaml")
-  SOURCE_FN  = File.join(CONFIG_DIR, "sources.yaml")
-
-  LABEL_FN   = File.join(DATA_DIR, "labels.txt")
-  CONTACT_FN = File.join(DATA_DIR, "contacts.txt")
-  DRAFT_DIR  = File.join(DATA_DIR, "drafts")
-  SENT_FN    = File.join(DATA_DIR, "sent.mbox")
-  LOCK_FN    = File.join(DATA_DIR, "lock")
-  SUICIDE_FN = File.join(DATA_DIR, "please-kill-yourself")
-  HOOK_DIR   = File.join(DATA_DIR, "hooks")
-  SEARCH_FN  = File.join(DATA_DIR, "searches.txt")
-  LOG_FN     = File.join(DATA_DIR, "log")
-  SYNC_OK_FN = File.join(DATA_DIR, "sync-back-ok")
+  BASE_DIR   = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
+  CONFIG_FN  = File.join(BASE_DIR, "config.yaml")
+  COLOR_FN   = File.join(BASE_DIR, "colors.yaml")
+  SOURCE_FN  = File.join(BASE_DIR, "sources.yaml")
+  LABEL_FN   = File.join(BASE_DIR, "labels.txt")
+  CONTACT_FN = File.join(BASE_DIR, "contacts.txt")
+  DRAFT_DIR  = File.join(BASE_DIR, "drafts")
+  SENT_FN    = File.join(BASE_DIR, "sent.mbox")
+  LOCK_FN    = File.join(BASE_DIR, "lock")
+  SUICIDE_FN = File.join(BASE_DIR, "please-kill-yourself")
+  HOOK_DIR   = File.join(BASE_DIR, "hooks")
+  SEARCH_FN  = File.join(BASE_DIR, "searches.txt")
+  LOG_FN     = File.join(BASE_DIR, "log")
+  SYNC_OK_FN = File.join(BASE_DIR, "sync-back-ok")
 
   YAML_DOMAIN = "supmua.org"
   LEGACY_YAML_DOMAIN = "masanjin.net"
@@ -178,9 +162,7 @@ module Redwood
   def start bypass_sync_check = false
     managers.each { |x| fail "#{x} already instantiated" if x.instantiated? }
 
-    FileUtils.mkdir_p Redwood::CONFIG_DIR
-    FileUtils.mkdir_p Redwood::DATA_DIR
-
+    FileUtils.mkdir_p Redwood::BASE_DIR
     $config = load_config Redwood::CONFIG_FN
     @log_io = File.open(Redwood::LOG_FN, 'a')
     Redwood::Logger.add_sink @log_io
