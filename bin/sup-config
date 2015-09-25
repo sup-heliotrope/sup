@@ -103,7 +103,7 @@ def add_source
   end
 end
 
-$terminal.wrap_at = :auto
+@cli.wrap_at = :auto
 Redwood::start
 index = Redwood::Index.init
 Redwood::SourceManager.load_sources
