@@ -50,12 +50,12 @@ module Redwood
     DATA_DIR = ENV['SUP_BASE']
   else
    CONFIG_DIR = if ENV['XDG_CONFIG_HOME'] 
-		  File.join(ENV['XDG_CONFIG_HOME'], "sup")
+		  File.join(ENV['XDG_CONFIG_DIR'], "sup")
 		else
 		  File.join(ENV['HOME'], ".config/sup")
 		end
    DATA_DIR = 	if ENV['XDG_DATA_HOME']
-		  File.join(ENV['XDG_DATA_HOME'], "sup")
+		  File.join(['XDG_DATA_HOME'], "sup")
 		else
 		  File.join(ENV['HOME'], ".local/share/sup")
 		end
