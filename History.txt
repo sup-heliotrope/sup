@@ -1,6 +1,10 @@
 ==
 
 * Update xapian dependency to 1.2
+* Antoni Kaniowski: INDENT_SPACES are now configurable via config.yaml
+* Sharif Olorin: Use standard unit abbreviations for attachment sizes
+* Vickenty Fesunov: Optimize text rendering
+* Various bug fixes
 
 == 0.22.1 / 2015-06-18
 
