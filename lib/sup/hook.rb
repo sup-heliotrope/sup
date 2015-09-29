@@ -109,20 +109,20 @@ class HookManager
     @descs[name] = desc
   end
 
-  def print_hooks f=$stdout
-puts <<EOS
-Have #{HookManager.descs.size} registered hooks:
-
-EOS
-
-    HookManager.descs.sort.each do |name, desc|
-      f.puts <<EOS
+  def print_hooks pattern="", f=$stdout
+    matching_hooks = HookManager.descs.sort.keep_if {|name, desc| pattern.empty? or name.match(pattern)}.map do |name, desc|
+      <<EOS
 #{name}
 #{"-" * name.length}
 File: #{fn_for name}
 #{desc}
 EOS
     end
+
+    showing_str = matching_hooks.size == HookManager.descs.size ? "" : " (showing #{matching_hooks.size})"
+    f.puts "Have #{HookManager.descs.size} registered hooks#{showing_str}:"
+    f.puts
+    matching_hooks.each { |text| f.puts text }
   end
 
   def enabled? name; !hook_for(name).nil? end
