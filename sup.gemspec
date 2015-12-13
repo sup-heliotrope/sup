@@ -51,7 +51,7 @@ SUP: please note that our old mailing lists have been shut down,
   ## ext/mkrf_conf_xapian.rb and Gemfile.
 
   s.add_runtime_dependency "ncursesw", "~> 1.4.0"
-  s.add_runtime_dependency "rmail-sup", "~> 1.0.1"
+  s.add_runtime_dependency "rmail", "~> 1.1"
   s.add_runtime_dependency "highline"
   s.add_runtime_dependency "trollop", ">= 1.12"
   s.add_runtime_dependency "lockfile"

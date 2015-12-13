@@ -331,6 +331,7 @@ EOM
       :poll_interval => 300,
       :wrap_width => 0,
       :slip_rows => 0,
+      :indent_spaces => 2,
       :col_jump => 2,
       :stem_language => "english",
       :sync_back_to_maildir => false,

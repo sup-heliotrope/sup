@@ -7,6 +7,7 @@ require 'ncursesw'
 
 require 'sup/util/ncurses'
 require 'sup/util/locale_fiddler'
+require 'sup/util/axe'
 
 no_gpgme = false
 begin
@@ -38,7 +39,8 @@ Usage:
 
 Options are:
 EOS
-  opt :list_hooks, "List all hooks and descriptions, and quit."
+  opt :list_hooks, "List all hooks and descriptions, and quit. Use --hooks-matching to filter."
+  opt :hooks_matching, "If given, list all hooks and descriptions matching the given pattern. Needs the --list-hooks option", short: "m", default: ""
   opt :no_threads, "Turn off threading. Helps with debugging. (Necessarily disables background polling for new messages.)"
   opt :no_initial_poll, "Don't poll for new messages when starting."
   opt :search, "Search for this query upon startup", :type => String
@@ -64,7 +66,7 @@ EOS
 
 if $opts[:list_hooks]
   Redwood.start
-  Redwood::HookManager.print_hooks
+  Redwood::HookManager.print_hooks $opts[:hooks_matching]
   exit
 end
 

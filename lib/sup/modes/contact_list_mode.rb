@@ -108,6 +108,7 @@ class ContactListMode < LineCursorMode
   def load
     @num ||= (buffer.content_height * 2)
     @user_contacts = ContactManager.contacts_with_aliases
+    @user_contacts += (HookManager.run("extra-contact-addresses") || []).map { |addr| Person.from_address addr }
     num = [@num - @user_contacts.length, 0].max
     BufferManager.say("Loading #{num} contacts from index...") do
       recentc = Index.load_contacts AccountManager.user_emails, :num => num

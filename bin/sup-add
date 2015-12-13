@@ -3,9 +3,9 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'uri'
-require 'highline/import'
 require 'trollop'
 require "sup"
+require 'sup/utils/axe'
 
 $opts = Trollop::options do
   version "sup-add (sup #{Redwood::VERSION})"
@@ -53,10 +53,10 @@ def get_login_info uri, sources
     if $opts[:force_account]
       host, username, password = accounts.find { |h, u, p| $opts[:force_account] == "#{u}@#{h}" }
       unless username && password
-        say "No previous account #{$opts[:force_account].inspect} found."
+        @cli.say "No previous account #{$opts[:force_account].inspect} found."
       end
     else
-      say "Would you like to use the same account as for a previous source for #{uri}?"
+      @cli.say "Would you like to use the same account as for a previous source for #{uri}?"
       choose do |menu|
         accounts.each do |host, olduser, oldpw|
           menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
@@ -68,15 +68,15 @@ def get_login_info uri, sources
   end
 
   unless username && password
-    username = ask("Username for #{uri.host}: ");
-    password = ask("Password for #{uri.host}: ") { |q| q.echo = false }
+    username = @cli.ask("Username for #{uri.host}: ");
+    password = @cli.ask("Password for #{uri.host}: ") { |q| q.echo = false }
     puts # why?
   end
 
   [username, password]
 end
 
-$terminal.wrap_at = :auto
+@cli.wrap_at = :auto
 Redwood::start
 index = Redwood::Index.init
 index.load
@@ -90,7 +90,7 @@ begin
     labels = $opts[:labels] ? $opts[:labels].split(/\s*,\s*/).uniq : []
 
     if !$opts[:force_new] && Redwood::SourceManager.source_for(uri)
-      say "Already know about #{uri}; skipping."
+      @cli.say "Already know about #{uri}; skipping."
       next
     end
 
@@ -107,7 +107,7 @@ begin
       else
         Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"
       end
-    say "Adding #{source}..."
+    @cli.say "Adding #{source}..."
     Redwood::SourceManager.add_source source
   end
 ensure

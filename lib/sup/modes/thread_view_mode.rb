@@ -10,8 +10,6 @@ class ThreadViewMode < LineCursorMode
     attr_accessor :state
   end
 
-  INDENT_SPACES = 2 # how many spaces to indent child messages
-
   HookManager.register "detailed-headers", <<EOS
 Add or remove headers from the detailed header display of a message.
 Variables:
@@ -127,6 +125,7 @@ EOS
   ## objects. @person_lines is a map from row #s to Person objects.
 
   def initialize thread, hidden_labels=[], index_mode=nil
+    @indent_spaces = $config[:indent_spaces]
     super :slip_rows => $config[:slip_rows]
     @thread = thread
     @hidden_labels = hidden_labels
@@ -561,7 +560,7 @@ EOS
     l = @layout[m]
 
     ## boundaries of the message
-    message_left = l.depth * INDENT_SPACES
+    message_left = l.depth * @indent_spaces
     message_right = message_left + l.width
 
     ## calculate leftmost colum
@@ -886,7 +885,7 @@ private
           (0 ... text.length).each do |i|
             @chunk_lines[@text.length + i] = c
             @message_lines[@text.length + i] = m
-            lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.display_length }.sum - (depth * INDENT_SPACES)
+            lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.display_length }.sum - (depth * @indent_spaces)
             l.width = lw if lw > l.width
           end
           @text += text
@@ -991,7 +990,7 @@ private
 
   ## todo: check arguments on this overly complex function
   def chunk_to_lines chunk, state, start, depth, parent=nil, color=nil, star_color=nil
-    prefix = " " * INDENT_SPACES * depth
+    prefix = " " * @indent_spaces * depth
     case chunk
     when :fake_root
       [[[:missing_message_color, "#{prefix}<one or more unreceived messages>"]]]

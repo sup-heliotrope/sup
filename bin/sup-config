@@ -2,9 +2,9 @@
 
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
-require 'highline/import'
 require 'trollop'
 require "sup"
+require 'sup/util/axe'
 
 $opts = Trollop::options do
   version "sup-config (sup #{Redwood::VERSION})"
@@ -19,20 +19,6 @@ No options.
 EOS
 end
 
-def axe q, default=nil
-  question = if default && !default.empty?
-               "#{q} (enter for \"#{default}\"): "
-             else
-               "#{q}: "
-             end
-  ans = ask question
-  ans.empty? ? default : ans.to_s
-end
-
-def axe_yes q, default="n"
-  axe(q, default) =~ /^y|yes$/i
-end
-
 def build_cmd cmd
   (ENV["RUBY_INVOCATION"] ? ENV["RUBY_INVOCATION"] + " " : "") + File.join(File.dirname($0), cmd)
 end
@@ -42,7 +28,7 @@ def add_source
 
   type = nil
 
-  say "Ok, adding a new source."
+  @cli.say "Ok, adding a new source."
   choose do |menu|
     menu.prompt = "What type of mail source is it? "
     menu.choice("mbox file") { type = :mbox }
@@ -51,7 +37,7 @@ def add_source
   end
 
   while true do
-    say "Ok, now for the details."
+    @cli.say "Ok, now for the details."
 
     default_labels, components = case type
     when :mbox
@@ -75,11 +61,11 @@ def add_source
     uri = begin
       Redwood::Util::Uri.build components
     rescue URI::Error => e
-      say "Whoopsie! I couldn't build a URI from that: #{e.message}"
+      @cli.say "Whoopsie! I couldn't build a URI from that: #{e.message}"
       if axe_yes("Try again?") then next else return end
     end
 
-    say "I'm going to add this source: #{uri}"
+    @cli.say "I'm going to add this source: #{uri}"
     unless axe("Does that look right?", "y") =~ /^y|yes$/i
       if axe_yes("Try again?") then next else return end
     end
@@ -108,21 +94,21 @@ def add_source
 
     system cmd
     if $?.success?
-      say "Great! Added!"
+      @cli.say "Great! Added!"
       break
     else
-      say "Rats, that failed. You may have to do it manually."
+      @cli.say "Rats, that failed. You may have to do it manually."
       if axe_yes("Try again?") then next else return end
     end
   end
 end
 
-$terminal.wrap_at = :auto
+@cli.wrap_at = :auto
 Redwood::start
 index = Redwood::Index.init
 Redwood::SourceManager.load_sources
 
-say <<EOS
+@cli.say <<EOS
 Howdy neighbor! This here's sup-config, ready to help you jack in to
 the next generation of digital cyberspace: the text-based email
 program. Get ready to be the envy of everyone in your internets
@@ -138,11 +124,11 @@ account = $config[:accounts][:default]
 name = axe "What's your name?", account[:name]
 email = axe "What's your (primary) email address?", account[:email]
 
-say "Ok, your from header will look like this:"
-say "  From: #{name} <#{email}>"
+@cli.say "Ok, your from header will look like this:"
+@cli.say "  From: #{name} <#{email}>"
 
-say "\nDo you have any alternate email addresses that also receive email?"
-say "If so, enter them now, separated by spaces."
+@cli.say "\nDo you have any alternate email addresses that also receive email?"
+@cli.say "If so, enter them now, separated by spaces."
 alts = axe("Alternate email addresses", account[:alternates].join(" ")).split(/\s+/)
 
 sigfn = axe "What file contains your signature?", account[:signature]
@@ -159,16 +145,16 @@ $config[:time_mode] = time_mode
 
 done = false
 until done
-  say "\nNow, we'll tell Sup where to find all your email."
+  @cli.say "\nNow, we'll tell Sup where to find all your email."
   Redwood::SourceManager.load_sources
-  say "Current sources:"
+  @cli.say "Current sources:"
   if Redwood::SourceManager.sources.empty?
-    say "  No sources!"
+    @cli.say "  No sources!"
   else
     Redwood::SourceManager.sources.each { |s| puts "* #{s}" }
   end
 
-  say "\n"
+  @cli.say "\n"
   choose do |menu|
     menu.prompt = "Your wish? "
     menu.choice("Add a new source.") { add_source }
@@ -176,12 +162,12 @@ until done
   end
 end
 
-say "\nSup needs to know where to store your sent messages."
-say "Only sources capable of storing mail will be listed.\n\n"
+@cli.say "\nSup needs to know where to store your sent messages."
+@cli.say "Only sources capable of storing mail will be listed.\n\n"
 
 Redwood::SourceManager.load_sources
 if Redwood::SourceManager.sources.empty?
-  say "\nUsing the default sup://sent, since you haven't configured other sources yet."
+  @cli.say "\nUsing the default sup://sent, since you haven't configured other sources yet."
   $config[:sent_source] = 'sup://sent'
 else
   # this handles the event that source.yaml already contains the SentLoader
@@ -202,9 +188,9 @@ end
 
 Redwood::save_yaml_obj $config, Redwood::CONFIG_FN, false, true
 
-say "Ok, I've saved you up a nice lil' #{Redwood::CONFIG_FN}."
+@cli.say "Ok, I've saved you up a nice lil' #{Redwood::CONFIG_FN}."
 
-say <<EOS
+@cli.say <<EOS
 
 The final step is to import all your messages into the Sup index.
 Depending on how many messages are in the sources, this could take
@@ -218,10 +204,10 @@ if axe_yes "Run sup-sync to import all messages now?"
     puts "Ok, trying to run \"#{cmd}\"..."
     system cmd
     if $?.success?
-      say "Great! It worked!"
+      @cli.say "Great! It worked!"
       break
     else
-      say "Rats, that failed. You may have to do it manually."
+      @cli.say "Rats, that failed. You may have to do it manually."
       if axe_yes("Try again?") then next else break end
     end
   end
@@ -229,7 +215,7 @@ end
 
 index.load
 
-say <<EOS
+@cli.say <<EOS
 
 Okee doke, you've got yourself an index of #{index.size} messages. Looks
 like you're ready to jack in to cyberspace there, cowboy.

@@ -36,6 +36,8 @@ Variables:
              [:#{REPLY_TYPES * ', :'}]
          The default behavior is equivalent to
              ([:list, :sender, :recipent] & modes)[0]
+  message: a message object representing the message being replied to
+    (useful values include message.is_list_message? and message.list_address)
 Return value:
   The reply mode you desire, or nil to use the default behavior.
 EOS
@@ -130,7 +132,7 @@ EOS
     types = REPLY_TYPES.select { |t| @headers.member?(t) }
     @type_selector = HorizontalSelector.new "Reply to:", types, types.map { |x| TYPE_DESCRIPTIONS[x] }
 
-    hook_reply = HookManager.run "reply-to", :modes => types
+    hook_reply = HookManager.run "reply-to", :modes => types, :message => @m
 
     @type_selector.set_to(
       if types.include? type_arg
