@@ -5,7 +5,7 @@ $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 require 'uri'
 require 'trollop'
 require "sup"
-require 'sup/utils/axe'
+require 'sup/util/axe'
 
 $opts = Trollop::options do
   version "sup-add (sup #{Redwood::VERSION})"
@@ -57,7 +57,7 @@ def get_login_info uri, sources
       end
     else
       @cli.say "Would you like to use the same account as for a previous source for #{uri}?"
-      choose do |menu|
+      @cli.choose do |menu|
         accounts.each do |host, olduser, oldpw|
           menu.choice("Use the account info for #{olduser}@#{host}") { username, password = olduser, oldpw }
         end

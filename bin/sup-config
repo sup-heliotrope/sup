@@ -29,7 +29,7 @@ def add_source
   type = nil
 
   @cli.say "Ok, adding a new source."
-  choose do |menu|
+  @cli.choose do |menu|
     menu.prompt = "What type of mail source is it? "
     menu.choice("mbox file") { type = :mbox }
     menu.choice("maildir directory") { type = :maildir }
@@ -155,7 +155,7 @@ until done
   end
 
   @cli.say "\n"
-  choose do |menu|
+  @cli.choose do |menu|
     menu.prompt = "Your wish? "
     menu.choice("Add a new source.") { add_source }
     menu.choice("Done adding sources!") { done = true }
@@ -174,7 +174,7 @@ else
   # source.
   have_sup_sent = false
 
-  choose do |menu|
+  @cli.choose do |menu|
     menu.prompt = "Store my sent mail in? "
 
     menu.choice('Default (an mbox in ~/.sup, aka sup://sent)') { $config[:sent_source] = 'sup://sent'} unless have_sup_sent
