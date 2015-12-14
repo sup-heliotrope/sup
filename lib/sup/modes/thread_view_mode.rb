@@ -52,6 +52,7 @@ EOS
     k.add :toggle_detailed_header, "Toggle detailed header", 'h'
     k.add :show_header, "Show full message header", 'H'
     k.add :show_message, "Show full message (raw form)", 'V'
+    k.add :reload, "Update message in thread", '@'
     k.add :activate_chunk, "Expand/collapse or activate item", :enter
     k.add :expand_all_messages, "Expand/collapse all messages", 'E'
     k.add :edit_draft, "Edit draft", 'e'
@@ -203,6 +204,11 @@ EOS
     m = @message_lines[curpos] or return
     @layout[m].state = (@layout[m].state == :detailed ? :open : :detailed)
     update
+  end
+  
+  def reload
+    regen_text
+    buffer.mark_dirty if buffer
   end
 
   def reply type_arg=nil
