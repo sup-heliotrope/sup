@@ -207,8 +207,7 @@ EOS
   end
   
   def reload
-    regen_text
-    buffer.mark_dirty if buffer
+    update
   end
 
   def reply type_arg=nil
