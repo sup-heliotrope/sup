@@ -1,7 +1,8 @@
 # Sup
 
-A console-based email client with the best features of GMail, mutt and
-Emacs.
+Sup is a console-based email client for people with a lot of email.
+
+<img src="http://supmua.org/images/old_screenshot_1.png" />
 
 ## Installation
 
