@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'tempfile'
 require 'socket' # just for gethostname!
 require 'pathname'
@@ -534,7 +535,11 @@ protected
         raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
       end
 
-      SentManager.write_sent_message(date, from_email) { |f| f.puts sanitize_body(m.to_s) }
+      ::Thread.new do
+        debug "store the sent message (locking sent source #{acct.sent_source.uri}...)"
+        acct.sent_source.store_message(date, from_email) { |f| f.puts sanitize_body(m.to_s) }
+        PollManager.poll_from acct.sent_source
+      end
       BufferManager.kill_buffer buffer
       BufferManager.flash "Message sent!"
       true

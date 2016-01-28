@@ -154,7 +154,7 @@ module Redwood
   end
 
   def managers
-    %w(HookManager SentManager ContactManager LabelManager AccountManager
+    %w(HookManager ContactManager LabelManager AccountManager
     DraftManager UpdateManager PollManager CryptoManager UndoManager
     SourceManager SearchManager IdleManager).map { |x| Redwood.const_get x.to_sym }
   end
@@ -167,7 +167,9 @@ module Redwood
     @log_io = File.open(Redwood::LOG_FN, 'a')
     Redwood::Logger.add_sink @log_io
     Redwood::HookManager.init Redwood::HOOK_DIR
-    Redwood::SentManager.init $config[:sent_source] || 'sup://sent'
+    Redwood::SourceManager.init
+    Redwood::SourceManager.load_sources
+    Redwood::SourceManager.sanitize_sources
     Redwood::ContactManager.init Redwood::CONTACT_FN
     Redwood::LabelManager.init Redwood::LABEL_FN
     Redwood::AccountManager.init $config[:accounts]
@@ -327,7 +329,6 @@ EOM
       :load_more_threads_when_scrolling => true,
       :default_attachment_save_dir => "",
       :sent_source => "sup://sent",
-      :archive_sent => true,
       :poll_interval => 300,
       :wrap_width => 0,
       :slip_rows => 0,

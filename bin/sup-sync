@@ -100,12 +100,6 @@ index.lock_interactively or exit
 begin
   index.load
 
-  if(s = Redwood::SourceManager.source_for Redwood::SentManager.source_uri)
-    Redwood::SentManager.source = s
-  else
-    Redwood::SourceManager.add_source Redwood::SentManager.default_source
-  end
-
   sources = if opts[:all_sources]
     Redwood::SourceManager.sources
   elsif ARGV.empty?

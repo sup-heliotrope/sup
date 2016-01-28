@@ -99,7 +99,6 @@ EOS
   end
 
   def load failsafe=false
-    SourceManager.load_sources
     load_index failsafe
   end
 

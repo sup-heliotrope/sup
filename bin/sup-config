@@ -106,7 +106,6 @@ end
 @cli.wrap_at = :auto
 Redwood::start
 index = Redwood::Index.init
-Redwood::SourceManager.load_sources
 
 @cli.say <<EOS
 Howdy neighbor! This here's sup-config, ready to help you jack in to
@@ -162,7 +161,7 @@ until done
   end
 end
 
-@cli.say "\nSup needs to know where to store your sent messages."
+@cli.say "\nSup needs to know where to store your sent messages by default."
 @cli.say "Only sources capable of storing mail will be listed.\n\n"
 
 Redwood::SourceManager.load_sources
@@ -170,19 +169,19 @@ if Redwood::SourceManager.sources.empty?
   @cli.say "\nUsing the default sup://sent, since you haven't configured other sources yet."
   $config[:sent_source] = 'sup://sent'
 else
-  # this handles the event that source.yaml already contains the SentLoader
+  # this handles the event that source.yaml already contains the SentSource
   # source.
   have_sup_sent = false
 
   @cli.choose do |menu|
     menu.prompt = "Store my sent mail in? "
 
-    menu.choice('Default (an mbox in ~/.sup, aka sup://sent)') { $config[:sent_source] = 'sup://sent'} unless have_sup_sent
-
     valid_sents = Redwood::SourceManager.sources.each do |s|
       have_sup_sent = true if s.to_s.eql?('sup://sent')
       menu.choice(s.to_s) { $config[:sent_source] = s.to_s } if s.respond_to? :store_message
     end
+
+    menu.choice('Default (an mbox in ~/.sup, aka sup://sent)') { $config[:sent_source] = 'sup://sent' } unless have_sup_sent
   end
 end
 

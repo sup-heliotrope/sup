@@ -1,7 +1,8 @@
 module Redwood
 
 class Account < Person
-  attr_accessor :sendmail, :signature, :gpgkey
+  yaml_properties
+  attr_accessor :sendmail, :signature, :gpgkey, :sent_source
 
   def initialize h
     raise ArgumentError, "no name for account" unless h[:name]
@@ -10,6 +11,13 @@ class Account < Person
     @sendmail = h[:sendmail]
     @signature = h[:signature]
     @gpgkey = h[:gpgkey]
+    begin
+      try_source = h[:sent_source] || $config[:sent_source] || fail
+      @sent_source = SourceManager.source_for(try_source) || fail
+    rescue
+      raise FatalSourceError, "'#{try_source}' is not a valid sent source for account #{h[:email]}"
+    end
+    debug "sent source for #{h[:email]} is #{@sent_source.uri}" if @sent_source
   end
 
   # Default sendmail command for bouncing mail,
@@ -47,7 +55,7 @@ class AccountManager
   def add_account hash, default=false
     raise ArgumentError, "no email specified for account" unless hash[:email]
     unless default
-      [:name, :sendmail, :signature, :gpgkey].each { |k| hash[k] ||= @default_account.send(k) }
+      [:name, :sendmail, :signature, :gpgkey, :sent_source].each { |k| hash[k] ||= @default_account.send(k) }
     end
     hash[:alternates] ||= []
     fail "alternative emails are not an array: #{hash[:alternates]}" unless hash[:alternates].kind_of? Array

@@ -14,7 +14,7 @@ class MBox < Source
   ## uri_or_fp is horrific. need to refactor.
   def initialize uri_or_fp, usual=true, archived=false, id=nil, labels=nil
     @mutex = Mutex.new
-    @labels = Set.new((labels || []) - LabelManager::RESERVED_LABELS)
+    @labels = Set.new(labels || [])
 
     case uri_or_fp
     when String
@@ -115,11 +115,13 @@ class MBox < Source
   end
 
   def store_message date, from_email, &block
-    need_blank = File.exist?(@path) && !File.zero?(@path)
-    File.open(@path, "ab") do |f|
-      f.puts if need_blank
-      f.puts "From #{from_email} #{date.asctime}"
-      yield f
+    @mutex.synchronize do
+      need_blank = File.exist?(@path) && !File.zero?(@path)
+      File.open(@path, "ab") do |f|
+        f.puts if need_blank
+        f.puts "From #{from_email} #{date.asctime}"
+        yield f
+      end
     end
   end
 

@@ -203,7 +203,7 @@ class SourceManager
     @source_mutex.synchronize do
       raise "duplicate source!" if @sources.include? source
       @sources_dirty = true
-      max = @sources.max_of { |id, s| s.is_a?(DraftLoader) || s.is_a?(SentLoader) ? 0 : id }
+      max = @sources.max_of { |id, s| s.is_a?(DraftLoader) || s.is_a?(SentSource) ? 0 : id }
       source.id ||= (max || 0) + 1
       ##source.id += 1 while @sources.member? source.id
       @sources[source.id] = source
@@ -229,6 +229,18 @@ class SourceManager
       @sources = Hash[*(source_array).map { |s| [s.id, s] }.flatten]
       @sources_dirty = false
     end
+  end
+
+  # add the standard SentSource 'sup://sent'
+  def sanitize_sources
+    modified = false
+    @source_mutex.synchronize do
+      if !source_for 'sup://sent'
+        add_source SentSource.new true, 9998, [:sent]
+        modified = true
+      end
+    end
+    save_sources if modified
   end
 
   def save_sources fn=Redwood::SOURCE_FN, force=false
