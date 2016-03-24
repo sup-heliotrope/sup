@@ -127,18 +127,27 @@ EOS
   def sign from, to, payload
     return unknown_status(@not_working_reason) unless @not_working_reason.nil?
 
+    # We grab this from the GPG::Ctx below after signing, so that we can set
+    # micalg in Content-Type to match the hash algorithm GPG decided to use.
+    hash_algo = nil
+
     gpg_opts = {:protocol => GPGME::PROTOCOL_OpenPGP, :armor => true, :textmode => true}
     gpg_opts.merge!(gen_sign_user_opts(from))
     gpg_opts = HookManager.run("gpg-options",
                                {:operation => "sign", :options => gpg_opts}) || gpg_opts
     begin
-      if GPGME.respond_to?('detach_sign')
-        sig = GPGME.detach_sign(format_payload(payload), gpg_opts)
-      else
-        crypto = GPGME::Crypto.new
-        gpg_opts[:mode] = GPGME::SIG_MODE_DETACH
-        sig = crypto.sign(format_payload(payload), gpg_opts).read
+      input = GPGME::Data.new(format_payload(payload))
+      output = GPGME::Data.new()
+      GPGME::Ctx.new(gpg_opts) do |ctx|
+        if gpg_opts[:signer]
+          signers = GPGME::Key.find(:secret, gpg_opts[:signer], :sign)
+          ctx.add_signer(*signers)
+        end
+        ctx.sign(input, output, GPGME::SIG_MODE_DETACH)
+        hash_algo = GPGME::hash_algo_name(ctx.sign_result.signatures[0].hash_algo)
       end
+      output.seek(0)
+      sig = output.read
     rescue GPGME::Error => exc
       raise Error, gpgme_exc_msg(exc.message)
     end
@@ -150,7 +159,7 @@ EOS
     end
 
     envelope = RMail::Message.new
-    envelope.header["Content-Type"] = 'multipart/signed; protocol=application/pgp-signature'
+    envelope.header["Content-Type"] = "multipart/signed; protocol=application/pgp-signature; micalg=pgp-#{hash_algo.downcase}"
 
     envelope.add_part payload
     signature = RMail::Message.make_attachment sig, "application/pgp-signature", nil, "signature.asc"
