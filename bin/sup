@@ -162,12 +162,6 @@ begin
     Redwood::SourceManager.add_source DraftManager.new_source
   end
 
-  if(s = Redwood::SourceManager.source_for SentManager.source_uri)
-    SentManager.source = s
-  else
-    Redwood::SourceManager.add_source SentManager.default_source
-  end
-
   HookManager.run "startup"
   Redwood::Keymap.run_hook global_keymap
 
