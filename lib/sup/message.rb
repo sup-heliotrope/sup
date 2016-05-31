@@ -657,6 +657,57 @@ private
     end
   end
 
+  HookManager.register "text-filter", <<EOS
+Filter the content of a text chunk before displaying it. It also allows
+customization about whether the chunk is expanded or collapsed initially.
+
+The filter is useful to remove boring signatures, or mitigate malicious
+behavior that some email providers rewrite URLs on the fly. It can also
+be used to expand short quote chunks automatically.
+
+Variables:
+          lines: an array of strings, the content of the chunk
+          type: One of :text, :quote, :block_quote :sig
+
+Return value:
+  An array of strings, which will be used as the content of the chunk.
+  If the array is empty, the chunk will not be added.
+  Or, a hash {lines: v1, expand: v2}, where v1 is described above and
+  v2 is a boolean value deciding whether the chunk is expended initially.
+  Or, nil if nothing needs change.
+EOS
+
+  def append_chunk chunks, orig_lines, type
+    opts = HookManager.run("text-filter", :lines => orig_lines, :type => type)
+    lines = orig_lines
+    expand = nil
+    case opts
+    when Array
+      lines = opts
+    when Hash
+      lines = opts[:lines] || orig_lines
+      expand = opts[:expand]
+    end
+    return if lines.empty?
+    chunk = case type
+            when :text
+              Chunk::Text.new(lines)
+            when :quote, :block_quote
+              Chunk::Quote.new(lines)
+            when :sig
+              Chunk::Signature.new(lines)
+            else
+              raise "unknown chunk type: #{type}"
+            end
+    case expand
+    when true
+      def chunk.initial_state; :open; end
+    when false
+      def chunk.initial_state; :closed; end
+    end
+    chunks << chunk
+  end
+
   ## parse the lines of text into chunk objects.  the heuristics here
   ## need tweaking in some nice manner. TODO: move these heuristics
   ## into the classes themselves.
@@ -696,7 +747,7 @@ private
         end
 
         if newstate
-          chunks << Chunk::Text.new(chunk_lines) unless chunk_lines.empty?
+          append_chunk chunks, chunk_lines, state
           chunk_lines = [line]
           state = newstate
         else
@@ -715,11 +766,7 @@ private
         end
 
         if newstate
-          if chunk_lines.empty?
-            # nothing
-          else
-            chunks << Chunk::Quote.new(chunk_lines)
-          end
+          append_chunk chunks, chunk_lines, state
           chunk_lines = [line]
           state = newstate
         end
@@ -741,14 +788,7 @@ private
     end
 
     ## final object
-    case state
-    when :quote, :block_quote
-      chunks << Chunk::Quote.new(chunk_lines) unless chunk_lines.empty?
-    when :text
-      chunks << Chunk::Text.new(chunk_lines) unless chunk_lines.empty?
-    when :sig
-      chunks << Chunk::Signature.new(chunk_lines) unless chunk_lines.empty?
-    end
+    append_chunk chunks, chunk_lines, state
     chunks
   end
 
