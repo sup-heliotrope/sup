@@ -777,10 +777,9 @@ EOS
       .map{|d| d[1].strip}.join("").strip
 
     found = false
-    (linetext || "").scan(URI::regexp).each do |matches|
+    URI.extract(linetext || "").each do |match|
       begin
-        link = $& # ruby magic: $& is the whole regexp match
-        u = URI.parse(link)
+        u = URI.parse(match)
         next unless u.absolute?
         next unless ["http", "https"].include?(u.scheme)
 
