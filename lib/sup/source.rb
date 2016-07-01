@@ -37,6 +37,7 @@ class Source
   ## - load_message offset
   ## - raw_header offset
   ## - raw_message offset
+  ## - each_raw_message_line
   ## - store_message (optional)
   ## - poll (loads new messages)
   ## - go_idle (optional)
