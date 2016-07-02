@@ -100,6 +100,8 @@ begin
       case parsed_uri.scheme
       when "maildir"
         Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], $opts[:sync_back], nil, labels
+      when "maildir+zip"
+        Redwood::ZippedMaildir.new uri, !$opts[:unusual], $opts[:archive], $opts[:sync_back], nil, labels
       when "mbox"
         Redwood::MBox.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when nil

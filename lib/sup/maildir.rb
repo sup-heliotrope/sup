@@ -1,18 +1,22 @@
 require 'uri'
 require 'set'
+require 'zip'
 
 module Redwood
 
-class Maildir < Source
+
+### Base class for maildir-like sources
+class BaseMaildir < Source
+
   include SerializeLabelsNicely
   MYHOSTNAME = Socket.gethostname
 
   ## remind me never to use inheritance again.
   yaml_properties :uri, :usual, :archived, :sync_back, :id, :labels
-  def initialize uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
+  def initialize scheme, uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
-    parts = @expanded_uri.match /^([a-zA-Z0-9]*:(\/\/)?)(.*)/
+    parts = @expanded_uri.match /^([a-zA-Z0-9+]*:(\/\/)?)(.*)/
     if parts
       prefix = parts[1]
       @path = parts[3]
@@ -22,7 +26,7 @@ class Maildir < Source
       @path = uri.path
     end
 
-    raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
+    raise ArgumentError, "bad scheme in source URI #{uri}, expected #{scheme}" unless uri.scheme == scheme
     raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
     raise ArgumentError, "maildir URI must have a path component" unless uri.path
 
@@ -48,34 +52,6 @@ class Maildir < Source
     @sync_back
   end
 
-  def store_message date, from_email, &block
-    stored = false
-    new_fn = new_maildir_basefn + ':2,S'
-    Dir.chdir(@dir) do |d|
-      tmp_path = File.join(@dir, 'tmp', new_fn)
-      new_path = File.join(@dir, 'new', new_fn)
-      begin
-        sleep 2 if File.stat(tmp_path)
-
-        File.stat(tmp_path)
-      rescue Errno::ENOENT #this is what we want.
-        begin
-          File.open(tmp_path, 'wb') do |f|
-            yield f #provide a writable interface for the caller
-            f.fsync
-          end
-
-          File.safe_link tmp_path, new_path
-          stored = true
-        ensure
-          File.unlink tmp_path if File.exist? tmp_path
-        end
-      end #rescue Errno...
-    end #Dir.chdir
-
-    stored
-  end
-
   def each_raw_message_line id
     with_file_for(id) do |f|
       until f.eof?
@@ -90,14 +66,6 @@ class Maildir < Source
 
   def load_message id
     with_file_for(id) { |f| RMail::Parser.read f }
-  end
-
-  def sync_back id, labels
-    synchronize do
-      debug "syncing back maildir message #{id} with flags #{labels.to_a}"
-      flags = maildir_reconcile_flags id, labels
-      maildir_mark_file id, flags
-    end
   end
 
   def raw_header id
@@ -116,26 +84,7 @@ class Maildir < Source
 
   ## XXX use less memory
   def poll
-    added = []
-    deleted = []
-    updated = []
-    @ctimes.each do |d,prev_ctime|
-      subdir = File.join @dir, d
-      debug "polling maildir #{subdir}"
-      raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
-      ctime = File.ctime subdir
-      next if prev_ctime >= ctime
-      @ctimes[d] = ctime
-
-      old_ids = benchmark(:maildir_read_index) { Index.instance.enum_for(:each_source_info, self.id, "#{d}/").to_a }
-      new_ids = benchmark(:maildir_read_dir) {
-        Dir.open(subdir).select {
-          |f| !File.directory? f}.map {
-            |x| File.join(d,File.basename(x)) }.sort }
-      added += new_ids - old_ids
-      deleted += old_ids - new_ids
-      debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
-    end
+    added, deleted, updated = do_poll
 
     ## find updated mails by checking if an id is in both added and
     ## deleted arrays, meaning that its flags changed or that it has
@@ -200,6 +149,91 @@ class Maildir < Source
   def seen? id; maildir_data(id)[2].include? "S"; end
   def trashed? id; maildir_data(id)[2].include? "T"; end
 
+private
+
+  def do_poll
+    unimplemented
+  end
+
+  def maildir_data id
+    id = File.basename id
+    # Flags we recognize are DFPRST
+    id =~ %r{^([^:]+):([12]),([A-Za-z]*)$}
+    [($1 || id), ($2 || "2"), ($3 || "")]
+  end
+end
+
+
+### Normal maildir, in a real directory
+class Maildir < BaseMaildir
+
+  yaml_properties :uri, :usual, :archived, :sync_back, :id, :labels
+  def initialize uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
+    super "maildir", uri, usual=usual, archived=archived, sync_back=sync_back, id=id, labels=labels
+  end
+
+  def store_message date, from_email, &block
+    stored = false
+    new_fn = new_maildir_basefn + ':2,S'
+    Dir.chdir(@dir) do |d|
+      tmp_path = File.join(@dir, 'tmp', new_fn)
+      new_path = File.join(@dir, 'new', new_fn)
+      begin
+        sleep 2 if File.stat(tmp_path)
+
+        File.stat(tmp_path)
+      rescue Errno::ENOENT #this is what we want.
+        begin
+          File.open(tmp_path, 'wb') do |f|
+            yield f #provide a writable interface for the caller
+            f.fsync
+          end
+
+          File.safe_link tmp_path, new_path
+          stored = true
+        ensure
+          File.unlink tmp_path if File.exist? tmp_path
+        end
+      end #rescue Errno...
+    end #Dir.chdir
+
+    stored
+  end
+
+  def sync_back id, labels
+    synchronize do
+      debug "syncing back maildir message #{id} with flags #{labels.to_a}"
+      flags = maildir_reconcile_flags id, labels
+      maildir_mark_file id, flags
+    end
+  end
+
+  def do_poll
+    added = []
+    deleted = []
+    updated = []
+
+    @ctimes.each do |d,prev_ctime|
+      subdir = File.join @dir, d
+      debug "polling maildir #{subdir}"
+      raise FatalSourceError, "#{subdir} not a directory" unless File.directory? subdir
+      ctime = File.ctime subdir
+      next if prev_ctime >= ctime
+      @ctimes[d] = ctime
+
+      old_ids = benchmark(:maildir_read_index) { Index.instance.enum_for(:each_source_info, self.id, "#{d}/").to_a }
+      new_ids = benchmark(:maildir_read_dir) {
+        Dir.open(subdir).select {
+          |f| !File.directory? f}.map {
+            |x| File.join(d,File.basename(x)) }.sort }
+      added += new_ids - old_ids
+      deleted += old_ids - new_ids
+      debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
+    end
+
+    return added, deleted, updated
+  end
+
   def valid? id
     File.exist? File.join(@dir, id)
   end
@@ -218,13 +252,6 @@ private
     rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
     end
-  end
-
-  def maildir_data id
-    id = File.basename id
-    # Flags we recognize are DFPRST
-    id =~ %r{^([^:]+):([12]),([A-Za-z]*)$}
-    [($1 || id), ($2 || "2"), ($3 || "")]
   end
 
   def maildir_reconcile_flags id, labels
@@ -263,6 +290,66 @@ private
       new_loc
     end
   end
+
+end
+
+
+### Maildir in a zip file
+class ZippedMaildir < BaseMaildir
+
+  yaml_properties :uri, :usual, :archived, :sync_back, :id, :labels
+  def initialize uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
+    super "maildir+zip", uri, usual=usual, archived=archived, sync_back=sync_back, id=id, labels=labels
+    @f = nil
+  end
+
+  def go_idle
+    @mutex.synchronize do
+      return if @f.nil? or @path.nil?
+      @f.close
+      @f = nil
+    end
+  end
+
+private
+
+  def do_poll
+    added = []
+    deleted = []
+    updated = []
+
+    @mutex.synchronize do
+      ensure_open
+
+      @ctimes.each do |d,prev_ctime|
+        old_ids = Index.instance.enum_for(:each_source_info, self.id, "#{d}/").to_a
+        new_ids = @f.select {
+          |f| f.file? && f.name.start_with?("#{d}/") }.map {
+            |x| x.name }.sort
+        added += new_ids - old_ids
+        deleted += old_ids - new_ids
+      end
+    end
+
+    return added, deleted, updated
+  end
+
+  def with_file_for id, &block
+    @mutex.synchronize do
+      ensure_open
+
+      begin
+        return @f.get_input_stream(id, &block)
+      rescue Errno::ENOENT => e
+        raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{e.message}."
+      end
+    end
+  end
+
+  def ensure_open
+    @f = Zip::File.open(@path) if @f.nil?
+  end
+
 end
 
 end
