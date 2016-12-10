@@ -1,0 +1,6 @@
+From: foo@aol.com
+To: foo@test.com
+Subject: =?ISO-8859-1?Q?Some text that contains encoded chars =E4=E5=E6, spaces ?=
+    =?ISO-8859-1?Q?and_some-text-without-spaces?=
+
+test message
