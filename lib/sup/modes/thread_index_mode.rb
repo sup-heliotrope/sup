@@ -388,10 +388,12 @@ EOS
       t.apply_label :deleted
       hide_thread t
       UpdateManager.relay self, :deleted, t.first
+      actually_toggle_archived(t) if archived = t.has_label?(:inbox)
       lambda do
         t.remove_label :deleted
         add_or_unhide t.first
         UpdateManager.relay self, :undeleted, t.first
+        actually_toggle_archived(t) if archived
       end
     end
   end
