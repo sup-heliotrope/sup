@@ -52,6 +52,7 @@ EOS
     k.add :toggle_tagged, "Tag/untag selected thread", 't'
     k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
     k.add :tag_matching, "Tag matching threads", 'g'
+    k.add :tag_labeled, "Tag/untag threads with a label", 'O'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", '+', '='
     k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
     k.add :undo, "Undo the previous action", 'u'
@@ -574,6 +575,13 @@ EOS
       return
     end
     @mutex.synchronize { @threads.each { |t| @tags.tag t if thread_matches?(t, query) } }
+    regen_text
+  end
+
+  def tag_labeled
+    label = BufferManager.ask :search, "tag threads matching (label): "
+    return if label.nil? || label.empty?
+    @mutex.synchronize { @threads.each { |t| @tags.toggle_tag_for t if t.has_label? label.to_sym } }
     regen_text
   end
 
