@@ -135,6 +135,15 @@ class Source
       case line
       ## these three can occur multiple times, and we want the first one
       when /^(Delivered-To|X-Original-To|Envelope-To):\s*(.*?)\s*$/i; header[last = $1.downcase] ||= $2
+      ## X-Keywords, workaround bug in offlineimap that litters extra
+      ## copies of X-Keywords
+      when /^(X-Keywords|x-keywords):\s*(.*?)\s*$/i;
+        if header.has_key?($1.downcase)
+          debug "XKEY: More than one X-Keywords header!"
+          header[$1.downcase] = header[$1.downcase] + ', ' + $2
+        else
+          header[$1.downcase] = $2
+        end
       ## regular header: overwrite (not that we should see more than one)
       ## TODO: figure out whether just using the first occurrence changes
       ## anything (which would simplify the logic slightly)

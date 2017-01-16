@@ -96,6 +96,9 @@ class Maildir < Source
     synchronize do
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
+      if $config[:sync_labels_to_xkeywords]
+        maildir_reconcile_keywords id, labels, load_message(id)
+      end
       maildir_mark_file id, flags
     end
   end
@@ -157,11 +160,22 @@ class Maildir < Source
     debug "#{added.size} added, #{deleted.size} deleted, #{updated.size} updated"
     total_size = added.size+deleted.size+updated.size
 
-    added.each_with_index do |id,i|
-      yield :add,
-      :info => id,
-      :labels => @labels + maildir_labels(id) + [:inbox],
-      :progress => i.to_f/total_size
+
+    if $config[:sync_labels_to_xkeywords]
+      # Get the :inbox label only from X-Keywords
+      added.each_with_index do |id,i|
+        yield :add,
+        :info => id,
+        :labels => @labels + maildir_labels(id),
+        :progress => i.to_f/total_size
+      end
+    else
+      added.each_with_index do |id,i|
+        yield :add,
+        :info => id,
+        :labels => @labels + maildir_labels(id) + [:inbox],
+        :progress => i.to_f/total_size
+      end
     end
 
     deleted.each_with_index do |id,i|
@@ -184,13 +198,49 @@ class Maildir < Source
     maildir_labels id
   end
 
+  def headers_labels id
+    header = load_header(id)["x-keywords"]
+    if not header then
+      return []
+    end
+    labels = header.split(/, */)
+    if labels.member? '\Sent' then
+      labels -= ['\Sent' ]
+      labels += [ 'sent' ]
+    end
+    if labels.member? '\Inbox' then
+      labels -= [ '\Inbox' ]
+      labels += [ 'inbox' ]
+    end
+
+    if labels.member? '\Important' then
+      labels -= [ '\Important' ]
+      labels += [ 'important' ]
+    end
+    if labels.member? '\Starred' then
+      labels -= [ '\Starred' ]
+      labels += [ 'starred' ]
+    end
+    if labels.member? '\Todo' then
+      labels -= [ '\Todo' ]
+      labels += [ 'TODO' ]
+    end
+    if labels.member? '\Trash' then
+      labels -= [ '\Trash' ]
+      labels += [ 'deleted' ]
+    end
+    labels = labels.map{ |s| s.to_sym }
+    labels
+  end
+
   def maildir_labels id
     (seen?(id) ? [] : [:unread]) +
       (trashed?(id) ?  [:deleted] : []) +
       (flagged?(id) ? [:starred] : []) +
       (passed?(id) ? [:forwarded] : []) +
       (replied?(id) ? [:replied] : []) +
-      (draft?(id) ? [:draft] : [])
+      (draft?(id) ? [:draft] : []) +
+      ($config[:sync_labels_to_xkeywords] ? headers_labels(id) : [])
   end
 
   def draft? id; maildir_data(id)[2].include? "D"; end
@@ -202,6 +252,122 @@ class Maildir < Source
 
   def valid? id
     File.exist? File.join(@dir, id)
+  end
+
+  def maildir_reconcile_keywords id, labels, message
+
+    labels = labels.map { |l| l.to_s }
+
+    if labels.member? 'sent' then
+      labels -= ['sent']
+      labels += ['\Sent']
+    end
+    if labels.member? 'inbox' then
+      labels -= ['inbox']
+      labels += ['\Inbox']
+    end
+    if labels.member? 'important' then
+      labels -= ['important']
+      labels += ['\Important']
+    end
+    if labels.member? 'starred' then
+      labels -= ['starred']
+      labels += ['\Starred']
+    end
+    if labels.member? 'TODO' then
+      labels -= ['TODO']
+      labels += ['\Todo']
+    end
+    if labels.member? 'deleted' then
+      labels -= ['deleted']
+      labels += ['\Trash']
+      # dumb for message to be in \Inbox and \Trash
+      labels -= ['\Inbox'] if labels.member? '\Inbox'
+    end
+
+    # unread label is handled by the Maildir 'S' flag (seen)
+    if labels.member? 'unread' then
+      labels -= ['unread']
+    end
+
+    # attachment flag is not synced back and forth
+    if labels.member? 'attachment' then
+      labels -= ['attachment']
+    end
+
+    # replied label is handled by the Maildir R flag
+    if labels.member? 'replied' then
+      labels -= ['replied']
+    end
+
+    # forwarded label is handled by the Maildir P (passed) flag
+    if labels.member? 'forwarded' then
+      labels -= ['forwarded']
+    end
+
+    # starred label is handled by the Maildir F (flagged) flag
+    if labels.member? 'starred' then
+      labels -= ['starred']
+    end
+
+    # draft label is handled by the Maildir D flag
+    if labels.member? 'draft' then
+      labels -= ['draft']
+    end
+
+    labels = labels.sort
+    header = Set.new(load_header(id)['x-keywords'].split(/, */)).sort
+    debug "XKEY update keywords #{header} -> #{labels}"
+
+    # If the labels didn't change, then bail out
+    return false if labels == header
+
+    # we need to somehow update the root Message object
+    # with the new header, then write the Message back out
+    header = labels.to_a.join(', ')
+    debug "XKEY: header should now be #{header}"
+    # binding.pry
+
+    stored = false
+    tmp_path = File.join(@dir, 'tmp', id[4..-1])
+
+    Dir.chdir(@dir) do |d|
+      begin
+        sleep 2 if File.stat(tmp_path)
+
+        File.stat(tmp_path)
+        rescue Errno::ENOENT #this is what we want.
+          begin
+            # keywords_header_seen works around a bug
+            # in offlineimap that can generate multiple
+            # X-Keywords headers.  We don't want to 
+            # write duplicate headers back out
+            keywords_header_seen = false
+            File.open(tmp_path, 'wb') do |f|
+              each_raw_message_line(id) do |m|
+                if m =~ /^X-Keywords: .*\n/ && !keywords_header_seen then
+                  f.puts("X-Keywords: #{header}\n")
+                  keywords_header_seen = true
+                elsif m =~ /^X-Keywords: .*\n/ && keywords_header_seen then
+                  next
+                else
+                  f.puts(m)
+                end
+              end
+              f.fsync()
+              f.close()
+            end
+            File.safe_link tmp_path, id
+            stored = true
+          ensure
+            File.unlink tmp_path if File.exists? tmp_path
+          end
+      end #rescue Errno...
+    end #Dir.chdir
+
+    # message.load_from_source!
+    return message
+
   end
 
 private
@@ -236,7 +402,7 @@ private
       if labels.member? :forwarded then new_flags.add?( "P" ) else new_flags.delete?( "P" ) end
       if labels.member? :replied then new_flags.add?( "R" ) else new_flags.delete?( "R" ) end
       if not labels.member? :unread then new_flags.add?( "S" ) else new_flags.delete?( "S" ) end
-      if labels.member? :deleted or labels.member? :killed then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
+      if labels.member? :deleted or labels.member? :killed or labels.member? '\Trash' then new_flags.add?( "T" ) else new_flags.delete?( "T" ) end
 
       ## Flags must be stored in ASCII order according to Maildir
       ## documentation
