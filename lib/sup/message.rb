@@ -1,7 +1,6 @@
 # encoding: UTF-8
 
 require 'time'
-
 module Redwood
 
 ## a Message is what's threaded.
@@ -207,15 +206,20 @@ class Message
 
   def has_label? t; @labels.member? t; end
   def add_label l
+    debug "XKEY adding label #{l}"
     l = l.to_sym
     return if @labels.member? l
     @labels << l
+    debug "XKEY adding label #{l}"
+    location.update_xkeywords @id, l
     @dirty = true
   end
   def remove_label l
+    debug "XKEY removing label #{l}"
     l = l.to_sym
     return unless @labels.member? l
     @labels.delete l
+    location.update_xkeywords @id, l
     @dirty = true
   end
 
@@ -228,6 +232,7 @@ class Message
     raise ArgumentError, "not a set of labels" unless l.all? { |ll| ll.is_a?(Symbol) }
     return if @labels == l
     @labels = l
+    location.update_xkeywords @id, l
     @dirty = true
   end
 
@@ -306,6 +311,7 @@ EOS
   def each_raw_message_line &b
     location.each_raw_message_line &b
   end
+  
 
   def sync_back
     @locations.map { |l| l.sync_back @labels, self }.any? do
@@ -775,14 +781,13 @@ class Location
     source.raw_message info
   end
 
-  def sync_back labels, message
+  def sync_back labels, msg
     synced = false
     return synced unless sync_back_enabled? and valid?
     source.synchronize do
-      new_info = source.sync_back(@info, labels)
-      if new_info
-        @info = new_info
-        Index.sync_message message, true
+      if source.sync_back(@info, labels, msg) then
+        msg.load_from_source!
+        Index.sync_message msg, true, false
         synced = true
       end
     end
@@ -793,6 +798,14 @@ class Location
     source.respond_to? :sync_back and $config[:sync_back_to_maildir] and source.sync_back_enabled?
   end
 
+  def update_xkeywords id, labels
+    if source.respond_to? :update_xkeywords then
+      debug "XKEY #{id} #{info}"
+      source.update_xkeywords info, labels
+      # sync_back labels raw_message ???
+    end
+  end
+
   ## much faster than raw_message
   def each_raw_message_line &b
     source.each_raw_message_line info, &b
@@ -800,6 +813,7 @@ class Location
 
   def parsed_message
     source.load_message info
+    # debug "XKEY: rereading message!"
   end
 
   def valid?
