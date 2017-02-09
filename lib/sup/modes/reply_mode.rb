@@ -86,7 +86,12 @@ EOS
     ## messages because it's typically set to the list address, which we
     ## explicitly treat with reply type :list
     to = @m.is_list_message? ? @m.from : (@m.replyto || @m.from)
-
+    
+    to_full = to.full_address
+    
+    if (to_full).start_with?("Unknown sender")
+    	to_full = "Sup Auto-generated Fake Sender <sup@fake.sender.example.com>"
+    end
     ## next, cc:
     cc = (@m.to + @m.cc - [from, to]).uniq
 
@@ -107,7 +112,7 @@ EOS
     ## is a user account. however, if the cc is empty, it's a message to
     ## ourselves, so for the lack of any other options, we'll add it.
     @headers[:sender] = {
-      "To" => [to.full_address],
+      "To" => [to_full],
       "Cc" => [],
     } if !AccountManager.is_account?(to) || !useful_recipient
 
@@ -118,7 +123,7 @@ EOS
 
     not_me_ccs = cc.select { |p| !AccountManager.is_account?(p) }
     @headers[:all] = {
-      "To" => [to.full_address],
+      "To" => [to_full],
       "Cc" => not_me_ccs.map { |p| p.full_address },
     } unless not_me_ccs.empty?
 
