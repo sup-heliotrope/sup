@@ -57,6 +57,12 @@ class HookManager
       ## semantics of a regular variable. not ideal.
       __lprocs.each do |k, v|
         self.class.instance_eval do
+
+          if respond_to? k
+            debug "removing existing method: #{k.inspect}"
+            remove_method k
+          end
+
           define_method k do
             @__cache[k] ||= v.call
           end
