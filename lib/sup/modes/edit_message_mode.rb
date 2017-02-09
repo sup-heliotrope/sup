@@ -451,7 +451,7 @@ protected
     end
   end
 
-  def parse_file fn
+  def self.parse_file fn
     File.open(fn) do |f|
       header = Source.parse_raw_email_header(f).inject({}) { |h, (k, v)| h[k.capitalize] = v; h } # lousy HACK
       body = f.readlines.map { |l| l.chomp }
@@ -462,8 +462,9 @@ protected
       [header, body]
     end
   end
+  def parse_file fn; self.class.parse_file fn; end
 
-  def parse_header k, v
+  def self.parse_header k, v
     if MULTI_HEADERS.include?(k)
       v.split_on_commas.map do |name|
         (p = ContactManager.contact_for(name)) && p.full_address || name
@@ -472,8 +473,9 @@ protected
       v
     end
   end
+  def parse_header k,v; self.class.parse_header k,v; end
 
-  def format_headers header
+  def self.format_headers header
     header_lines = []
     headers = (FORCE_HEADERS + (header.keys - FORCE_HEADERS)).map do |h|
       lines = make_lines "#{h}:", header[h]
@@ -482,8 +484,9 @@ protected
     end.flatten.compact
     [headers, header_lines]
   end
+  def format_headers header; self.class.format_headers header; end
 
-  def make_lines header, things
+  def self.make_lines header, things
     case things
     when nil, []
       [header + " "]
@@ -504,6 +507,7 @@ protected
       end
     end
   end
+  def make_lines header, things; self.class.make_lines header, things; end
 
   def send_message
     return false if !edited? && !BufferManager.ask_yes_or_no("Message unedited. Really send?")
@@ -668,9 +672,10 @@ protected
 
 private
 
-  def sanitize_body body
+  def self.sanitize_body body
     body.gsub(/^From /, ">From ")
   end
+  def sanitize_body body; self.class.sanitize_body body; end
 
   def mentions_attachments?
     if HookManager.enabled? "mentions-attachments"
