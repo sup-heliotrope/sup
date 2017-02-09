@@ -76,6 +76,32 @@ class Maildir < Source
     stored
   end
 
+  def rewrite_message fn
+    stored = false
+    Dir.chdir(@dir) do |d|
+      tmp_path = File.join(@dir, 'tmp', fn.sub(/cur\/|tmp\/|new\/(.*)$/, "\1"))
+      begin
+        sleep 2 if File.stat(tmp_path)
+
+        File.stat(tmp_path)
+      rescue Errno::ENOENT #this is what we want.
+        begin
+          File.open(tmp_path, 'wb') do |f|
+            yield f #provide a writable interface for the caller
+            f.fsync
+          end
+
+          File.safe_link tmp_path, fn
+          stored = true
+        ensure
+          File.unlink tmp_path if File.exists? tmp_path
+        end
+      end #rescue Errno...
+    end #Dir.chdir
+
+    stored
+  end
+
   def each_raw_message_line id
     with_file_for(id) do |f|
       until f.eof?
@@ -92,12 +118,24 @@ class Maildir < Source
     with_file_for(id) { |f| RMail::Parser.read f }
   end
 
-  def sync_back id, labels
+  def sync_back id, labels, message
+    updated = false
     synchronize do
       debug "syncing back maildir message #{id} with flags #{labels.to_a}"
       flags = maildir_reconcile_flags id, labels
-      maildir_mark_file id, flags
+      result = maildir_mark_file id, flags
+      # maildir_mark_file returns false if the filename did not change
+      if result then
+        message.locations.delete Location.new(self, id)
+        message.locations.push   Location.new(self, result)
+      else
+        result = id
+      end
+      updated = maildir_reconcile_keywords result, labels, message || updated
+            
     end
+    # debug "XKEY maildir_mark_file says #{result}"
+    return updated
   end
 
   def raw_header id
@@ -108,10 +146,6 @@ class Maildir < Source
       end
     end
     ret
-  end
-
-  def raw_message id
-    with_file_for(id) { |f| f.read }
   end
 
   ## XXX use less memory
@@ -160,7 +194,7 @@ class Maildir < Source
     added.each_with_index do |id,i|
       yield :add,
       :info => id,
-      :labels => @labels + maildir_labels(id) + [:inbox],
+      :labels => @labels + maildir_labels(id),
       :progress => i.to_f/total_size
     end
 
@@ -184,13 +218,130 @@ class Maildir < Source
     maildir_labels id
   end
 
+  def headers_labels id
+    header = load_header(id)["x-keywords"]
+    if not header then
+      return []
+    end
+    labels = header.split(', ')
+    if labels.member? '\Sent' then
+      labels -= ['\Sent' ]
+      labels += [ 'sent' ]
+    end
+    if labels.member? '\Inbox' then
+      labels -= [ '\Inbox' ]
+      labels += [ 'inbox' ]
+    end
+
+    if labels.member? '\Important' then
+      labels -= [ '\Important' ]
+      labels += [ 'important' ]
+    end
+    if labels.member? '\Starred' then
+      labels -= [ '\Starred' ]
+      labels += [ 'starred' ]
+    end
+    if labels.member? '\Todo' then
+      labels -= [ '\Todo' ]
+      labels += [ 'TODO' ]
+    end
+    labels = labels.map{ |s| s.to_sym }
+    labels
+  end
+
+  def maildir_reconcile_keywords id, labels, message
+
+    labels = labels.map { |l| l.to_s }
+
+    if labels.member? 'sent' then
+      labels -= ['sent']
+      labels += ['\Sent']
+    end
+    if labels.member? 'inbox' then
+      labels -= ['inbox']
+      labels += ['\Inbox']
+    end
+    if labels.member? 'important' then
+      labels -= ['important']
+      labels += ['\Important']
+    end
+    if labels.member? 'starred' then
+      labels -= ['starred']
+      labels += ['\Starred']
+    end
+    if labels.member? 'TODO' then
+      labels -= ['TODO']
+      labels += ['\Todo']
+    end
+    if labels.member? 'deleted' then
+      labels -= ['deleted']
+      labels += ['\Trash']
+      # dumb for message to be in \Inbox and \Trash
+      labels -= ['\Inbox'] if labels.member? '\Inbox'
+    end
+    if labels.member? 'unread' then
+      labels -= ['unread']
+    end
+    
+    if labels.member? 'attachment' then
+      labels -= ['attachment']
+    end
+    labels = labels.sort
+    header = Set.new(load_header(id)['x-keywords'].split(', ')).sort
+    debug "XKEY update keywords #{header} -> #{labels}"
+    
+    # If the labels didn't change, then bail out
+    return false if labels == header
+
+    # we need to somehow update the root Message object
+    # with the new header, then write the Message back out
+    header = labels.to_a.join(', ')
+    debug "XKEY: header should now be #{header}"
+    # binding.pry
+    
+    stored = false
+    tmp_path = File.join(@dir, 'tmp', id[4..-1])
+    
+    Dir.chdir(@dir) do |d|
+      begin
+        sleep 2 if File.stat(tmp_path)
+
+        File.stat(tmp_path)
+        rescue Errno::ENOENT #this is what we want.
+          begin
+            File.open(tmp_path, 'wb') do |f|
+              each_raw_message_line(id) do |m|
+                if m =~ /^X-Keywords: .*\n/ then
+                  f.puts("X-Keywords: #{header}\n")
+                else
+                  f.puts(m)
+                end
+              end
+              f.fsync()
+              f.close()
+            end
+            File.safe_link tmp_path, id
+            stored = true
+          ensure
+            File.unlink tmp_path if File.exists? tmp_path
+          end
+      end #rescue Errno...
+    end #Dir.chdir
+
+    message.load_from_source!
+    return message
+    
+  end
+
+
   def maildir_labels id
     (seen?(id) ? [] : [:unread]) +
       (trashed?(id) ?  [:deleted] : []) +
       (flagged?(id) ? [:starred] : []) +
       (passed?(id) ? [:forwarded] : []) +
       (replied?(id) ? [:replied] : []) +
-      (draft?(id) ? [:draft] : [])
+      (draft?(id) ? [:draft] : []) +
+      headers_labels(id)
   end
 
   def draft? id; maildir_data(id)[2].include? "D"; end
@@ -217,6 +368,24 @@ private
       File.open(fn, 'rb') { |f| yield f }
     rescue SystemCallError, IOError => e
       raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
+    end
+  end
+
+  def with_file_write id
+    fn = File.join(@dir, id)
+    begin
+      File.open(fn, 'wb') { |f| yield f }
+    rescue SystemCallError, IOError => e
+      raise FatalSourceError, "Problem reading file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
+    end
+  end
+
+  def update_message id
+    fn = File.join(@dir, id)
+    begin
+      File.open(fn, 'wb') { |f| yield f }
+    rescue SystemCallError, IOError => e
+      raise FatalSourceError, "Problem writing file for id #{id.inspect}: #{fn.inspect}: #{e.message}."
     end
   end
 
@@ -248,8 +417,8 @@ private
       new_base = (flags.include?("S")) ? "cur" : "new"
       md_base, md_ver, md_flags = maildir_data orig_path
 
-      return if md_flags == flags
-
+      return false if md_flags == flags
+      debug "XKEY changing flags from #{md_flags} to #{flags}"
       new_loc = File.join new_base, "#{md_base}:#{md_ver},#{flags}"
       orig_path = File.join @dir, orig_path
       new_path  = File.join @dir, new_loc
@@ -260,7 +429,7 @@ private
       File.safe_link tmp_path, new_path
       File.unlink tmp_path
 
-      new_loc
+      return new_loc
     end
   end
 end
