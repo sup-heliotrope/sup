@@ -155,6 +155,8 @@ begin
    end
   end
 
+  HookManager.run "startup"
+
   if(s = Redwood::SourceManager.source_for DraftManager.source_name)
     DraftManager.source = s
   else
@@ -168,7 +170,6 @@ begin
     Redwood::SourceManager.add_source SentManager.default_source
   end
 
-  HookManager.run "startup"
   Redwood::Keymap.run_hook global_keymap
 
   debug "starting curses"
