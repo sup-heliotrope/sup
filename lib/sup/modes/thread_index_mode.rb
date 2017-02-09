@@ -51,6 +51,7 @@ EOS
     k.add :forward, "Forward latest message in a thread", 'f'
     k.add :toggle_tagged, "Tag/untag selected thread", 't'
     k.add :toggle_tagged_all, "Tag/untag all threads", 'T'
+    k.add :clear_all_tags, "Removes tags from all messages", 'Q'
     k.add :tag_matching, "Tag matching threads", 'g'
     k.add :apply_to_tagged, "Apply next command to all tagged threads", '+', '='
     k.add :join_threads, "Force tagged threads to be joined into the same thread", '#'
@@ -561,6 +562,11 @@ EOS
 
   def toggle_tagged_all
     @mutex.synchronize { @threads.each { |t| @tags.toggle_tag_for t } }
+    regen_text
+  end
+
+  def clear_all_tags
+    @mutex.synchronize { @threads.each { |t| @tags.untag t } }
     regen_text
   end
 
