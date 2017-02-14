@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.email   = "supmua@googlegroups.com"
   s.summary = "A console-based email client with the best features of GMail, mutt and Emacs"
   s.homepage = "http://supmua.org"
-  s.license = 'GPL-2'
+  s.license = 'GPL-2.0'
   s.description = <<-DESC
     Sup is a console-based email client for people with a lot of email.
 
