@@ -76,7 +76,7 @@ module Ncurses
       @status = status
       c = "" if c.nil?
       return super("") if status == Ncurses::ERR
-      c = enc_char(c) if c.is_a?(Fixnum)
+      c = enc_char(c) if c.is_a?(Integer)
       super c.length > 1 ? c[0,1] : c
     end
 
@@ -89,7 +89,7 @@ module Ncurses
       else
         @status = Ncurses::OK
         c = "" if c.nil?
-        c = enc_char(c) if c.is_a?(Fixnum)
+        c = enc_char(c) if c.is_a?(Integer)
         super c.length > 1 ? c[0,1] : c
       end
     end
@@ -260,7 +260,7 @@ module Ncurses
       ## Ncurses::Form.form_driver_w wrapper for printable characters.
       def form_driver_char c
         form_driver CharCode.character(c)
-        #c.is_a?(Fixnum) ? c : c.ord
+        #c.is_a?(Integer) ? c : c.ord
       end
 
       ## Ncurses::Form.form_driver_w wrapper for charcodes.

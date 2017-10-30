@@ -58,7 +58,7 @@ class Source
   attr_accessor :id
 
   def initialize uri, usual=true, archived=false, id=nil
-    raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Fixnum if id
+    raise ArgumentError, "id must be an integer: #{id.inspect}" unless id.is_a? Integer if id
 
     @uri = uri
     @usual = usual
