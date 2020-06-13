@@ -60,7 +60,7 @@ SUP: please note that our old mailing lists have been shut down,
   s.add_runtime_dependency "chronic", "~> 0.9.1"
   s.add_runtime_dependency "unicode", "~> 0.4.4"
 
-  s.add_development_dependency "bundler", "~> 1.3"
+  s.add_development_dependency "bundler", ">= 1.3", "< 3"
   s.add_development_dependency "rake"
   s.add_development_dependency 'minitest', '~> 5.5.1'
   s.add_development_dependency "rr", "~> 1.1"
