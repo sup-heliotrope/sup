@@ -1,6 +1,6 @@
 language: ruby
 
-dist: precise
+dist: trusty
 
 rvm:
   - 2.0
