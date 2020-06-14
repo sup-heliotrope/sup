@@ -17,6 +17,4 @@ Gemfile.lock
 test/gnupg_test_home/random_seed
 test/gnupg_test_home/trustdb.gpg
 test/gnupg_test_home/.gpg-v21-migrated
-test/gnupg_test_home/private-keys-v1.d
-
-
+test/gnupg_test_home/openpgp-revocs.d
