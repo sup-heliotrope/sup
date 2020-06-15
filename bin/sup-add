@@ -3,11 +3,11 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'uri'
-require 'trollop'
+require 'optimist'
 require "sup"
 require 'sup/util/axe'
 
-$opts = Trollop::options do
+$opts = Optimist::options do
   version "sup-add (sup #{Redwood::VERSION})"
   banner <<EOS
 Adds a source to the Sup source list.
@@ -35,7 +35,7 @@ EOS
   opt :force_account, "Reuse previously defined account user@hostname.", :type => String
 end
 
-Trollop::die "require one or more sources" if ARGV.empty?
+Optimist::die "require one or more sources" if ARGV.empty?
 
 ## for sources that require login information, prompt the user for
 ## that. also provide a list of previously-defined login info to
@@ -103,9 +103,9 @@ begin
       when "mbox"
         Redwood::MBox.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when nil
-        Trollop::die "Sources must be specified with an URI"
+        Optimist::die "Sources must be specified with an URI"
       else
-        Trollop::die "Unknown source type #{parsed_uri.scheme.inspect}"
+        Optimist::die "Unknown source type #{parsed_uri.scheme.inspect}"
       end
     @cli.say "Adding #{source}..."
     Redwood::SourceManager.add_source source

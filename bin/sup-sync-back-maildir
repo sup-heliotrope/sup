@@ -3,10 +3,10 @@
 
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
-require 'trollop'
+require 'optimist'
 require "sup"
 
-opts = Trollop::options do
+opts = Optimist::options do
   version "sup-sync-back-maildir (sup #{Redwood::VERSION})"
   banner <<EOS
 Export Xapian entries to Maildir sources on disk.

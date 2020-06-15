@@ -17,7 +17,7 @@ rescue LoadError
 end
 
 require 'fileutils'
-require 'trollop'
+require 'optimist'
 require "sup"
 
 if ENV['SUP_PROFILE']
@@ -29,7 +29,7 @@ if no_gpgme
   info "No 'gpgme' gem detected. Install it for email encryption, decryption and signatures."
 end
 
-$opts = Trollop::options do
+$opts = Optimist::options do
   version "sup v#{Redwood::VERSION}"
   banner <<EOS
 Sup is a curses-based email client.
@@ -48,7 +48,7 @@ EOS
   opt :subject, "When composing, use this subject", :type => String, :short => "j"
 end
 
-Trollop::die :subject, "requires --compose" if $opts[:subject] && !$opts[:compose]
+Optimist::die :subject, "requires --compose" if $opts[:subject] && !$opts[:compose]
 
 Redwood::HookManager.register "startup", <<EOS
 Executes at startup
