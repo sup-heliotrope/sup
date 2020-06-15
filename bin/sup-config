@@ -2,11 +2,11 @@
 
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
-require 'trollop'
+require 'optimist'
 require "sup"
 require 'sup/util/axe'
 
-$opts = Trollop::options do
+$opts = Optimist::options do
   version "sup-config (sup #{Redwood::VERSION})"
   banner <<EOS
 Interactive configuration tool for Sup. Won't destroy existing

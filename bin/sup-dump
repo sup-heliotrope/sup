@@ -3,12 +3,12 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'xapian'
-require 'trollop'
+require 'optimist'
 require 'set'
 
 BASE_DIR = ENV["SUP_BASE"] || File.join(ENV["HOME"], ".sup")
 
-$opts = Trollop::options do
+$opts = Optimist::options do
   version "sup-dump"
   banner <<EOS
 Dumps all message state from the sup index to standard out. You can

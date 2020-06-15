@@ -3,7 +3,7 @@
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
 require 'uri'
-require 'trollop'
+require 'optimist'
 require "sup"
 
 PROGRESS_UPDATE_INTERVAL = 15 # seconds
@@ -30,7 +30,7 @@ def time
   Time.now - startt
 end
 
-opts = Trollop::options do
+opts = Optimist::options do
   version "sup-sync (sup #{Redwood::VERSION})"
   banner <<EOS
 Synchronizes the Sup index with one or more message sources by adding
@@ -112,7 +112,7 @@ begin
     Redwood::SourceManager.usual_sources
   else
     ARGV.map do |uri|
-      Redwood::SourceManager.source_for uri or Trollop::die "Unknown source: #{uri}. Did you add it with sup-add first?"
+      Redwood::SourceManager.source_for uri or Optimist::die "Unknown source: #{uri}. Did you add it with sup-add first?"
     end
   end
 
