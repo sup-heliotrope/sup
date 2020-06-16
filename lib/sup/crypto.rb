@@ -233,7 +233,7 @@ EOS
     end
 
     if valid || !unknown
-      summary_line = simplify_sig_line(verify_result.signatures[0].to_s, all_trusted)
+      summary_line = simplify_sig_line(verify_result.signatures[0].to_s.dup, all_trusted)
     end
 
     if all_output_lines.length == 0
