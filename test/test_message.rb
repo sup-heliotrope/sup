@@ -225,6 +225,35 @@ class TestMessage < Minitest::Test
   # TODO: test different quoting styles, see that they are all divided
   # to chunks properly
 
+  def test_zimbra_quote_with_bottom_post
+    # Zimbra does an Outlook-style "Original Message" delimiter and then *also*
+    # prefixes each quoted line with a > marker. That's okay until the sender
+    # tries to do the right thing and reply after the quote.
+    # In this case we want to just look at the > markers when determining where
+    # the quoted chunk ends.
+    message = fixture('zimbra-quote-with-bottom-post.eml')
+
+    source = DummySource.new("sup-test://test_zimbra_quote_with_bottom_post")
+    source.messages = [ message ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+    chunks = sup_message.load_from_source!
+
+    assert_equal(3, chunks.length)
+
+    # TODO this chunk should ideally be part of the quote chunk after it.
+    assert(chunks[0].is_a? Redwood::Chunk::Text)
+    assert_equal(1, chunks[0].lines.length)
+    assert_equal("----- Original Message -----", chunks[0].lines.first)
+
+    assert(chunks[1].is_a? Redwood::Chunk::Quote)
+
+    assert(chunks[2].is_a? Redwood::Chunk::Text)
+    assert_equal(3, chunks[2].lines.length)
+    assert_equal("This is the reply from the Zimbra user.",
+                 chunks[2].lines[2])
+  end
 end
 
 end
