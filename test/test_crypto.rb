@@ -61,6 +61,8 @@ class TestCryptoManager < Minitest::Test
         if CryptoManager.have_crypto? then
             signed = CryptoManager.sign @from_email,@to_email,"ABCDEFG"
             assert_instance_of RMail::Message, signed
+            assert_equal("multipart/signed; protocol=application/pgp-signature; micalg=pgp-sha256",
+                         signed.header["Content-Type"])
             assert_equal "ABCDEFG", signed.body[0]
             assert signed.body[1].body.length > 0 , "signature length must be > 0"
             assert (signed.body[1].body.include? "-----BEGIN PGP SIGNATURE-----") , "Expecting PGP armored data"
