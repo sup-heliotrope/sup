@@ -1,0 +1,46 @@
+From: Fake Sender <fake_sender@example.invalid>
+To: Fake Receiver <fake_receiver@localhost>
+Date: Sun, 21 Jun 2020 06:25:49 -0000
+Subject: Attachments with charset
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============2385509127900810307=="
+
+--===============2385509127900810307==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+This is the body.
+
+--===============2385509127900810307==
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Disposition: attachment; filename="ascii.txt"
+
+This is ASCII
+
+--===============2385509127900810307==
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Disposition: attachment; filename="cyrillic.txt"
+
+=F0=D2=C9=D7=C5=D4
+
+--===============2385509127900810307==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Disposition: attachment; filename="emoji.txt"
+
+8J+Yggo=
+
+--===============2385509127900810307==
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment; filename="bad.txt"
+MIME-Version: 1.0
+
+Embedded=F0garbage
+--===============2385509127900810307==--
+

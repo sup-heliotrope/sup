@@ -181,6 +181,34 @@ class TestMessage < Minitest::Test
     # TODO: Add more asserts
   end
 
+  def test_text_attachment_decoding
+    message = fixture('text-attachments-with-charset.eml')
+
+    source = DummySource.new("sup-test://test_text_attachment_decoding")
+    source.messages = [ message ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+    sup_message.load_from_source!
+
+    chunks = sup_message.load_from_source!
+    assert_equal(5, chunks.length)
+    assert(chunks[0].is_a? Redwood::Chunk::Text)
+    ## The first attachment declares charset=us-ascii
+    assert(chunks[1].is_a? Redwood::Chunk::Attachment)
+    assert_equal(["This is ASCII"], chunks[1].lines)
+    ## The second attachment declares charset=koi8-r and has some Cyrillic
+    assert(chunks[2].is_a? Redwood::Chunk::Attachment)
+    assert_equal(["\u041f\u0440\u0438\u0432\u0435\u0442"], chunks[2].lines)
+    ## The third attachment declares charset=utf-8 and has an emoji
+    assert(chunks[3].is_a? Redwood::Chunk::Attachment)
+    assert_equal(["\u{1f602}"], chunks[3].lines)
+    ## The fourth attachment declares no charset and has a non-ASCII byte,
+    ## which will be replaced with U+FFFD REPLACEMENT CHARACTER
+    assert(chunks[4].is_a? Redwood::Chunk::Attachment)
+    assert_equal(["Embedded\ufffdgarbage"], chunks[4].lines)
+  end
+
   def test_blank_header_lines
     message = fixture('blank-header-fields.eml')
 
