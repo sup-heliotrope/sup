@@ -128,7 +128,7 @@ EOS
 
       text = case @content_type
       when /^text\/plain\b/
-        @raw_content
+        @raw_content.force_encoding(encoded_content.charset || 'US-ASCII')
       else
         HookManager.run "mime-decode", :content_type => @content_type,
                         :filename => lambda { write_to_disk },
@@ -138,7 +138,7 @@ EOS
 
       @lines = nil
       if text
-        text = text.transcode(encoded_content.charset || $encoding, text.encoding)
+        text = text.encode($encoding, :invalid => :replace, :undef => :replace)
         begin
           @lines = text.gsub("\r\n", "\n").gsub(/\t/, "        ").gsub(/\r/, "").split("\n")
         rescue Encoding::CompatibilityError
