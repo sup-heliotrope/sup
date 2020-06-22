@@ -24,9 +24,14 @@ describe Redwood::Util::Query do
       query = Xapian::Query.new msg
       life = 'hæi'
 
-      # this is now possibly UTF-8 string with possibly invalid chars
-      assert_raises Redwood::Util::Query::QueryDescriptionError do
-        desc = Redwood::Util::Query.describe (query)
+      if query.description.force_encoding("UTF-8").valid_encoding?
+        # xapian 1.4 internally handles this bad input
+        assert true
+      else
+        # xapian 1.2 doesn't handle this bad input, so we do
+        assert_raises Redwood::Util::Query::QueryDescriptionError do
+          desc = Redwood::Util::Query.describe (query)
+        end
       end
 
       assert_raises Encoding::CompatibilityError do
@@ -40,7 +45,8 @@ describe Redwood::Util::Query do
 
       desc = Redwood::Util::Query.describe(query, "invalid query")
 
-      assert_equal("invalid query", desc)
+      assert desc.force_encoding("UTF-8").valid_encoding?
+
     end
   end
 end
