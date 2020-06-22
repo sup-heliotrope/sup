@@ -209,6 +209,23 @@ class TestMessage < Minitest::Test
     assert_equal(["Embedded\ufffdgarbage"], chunks[4].lines)
   end
 
+  def test_mailing_list_header
+    message = fixture('mailing-list-header.eml')
+
+    source = DummySource.new("sup-test://test_mailing_list_header")
+    source.messages = [ message ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+    sup_message.load_from_source!
+
+    assert(sup_message.list_subscribe.nil?)
+    assert_equal("<https://lists.openembedded.org/g/openembedded-devel/unsub>",
+                 sup_message.list_unsubscribe)
+    assert_equal("openembedded-devel@lists.openembedded.org", sup_message.list_address.email)
+    assert_equal("openembedded-devel", sup_message.list_address.name)
+  end
+
   def test_blank_header_lines
     message = fixture('blank-header-fields.eml')
 

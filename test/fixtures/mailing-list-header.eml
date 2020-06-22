@@ -1,0 +1,80 @@
+Return-Path: <bounce+67613+84234+3618174+8024896@lists.openembedded.org>
+Delivered-To: unknown
+Received: (qmail 702 invoked from network); 7 May 2020 06:15:54 -0000
+Received: from web01.groups.io (HELO web01.groups.io) (66.175.222.12)  by
+ server-33.tower-414.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384
+ encrypted SMTP; 7 May 2020 06:15:54 -0000
+From: "Yu, Mingli" <mingli.yu@windriver.com>
+To: <openembedded-devel@lists.openembedded.org>
+Subject:
+ [oe] [meta-python][PATCH] python3-ntplib: add missing python3-io RDEPENDS
+Date: Thu, 7 May 2020 14:15:26 +0800
+Message-ID: <1588832126-393701-1-git-send-email-mingli.yu@windriver.com>
+Precedence: Bulk
+List-Unsubscribe: <https://lists.openembedded.org/g/openembedded-devel/unsub>
+Sender: <openembedded-devel@lists.openembedded.org>
+List-Id: <openembedded-devel.lists.openembedded.org>
+Mailing-List: list openembedded-devel@lists.openembedded.org; contact
+ openembedded-devel+owner@lists.openembedded.org
+Delivered-To: mailing list openembedded-devel@lists.openembedded.org
+Reply-To: <openembedded-devel@lists.openembedded.org>
+Content-Type: multipart/mixed; boundary="YleAvGBsp4tLsYxU5fi4"
+MIME-Version: 1.0
+
+--YleAvGBsp4tLsYxU5fi4
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+From: Mingli Yu <mingli.yu@windriver.com>
+
+Add the missing python3-io RDEPENDS to fix
+below error:
+ # python3
+Python 3.8.2 (default, Apr 27 2020, 08:51:00)
+[GCC 9.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import ntplib
+Traceback (most recent call last):
+File "<stdin>", line 1, in <module>
+File "/usr/lib64/python3.8/site-packages/ntplib.py", line 32, in <module>
+import socket
+ModuleNotFoundError: No module named 'socket'
+
+Signed-off-by: Mingli Yu <mingli.yu@windriver.com>
+---
+ meta-python/recipes-devtools/python/python3-ntplib_0.3.3.bb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meta-python/recipes-devtools/python/python3-ntplib_0.3.3.bb b/meta-python/recipes-devtools/python/python3-ntplib_0.3.3.bb
+index 93df83a..ce2618b 100644
+--- a/meta-python/recipes-devtools/python/python3-ntplib_0.3.3.bb
++++ b/meta-python/recipes-devtools/python/python3-ntplib_0.3.3.bb
+@@ -11,4 +11,4 @@ S = "${WORKDIR}/${SRCNAME}-${PV}"
+
+ inherit setuptools3 python3native pypi
+
+-RDEPENDS_${PN} += "${PYTHON_PN}-datetime"
++RDEPENDS_${PN} += "${PYTHON_PN}-datetime ${PYTHON_PN}-io"
+--
+2.7.4
+
+
+--YleAvGBsp4tLsYxU5fi4
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-
+Links: You receive all messages sent to this group.
+
+View/Reply Online (#84234): https://lists.openembedded.org/g/openembedded-d=
+evel/message/84234
+Mute This Topic: https://lists.openembedded.org/mt/74045486/3618174
+Group Owner: openembedded-devel+owner@lists.openembedded.org
+Unsubscribe: https://lists.openembedded.org/g/openembedded-devel/leave/8024=
+896/1667129725/xyzzy  [dan.callaghan@opengear.com]
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-
+
+--YleAvGBsp4tLsYxU5fi4--
+
