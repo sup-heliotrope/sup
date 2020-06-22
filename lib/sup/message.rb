@@ -136,6 +136,11 @@ class Message
         header["list-post"] # just try the whole fucking thing
       end
       address && Person.from_address(address)
+    elsif header["mailing-list"]
+      address = if header["mailing-list"] =~ /list (.*?);/
+        $1
+      end
+      address && Person.from_address(address)
     elsif header["x-mailing-list"]
       Person.from_address header["x-mailing-list"]
     end
