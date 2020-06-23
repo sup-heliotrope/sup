@@ -160,6 +160,7 @@ EOS
       end
     end
     def safe_filename; Shellwords.escape(@filename).gsub("/", "_") end
+    def filesafe_filename; @filename.gsub("/", "_") end
 
     ## an attachment is exapndable if we've managed to decode it into
     ## something we can display inline. otherwise, it's viewable.
