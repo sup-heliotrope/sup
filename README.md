@@ -2,6 +2,8 @@
 
 Sup is a console-based email client for people with a lot of email.
 
+> Note: Sup is currently un-maintained. Please see [this discussion](https://github.com/sup-heliotrope/sup/issues/504). The [notmuch mail](https://notmuchmail.org/) project and its associated [clients](https://notmuchmail.org/frontends/) were inspired by sup and are actively maintained and developed.
+
 <img src="http://sup-heliotrope.github.io/images/old_screenshot_1.png" />
 
 ## Installation
