@@ -11,6 +11,8 @@ describe "Sup's String extension" do
         ['some words', 10,],
         ['中文', 4,],
         ['ä', 1,],
+        ['😱', 2],
+        #['🏳️‍🌈', 2],  # Emoji ZWJ sequence not yet supported (see PR #563)
       ]
     end
 
@@ -27,6 +29,8 @@ describe "Sup's String extension" do
         ['some words', 6, 'some w'],
         ['中文', 2, '中'],
         ['älpha', 3, 'älp'],
+        ['😱😱', 2, '😱'],
+        #['🏳️‍🌈', 2, '🏳️‍🌈'],  # Emoji ZWJ sequence not yet supported (see PR #563)
       ]
     end
 
@@ -45,6 +49,8 @@ describe "Sup's String extension" do
         ['中文', 2, ['中', '文']],
         ['中文', 5, ['中文']],
         ['älpha', 3, ['älp', 'ha']],
+        ['😱😱', 2, ['😱', '😱']],
+        #['🏳️‍🌈🏳️‍🌈', 2, ['🏳️‍🌈', '🏳️‍🌈']],  # Emoji ZWJ sequence not yet supported (see PR #563)
       ]
     end
 
