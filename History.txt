@@ -1,11 +1,53 @@
 ==
 
-* Update xapian dependency to 1.2
-* Antoni Kaniowski: INDENT_SPACES are now configurable via config.yaml
-* Sharif Olorin: Use standard unit abbreviations for attachment sizes
-* Vickenty Fesunov: Optimize text rendering
-* Seva Zhidkov: '@' reloads thread-view.
-* Various bug fixes
+* #505: Shell metacharacters in attachment filenames are no longer escaped when
+  saving the attachment to disk using 's'. Fixes attachments being saved with
+  unnecessary \ escapes in their filename. (Felix Van der Jeugt)
+* When saving attachments, Sup now creates all parent directories of the
+  destination path. (Matthieu Rakotojaona)
+* The '@' key now reloads all messages in thread view. (Seva Zhidkov)
+* #517: The 'g' key now correctly opens each selected URL if multiple URLs are
+  under the cursor, instead of opening the last URL multiple times.
+  (Matthieu Rakotojaona)
+* The 'g' key now works when the cursor is over a URL inside a signature block.
+  (Michael Dwyer)
+* The 'reply-to' hook is now passed a 'message' variable, the message being
+  replied to, so that the hook can choose the reply mode based on properties of
+  the message like the list address. (Simon Tatham)
+* The contacts list now shows also email addresses supplied by the
+  'extra-contract-addresses' hook. (Matthieu Rakotojaona)
+* #510: The micalg= parameter is now set correctly when sending
+  multipart/signed messages. Fixes issues with other mail clients which fail to
+  handle a missing micalg= parameter on signed messages. (Dan Callaghan)
+* Attachments with text/plain MIME type are now correctly decoded according to
+  their charset= parameter. (Dan Callaghan)
+* Strings returned by the 'mime-decode' hook are now kept in their original
+  encoding and displayed as is, instead of being wrongly transcoded.
+  (Dan Callaghan)
+* Rendering speed of thread list views is improved. (Vickenty Fesunov)
+* Fixed display width calculation for emoji. Previously, sender names and
+  thread subjects using emoji would be incorrectly truncated, if the terminal
+  emulator displays emoji as double-width. (Dan Callaghan)
+* List address is parsed from the non-standard Mailing-List header used by
+  Groups.io. (Dan Callaghan)
+* Fixed misinterpretation of quoted text where the quote uses both an
+  "---- Original Message ----" marker and > delimiters, for example from
+  Zimbra users. (Steven Lawrance)
+* Added a new option 'indent_spaces' in config.yaml, to control the number of
+  spaces for indenting each child message when displaying the thread view.
+  The default remains 2. (Antoni Kaniowski)
+* Attachment sizes are now displayed using standard unit abbreviations like
+  "MiB". (Sharif Olorin)
+* Sup now gives a hint if a search query results in an empty search after
+  tokenization (for example, if the user tries to search for only punctuation).
+  (Per Andersson)
+* The --list-hooks option now takes an additional option --hooks-matching, to
+  filter the listed hooks. (Matthieu Rakotojaona)
+* Fixed ArgumentError in logging methods on Ruby 2.7. (Dan Callaghan)
+* Fixed FrozenError in verified_ok? method on Ruby 2.7. (Iain Parris)
+* Fixed Fixnum deprecation warnings on Ruby 2.4+. (Dan Callaghan)
+* Several dependency version updates. The optimist gem replaces trollop. The
+  unicode-display_width gem is a new dependency.
 
 == 0.22.1 / 2015-06-18
 
