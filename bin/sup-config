@@ -33,6 +33,7 @@ def add_source
     menu.prompt = "What type of mail source is it? "
     menu.choice("mbox file") { type = :mbox }
     menu.choice("maildir directory") { type = :maildir }
+    menu.choice("maildir directory in a zip file") { type = :zipped_maildir }
     menu.choice("Get me out of here!") { return }
   end
 
@@ -56,6 +57,14 @@ def add_source
       $last_fn = fn
       [Redwood::Maildir.suggest_labels_for(fn),
        { :scheme => "maildir", :path => fn }]
+    when :zipped_maildir
+      $last_fn ||= ENV["MAIL"]
+      fn = axe "What's the full path to the maildir zip file?", $last_fn
+      return if fn.nil? || fn.empty?
+
+      $last_fn = fn
+      [Redwood::ZippedMaildir.suggest_labels_for(fn),
+       { :scheme => "maildir+zip", :path => fn }]
     end
 
     uri = begin
