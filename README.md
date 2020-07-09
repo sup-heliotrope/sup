@@ -2,8 +2,6 @@
 
 Sup is a console-based email client for people with a lot of email.
 
-> Note: Sup is currently un-maintained. Please see [this discussion](https://github.com/sup-heliotrope/sup/issues/504). The [notmuch mail](https://notmuchmail.org/) project and its associated [clients](https://notmuchmail.org/frontends/) were inspired by sup and are actively maintained and developed.
-
 <img src="https://sup-heliotrope.github.io/images/old_screenshot_1.png" />
 
 ## Installation
@@ -43,10 +41,30 @@ Please report bugs to the [GitHub issue tracker](https://github.com/sup-heliotro
 * IRC: [#sup @ freenode.net](http://webchat.freenode.net/?channels=#sup)
 * Mailing list: supmua@googlegroups.com (subscribe: supmua+subscribe@googlegroups.com, archive: https://groups.google.com/d/forum/supmua )
 
+## Maintenance status
+
+Sup is a mature, production-quality mail client. The maintainers are also
+long-term users, and mainly focus on preserving the current feature set. Pull
+requests are very welcome, especially to fix bugs or improve compatibility,
+however pull requests for major new features are unlikely to be merged.
+
+## Alternatives
+
+If Sup is missing a feature you are interested in, it might be possible to
+accomplish using Sup's [powerful hooks mechanism][hooks]. Otherwise, here are
+some alternatives to consider:
+
+* [Notmuch](https://notmuchmail.org/) was inspired by Sup. There are a wide
+  variety of [Notmuch clients](https://notmuchmail.org/frontends/) available.
+  The most similar to Sup's look-and-feel is
+  [Alot](https://github.com/pazz/alot) &mdash; also a curses-based frontend.
+  Alot even ships with a built-in
+  [Sup theme](https://github.com/pazz/alot/blob/master/extra/themes/sup)!
+
 ## License
 
 ```
-Copyright (c) 2013       Sup developers.
+Copyright (c) 2013--     Sup developers.
 Copyright (c) 2006--2009 William Morgan.
 
 This program is free software; you can redistribute it and/or
