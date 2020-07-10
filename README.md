@@ -57,9 +57,15 @@ some alternatives to consider:
 * [Notmuch](https://notmuchmail.org/) was inspired by Sup. There are a wide
   variety of [Notmuch clients](https://notmuchmail.org/frontends/) available.
   The most similar to Sup's look-and-feel is
-  [Alot](https://github.com/pazz/alot) &mdash; also a curses-based frontend.
-  Alot even ships with a built-in
-  [Sup theme](https://github.com/pazz/alot/blob/master/extra/themes/sup)!
+  [Alot](https://github.com/pazz/alot) &mdash; also a curses-based front end.
+  Alot even ships with a
+  [built-in](https://github.com/pazz/alot/blob/master/extra/themes/sup)
+  [Sup theme](https://github.com/pazz/alot/wiki/Gallery#user-content-theme-sup)!
+
+* [mu](https://www.djcbsoftware.nl/code/mu/) /
+  [mu4e](https://www.djcbsoftware.nl/code/mu/mu4e.html). Like Sup, a search-based
+  email back end, and also implemented using Xapian. The emacs-based front end
+  [is quite different](https://www.djcbsoftware.nl/code/mu/mu4e/Other-mail-clients.html).
 
 ## License
 
