@@ -8,14 +8,16 @@ Damien Leone <damien.leone at the fensalir dot frs>
 Sascha Silbe <sascha-pgp at the silbe dot orgs>
 Eric Weikl <eric.weikl at the gmx dot nets>
 Paweł Wilk <siefca at the gnu dot orgs>
-Ismo Puustinen <ismo at the iki dot fis>
 Matthieu Rakotojaona <matthieu.rakotojaona at the gmail dot coms>
+Ismo Puustinen <ismo at the iki dot fis>
+Dan Callaghan <djc at the djc.id dot aus>
 Nicolas Pouillard <nicolas.pouillard at the gmail dot coms>
 Michael Stapelberg <michael at the stapelberg dot des>
 Eric Sherman <hyperbolist at the gmail dot coms>
 Tero Tilus <tero at the tilus dot nets>
 Ben Walton <bwalton at the artsci.utoronto dot cas>
 Scott Bonds <scott at the ggr dot coms>
+Iain Parris <ipv2.vcs at the parris dot orgs>
 Mike Stipicevic <stipim at the rpi dot edus>
 Martin Bähr <mbaehr at the societyserver dot orgs>
 Timon Vonk <timonv at the gmail dot coms>
@@ -23,12 +25,12 @@ Clint Byrum <clint at the ubuntu dot coms>
 Wael M. Nasreddine <wael.nasreddine at the gmail dot coms>
 Marcus Williams <marcus-sup at the bar-coded dot nets>
 Lionel Ott <white.magic at the gmx dot des>
-Gaudenz Steinlin <gaudenz at the soziologie dot chs>
 Per Andersson <avtobiff at the gmail dot coms>
+Gaudenz Steinlin <gaudenz at the soziologie dot chs>
 Mark Alexander <marka at the pobox dot coms>
 Ingmar Vanhassel <ingmar at the exherbo dot orgs>
 Edward Z. Yang <ezyang at the mit dot edus>
-julien@macbook <julien.stechele at the gmail dot coms>
+julien at the macbook <julien.stechele at the gmail dot coms>
 Christopher Warrington <chrisw at the rice dot edus>
 W. Trevor King <wking at the drexel dot edus>
 Richard Brown <rbrown at the exherbo dot orgs>
@@ -61,16 +63,21 @@ Jeff Balogh <its.jeff.balogh at the gmail dot coms>
 Matías Aguirre <matiasaguirre at the gmail dot coms>
 PaulSmecker <paul.smecker at the gmail dot coms>
 Ruthard Baudach <rthrd at the web dot des>
+Vickenty Fesunov <kent at the setattr dot nets>
 Kornilios Kourtis <kkourt at the cslab.ece.ntua dot grs>
+Antoni Kaniowski <a at the generativestuff dot coms>
 Lars Fischer <fischer at the wiwi.uni-siegen dot des>
+Sharif Olorin <sio at the tesser dot orgs>
+Steven Lawrance <stl at the koffein dot nets>
 madhat2r <MaDhAt2r at the dukefoo dot coms>
 Kevin Riggle <kevinr at the free-dissociation dot coms>
 Giorgio Lando <patroclo7 at the gmail dot coms>
 Benoît PIERRE <benoit.pierre at the gmail dot coms>
-Steven Lawrance <stl at the koffein dot nets>
+Seva Zhidkov <zhidkovseva at the gmail dot coms>
 Alvaro Herrera <alvherre at the alvh.no-ip dot orgs>
 Jonah <Jonah at the GoodCoffee dot cas>
 ian <itaylor at the uark dot edus>
+Simon Tatham <anakin at the pobox dot coms>
 Elias Norberg <xyzzy at the kudzu dot ses>
 0xACE <0xACE at the users.noreply.github dot coms>
 MichaelRevell <mikearevell at the gmail dot coms>
@@ -78,9 +85,10 @@ Gregor Hoffleit <gregor at the sam.mediasupervision dot des>
 Adam Lloyd <adam at the alloy-d dot nets>
 Todd Eisenberger <teisenbe at the andrew.cmu dot edus>
 Johannes Larsen <mail at the johslarsen dot nets>
-Sharif Olorin <sio at the tesser dot orgs>
 Steven Schmeiser <steven at the schmeiser dot orgs>
 Steven Walter <swalter at the monarch.(none)>
+Michael Dwyer <mdwyer at the michaelmdwyer dot coms>
+Kyle Hunt <Kyle_Hunt at the ymail dot coms>
 William A. Kennington III <william at the wkennington dot coms>
 akojo <atte.kojo at the gmail dot coms>
 Horacio Sanson <horacio at the skillupjapan.co dot jps>

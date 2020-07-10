@@ -1,4 +1,4 @@
-==
+== 0.23 / 2020-07-10
 
 * #505: Shell metacharacters in attachment filenames are no longer escaped when
   saving the attachment to disk using 's'. Fixes attachments being saved with
