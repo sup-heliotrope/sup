@@ -21,10 +21,8 @@ class TestMessage < Minitest::Test
   end
 
   def test_simple_message
-    message = fixture('simple-message.eml')
-
     source = DummySource.new("sup-test://test_simple_message")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('simple-message.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -99,10 +97,8 @@ class TestMessage < Minitest::Test
   end
 
   def test_multipart_message
-    message = fixture('multi-part.eml')
-
     source = DummySource.new("sup-test://test_multipart_message")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('multi-part.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -126,10 +122,8 @@ class TestMessage < Minitest::Test
   end
 
   def test_broken_message_1
-    message = fixture('missing-from-to.eml')
-
     source = DummySource.new("sup-test://test_broken_message_1")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('missing-from-to.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -150,10 +144,8 @@ class TestMessage < Minitest::Test
   end
 
   def test_broken_message_2
-    message = fixture('no-body.eml')
-
     source = DummySource.new("sup-test://test_broken_message_1")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('no-body.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -167,10 +159,8 @@ class TestMessage < Minitest::Test
   end
 
   def test_multipart_message_2
-    message = fixture('multi-part-2.eml')
-
     source = DummySource.new("sup-test://test_multipart_message_2")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('multi-part-2.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -182,10 +172,8 @@ class TestMessage < Minitest::Test
   end
 
   def test_text_attachment_decoding
-    message = fixture('text-attachments-with-charset.eml')
-
     source = DummySource.new("sup-test://test_text_attachment_decoding")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('text-attachments-with-charset.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -210,10 +198,8 @@ class TestMessage < Minitest::Test
   end
 
   def test_mailing_list_header
-    message = fixture('mailing-list-header.eml')
-
     source = DummySource.new("sup-test://test_mailing_list_header")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('mailing-list-header.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -227,10 +213,8 @@ class TestMessage < Minitest::Test
   end
 
   def test_blank_header_lines
-    message = fixture('blank-header-fields.eml')
-
     source = DummySource.new("sup-test://test_blank_header_lines")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('blank-header-fields.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -249,10 +233,8 @@ class TestMessage < Minitest::Test
   end
 
   def test_malicious_attachment_names
-    message = fixture('malicious-attachment-names.eml')
-
     source = DummySource.new("sup-test://test_blank_header_lines")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('malicious-attachment-names.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -276,10 +258,8 @@ class TestMessage < Minitest::Test
     # tries to do the right thing and reply after the quote.
     # In this case we want to just look at the > markers when determining where
     # the quoted chunk ends.
-    message = fixture('zimbra-quote-with-bottom-post.eml')
-
     source = DummySource.new("sup-test://test_zimbra_quote_with_bottom_post")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('zimbra-quote-with-bottom-post.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
