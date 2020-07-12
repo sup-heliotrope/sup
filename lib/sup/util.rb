@@ -120,23 +120,6 @@ module RMail
   end
 
   class Header
-
-    # Convert to ASCII before trying to match with regexp
-    class Field
-
-      class << self
-        def parse(field)
-          field = field.dup.to_s
-          field = field.fix_encoding!.ascii
-          if field =~ EXTRACT_FIELD_NAME_RE
-            [ $1, $'.chomp ]
-          else
-            [ "", Field.value_strip(field) ]
-          end
-        end
-      end
-    end
-
     ## Be more cautious about invalid content-type headers
     ## the original RMail code calls
     ## value.strip.split(/\s*;\s*/)[0].downcase
