@@ -248,6 +248,29 @@ class TestMessage < Minitest::Test
     assert_equal("spam \ufffd spam", sup_message.subj)
   end
 
+  def test_nonascii_header_in_nested_message
+    source = DummySource.new("sup-test://test_nonascii_header_in_nested_message")
+    source.messages = [ fixture_path("non-ascii-header-in-nested-message.eml") ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+    chunks = sup_message.load_from_source!
+
+    assert_equal(3, chunks.length)
+
+    assert(chunks[0].is_a? Redwood::Chunk::Text)
+
+    assert(chunks[1].is_a? Redwood::Chunk::EnclosedMessage)
+    ## TODO need to fix EnclosedMessage#lines
+    #assert_equal(4, chunks[1].lines.length)
+    #assert_equal("From: SPAM \ufffd <spammer@example.com>", chunks[1].lines[0])
+    #assert_equal("spam \ufffd spam", chunks[1].lines[3])
+
+    assert(chunks[2].is_a? Redwood::Chunk::Text)
+    assert_equal(1, chunks[2].lines.length)
+    assert_equal("This is a spam.", chunks[2].lines[0])
+  end
+
   def test_malicious_attachment_names
     source = DummySource.new("sup-test://test_blank_header_lines")
     source.messages = [ fixture_path('malicious-attachment-names.eml') ]

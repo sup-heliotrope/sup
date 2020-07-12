@@ -1,0 +1,36 @@
+Return-Path: <spammer@example.com>
+From: SPAM ® <spammer@example.com>
+To: <a@b.c>
+Subject: spam ® spam
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="----------=_4F506AC2.EE281DC4"
+Message-Id: <20120302063755.0FE2122017@a.a.a.a>
+Date: Fri,  2 Mar 2012 07:37:55 +0100 (CET)
+
+This is a multi-part message in MIME format.
+
+------------=_4F506AC2.EE281DC4
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Spam detection software, running on the system "a.a.a.a.a.", has
+identified this incoming email as possible spam.  The original message
+has been attached to this so you can view it (if it isn't spam) or label
+similar future email.
+
+
+------------=_4F506AC2.EE281DC4
+Content-Type: message/rfc822; x-spam-type=original
+Content-Description: original message before SpamAssassin
+Content-Disposition: attachment
+Content-Transfer-Encoding: 8bit
+
+From: SPAM ® <spammer@example.com>
+To: <a@b.c>
+Subject: spam ® spam
+
+This is a spam.
+
+------------=_4F506AC2.EE281DC4--
+

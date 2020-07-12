@@ -376,7 +376,6 @@ class String
   end
 
   def normalize_whitespace
-    fix_encoding!
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
 
