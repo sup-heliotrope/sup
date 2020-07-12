@@ -25,32 +25,38 @@ class DummySource < Source
     return @messages ? @messages.length - 1 : 0
   end
 
-  def load_header offset
-    Source.parse_raw_email_header StringIO.new(raw_header(offset))
+  def with_file_for id
+    fn = @messages[id]
+    File.open(fn, 'rb') { |f| yield f }
   end
 
-  def load_message offset
-    RMail::Parser.read raw_message(offset)
+  def load_header id
+    with_file_for(id) { |f| parse_raw_email_header f }
   end
 
-  def raw_header offset
+  def load_message id
+    with_file_for(id) { |f| RMail::Parser.read f }
+  end
+
+  def raw_header id
     ret = ""
-    f = StringIO.new(@messages[offset])
-    until f.eof? || (l = f.gets) =~ /^$/
-      ret += l
+    with_file_for(id) do |f|
+      until f.eof? || (l = f.gets) =~ /^$/
+        ret += l
+      end
     end
     ret
   end
 
-  def raw_message offset
-    @messages[offset]
+  def raw_message id
+    with_file_for(id) { |f| f.read }
   end
 
-  def each_raw_message_line offset
-    ret = ""
-    f = StringIO.new(@messages[offset])
-    until f.eof?
-      yield f.gets
+  def each_raw_message_line id
+    with_file_for(id) do |f|
+      until f.eof?
+        yield f.gets
+      end
     end
   end
 end

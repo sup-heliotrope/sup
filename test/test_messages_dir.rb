@@ -21,11 +21,8 @@ class TestMessagesDir < ::Minitest::Test
   end
 
   def test_binary_content_transfer_encoding
-    message = ''
-    File.open('test/fixtures/binary-content-transfer-encoding-2.eml') { |f| message = f.read }
-
     source = DummySource.new("sup-test://test_messages")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('binary-content-transfer-encoding-2.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -53,11 +50,8 @@ class TestMessagesDir < ::Minitest::Test
   end
 
   def test_bad_content_transfer_encoding
-    message = ''
-    File.open('test/fixtures/bad-content-transfer-encoding-1.eml') { |f| message = f.read }
-
     source = DummySource.new("sup-test://test_messages")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('bad-content-transfer-encoding-1.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
@@ -85,11 +79,8 @@ class TestMessagesDir < ::Minitest::Test
   end
 
   def test_missing_line
-    message = ''
-    File.open('test/fixtures/missing-line.eml') { |f| message = f.read }
-
     source = DummySource.new("sup-test://test_messages")
-    source.messages = [ message ]
+    source.messages = [ fixture_path('missing-line.eml') ]
     source_info = 0
 
     sup_message = Message.build_from_source(source, source_info)
