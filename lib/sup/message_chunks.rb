@@ -302,7 +302,11 @@ EOS
     def viewable?; false end
 
     def patina_color; :generic_notice_patina_color end
-    def patina_text; "Begin enclosed message sent on #{@date}" end
+    def patina_text
+      "Begin enclosed message" + (
+        @date == "" ? "" : " sent on #{@date}"
+      )
+    end
 
     def color; :quote_color end
   end
