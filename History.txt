@@ -1,3 +1,8 @@
+== 1.0 / 2020-07-12
+
+No changes. The version number is incremented to 1.0 to reflect the fact that
+Sup is mature and no further backwards-incompatible changes are planned.
+
 == 0.23 / 2020-07-10
 
 * #505: Shell metacharacters in attachment filenames are no longer escaped when
