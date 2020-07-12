@@ -232,6 +232,22 @@ class TestMessage < Minitest::Test
 
   end
 
+  def test_nonascii_header
+    ## Headers are supposed to be 7-bit ASCII, with non-ASCII characters encoded
+    ## using RFC2047 header encoding. But spammers sometimes send high bytes in
+    ## the headers. They will be replaced with U+FFFD REPLACEMENT CHARACTER.
+    source = DummySource.new("sup-test://test_nonascii_header")
+    source.messages = [ fixture_path("non-ascii-header.eml") ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+    sup_message.load_from_source!
+
+    assert_equal("SPAM \ufffd", sup_message.from.name)
+    assert_equal("spammer@example.com", sup_message.from.email)
+    assert_equal("spam \ufffd spam", sup_message.subj)
+  end
+
   def test_malicious_attachment_names
     source = DummySource.new("sup-test://test_blank_header_lines")
     source.messages = [ fixture_path('malicious-attachment-names.eml') ]
