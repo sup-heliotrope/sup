@@ -261,10 +261,10 @@ class TestMessage < Minitest::Test
     assert(chunks[0].is_a? Redwood::Chunk::Text)
 
     assert(chunks[1].is_a? Redwood::Chunk::EnclosedMessage)
-    ## TODO need to fix EnclosedMessage#lines
-    #assert_equal(4, chunks[1].lines.length)
-    #assert_equal("From: SPAM \ufffd <spammer@example.com>", chunks[1].lines[0])
-    #assert_equal("spam \ufffd spam", chunks[1].lines[3])
+    assert_equal(4, chunks[1].lines.length)
+    assert_equal("From: SPAM \ufffd <spammer@example.com>", chunks[1].lines[0])
+    assert_equal("To: enclosed <enclosed@example.invalid>", chunks[1].lines[1])
+    assert_equal("Subject: spam \ufffd spam", chunks[1].lines[3])
 
     assert(chunks[2].is_a? Redwood::Chunk::Text)
     assert_equal(1, chunks[2].lines.length)

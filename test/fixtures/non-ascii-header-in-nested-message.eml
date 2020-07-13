@@ -1,6 +1,6 @@
 Return-Path: <spammer@example.com>
 From: SPAM ® <spammer@example.com>
-To: <a@b.c>
+To: <recipient@example.invalid>
 Subject: spam ® spam
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="----------=_4F506AC2.EE281DC4"
@@ -27,7 +27,7 @@ Content-Disposition: attachment
 Content-Transfer-Encoding: 8bit
 
 From: SPAM ® <spammer@example.com>
-To: <a@b.c>
+To: <enclosed@example.invalid>
 Subject: spam ® spam
 
 This is a spam.
