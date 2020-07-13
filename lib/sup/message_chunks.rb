@@ -274,24 +274,19 @@ EOS
   class EnclosedMessage
     attr_reader :lines
     def initialize from, to, cc, date, subj
-      @from = from ? "unknown sender" : from.full_address
-      @to = to ? "" : to.map { |p| p.full_address }.join(", ")
-      @cc = cc ? "" : cc.map { |p| p.full_address }.join(", ")
-      if date
-        @date = date.rfc822
-      else
-        @date = ""
-      end
-
+      @from = !from ? "unknown sender" : from.full_address
+      @to = !to ? "" : to.map { |p| p.full_address }.join(", ")
+      @cc = !cc ? "" : cc.map { |p| p.full_address }.join(", ")
+      @date = !date ? "" : date.rfc822
       @subj = subj
-
-      @lines = "\nFrom: #{from}\n"
-      @lines += "To: #{to}\n"
-      if !cc.empty?
-        @lines += "Cc: #{cc}\n"
-      end
-      @lines += "Date: #{date}\n"
-      @lines += "Subject: #{subj}\n\n"
+      @lines = [
+        "From: #{@from}",
+        "To: #{@to}",
+        "Cc: #{@cc}",
+        "Date: #{@date}",
+        "Subject: #{@subj}"
+      ]
+      @lines.delete_if{ |line| line == 'Cc: ' }
     end
 
     def inlineable?; false end
