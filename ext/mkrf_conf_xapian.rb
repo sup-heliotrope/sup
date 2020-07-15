@@ -10,7 +10,8 @@ end
 
 puts "xapian: platform specific dependencies.."
 
-inst = Gem::DependencyInstaller.new
+destination = File.writable?(Gem.dir) ? Gem.dir : Gem.user_dir
+inst = Gem::DependencyInstaller.new(:install_dir => destination)
 begin
 
   if !RbConfig::CONFIG['arch'].include?('openbsd')
@@ -34,8 +35,8 @@ begin
     STDERR.puts "xapian: openbsd: you have to install xapian-core and xapian-bindings manually, have a look at: https://github.com/sup-heliotrope/sup/wiki/Installation%3A-OpenBSD"
   end
 
-rescue
-
+rescue StandardError => e
+  STDERR.puts "Unable to install #{name} gem: #{e.inspect}"
   exit(1)
 
 end
