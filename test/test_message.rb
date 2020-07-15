@@ -271,6 +271,39 @@ class TestMessage < Minitest::Test
     assert_equal("This is a spam.", chunks[2].lines[0])
   end
 
+  def test_embedded_message
+    source = DummySource.new("sup-test://test_embedded_message")
+    source.messages = [ fixture_path("embedded-message.eml") ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+
+    chunks = sup_message.load_from_source!
+    assert_equal(3, chunks.length)
+
+    assert_equal("sender@example.com", sup_message.from.email)
+    assert_equal("Sender", sup_message.from.name)
+    assert_equal(1, sup_message.to.length)
+    assert_equal("recipient@example.invalid", sup_message.to[0].email)
+    assert_equal("recipient", sup_message.to[0].name)
+    assert_equal("Email with embedded message", sup_message.subj)
+
+    assert(chunks[0].is_a? Redwood::Chunk::Text)
+    assert_equal("Example outer message.", chunks[0].lines[0])
+    assert_equal("Example second line.", chunks[0].lines[1])
+
+    assert(chunks[1].is_a? Redwood::Chunk::EnclosedMessage)
+    assert_equal(4, chunks[1].lines.length)
+    assert_equal("From: Embed sender <embed@example.com>", chunks[1].lines[0])
+    assert_equal("To: rcpt2 <rcpt2@example.invalid>", chunks[1].lines[1])
+    assert_equal("Subject: Embedded subject line", chunks[1].lines[3])
+
+    assert(chunks[2].is_a? Redwood::Chunk::Text)
+    assert_equal(2, chunks[2].lines.length)
+    assert_equal("Example embedded message.", chunks[2].lines[0])
+    assert_equal("Second line.", chunks[2].lines[1])
+  end
+
   def test_malicious_attachment_names
     source = DummySource.new("sup-test://test_blank_header_lines")
     source.messages = [ fixture_path('malicious-attachment-names.eml') ]
