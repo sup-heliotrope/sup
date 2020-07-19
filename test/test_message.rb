@@ -232,6 +232,18 @@ class TestMessage < Minitest::Test
 
   end
 
+  def test_rfc2047_header_encoding
+    source = DummySource.new("sup-test://test_rfc2047_header_encoding")
+    source.messages = [ fixture_path("rfc2047-header-encoding.eml") ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+    sup_message.load_from_source!
+
+    assert_equal("Hans Martin Djupvik, Ingrid Bø, Ирина Сидорова, Jesper Berg",
+                 sup_message.subj)
+  end
+
   def test_nonascii_header
     ## Headers are supposed to be 7-bit ASCII, with non-ASCII characters encoded
     ## using RFC2047 header encoding. But spammers sometimes send high bytes in
