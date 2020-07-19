@@ -296,6 +296,11 @@ class TestMessage < Minitest::Test
     assert_equal(4, chunks[1].lines.length)
     assert_equal("From: Embed sender <embed@example.com>", chunks[1].lines[0])
     assert_equal("To: rcpt2 <rcpt2@example.invalid>", chunks[1].lines[1])
+    assert_equal("Date: ", chunks[1].lines[2][0..5])
+    assert_equal(
+      Time.rfc2822("Wed, 15 Jul 2020 12:34:56 +0000"),
+      Time.rfc2822(chunks[1].lines[2][6..-1])
+    )
     assert_equal("Subject: Embedded subject line", chunks[1].lines[3])
 
     assert(chunks[2].is_a? Redwood::Chunk::Text)
