@@ -50,7 +50,11 @@ module Rfc2047
         # WORD.
       end
 
-      text.transcode(target, charset)
+      begin
+        text.force_encoding(charset).encode(target)
+      rescue ArgumentError, Encoding::InvalidByteSequenceError
+        word
+      end
     end
   end
 end
