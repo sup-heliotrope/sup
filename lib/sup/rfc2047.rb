@@ -17,7 +17,7 @@
 # This file is distributed under the same terms as Ruby.
 
 module Rfc2047
-  WORD = %r{=\?([!\#$%&'*+-/0-9A-Z\\^\`a-z{|}~]+)\?([BbQq])\?([!->@-~]+)\?=} # :nodoc: 'stupid ruby-mode
+  WORD = %r{=\?([!\#$%&'*+-/0-9A-Z\\^\`a-z{|}~]+)\?([BbQq])\?([!->@-~ ]+)\?=} # :nodoc: 'stupid ruby-mode
   WORDSEQ = %r{(#{WORD.source})\s+(?=#{WORD.source})}
 
   def Rfc2047.is_encoded? s; s =~ WORD end
