@@ -240,7 +240,8 @@ class TestMessage < Minitest::Test
     sup_message = Message.build_from_source(source, source_info)
     sup_message.load_from_source!
 
-    assert_equal("Hans Martin Djupvik, Ingrid Bø, Ирина Сидорова, Jesper Berg",
+    assert_equal("Hans Martin Djupvik, Ingrid Bø, Ирина Сидорова, Jesper Berg " +
+                 "bad: =?UTF16?q?badcharsetname?==?US-ASCII?b?/w?=",
                  sup_message.subj)
   end
 
