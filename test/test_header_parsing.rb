@@ -69,7 +69,7 @@ EOS
 
   def test_blank_lines
     h = Source.parse_raw_email_header StringIO.new("")
-    assert_equal nil, h["message-id"]
+    assert_nil h["message-id"]
   end
 
   def test_empty_headers

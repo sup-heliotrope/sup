@@ -13,18 +13,18 @@ describe Redwood::HorizontalSelector do
 
   it "init w/ the first value selected" do
     first_value = values.first
-    @selector.val.must_equal first_value
+    assert_equal first_value, @selector.val
   end
 
   it "stores value for selection" do
     second_value = values[1]
     @selector.set_to second_value
-    @selector.val.must_equal second_value
+    assert_equal second_value, @selector.val
   end
 
   describe "for unknown value" do
     it "cannot select unknown value" do
-      @selector.wont_be :can_set_to?, strange_value
+      assert_equal false, @selector.can_set_to?(strange_value)
     end
 
     it "refuses selecting unknown value" do
@@ -34,7 +34,7 @@ describe Redwood::HorizontalSelector do
         @selector.set_to strange_value
       end
 
-      @selector.val.must_equal old_value
+      assert_equal old_value, @selector.val
     end
   end
 end
