@@ -1,7 +1,7 @@
 require 'test_helper'
 require 'sup/util/locale_fiddler'
 
-class TestFiddle < ::Minitest::Unit::TestCase
+class TestFiddle < Minitest::Test
   # TODO this is a silly test
   def test_fiddle_set_locale
     before = LocaleDummy.setlocale(6, nil).to_s
