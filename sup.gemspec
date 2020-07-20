@@ -32,7 +32,7 @@ SUP: please note that our old mailing lists have been shut down,
      https://github.com/sup-heliotrope/sup/wiki/Installation%3A-OpenBSD.
   EOF
 
-  s.files         = `git ls-files -z`.split("\x0")
+  s.files         = File.read("Manifest.txt").split
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
