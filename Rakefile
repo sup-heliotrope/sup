@@ -1,6 +1,10 @@
 require 'rake/testtask'
 require "bundler/gem_tasks"
 
+# Manifest.txt file in same folder as this Rakefile
+manifest_filename = "#{File.dirname(__FILE__)}/Manifest.txt"
+git_ls_files_command = "git ls-files | LC_ALL=C sort"
+
 Rake::TestTask.new(:test) do |test|
   test.libs << 'test'
   test.test_files = FileList.new('test/**/test_*.rb')
@@ -9,7 +13,7 @@ end
 task :default => :test
 
 task :build => [:man]
-task :travis => [:test, :build]
+task :travis => [:test, :check_manifest, :build]
 
 def test_pandoc
   return system("pandoc -v > /dev/null 2>&1")
@@ -48,5 +52,28 @@ task :clean do
   ['man', 'pkg'].each do |d|
     puts "cleaning #{d}.."
     FileUtils.rm_r d if Dir.exist? d
+  end
+end
+
+task :manifest do
+  manifest = `#{git_ls_files_command}`
+  if $?.success? then
+    puts "Writing `git ls-files` output to #{manifest_filename}"
+    File.write(manifest_filename, manifest, mode: 'w')
+  else
+    abort "Failed to generate Manifest.txt (with `git ls-files`)"
+  end
+end
+
+task :check_manifest do
+  manifest = `#{git_ls_files_command}`
+  manifest_file_contents = File.read(manifest_filename)
+  if manifest == manifest_file_contents
+    puts "Manifest.txt OK"
+  else
+    puts "Manifest from `git ls-files`:\n#{manifest}"
+    STDERR.puts "Manifest.txt outdated. Please commit an updated Manifest.txt"
+    STDERR.puts "To generate Manifest.txt, run: rake manifest"
+    abort "Manifest.txt does not match `git ls-files`"
   end
 end
