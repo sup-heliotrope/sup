@@ -13,7 +13,7 @@ end
 task :default => :test
 
 task :build => [:man]
-task :travis => [:test, :check_manifest, :build]
+task :travis => [:test, :rubocop_packaging, :check_manifest, :build]
 
 def test_pandoc
   return system("pandoc -v > /dev/null 2>&1")
@@ -75,5 +75,22 @@ task :check_manifest do
     STDERR.puts "Manifest.txt outdated. Please commit an updated Manifest.txt"
     STDERR.puts "To generate Manifest.txt, run: rake manifest"
     abort "Manifest.txt does not match `git ls-files`"
+  end
+end
+
+task :rubocop_packaging do
+  # Bundler.with_clean_env allows rubocop-packaging.sh to use its own
+  # separate Bundler directory, even if this Rake task is executed by
+  # Bundler.
+  # 
+  # We currently use the deprecated "Bundler.with_clean_env" instead of
+  # "Bundler.with_unbundled_env" for compatibility with older versions
+  # of Ruby and Bundler.
+  Bundler.with_clean_env do
+    if system("cd contrib/rubocop-packaging && ./rubocop-packaging.sh")
+      puts "rubocop-packaging checks OK"
+    else
+      abort "rubocop-packaging checks failed"
+    end
   end
 end
