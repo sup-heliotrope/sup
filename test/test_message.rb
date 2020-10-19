@@ -180,7 +180,7 @@ class TestMessage < Minitest::Test
     sup_message.load_from_source!
 
     chunks = sup_message.load_from_source!
-    assert_equal(5, chunks.length)
+    assert_equal(6, chunks.length)
     assert(chunks[0].is_a? Redwood::Chunk::Text)
     ## The first attachment declares charset=us-ascii
     assert(chunks[1].is_a? Redwood::Chunk::Attachment)
@@ -195,6 +195,10 @@ class TestMessage < Minitest::Test
     ## which will be replaced with U+FFFD REPLACEMENT CHARACTER
     assert(chunks[4].is_a? Redwood::Chunk::Attachment)
     assert_equal(["Embedded\ufffdgarbage"], chunks[4].lines)
+    ## The fifth attachment has an invalid charset, which should still
+    ## be handled gracefully
+    assert(chunks[5].is_a? Redwood::Chunk::Attachment)
+    assert_equal(["Example invalid charset"], chunks[5].lines)
   end
 
   def test_mailing_list_header

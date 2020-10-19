@@ -42,5 +42,12 @@ Content-Disposition: attachment; filename="bad.txt"
 MIME-Version: 1.0
 
 Embedded=F0garbage
---===============2385509127900810307==--
+
+--===============2385509127900810307==
+Content-Type: text/plain; charset="invalid-test"; name="invalid-charset.txt"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment; filename="invalid-charset.txt"
+
+Example invalid charset
+--===============2385509127900810307==
 
