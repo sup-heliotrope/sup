@@ -23,9 +23,9 @@ class MBox < Source
       if parts
         prefix = parts[1]
         @path = parts[3]
-        uri = URI(prefix + URI.encode(@path, URI_ENCODE_CHARS))
+        uri = URI(prefix + Source.encode_path_for_uri(@path))
       else
-        uri = URI(URI.encode @expanded_uri, URI_ENCODE_CHARS)
+        uri = URI(Source.encode_path_for_uri @expanded_uri)
         @path = uri.path
       end
 
@@ -36,7 +36,7 @@ class MBox < Source
     else
       @f = uri_or_fp
       @path = uri_or_fp.path
-      @expanded_uri = "mbox://#{URI.encode @path, URI_ENCODE_CHARS}"
+      @expanded_uri = "mbox://#{Source.encode_path_for_uri @path}"
     end
 
     super uri_or_fp, usual, archived, id
