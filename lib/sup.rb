@@ -26,7 +26,7 @@ class Module
     props = props.map { |p| p.to_s }
 
     path = name.gsub(/::/, "/")
-    yaml_tag "!#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
+    yaml_tag "tag:#{Redwood::YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"
 
     define_method :init_with do |coder|
       initialize(*coder.map.values_at(*props))
