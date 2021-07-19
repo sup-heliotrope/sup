@@ -16,9 +16,9 @@ class Maildir < Source
     if parts
       prefix = parts[1]
       @path = parts[3]
-      uri = URI(prefix + URI.encode(@path, URI_ENCODE_CHARS))
+      uri = URI(prefix + Source.encode_path_for_uri(@path))
     else
-      uri = URI(URI.encode @expanded_uri, URI_ENCODE_CHARS)
+      uri = URI(Source.encode_path_for_uri @path)
       @path = uri.path
     end
 
@@ -30,7 +30,7 @@ class Maildir < Source
     # sync by default if not specified
     @sync_back = true if @sync_back.nil?
 
-    @dir = URI.decode uri.path
+    @dir = URI.decode_www_form_component uri.path
     @labels = Set.new(labels || [])
     @mutex = Mutex.new
     @ctimes = { 'cur' => Time.at(0), 'new' => Time.at(0) }

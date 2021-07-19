@@ -169,6 +169,12 @@ protected
   def Source.expand_filesystem_uri uri
     uri.gsub "~", File.expand_path("~")
   end
+
+  def Source.encode_path_for_uri path
+    path.gsub(Regexp.new("[#{Regexp.quote(URI_ENCODE_CHARS)}]")) { |c|
+      c.each_byte.map { |x| sprintf("%%%02X", x) }.join
+    }
+  end
 end
 
 ## if you have a @labels instance variable, include this
