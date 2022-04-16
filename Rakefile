@@ -79,18 +79,9 @@ task :check_manifest do
 end
 
 task :rubocop_packaging do
-  # Bundler.with_clean_env allows rubocop-packaging.sh to use its own
-  # separate Bundler directory, even if this Rake task is executed by
-  # Bundler.
-  # 
-  # We currently use the deprecated "Bundler.with_clean_env" instead of
-  # "Bundler.with_unbundled_env" for compatibility with older versions
-  # of Ruby and Bundler.
-  Bundler.with_clean_env do
-    if system("cd contrib/rubocop-packaging && ./rubocop-packaging.sh")
-      puts "rubocop-packaging checks OK"
-    else
-      abort "rubocop-packaging checks failed"
-    end
+  if system("rubocop --only Packaging")
+    puts "rubocop-packaging checks OK"
+  else
+    abort "rubocop-packaging checks failed"
   end
 end

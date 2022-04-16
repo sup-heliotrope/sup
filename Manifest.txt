@@ -1,6 +1,7 @@
 .github/workflows/checks.yml
 .gitignore
 .gitmodules
+.rubocop.yml
 CONTRIBUTORS
 Gemfile
 HACKING
@@ -23,9 +24,6 @@ bin/sup-tweak-labels
 contrib/colorpicker.rb
 contrib/completion/_sup.bash
 contrib/completion/_sup.zsh
-contrib/rubocop-packaging/.rubocop.yml
-contrib/rubocop-packaging/Gemfile
-contrib/rubocop-packaging/rubocop-packaging.sh
 devel/console.sh
 devel/count-loc.sh
 devel/load-index.rb

@@ -67,5 +67,6 @@ SUP: please note that our old mailing lists have been shut down,
   s.add_development_dependency "rr", "~> 1.1"
   s.add_development_dependency "gpgme", ">= 2.0.2"
   s.add_development_dependency "pry"
+  s.add_development_dependency "rubocop-packaging"
 
 end
