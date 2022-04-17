@@ -139,11 +139,14 @@ module Redwood
 
   def load_yaml_obj fn, compress=false
     o = if File.exist? fn
-      if compress
-        Zlib::GzipReader.open(fn) { |f| YAML::load f }
+      raw_contents = if compress
+        Zlib::GzipReader.open(fn) { |f| f.read }
       else
-        YAML::load_file fn
+        File::open(fn) { |f| f.read }
       end
+      ## fix up malformed tag URIs created by earlier versions of sup
+      raw_contents.gsub!(/!supmua.org,2006-10-01\/(\S*)$/) { |m| "!<tag:supmua.org,2006-10-01/#{$1}>" }
+      YAML::load raw_contents
     end
     if o.is_a?(Array)
       o.each { |x| x.after_unmarshal! if x.respond_to?(:after_unmarshal!) }
