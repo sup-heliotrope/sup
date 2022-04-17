@@ -57,4 +57,21 @@ EOS
 EOS
   end
 
+  ## https://github.com/sup-heliotrope/sup/issues/545
+  def test_source_with_invalid_uri_chars_in_path
+    assert system({"SUP_BASE" => @path}, "bin/sup-add", "maildir:~/.mail/gmail/[Gmail]/.All Mail/")
+
+    generated_sources_yaml = File.read "#{@path}/sources.yaml"
+    assert_equal <<EOS, generated_sources_yaml
+---
+- !<tag:supmua.org,2006-10-01/Redwood/Maildir>
+  uri: maildir:~/.mail/gmail/[Gmail]/.All Mail/
+  usual: true
+  archived: false
+  sync_back: true
+  id: 1
+  labels: []
+EOS
+  end
+
 end
