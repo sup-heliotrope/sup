@@ -13,7 +13,7 @@ end
 task :default => :test
 
 task :build => [:man]
-task :travis => [:test, :rubocop_packaging, :check_manifest, :build]
+task :ci => [:test, :rubocop_packaging, :check_manifest, :build]
 
 def test_pandoc
   return system("pandoc -v > /dev/null 2>&1")

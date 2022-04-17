@@ -1,0 +1,35 @@
+name: checks
+on:
+  push:
+    branches:
+    - develop
+  pull_request:
+    branches:
+    - develop
+permissions:
+  contents: read
+jobs:
+  rake-ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version:
+        - '2.5'
+        - '2.6'
+        - '2.7'
+        - '3.0'
+    steps:
+    - name: Install pandoc
+      run: sudo apt-get install -y pandoc
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+    - name: Run Rake ci task
+      run: bundle exec rake ci
+    - name: Test gem installation
+      run: gem install pkg/sup-*.gem

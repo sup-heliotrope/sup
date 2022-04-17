@@ -1,6 +1,6 @@
+.github/workflows/checks.yml
 .gitignore
 .gitmodules
-.travis.yml
 CONTRIBUTORS
 Gemfile
 HACKING
