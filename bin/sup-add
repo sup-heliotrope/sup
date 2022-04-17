@@ -94,18 +94,14 @@ begin
       next
     end
 
-    parsed_uri = URI(URI.escape(uri))
-
     source =
-      case parsed_uri.scheme
-      when "maildir"
+      case uri
+      when /^maildir:/
         Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], $opts[:sync_back], nil, labels
-      when "mbox"
+      when /^mbox:/
         Redwood::MBox.new uri, !$opts[:unusual], $opts[:archive], nil, labels
       when nil
-        Optimist::die "Sources must be specified with an URI"
-      else
-        Optimist::die "Unknown source type #{parsed_uri.scheme.inspect}"
+        Optimist::die "Sources must be specified with a maildir:// or mbox:// URI"
       end
     @cli.say "Adding #{source}..."
     Redwood::SourceManager.add_source source
