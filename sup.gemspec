@@ -4,7 +4,7 @@ require 'sup/version'
 
 Gem::Specification.new do |s|
   s.name = "sup"
-  s.version = ENV["REL"] || (::Redwood::VERSION == "git" ? "999" : ::Redwood::VERSION)
+  s.version = ENV["REL"] || (/-git-/ =~ ::Redwood::VERSION ? "999" : ::Redwood::VERSION)
   s.date = Time.now.strftime "%Y-%m-%d"
   s.authors = ["William Morgan", "Gaute Hope", "Hamish Downer", "Matthieu Rakotojaona"]
   s.email   = "supmua@googlegroups.com"
