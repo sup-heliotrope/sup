@@ -5,6 +5,7 @@ Subject:
  =?US-ASCII?q?Hans Martin Djupvik?= =?ISO-8859-1?q?,_Ingrid_B=F8?=
  =?KOI8-R?b?LCDp0snOwSDzycTP0s/XwQ?=
  =?UTF-16?b?//4sACAASgBlAHMAcABlAHIAIABCAGUAcgBnAA?=
+ =?UTF-7?b?LCBGcmlkYSBFbmcrQVBnLQ?=
  bad: =?UTF16?q?badcharsetname?= =?US-ASCII?b?/w?=
 
 The subject header contains various RFC2047 encoded words.

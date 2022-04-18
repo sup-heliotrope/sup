@@ -16,6 +16,8 @@
 #
 # This file is distributed under the same terms as Ruby.
 
+require 'net/imap'
+
 module Rfc2047
   WORD = %r{=\?([!\#$%&'*+-/0-9A-Z\\^\`a-z{|}~]+)\?([BbQq])\?([!->@-~ ]+)\?=} # :nodoc: 'stupid ruby-mode
   WORDSEQ = %r{(#{WORD.source})\s+(?=#{WORD.source})}
@@ -49,6 +51,10 @@ module Rfc2047
         # Don't need an else, because no other values can be matched in a
         # WORD.
       end
+
+      # Handle UTF-7 specially because Ruby doesn't actually support it as
+      # a normal character encoding.
+      next text.decode_utf7.encode(target) if charset == 'UTF-7'
 
       begin
         text.force_encoding(charset).encode(target)

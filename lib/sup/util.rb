@@ -375,6 +375,22 @@ class String
     self
   end
 
+  ## Decodes UTF-7 and returns the resulting decoded string as UTF-8.
+  ##
+  ## Ruby doesn't supply a UTF-7 encoding natively. There is
+  ## Net::IMAP::decode_utf7 which only handles the IMAP "modified UTF-7"
+  ## encoding. This implementation is inspired by that one but handles
+  ## standard UTF-7 shift characters and not the IMAP-specific variation.
+  def decode_utf7
+    gsub(/\+([^-]+)?-/) {
+      if $1
+        ($1 + "===").unpack("m")[0].encode(Encoding::UTF_8, Encoding::UTF_16BE)
+      else
+        "+"
+      end
+    }
+  end
+
   def normalize_whitespace
     gsub(/\t/, "    ").gsub(/\r/, "")
   end
