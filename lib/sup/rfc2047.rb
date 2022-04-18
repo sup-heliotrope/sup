@@ -37,9 +37,10 @@ module Rfc2047
       # B64 or QP decode, as necessary:
       case encoding
         when 'b', 'B'
-          #puts text
-          text = text.unpack('m*')[0]
-          #puts text.dump
+          ## Padding is optional in RFC 2047 words. Add some extra padding
+          ## before decoding the base64, otherwise on Ruby 2.0 the final byte
+          ## might be discarded.
+          text = (text + '===').unpack('m*')[0]
 
         when 'q', 'Q'
           # RFC 2047 has a variant of quoted printable where a ' ' character
