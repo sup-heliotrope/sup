@@ -128,12 +128,16 @@ EOS
 
       text = case @content_type
       when /^text\/plain\b/
-        begin
-          charset = Encoding.find(encoded_content.charset || 'US-ASCII')
-        rescue ArgumentError
-          charset = 'US-ASCII'
+        if /^UTF-7$/i =~ encoded_content.charset
+          @raw_content.decode_utf7
+        else
+          begin
+            charset = Encoding.find(encoded_content.charset || 'US-ASCII')
+          rescue ArgumentError
+            charset = 'US-ASCII'
+          end
+          @raw_content.force_encoding(charset)
         end
-        @raw_content.force_encoding(charset)
       else
         HookManager.run "mime-decode", :content_type => @content_type,
                         :filename => lambda { write_to_disk },

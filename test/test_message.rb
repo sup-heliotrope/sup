@@ -180,7 +180,7 @@ class TestMessage < Minitest::Test
     sup_message.load_from_source!
 
     chunks = sup_message.load_from_source!
-    assert_equal(6, chunks.length)
+    assert_equal(7, chunks.length)
     assert(chunks[0].is_a? Redwood::Chunk::Text)
     ## The first attachment declares charset=us-ascii
     assert(chunks[1].is_a? Redwood::Chunk::Attachment)
@@ -199,6 +199,9 @@ class TestMessage < Minitest::Test
     ## be handled gracefully
     assert(chunks[5].is_a? Redwood::Chunk::Attachment)
     assert_equal(["Example invalid charset"], chunks[5].lines)
+    ## The sixth attachment is UTF-7 encoded
+    assert(chunks[6].is_a? Redwood::Chunk::Attachment)
+    assert_equal(["This is ✨UTF-7✨"], chunks[6].lines)
   end
 
   def test_mailing_list_header
