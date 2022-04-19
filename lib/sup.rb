@@ -143,7 +143,11 @@ module Redwood
       end
       ## fix up malformed tag URIs created by earlier versions of sup
       raw_contents.gsub!(/!supmua.org,2006-10-01\/(\S*)$/) { |m| "!<tag:supmua.org,2006-10-01/#{$1}>" }
-      YAML::load raw_contents
+      if YAML.respond_to?(:unsafe_load)  # Ruby 3.1+
+        YAML::unsafe_load raw_contents
+      else
+        YAML::load raw_contents
+      end
     end
     if o.is_a?(Array)
       o.each { |x| x.after_unmarshal! if x.respond_to?(:after_unmarshal!) }
