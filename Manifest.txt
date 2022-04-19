@@ -16,7 +16,6 @@ bin/sup-add
 bin/sup-config
 bin/sup-dump
 bin/sup-import-dump
-bin/sup-psych-ify-config-files
 bin/sup-recover-sources
 bin/sup-sync
 bin/sup-sync-back-maildir
@@ -139,7 +138,6 @@ test/test_header_parsing.rb
 test/test_helper.rb
 test/test_message.rb
 test/test_messages_dir.rb
-test/test_yaml_migration.rb
 test/test_yaml_regressions.rb
 test/unit/service/test_label_service.rb
 test/unit/test_contact.rb

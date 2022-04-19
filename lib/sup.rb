@@ -38,9 +38,6 @@ class Module
         hash
       end
     end
-
-    # Legacy
-    Psych.load_tags["!#{Redwood::LEGACY_YAML_DOMAIN},#{Redwood::YAML_DATE}/#{path}"] = self
   end
 end
 
