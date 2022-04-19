@@ -10,17 +10,52 @@ permissions:
   contents: read
 jobs:
   rake-ci:
-    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
+        os:
+        - ubuntu-latest
+        - macos-latest
         ruby-version:
+        - '2.0'
+        - '2.1'
+        # Ruby 2.2 fails installing sup gem with a nonsensical error:
+        #   Could not find 'xapian-ruby' (~> 1.2) among 21 total gem(s)
+        #- '2.2'
+        - '2.3'
+        - '2.4'
         - '2.5'
         - '2.6'
         - '2.7'
         - '3.0'
+        - '3.1'
+        exclude:
+        # xapian-bindings 1.2.2 fails to build on MacOS:
+        #   clang: warning: include path for libstdc++ headers not found; pass
+        #   '-stdlib=libc++' on the command line to use the libc++ standard
+        #   library instead [-Wstdlibcxx-not-found]
+        #   xapian_wrap.cc:1836:10: fatal error: 'string' file not found
+        # Probably just wrong compiler command or some mess that I can't be
+        # bothered to figure out.
+        - os: macos-latest
+          ruby-version: '2.0'
+        # xapian-bindings 1.4.18 fails to build with Ruby 3.0+ on MacOS:
+        #   error: '__declspec' attributes are not enabled; use '-fdeclspec' or
+        #   '-fms-extensions' to enable support for __declspec attributes
+        # Needs this fix:
+        # https://github.com/xapian/xapian/commit/63a06768a250b0bb4821b835f011e8214d560f8e
+        - os: macos-latest
+          ruby-version: '3.0'
+        - os: macos-latest
+          ruby-version: '3.1'
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Install pandoc
       run: sudo apt-get install -y pandoc
+      if: runner.os == 'Linux'
+    - name: Install pandoc
+      run: brew install pandoc
+      if: runner.os == 'macOS'
     - uses: actions/checkout@v3
       with:
         submodules: recursive
