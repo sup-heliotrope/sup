@@ -119,6 +119,7 @@ test/fixtures/non-ascii-header.eml
 test/fixtures/rfc2047-header-encoding.eml
 test/fixtures/simple-message.eml
 test/fixtures/text-attachments-with-charset.eml
+test/fixtures/utf8-header.eml
 test/fixtures/zimbra-quote-with-bottom-post.eml
 test/gnupg_test_home/.gpg-v21-migrated
 test/gnupg_test_home/gpg.conf
