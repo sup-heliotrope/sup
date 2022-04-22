@@ -1,6 +1,7 @@
 # encoding: UTF-8
 
 require 'time'
+require 'string-scrub' if /^2\.0\./ =~ RUBY_VERSION
 
 module Redwood
 
@@ -71,9 +72,9 @@ class Message
     return unless v
     return v unless v.is_a? String
     return unless v.size < MAX_HEADER_VALUE_SIZE # avoid regex blowup on spam
-    d = v.dup
-    d = d.transcode($encoding, 'ASCII')
-    Rfc2047.decode_to $encoding, d
+    ## Header values should be either 7-bit with RFC2047-encoded words
+    ## or UTF-8 as per RFC6532. Replace any invalid high bytes with U+FFFD.
+    Rfc2047.decode_to $encoding, v.dup.force_encoding(Encoding::UTF_8).scrub
   end
 
   def parse_header encoded_header
