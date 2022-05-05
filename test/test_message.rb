@@ -249,7 +249,8 @@ class TestMessage < Minitest::Test
 
     assert_equal("Hans Martin Djupvik, Ingrid Bø, Ирина Сидорова, " +
                  "Jesper Berg, Frida Engø " +
-                 "bad: =?UTF16?q?badcharsetname?==?US-ASCII?b?/w?=",
+                 "bad: =?UTF16?q?badcharsetname?==?US-ASCII?b?/w?=" +
+                 "=?UTF-7?Q?=41=6D=65=72=69=63=61=E2=80=99=73?=",
                  sup_message.subj)
   end
 
