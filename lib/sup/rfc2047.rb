@@ -53,11 +53,17 @@ module Rfc2047
 
       # Handle UTF-7 specially because Ruby doesn't actually support it as
       # a normal character encoding.
-      next text.decode_utf7.encode(target) if charset == 'UTF-7'
+      if charset == 'UTF-7'
+        begin
+          next text.decode_utf7.encode(target)
+        rescue ArgumentError, EncodingError
+          next word
+        end
+      end
 
       begin
         text.force_encoding(charset).encode(target)
-      rescue ArgumentError, Encoding::InvalidByteSequenceError
+      rescue ArgumentError, EncodingError
         word
       end
     end

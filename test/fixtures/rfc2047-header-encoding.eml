@@ -7,6 +7,7 @@ Subject:
  =?UTF-16?b?//4sACAASgBlAHMAcABlAHIAIABCAGUAcgBnAA?=
  =?UTF-7?b?LCBGcmlkYSBFbmcrQVBnLQ?=
  bad: =?UTF16?q?badcharsetname?= =?US-ASCII?b?/w?=
+ =?UTF-7?Q?=41=6D=65=72=69=63=61=E2=80=99=73?=
 
 The subject header contains various RFC2047 encoded words.
 For completeness we test both base64 and quoted-printable, and some
