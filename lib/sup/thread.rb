@@ -407,7 +407,6 @@ class ThreadSet
     #puts "adding: #{message.id}, refs #{message.refs.inspect}"
 
     el.message = message
-    oldroot = el.root
 
     ## link via references:
     (message.refs + [el.id]).inject(nil) do |prev, ref_id|

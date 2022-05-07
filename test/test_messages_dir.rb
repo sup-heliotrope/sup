@@ -38,7 +38,6 @@ class TestMessagesDir < ::Minitest::Test
     assert_equal("Important", subj)
 
     chunks = sup_message.load_from_source!
-    indexable_chunks = sup_message.indexable_chunks
 
     # there should be only one chunk
     #assert_equal(1, chunks.length)
@@ -67,7 +66,6 @@ class TestMessagesDir < ::Minitest::Test
     assert_equal("Content-Transfer-Encoding:-bug in sup", subj)
 
     chunks = sup_message.load_from_source!
-    indexable_chunks = sup_message.indexable_chunks
 
     # there should be only one chunk
     #assert_equal(1, chunks.length)
@@ -96,7 +94,6 @@ class TestMessagesDir < ::Minitest::Test
     assert_equal("Encoding bug", subj)
 
     chunks = sup_message.load_from_source!
-    indexable_chunks = sup_message.indexable_chunks
 
     # there should be only one chunk
     #assert_equal(1, chunks.length)

@@ -241,7 +241,7 @@ EOS
 
       begin
         u = URI.parse($1)
-      rescue URI::InvalidURIError => e
+      rescue URI::InvalidURIError
         BufferManager.flash("Invalid unsubscribe link")
         return
       end
@@ -868,7 +868,6 @@ private
       (0 ... text.length).each do |i|
         @chunk_lines[@text.length + i] = m
         @message_lines[@text.length + i] = m
-        lw = text[i].flatten.select { |x| x.is_a? String }.map { |x| x.display_length }.sum
       end
 
       @text += text
