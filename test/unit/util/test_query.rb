@@ -30,7 +30,7 @@ describe Redwood::Util::Query do
       else
         # xapian 1.2 doesn't handle this bad input, so we do
         assert_raises Redwood::Util::Query::QueryDescriptionError do
-          desc = Redwood::Util::Query.describe (query)
+          _desc = Redwood::Util::Query.describe (query)
         end
       end
 

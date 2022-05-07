@@ -129,7 +129,7 @@ protected
   end
 
   def select_label
-    label, num_unread = @labels[curpos]
+    label, _num_unread = @labels[curpos]
     return unless label
     LabelSearchResultsMode.spawn_nicely label
   end

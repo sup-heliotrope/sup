@@ -98,7 +98,7 @@ EOS
   end
 
   def action_for kc
-    action, help, keys = @map[kc.code]
+    action, help, _keys = @map[kc.code]
     [action, help]
   end
 

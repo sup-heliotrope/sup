@@ -425,7 +425,7 @@ EOS
 
     ## gmail style "is" operator
     subs = subs.gsub(/\b(is|has):(\S+)\b/) do
-      field, label = $1, $2
+      _field, label = $1, $2
       case label
       when "read"
         "-label:unread"

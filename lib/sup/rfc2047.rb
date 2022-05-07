@@ -28,7 +28,7 @@ module Rfc2047
   # converted to the target encoding, it is left in its encoded form.
   def Rfc2047.decode_to(target, from)
     from = from.gsub(WORDSEQ, '\1')
-    out = from.gsub(WORD) do
+    from.gsub(WORD) do
       |word|
       charset, encoding, text = $1, $2, $3
 
