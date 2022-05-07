@@ -310,7 +310,7 @@ EOS
   end
 
   def each_raw_message_line &b
-    location.each_raw_message_line &b
+    location.each_raw_message_line(&b)
   end
 
   def sync_back
