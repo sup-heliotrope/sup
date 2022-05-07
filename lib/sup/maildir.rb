@@ -12,7 +12,7 @@ class Maildir < Source
   def initialize uri, usual=true, archived=false, sync_back=true, id=nil, labels=[]
     super uri, usual, archived, id
     @expanded_uri = Source.expand_filesystem_uri(uri)
-    parts = @expanded_uri.match /^([a-zA-Z0-9]*:(\/\/)?)(.*)/
+    parts = /^([a-zA-Z0-9]*:(\/\/)?)(.*)/.match @expanded_uri
     if parts
       prefix = parts[1]
       @path = parts[3]
