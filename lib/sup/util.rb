@@ -403,7 +403,7 @@ class String
 
   unless method_defined? :each
     def each &b
-      each_line &b
+      each_line(&b)
     end
   end
 

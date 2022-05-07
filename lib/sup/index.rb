@@ -649,7 +649,7 @@ EOS
   end
 
   def synchronize &b
-    @index_mutex.synchronize &b
+    @index_mutex.synchronize(&b)
   end
 
   def run_query xapian_query, offset, limit, checkatleast=0
