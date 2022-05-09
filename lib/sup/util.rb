@@ -12,7 +12,7 @@ require 'unicode'
 require 'unicode/display_width'
 require 'fileutils'
 
-class Lockfile
+module ExtendedLockfile
   def gen_lock_id
     Hash[
          'host' => "#{ Socket.gethostname }",
@@ -38,6 +38,7 @@ class Lockfile
 
   def touch_yourself; touch path end
 end
+Lockfile.prepend ExtendedLockfile
 
 class File
   # platform safe file.link which attempts a copy if hard-linking fails
@@ -107,7 +108,7 @@ module RMail
     end
   end
 
-  class Serialize
+  module CustomizedSerialize
     ## Don't add MIME-Version headers on serialization. Sup sometimes want's to serialize
     ## message parts where these headers are not needed and messing with the message on
     ## serialization breaks gpg signatures. The commented section shows the original RMail
@@ -119,6 +120,7 @@ module RMail
       # end
     end
   end
+  Serialize.prepend CustomizedSerialize
 end
 
 class Module
@@ -481,7 +483,9 @@ module Enumerable
     ret
   end
 
-  def sum; inject(0) { |x, y| x + y }; end
+  if not method_defined? :sum
+    def sum; inject(0) { |x, y| x + y }; end
+  end
 
   def map_to_hash
     ret = {}
@@ -537,7 +541,9 @@ class Array
     inject([]) { |a, e| a + e }
   end
 
-  def to_h; Hash[*flatten]; end
+  if not method_defined? :to_h
+    def to_h; Hash[*flatten_one_level]; end
+  end
   def rest; self[1..-1]; end
 
   def to_boolean_h; Hash[*map { |x| [x, true] }.flatten]; end
