@@ -13,9 +13,15 @@ class TestMessagesDir < ::Minitest::Test
   def setup
     @path = Dir.mktmpdir
     Redwood::HookManager.init File.join(@path, 'hooks')
+    @log = StringIO.new
+    Redwood::Logger.add_sink @log
+    Redwood::Logger.remove_sink $stderr
   end
 
   def teardown
+    Redwood::Logger.clear!
+    Redwood::Logger.remove_sink @log
+    Redwood::Logger.add_sink $stderr
     Redwood::HookManager.deinstantiate!
     FileUtils.rm_r @path
   end
@@ -46,6 +52,8 @@ class TestMessagesDir < ::Minitest::Test
 
     # lines should contain an error message
     assert (lines.join.include? "An error occurred while loading this message."), "This message should not load successfully"
+
+    assert_match(/WARNING: problem reading message/, @log.string)
   end
 
   def test_bad_content_transfer_encoding
@@ -74,6 +82,8 @@ class TestMessagesDir < ::Minitest::Test
 
     # lines should contain an error message
     assert (lines.join.include? "An error occurred while loading this message."), "This message should not load successfully"
+
+    assert_match(/WARNING: problem reading message/, @log.string)
   end
 
   def test_missing_line
