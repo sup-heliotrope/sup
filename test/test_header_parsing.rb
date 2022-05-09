@@ -11,9 +11,15 @@ class TestMBoxParsing < Minitest::Test
   def setup
     @path = Dir.mktmpdir
     @mbox = File.join(@path, 'test_mbox')
+    @log = StringIO.new
+    Redwood::Logger.add_sink @log
+    Redwood::Logger.remove_sink $stderr
   end
 
   def teardown
+    Redwood::Logger.clear!
+    Redwood::Logger.remove_sink @log
+    Redwood::Logger.add_sink $stderr
     FileUtils.rm_r @path
   end
 
@@ -133,6 +139,8 @@ EOS
     assert_equal 61, offset
     offset = l.next_offset 61
     assert_nil offset
+    assert_match(/WARNING: found invalid date in potential mbox split line, not splitting/,
+                 @log.string)
   end
 
   def test_more_from_line_splitting
