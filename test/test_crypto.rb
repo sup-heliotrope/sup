@@ -69,6 +69,24 @@ class TestCryptoManager < Minitest::Test
         end
     end
 
+    def test_sign_nested_parts
+        if CryptoManager.have_crypto? then
+            body = RMail::Message.new
+            body.header["Content-Disposition"] = "inline"
+            body.body = "ABCDEFG"
+            payload = RMail::Message.new
+            payload.header["MIME-Version"] = "1.0"
+            payload.add_part body
+            payload.add_part RMail::Message.make_attachment "attachment", "text/plain", nil, "attachment.txt"
+            signed = CryptoManager.sign @from_email, @to_email, payload
+            ## The result is a multipart/signed containing a multipart/mixed.
+            ## There should be a MIME-Version header on the top-level
+            ## multipart/signed message, but *not* on the enclosed
+            ## multipart/mixed part.
+            assert_equal 1, signed.to_s.scan(/MIME-Version:/).size
+        end
+    end
+
     def test_encrypt
         if CryptoManager.have_crypto? then
             encrypted = CryptoManager.encrypt @from_email, [@to_email], "ABCDEFG"
@@ -114,6 +132,32 @@ class TestCryptoManager < Minitest::Test
             assert_instance_of RMail::Message, signed
             assert_instance_of String, (signed.body[1].body)
             CryptoManager.verify signed.body[0], signed.body[1], true
+        end
+    end
+
+    def test_verify_nested_parts
+        if CryptoManager.have_crypto?
+            ## Generate a multipart/signed containing a multipart/mixed.
+            ## We will test verifying the generated signature below.
+            ## Importantly, the inner multipart/mixed does *not* have a
+            ## MIME-Version header because it is not a top-level message.
+            payload = RMail::Parser.read <<EOS
+Content-Type: multipart/mixed; boundary="=-1652088224-7794-561531-1825-1-="
+
+
+--=-1652088224-7794-561531-1825-1-=
+Content-Disposition: inline
+
+ABCDEFG
+--=-1652088224-7794-561531-1825-1-=
+Content-Disposition: attachment; filename="attachment.txt"
+Content-Type: text/plain; name="attachment.txt"
+
+attachment
+--=-1652088224-7794-561531-1825-1-=--
+EOS
+            signed = CryptoManager.sign @from_email_ecc, @to_email, payload
+            CryptoManager.verify payload, signed.body[1], true
         end
     end
 end
