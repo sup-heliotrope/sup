@@ -353,7 +353,7 @@ EOM
       name ||= ENV["USER"]
       email = ENV["USER"] + "@" +
         begin
-          Socket.gethostbyname(Socket.gethostname).first
+          Addrinfo.getaddrinfo(Socket.gethostname, 'smtp').first.getnameinfo.first
         rescue SocketError
           Socket.gethostname
         end
