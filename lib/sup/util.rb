@@ -38,7 +38,7 @@ module ExtendedLockfile
 
   def touch_yourself; touch path end
 end
-Lockfile.prepend ExtendedLockfile
+Lockfile.send :prepend, ExtendedLockfile
 
 class File
   # platform safe file.link which attempts a copy if hard-linking fails
@@ -120,7 +120,7 @@ module RMail
       # end
     end
   end
-  Serialize.prepend CustomizedSerialize
+  Serialize.send :prepend, CustomizedSerialize
 end
 
 class Module
