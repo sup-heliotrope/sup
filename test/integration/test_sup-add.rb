@@ -9,7 +9,9 @@ class TestSupAdd < Minitest::Test
   end
 
   def test_can_add_maildir_source
-    assert system({"SUP_BASE" => @path}, "bin/sup-add", "maildir:///some/path")
+    _out, _err = capture_subprocess_io do
+      assert system({"SUP_BASE" => @path}, "bin/sup-add", "maildir:///some/path")
+    end
 
     generated_sources_yaml = File.read "#{@path}/sources.yaml"
     assert_equal <<EOS, generated_sources_yaml
@@ -35,7 +37,9 @@ EOS
   id: 1
   labels: []
 EOS
-    assert system({"SUP_BASE" => @path}, "bin/sup-add", "maildir:///other/path")
+    _out, _err = capture_subprocess_io do
+      assert system({"SUP_BASE" => @path}, "bin/sup-add", "maildir:///other/path")
+    end
 
     generated_sources_yaml = File.read "#{@path}/sources.yaml"
     assert_equal <<EOS, generated_sources_yaml
@@ -59,7 +63,9 @@ EOS
 
   ## https://github.com/sup-heliotrope/sup/issues/545
   def test_source_with_invalid_uri_chars_in_path
-    assert system({"SUP_BASE" => @path}, "bin/sup-add", "maildir:~/.mail/gmail/[Gmail]/.All Mail/")
+    _out, _err = capture_subprocess_io do
+      assert system({"SUP_BASE" => @path}, "bin/sup-add", "maildir:~/.mail/gmail/[Gmail]/.All Mail/")
+    end
 
     generated_sources_yaml = File.read "#{@path}/sources.yaml"
     assert_equal <<EOS, generated_sources_yaml
