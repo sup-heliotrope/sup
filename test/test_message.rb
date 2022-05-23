@@ -168,7 +168,8 @@ class TestMessage < Minitest::Test
 
     chunks = sup_message.load_from_source! # read the message body chunks
 
-    # TODO: Add more asserts
+    assert_equal(1, chunks.length)
+    assert(chunks[0].is_a? Redwood::Chunk::Attachment)
   end
 
   def test_text_attachment_decoding
