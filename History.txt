@@ -1,3 +1,23 @@
+== 1.1 / 2022-05-23
+
+* #588, #577: Sup is now compatible with and tested on Ruby 3.0 and Ruby 3.1.
+* When the Sup gem installs xapian-ruby, it will install to the user gem
+  directory if the system gem directory is not writable. (Iain Parris)
+* #571: To and From addresses of enclosed messages are now displayed normally,
+  instead of as Redwood::Person objects. (Iain Parris)
+* #570: Fixed wording when displaying enclosed messages without Date header.
+  (Iain Parris)
+* #205, #602: UTF-8 header values are now accepted and handled correctly, as
+  per RFC6532.
+* #585: Text/plain attachments with invalid charset are now displayed as
+  US-ASCII (with high bytes replaced) instead of crashing.
+* #424: Spaces are now accepted in RFC2047-encoded header words, even though
+  the RFC forbids them. (Dan Callaghan)
+* Invalid RFC2047-encoded header words are now displayed in their raw form,
+  rather than trying to forcibly transcode them to UTF-8, as per the RFC's
+  recommendation. (Dan Callaghan)
+* Sup now decodes UTF-7 correctly instead of crashing.
+
 == 1.0 / 2020-07-12
 
 No changes. The version number is incremented to 1.0 to reflect the fact that
