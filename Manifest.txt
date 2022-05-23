@@ -130,7 +130,6 @@ test/gnupg_test_home/receiver_secring.gpg
 test/gnupg_test_home/regen_keys.sh
 test/gnupg_test_home/secring.gpg
 test/gnupg_test_home/sup-test-2@foo.bar.asc
-test/integration/test_label_service.rb
 test/integration/test_maildir.rb
 test/integration/test_mbox.rb
 test/integration/test_sup-add.rb
