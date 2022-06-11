@@ -94,7 +94,7 @@ begin
         next if STDIN.gets.chomp.downcase == 'n'
       end
 
-      infos = Enumerator.new(index, :each_source_info, s.id).to_a
+      infos = index.enum_for(:each_source_info, s.id).to_a
       counter = 0
       infos.each do |info|
         print "\rSynchronizing '#{s.uri}'... #{((counter += 1)/infos.size.to_f*100).to_i}%"
