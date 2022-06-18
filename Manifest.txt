@@ -133,6 +133,7 @@ test/gnupg_test_home/sup-test-2@foo.bar.asc
 test/integration/test_maildir.rb
 test/integration/test_mbox.rb
 test/integration/test_sup-add.rb
+test/integration/test_sup-sync-back-maildir.rb
 test/test_crypto.rb
 test/test_header_parsing.rb
 test/test_helper.rb
