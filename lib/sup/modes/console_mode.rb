@@ -11,7 +11,7 @@ class Console
   end
 
   def query(query)
-    Enumerator.new(Index.instance, :each_message, Index.parse_query(query))
+    Index.instance.enum_for :each_message, Index.parse_query(query)
   end
 
   def add_labels(query, *labels)
