@@ -69,7 +69,7 @@ startup:
     set 'bgtask_pid' @bgtask_pid
     Process.detach(@bgtask_pid) # so we don't have to wait on it when we go to kill it
   else
-    exec "background-task args 2&>1 >> /tmp/logfile"
+    exec "background-task args 2>&1 >> /tmp/logfile"
   end
 
 after-poll:
