@@ -23,33 +23,16 @@ jobs:
         - '2.7'
         - '3.0'
         - '3.1'
-        exclude:
-        # xapian-bindings 1.4.18 fails to build with Ruby 3.0+ on MacOS:
-        #   error: '__declspec' attributes are not enabled; use '-fdeclspec' or
-        #   '-fms-extensions' to enable support for __declspec attributes
-        # Needs this fix:
-        # https://github.com/xapian/xapian/commit/63a06768a250b0bb4821b835f011e8214d560f8e
-        - os: macos-latest
-          ruby-version: '3.0'
-        - os: macos-latest
-          ruby-version: '3.1'
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Install pandoc
-      run: sudo apt-get install -y pandoc
-      if: runner.os == 'Linux'
-    - name: Install pandoc
-      run: brew install pandoc
-      if: runner.os == 'macOS'
-    - uses: actions/checkout@v3
+    - name: Check out source
+      uses: actions/checkout@v3
       with:
         submodules: recursive
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby-version }}
-        bundler-cache: true
+    - name: Install bash on MacOS
+      run: brew install bash
+      if: runner.os == 'macOS'
+    - name: Install nix
+      uses: nixbuild/nix-quick-install-action@v21
     - name: Run Rake ci task
-      run: bundle exec rake ci
-    - name: Test gem installation
-      run: gem install pkg/sup-*.gem
+      run: nix-shell "contrib/nix/ruby${{ matrix.ruby-version }}-shell.nix" --run 'rake ci'
