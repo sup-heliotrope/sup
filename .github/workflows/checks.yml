@@ -24,15 +24,33 @@ jobs:
         - '3.0'
         - '3.1'
     runs-on: ${{ matrix.os }}
+    env:
+      nixfile: "contrib/nix/ruby${{ matrix.ruby-version }}-shell.nix"
     steps:
     - name: Check out source
       uses: actions/checkout@v3
       with:
         submodules: recursive
+    - name: Cache nix store
+      uses: actions/cache@v3
+      id: nix-cache
+      with:
+        path: /tmp/nixcache
+        key: nix-store-${{ matrix.os }}-ruby${{ matrix.ruby-version }}-${{ hashFiles('contrib/nix/**') }}
+        restore-keys: |
+          nix-store-${{ matrix.os }}-ruby${{ matrix.ruby-version }}-
+          nix-store-
     - name: Install bash on MacOS
       run: brew install bash
       if: runner.os == 'macOS'
     - name: Install nix
       uses: nixbuild/nix-quick-install-action@v21
+    - name: Import nix cache
+      run: |
+        if [ -f /tmp/nixcache ] ; then
+          nix-store --import </tmp/nixcache
+        fi
     - name: Run Rake ci task
-      run: nix-shell "contrib/nix/ruby${{ matrix.ruby-version }}-shell.nix" --run 'rake ci'
+      run: nix-shell "$nixfile" --run 'rake ci'
+    - name: Export nix cache
+      run: nix-store --export $(nix-store -qR $(nix-build --no-out-link "$nixfile" -A inputDerivation | tail -n1)) >/tmp/nixcache
