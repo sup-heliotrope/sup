@@ -1,0 +1,1 @@
+contrib/nix/ruby3.1-shell.nix
