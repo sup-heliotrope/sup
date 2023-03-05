@@ -23,6 +23,19 @@ bin/sup-tweak-labels
 contrib/colorpicker.rb
 contrib/completion/_sup.bash
 contrib/completion/_sup.zsh
+contrib/nix/Gemfile
+contrib/nix/Gemfile.lock
+contrib/nix/gemset.nix
+contrib/nix/ruby2.4-Gemfile.lock
+contrib/nix/ruby2.4-gemset.nix
+contrib/nix/ruby2.4-shell.nix
+contrib/nix/ruby2.5-Gemfile.lock
+contrib/nix/ruby2.5-gemset.nix
+contrib/nix/ruby2.5-shell.nix
+contrib/nix/ruby2.6-shell.nix
+contrib/nix/ruby2.7-shell.nix
+contrib/nix/ruby3.0-shell.nix
+contrib/nix/ruby3.1-shell.nix
 devel/console.sh
 devel/count-loc.sh
 devel/load-index.rb
@@ -100,6 +113,7 @@ lib/sup/util/path.rb
 lib/sup/util/query.rb
 lib/sup/util/uri.rb
 lib/sup/version.rb
+shell.nix
 sup.gemspec
 test/dummy_source.rb
 test/fixtures/bad-content-transfer-encoding-1.eml

@@ -1,0 +1,81 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ast (2.4.2)
+    chronic (0.10.2)
+    coderay (1.1.3)
+    gpgme (2.0.20)
+      mini_portile2 (~> 2.3)
+    highline (2.0.3)
+    locale (2.1.3)
+    lockfile (2.1.3)
+    method_source (1.0.0)
+    mime-types (3.4.1)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2022.0105)
+    mini_portile2 (2.8.0)
+    minitest (5.16.2)
+    ncursesw (1.4.10)
+    optimist (3.0.1)
+    parallel (1.22.1)
+    parser (3.1.2.0)
+      ast (~> 2.4.1)
+    pry (0.14.1)
+      coderay (~> 1.1)
+      method_source (~> 1.0)
+    rainbow (3.1.1)
+    rake (13.0.6)
+    regexp_parser (2.5.0)
+    rexml (3.2.5)
+    rmail (1.1.4)
+    rr (1.2.1)
+    rubocop (1.28.2)
+      parallel (~> 1.10)
+      parser (>= 3.1.0.0)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 1.8, < 3.0)
+      rexml
+      rubocop-ast (>= 1.17.0, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 1.4.0, < 3.0)
+    rubocop-ast (1.17.0)
+      parser (>= 3.1.1.0)
+    rubocop-packaging (0.5.1)
+      rubocop (>= 0.89, < 2.0)
+    ruby-progressbar (1.11.0)
+    unicode (0.4.4.4)
+    unicode-display_width (2.2.0)
+    xapian-ruby (1.4.18)
+
+PLATFORMS
+  aarch64-linux
+  x86_64-darwin-17
+  x86_64-darwin-18
+  x86_64-darwin-19
+  x86_64-darwin-20
+  x86_64-darwin-21
+  x86_64-darwin-22
+  x86_64-linux
+
+DEPENDENCIES
+  bundler (>= 1.3, < 3)
+  chronic
+  gpgme (>= 2.0.2)
+  highline
+  locale (~> 2.0)
+  lockfile
+  mime-types (> 2.0)
+  minitest (~> 5.5)
+  ncursesw (~> 1.4.0)
+  optimist
+  pry
+  rake
+  rmail (>= 1.1.2, < 2)
+  rr (~> 1.1)
+  rubocop-packaging
+  unicode (~> 0.4.4)
+  unicode-display_width
+  xapian-ruby (~> 1.2)
+
+BUNDLED WITH
+   2.2.20
