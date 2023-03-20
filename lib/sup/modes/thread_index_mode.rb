@@ -730,7 +730,7 @@ EOS
       opts[:when_done].call(num) if opts[:when_done]
 
       if num > 0
-        BufferManager.flash "Found #{num.pluralize 'thread'}."
+        BufferManager.flash "Loaded #{num.pluralize 'thread'}."
       else
         BufferManager.flash "No matches."
       end
