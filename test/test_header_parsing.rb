@@ -4,9 +4,9 @@ require 'test_helper'
 require 'sup'
 require 'stringio'
 
-include Redwood
-
 class TestMBoxParsing < Minitest::Test
+
+  include Redwood
 
   def setup
     @path = Dir.mktmpdir

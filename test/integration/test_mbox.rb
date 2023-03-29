@@ -1,6 +1,9 @@
+require "sup"
 require "test_helper"
 
 class TestMbox < Minitest::Test
+
+  include Redwood
 
   def setup
     @path = Dir.mktmpdir
