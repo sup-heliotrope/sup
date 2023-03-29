@@ -36,6 +36,7 @@ contrib/nix/ruby2.6-shell.nix
 contrib/nix/ruby2.7-shell.nix
 contrib/nix/ruby3.0-shell.nix
 contrib/nix/ruby3.1-shell.nix
+contrib/nix/ruby3.2-shell.nix
 devel/console.sh
 devel/count-loc.sh
 devel/load-index.rb
