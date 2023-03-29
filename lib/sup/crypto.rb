@@ -369,7 +369,7 @@ EOS
   def retrieve fingerprint
     require 'net/http'
     uri = URI($config[:keyserver_url] || KEYSERVER_URL)
-    unless uri.scheme == "http" and not uri.host.nil?
+    unless uri.scheme == "http" and not uri.host.nil? and not uri.host.empty?
       return "Invalid url: #{uri}"
     end
 

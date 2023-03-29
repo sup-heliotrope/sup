@@ -23,7 +23,7 @@ class Maildir < Source
     end
 
     raise ArgumentError, "not a maildir URI" unless uri.scheme == "maildir"
-    raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" if uri.host
+    raise ArgumentError, "maildir URI cannot have a host: #{uri.host}" unless uri.host.nil? || uri.host.empty?
     raise ArgumentError, "maildir URI must have a path component" unless uri.path
 
     @sync_back = sync_back
