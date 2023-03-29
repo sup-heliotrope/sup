@@ -30,7 +30,7 @@ class MBox < Source
       end
 
       raise ArgumentError, "not an mbox uri" unless uri.scheme == "mbox"
-      raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" if uri.host
+      raise ArgumentError, "mbox URI ('#{uri}') cannot have a host: #{uri.host}" unless uri.host.nil? || uri.host.empty?
       raise ArgumentError, "mbox URI must have a path component" unless uri.path
       @f = nil
     else
