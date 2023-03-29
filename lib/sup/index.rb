@@ -99,14 +99,14 @@ EOS
   end
 
   def load failsafe=false
-    SourceManager.load_sources
+    SourceManager.load_sources File.join(@dir, "sources.yaml")
     load_index failsafe
   end
 
   def save
     debug "saving index and sources..."
     FileUtils.mkdir_p @dir unless File.exist? @dir
-    SourceManager.save_sources
+    SourceManager.save_sources File.join(@dir, "sources.yaml")
     save_index
   end
 
