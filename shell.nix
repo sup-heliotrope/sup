@@ -1,1 +1,1 @@
-contrib/nix/ruby3.1-shell.nix
+contrib/nix/ruby3.2-shell.nix
