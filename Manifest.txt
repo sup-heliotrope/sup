@@ -40,6 +40,7 @@ contrib/nix/ruby2.7-shell.nix
 contrib/nix/ruby3.0-shell.nix
 contrib/nix/ruby3.1-shell.nix
 contrib/nix/ruby3.2-shell.nix
+contrib/nix/ruby3.3-shell.nix
 contrib/nix/test-all-rubies.sh
 devel/console.sh
 devel/count-loc.sh
