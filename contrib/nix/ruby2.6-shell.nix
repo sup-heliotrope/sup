@@ -8,8 +8,8 @@ let
     name = "ruby2.6-gems-for-sup";
     ruby = pkgs.ruby_2_6;
     gemfile = ./Gemfile;
-    lockfile = ./Gemfile.lock;
-    gemset = ./gemset.nix;
+    lockfile = ./ruby2.6-Gemfile.lock;
+    gemset = ./ruby2.6-gemset.nix;
     gemConfig = pkgs.defaultGemConfig // {
       # Workaround: remove rake from nativeBuildInputs, otherwise it causes
       # xapian-bindings to build against the default Ruby version
