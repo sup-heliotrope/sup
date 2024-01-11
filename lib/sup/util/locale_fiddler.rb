@@ -11,6 +11,7 @@ module LocaleFiddler
   SETLOCALE_LIB = case RbConfig::CONFIG['arch']
                   when /darwin/; "libc.dylib"
                   when /cygwin/; "cygwin1.dll"
+                  when /msys/; "msys-2.0.dll"
                   when /freebsd/; "libc.so.7"
                   else; "libc.so.6"
                   end
