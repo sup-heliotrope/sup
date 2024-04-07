@@ -271,7 +271,7 @@ class Message
         message_to_chunks rmsg
       rescue SourceError, SocketError, RMail::EncodingUnsupportedError => e
         warn_with_location "problem reading message #{id}"
-        debug "could not load message: #{location.inspect}, exception: #{e.inspect}"
+        debug "could not load message, exception: #{e.inspect}"
 
         [Chunk::Text.new(error_message.split("\n"))]
 
@@ -760,7 +760,7 @@ private
 
   def warn_with_location msg
     warn msg
-    warn "Message is in #{location.source.uri} at #{location.info}"
+    warn "Message is in #{@locations}"
   end
 end
 
