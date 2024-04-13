@@ -26,6 +26,7 @@ contrib/completion/_sup.zsh
 contrib/nix/Gemfile
 contrib/nix/Gemfile.lock
 contrib/nix/README
+contrib/nix/gem-install-shell.nix
 contrib/nix/gemset.nix
 contrib/nix/ruby2.4-Gemfile.lock
 contrib/nix/ruby2.4-gemset.nix
