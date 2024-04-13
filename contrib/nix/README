@@ -1,3 +1,7 @@
 After updating Gemfile, regenerate Gemfile.lock and gemset.nix:
 
     nix-shell -p bundix --run 'bundix --gemfile=contrib/nix/Gemfile --lockfile=contrib/nix/Gemfile.lock --gemset=contrib/nix/gemset.nix -l'
+
+Test gem installation:
+
+    nix-shell contrib/nix/gem-install-shell.nix --run 'gem install --verbose -i ./asdf ./pkg/sup-999.gem'
