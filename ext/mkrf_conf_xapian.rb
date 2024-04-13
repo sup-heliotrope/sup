@@ -14,7 +14,7 @@ destination = File.writable?(Gem.dir) ? Gem.dir : Gem.user_dir
 inst = Gem::DependencyInstaller.new(:install_dir => destination)
 begin
 
-  if !RbConfig::CONFIG['arch'].include?('openbsd')
+  if not ENV.include? "SUP_SKIP_XAPIAN_GEM_INSTALL"
     # update version in Gemfile as well
     name    = "xapian-ruby"
     version =
@@ -37,7 +37,7 @@ begin
 
     end
   else
-    STDERR.puts "xapian: openbsd: you have to install xapian-core and xapian-bindings manually, have a look at: https://github.com/sup-heliotrope/sup/wiki/Installation%3A-OpenBSD"
+    STDERR.puts "xapian: you have to install xapian-core and xapian-bindings manually"
   end
 
 rescue StandardError => e
