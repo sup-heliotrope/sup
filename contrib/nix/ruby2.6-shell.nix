@@ -24,6 +24,13 @@ let
           })
         ];
       };
+      # Workaround for a new error in clang 16 (MacOS):
+      # https://github.com/blackwinter/unicode/pull/11
+      unicode = attrs: {
+        buildFlags = [
+          "--with-cflags=-Wno-incompatible-function-pointer-types"
+        ];
+      };
       # Workaround: remove rake from nativeBuildInputs, otherwise it causes
       # xapian-bindings to build against the default Ruby version
       # instead of our chosen version.
