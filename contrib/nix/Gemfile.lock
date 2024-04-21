@@ -55,6 +55,13 @@ GEM
 
 PLATFORMS
   aarch64-linux
+  x86_64-darwin-17
+  x86_64-darwin-18
+  x86_64-darwin-19
+  x86_64-darwin-20
+  x86_64-darwin-21
+  x86_64-darwin-22
+  x86_64-linux
 
 DEPENDENCIES
   bundler (>= 1.3, < 3)
