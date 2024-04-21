@@ -11,19 +11,6 @@ let
     lockfile = ./ruby2.6-Gemfile.lock;
     gemset = ./ruby2.6-gemset.nix;
     gemConfig = pkgs.defaultGemConfig // {
-      ncursesw = attrs: (pkgs.defaultGemConfig.ncursesw attrs) // {
-        dontBuild = false;
-        patches = [
-          (pkgs.fetchpatch {
-            url = "https://github.com/sup-heliotrope/ncursesw-ruby/commit/1db8ae8d06ce906ddd8b3910782897084eb5cdcc.patch?full_index=1";
-            sha256 = "sha256-1uGV1iTYitstzmmIvGlQC+3Pc7qf3XApawt1Kacu8XA=";
-          })
-          (pkgs.fetchpatch {
-            url = "https://github.com/sup-heliotrope/ncursesw-ruby/commit/d0005dbe5ec0992cb2e38ba0f162a2d92554c169.patch?full_index=1";
-            sha256 = "sha256-JNKXhXHEMGvNeDIFMCAYT+VTHQAfzJRAZxGqDREV300=";
-          })
-        ];
-      };
       # Workaround for a new error in clang 16 (MacOS):
       # https://github.com/blackwinter/unicode/pull/11
       unicode = attrs: {
