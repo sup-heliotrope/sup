@@ -8,5 +8,5 @@ def git_suffix
 end
 
 module Redwood
-  VERSION = "1.1#{git_suffix}"
+  VERSION = "1.2"
 end

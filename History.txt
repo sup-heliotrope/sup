@@ -1,3 +1,15 @@
+== 1.2 / 2024-04-21
+
+* #619: Sup is now compatible with and tested on Ruby 3.2 and Ruby 3.3.
+  (Dan Callaghan)
+* #603: Fixed deprecated usage of Enumerator.new, which caused a crash on
+  Ruby 3+. (Gui Goncalves)
+* OutOfSyncSourceErrors now show an error message in the thread view in place
+  of the out-of-sync message body, instead of crashing. (Dan Callaghan)
+* #613: When installing Sup as a gem, the dependency on xapian-ruby is now
+  skipped if the SUP_SKIP_XAPIAN_GEM_INSTALL environment variable is set.
+  Previously it was skipped unconditionally on OpenBSD only. (Dan Callaghan)
+
 == 1.1 / 2022-05-23
 
 * #588, #577: Sup is now compatible with and tested on Ruby 3.0 and Ruby 3.1.
