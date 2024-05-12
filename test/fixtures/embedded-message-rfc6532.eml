@@ -1,0 +1,33 @@
+Return-Path: <return@example.com>
+From: Sender <sender@example.com>
+To: <recipient@example.invalid>
+Subject: Email with embedded message
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="----------=_4F506AC2.EE281DC4"
+Message-Id: <9181f493-df49-4af5-8ad2-e1a8eb692a98>
+Date: Wed, 15 Jul 2020 19:48:41 +0100
+
+This is a multi-part message in MIME format.
+
+------------=_4F506AC2.EE281DC4
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+Example outer message.
+
+
+------------=_4F506AC2.EE281DC4
+Content-Type: message/global
+Content-Transfer-Encoding: 8bit
+
+From: "Embed sender" <embed@example.com>
+To: <rcpt2@example.invalid>
+Subject: Embedded subject line with emoji ✨
+X-heävy-mëtal-ümlaut: yes
+Date: Sun, 12 May 2024 17:34:29 +1000
+
+Example embedded message, with UTF-8 headers.
+
+------------=_4F506AC2.EE281DC4--
+

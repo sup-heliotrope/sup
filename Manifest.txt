@@ -127,6 +127,7 @@ test/fixtures/bad-content-transfer-encoding-1.eml
 test/fixtures/binary-content-transfer-encoding-2.eml
 test/fixtures/blank-header-fields.eml
 test/fixtures/contacts.txt
+test/fixtures/embedded-message-rfc6532.eml
 test/fixtures/embedded-message.eml
 test/fixtures/invalid-date.eml
 test/fixtures/mailing-list-header.eml

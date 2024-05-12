@@ -460,6 +460,11 @@ private
     end
   end
 
+  def has_embedded_message? m
+    return false unless m.header.content_type
+    %w(message/rfc822 message/global).include? m.header.content_type.downcase
+  end
+
   ## takes a RMail::Message, breaks it into Chunk:: classes.
   def message_to_chunks m, encrypted=false, sibling_types=[]
     if m.multipart?
@@ -477,7 +482,7 @@ private
       end
 
       chunks
-    elsif m.header.content_type && m.header.content_type.downcase == "message/rfc822"
+    elsif has_embedded_message? m
       encoding = m.header["Content-Transfer-Encoding"]
       if m.body
         body =
