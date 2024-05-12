@@ -1,5 +1,6 @@
 require 'uri'
 require 'set'
+require 'time'
 
 module Redwood
 
@@ -134,6 +135,26 @@ class MBox < Source
       until @f.eof? || MBox::is_break_line?(l = @f.gets)
         yield l
       end
+    end
+  end
+
+  def fallback_date_for_message offset
+    ## This is a bit awkward... We treat the From line as a delimiter,
+    ## not part of the message. So the offset is pointing *after* the
+    ## From line for the desired message. With a bit of effort we can
+    ## scan backwards to find its From line and extract a date from it.
+    buf = @mutex.synchronize do
+      ensure_open
+      start = offset
+      loop do
+        start = (start - 200).clamp 0, 2**64
+        @f.seek start
+        buf = @f.read (offset - start)
+        break buf if buf.include? ?\n or start == 0
+      end
+    end
+    BREAK_RE.match buf.lines.last do |m|
+      Time.strptime m[1], "%a %b %d %H:%M:%S %Y"
     end
   end
 

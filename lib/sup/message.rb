@@ -103,16 +103,10 @@ class Message
     when Time
       date
     when String
-      begin
-        Time.parse date
-      rescue ArgumentError
-        #debug "faking mangled date header for #{@id} (orig #{header['date'].inspect} gave error: #{e.message})"
-        Time.now
-      end
-    else
-      #debug "faking non-existent date header for #{@id}"
-      Time.now
+      Time.parse date rescue nil
     end
+    @date = location.fallback_date if @date.nil?
+    @date = Time.utc 1970, 1, 1 if @date.nil?
 
     subj = header["subject"]
     subj = subj ? subj.fix_encoding! : nil
@@ -806,6 +800,10 @@ class Location
 
   def parsed_message
     source.load_message info
+  end
+
+  def fallback_date
+    source.fallback_date_for_message info
   end
 
   def valid?

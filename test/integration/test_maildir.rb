@@ -34,7 +34,9 @@ EOS
   end
 
   def create_a_maildir_email(folder, content)
-    File.write(File.join(folder, "#{Time.now.to_f}.hostname:2,S"), content)
+    filename = File.join folder, "#{Time.now.to_f}.hostname:2,S"
+    File.write filename, content
+    filename
   end
 
   def start_sup_and_add_source(source)
@@ -74,5 +76,17 @@ EOS
 
   end
 
+  def test_missing_date_header
+    ## The message is missing a Date header so we should use its modtime
+    ## as a fallback.
+    fallback_date = Time.new 2004, 4, 19, 11, 12, 13
+    maildir = create_a_maildir
+    filename = create_a_maildir_email(File.join(maildir, 'cur'), @test_message_1)
+    File.utime fallback_date, fallback_date, filename
+    start_sup_and_add_source Maildir.new "maildir:#{maildir}"
+
+    messages_in_index = Index.instance.enum_for(:each_message).to_a
+    assert_equal fallback_date, messages_in_index.first.date
+  end
 end
 

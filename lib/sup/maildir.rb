@@ -114,6 +114,10 @@ class Maildir < Source
     with_file_for(id) { |f| f.read }
   end
 
+  def fallback_date_for_message id
+    File.mtime File.join(@dir, id)
+  end
+
   ## XXX use less memory
   def poll
     added = []

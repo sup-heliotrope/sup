@@ -59,6 +59,10 @@ class DummySource < Source
       end
     end
   end
+
+  def fallback_date_for_message id
+    Time.utc 2001, 2, 3, 4, 56, 57
+  end
 end
 
 end

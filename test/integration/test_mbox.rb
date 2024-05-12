@@ -69,4 +69,14 @@ EOS
 
   end
 
+  def test_missing_date_header
+    ## The message is missing a Date header so we should use envelope date
+    ## stored in the From line as a fallback.
+    fallback_date = Time.new 2009, 4, 27, 12, 56, 18
+    mbox = create_a_mbox
+    start_sup_and_add_source MBox.new "mbox:#{mbox}"
+
+    messages_in_index = Index.instance.enum_for(:each_message).to_a
+    assert_equal fallback_date, messages_in_index.first.date
+  end
 end
