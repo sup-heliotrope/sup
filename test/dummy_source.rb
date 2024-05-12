@@ -10,10 +10,12 @@ module Redwood
 class DummySource < Source
 
   attr_accessor :messages
+  attr_writer :fallback_date
 
   def initialize uri, last_date=nil, usual=true, archived=false, id=nil, labels=[]
     super uri, usual, archived, id
     @messages = nil
+    @fallback_date = Time.utc 2001, 2, 3, 4, 56, 57
   end
 
   def start_offset
@@ -61,7 +63,7 @@ class DummySource < Source
   end
 
   def fallback_date_for_message id
-    Time.utc 2001, 2, 3, 4, 56, 57
+    @fallback_date
   end
 end
 

@@ -1,0 +1,8 @@
+To: person@example.invalid
+Subject: pre-RFC2822 Date header
+Content-type: text/plain
+From: anotherperson@example.invalid
+Message-Id: <6965470922807932796@example.invalid>
+Date: ons, 26 maj 1999 11:00:34 +0200 (CEST)
+
+A message body.

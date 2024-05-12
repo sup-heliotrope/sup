@@ -103,7 +103,7 @@ class Message
     when Time
       date
     when String
-      Time.parse date rescue nil
+      Time.rfc2822 date rescue nil
     end
     @date = location.fallback_date if @date.nil?
     @date = Time.utc 1970, 1, 1 if @date.nil?

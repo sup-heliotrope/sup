@@ -359,6 +359,19 @@ class TestMessage < Minitest::Test
     fn = chunks[3].safe_filename
     assert_equal(fn, File.basename(fn))
   end
+
+  def test_invalid_date_header
+    fallback_date = Time.utc 2024, 5, 12, 15, 5, 56
+    source = DummySource.new("sup-test://test_invalid_date_header")
+    source.messages = [ fixture_path("invalid-date.eml") ]
+    source.fallback_date = fallback_date
+
+    sup_message = Message.build_from_source(source, 0)
+    sup_message.load_from_source!
+
+    assert_equal(fallback_date, sup_message.date)
+  end
+
   # TODO: test different error cases, malformed messages etc.
 
   # TODO: test different quoting styles, see that they are all divided
