@@ -169,6 +169,7 @@ test/unit/test_edit_message_mode.rb
 test/unit/test_horizontal_selector.rb
 test/unit/test_locale_fiddler.rb
 test/unit/test_person.rb
+test/unit/test_rmail_message.rb
 test/unit/util/test_query.rb
 test/unit/util/test_string.rb
 test/unit/util/test_uri.rb
