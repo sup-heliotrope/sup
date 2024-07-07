@@ -716,10 +716,10 @@ private
     ## encode to quoted-printable for all text/* MIME types,
     ## use base64 otherwise
     if msg_part.header["Content-Type"] =~ /text\/.*/
-      msg_part.header["Content-Transfer-Encoding"] = 'quoted-printable'
+      msg_part.header.set "Content-Transfer-Encoding", "quoted-printable"
       msg_part.body = [msg_part.body].pack('M')
     else
-      msg_part.header["Content-Transfer-Encoding"] = 'base64'
+      msg_part.header.set "Content-Transfer-Encoding", "base64"
       msg_part.body = [msg_part.body].pack('m')
     end
     msg_part
