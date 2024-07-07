@@ -15,7 +15,8 @@ jobs:
       matrix:
         os:
         - ubuntu-latest
-        - macos-latest
+        # macos-14 fails due to https://github.com/nixbuild/nix-quick-install-action/issues/43
+        - macos-13
         ruby-version:
         - '2.4'
         - '2.5'
