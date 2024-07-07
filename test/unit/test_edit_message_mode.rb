@@ -36,9 +36,34 @@ class TestEditMessageMode < Minitest::Test
     $config = nil
   end
 
-  def test_attachment_content_transfer_encoding_signed
+  def test_attachment_content_transfer_encoding
     ## RMail::Message#make_attachment will choose
     ## Content-Transfer-Encoding: 8bit for a CSV file.
+    ## If we're not GPG signing or encrypting then the attachment will be sent
+    ## as is. Note this assumes the SMTP servers in the delivery path all
+    ## support the 8BITMIME extension.
+    attachment_content = "löl,\ntest,\n"
+    attachment_filename = File.join @path, "dummy.csv"
+    File.write attachment_filename, attachment_content
+
+    opts = {
+      :header => {
+        "From" => "sender@example.invalid",
+        "To" => "recip@example.invalid",
+      },
+      :attachments => {
+        "dummy.csv" => RMail::Message.make_file_attachment(attachment_filename),
+      },
+    }
+    mode = Redwood::EditMessageMode.new opts
+
+    msg = mode.send :build_message, Time.now
+    attachment = msg.part(1)
+    assert_equal attachment_content, attachment.body
+    assert_equal "8bit", attachment.header["Content-Transfer-Encoding"]
+  end
+
+  def test_attachment_content_transfer_encoding_signed
     attachment_filename = File.join @path, "dummy.csv"
     ## Include some high bytes in the attachment contents in order to
     ## exercise quote-printable transfer encoding.
