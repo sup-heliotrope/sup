@@ -42,10 +42,6 @@ class TestCryptoManager < Minitest::Test
         Redwood::AccountManager.init am
 
         Redwood::CryptoManager.init
-
-        if not CryptoManager.have_crypto?
-          warn "No crypto set up, crypto will not be tested. Reason: #{CryptoManager.not_working_reason}"
-        end
     end
 
     def teardown
@@ -58,90 +54,91 @@ class TestCryptoManager < Minitest::Test
     end
 
     def test_sign
-        if CryptoManager.have_crypto? then
-            signed = CryptoManager.sign @from_email,@to_email,"ABCDEFG"
-            assert_instance_of RMail::Message, signed
-            assert_equal("multipart/signed; protocol=application/pgp-signature; micalg=pgp-sha256",
-                         signed.header["Content-Type"])
-            assert_equal "ABCDEFG", signed.body[0]
-            assert signed.body[1].body.length > 0 , "signature length must be > 0"
-            assert (signed.body[1].body.include? "-----BEGIN PGP SIGNATURE-----") , "Expecting PGP armored data"
-        end
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      signed = CryptoManager.sign @from_email,@to_email,"ABCDEFG"
+      assert_instance_of RMail::Message, signed
+      assert_equal("multipart/signed; protocol=application/pgp-signature; micalg=pgp-sha256",
+                   signed.header["Content-Type"])
+      assert_equal "ABCDEFG", signed.body[0]
+      assert signed.body[1].body.length > 0 , "signature length must be > 0"
+      assert (signed.body[1].body.include? "-----BEGIN PGP SIGNATURE-----") , "Expecting PGP armored data"
     end
 
     def test_sign_nested_parts
-        if CryptoManager.have_crypto? then
-            body = RMail::Message.new
-            body.header["Content-Disposition"] = "inline"
-            body.body = "ABCDEFG"
-            payload = RMail::Message.new
-            payload.header["MIME-Version"] = "1.0"
-            payload.add_part body
-            payload.add_part RMail::Message.make_attachment "attachment", "text/plain", nil, "attachment.txt"
-            signed = CryptoManager.sign @from_email, @to_email, payload
-            ## The result is a multipart/signed containing a multipart/mixed.
-            ## There should be a MIME-Version header on the top-level
-            ## multipart/signed message, but *not* on the enclosed
-            ## multipart/mixed part.
-            assert_equal 1, signed.to_s.scan(/MIME-Version:/).size
-        end
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      body = RMail::Message.new
+      body.header["Content-Disposition"] = "inline"
+      body.body = "ABCDEFG"
+      payload = RMail::Message.new
+      payload.header["MIME-Version"] = "1.0"
+      payload.add_part body
+      payload.add_part RMail::Message.make_attachment "attachment", "text/plain", nil, "attachment.txt"
+      signed = CryptoManager.sign @from_email, @to_email, payload
+      ## The result is a multipart/signed containing a multipart/mixed.
+      ## There should be a MIME-Version header on the top-level
+      ## multipart/signed message, but *not* on the enclosed
+      ## multipart/mixed part.
+      assert_equal 1, signed.to_s.scan(/MIME-Version:/).size
     end
 
     def test_encrypt
-        if CryptoManager.have_crypto? then
-            encrypted = CryptoManager.encrypt @from_email, [@to_email], "ABCDEFG"
-            assert_instance_of RMail::Message, encrypted
-            assert (encrypted.body[1].body.include? "-----BEGIN PGP MESSAGE-----") , "Expecting PGP armored data"
-        end
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      encrypted = CryptoManager.encrypt @from_email, [@to_email], "ABCDEFG"
+      assert_instance_of RMail::Message, encrypted
+      assert (encrypted.body[1].body.include? "-----BEGIN PGP MESSAGE-----") , "Expecting PGP armored data"
     end
 
     def test_sign_and_encrypt
-        if CryptoManager.have_crypto? then
-            encrypted = CryptoManager.sign_and_encrypt @from_email, [@to_email], "ABCDEFG"
-            assert_instance_of RMail::Message, encrypted
-            assert (encrypted.body[1].body.include? "-----BEGIN PGP MESSAGE-----") , "Expecting PGP armored data"
-        end
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      encrypted = CryptoManager.sign_and_encrypt @from_email, [@to_email], "ABCDEFG"
+      assert_instance_of RMail::Message, encrypted
+      assert (encrypted.body[1].body.include? "-----BEGIN PGP MESSAGE-----") , "Expecting PGP armored data"
     end
 
     def test_decrypt
-        if CryptoManager.have_crypto? then
-            encrypted = CryptoManager.encrypt @from_email, [@to_email], "ABCDEFG"
-            assert_instance_of RMail::Message, encrypted
-            assert_instance_of String, (encrypted.body[1].body)
-            decrypted = CryptoManager.decrypt encrypted.body[1], true
-            assert_instance_of Array, decrypted
-            assert_instance_of Chunk::CryptoNotice, decrypted[0]
-            assert_instance_of Chunk::CryptoNotice, decrypted[1]
-            assert_instance_of RMail::Message, decrypted[2]
-            assert_equal "ABCDEFG" , decrypted[2].body
-        end
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      encrypted = CryptoManager.encrypt @from_email, [@to_email], "ABCDEFG"
+      assert_instance_of RMail::Message, encrypted
+      assert_instance_of String, (encrypted.body[1].body)
+      decrypted = CryptoManager.decrypt encrypted.body[1], true
+      assert_instance_of Array, decrypted
+      assert_instance_of Chunk::CryptoNotice, decrypted[0]
+      assert_instance_of Chunk::CryptoNotice, decrypted[1]
+      assert_instance_of RMail::Message, decrypted[2]
+      assert_equal "ABCDEFG" , decrypted[2].body
     end
 
     def test_verify
-        if CryptoManager.have_crypto?
-            signed = CryptoManager.sign @from_email, @to_email, "ABCDEFG"
-            assert_instance_of RMail::Message, signed
-            assert_instance_of String, (signed.body[1].body)
-            CryptoManager.verify signed.body[0], signed.body[1], true
-        end
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      signed = CryptoManager.sign @from_email, @to_email, "ABCDEFG"
+      assert_instance_of RMail::Message, signed
+      assert_instance_of String, (signed.body[1].body)
+      CryptoManager.verify signed.body[0], signed.body[1], true
     end
 
     def test_verify_unknown_keytype
-        if CryptoManager.have_crypto?
-            signed = CryptoManager.sign @from_email_ecc, @to_email, "ABCDEFG"
-            assert_instance_of RMail::Message, signed
-            assert_instance_of String, (signed.body[1].body)
-            CryptoManager.verify signed.body[0], signed.body[1], true
-        end
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      signed = CryptoManager.sign @from_email_ecc, @to_email, "ABCDEFG"
+      assert_instance_of RMail::Message, signed
+      assert_instance_of String, (signed.body[1].body)
+      CryptoManager.verify signed.body[0], signed.body[1], true
     end
 
     def test_verify_nested_parts
-        if CryptoManager.have_crypto?
-            ## Generate a multipart/signed containing a multipart/mixed.
-            ## We will test verifying the generated signature below.
-            ## Importantly, the inner multipart/mixed does *not* have a
-            ## MIME-Version header because it is not a top-level message.
-            payload = RMail::Parser.read <<EOS
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      ## Generate a multipart/signed containing a multipart/mixed.
+      ## We will test verifying the generated signature below.
+      ## Importantly, the inner multipart/mixed does *not* have a
+      ## MIME-Version header because it is not a top-level message.
+      payload = RMail::Parser.read <<EOS
 Content-Type: multipart/mixed; boundary="=-1652088224-7794-561531-1825-1-="
 
 
@@ -156,9 +153,8 @@ Content-Type: text/plain; name="attachment.txt"
 attachment
 --=-1652088224-7794-561531-1825-1-=--
 EOS
-            signed = CryptoManager.sign @from_email_ecc, @to_email, payload
-            CryptoManager.verify payload, signed.body[1], true
-        end
+      signed = CryptoManager.sign @from_email_ecc, @to_email, payload
+      CryptoManager.verify payload, signed.body[1], true
     end
 end
 
