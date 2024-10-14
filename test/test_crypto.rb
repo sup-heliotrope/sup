@@ -119,7 +119,11 @@ class TestCryptoManager < Minitest::Test
       signed = CryptoManager.sign @from_email, @to_email, "ABCDEFG"
       assert_instance_of RMail::Message, signed
       assert_instance_of String, (signed.body[1].body)
-      CryptoManager.verify signed.body[0], signed.body[1], true
+      chunk = CryptoManager.verify signed.body[0], signed.body[1], true
+      assert_instance_of Redwood::Chunk::CryptoNotice, chunk
+      assert_match(/^Signature made .* using RSA key ID 072B50BE/,
+                   chunk.lines[0])
+      assert_equal "Good signature from \"#{@from_email}\"", chunk.lines[1]
     end
 
     def test_verify_unknown_keytype
@@ -128,7 +132,11 @@ class TestCryptoManager < Minitest::Test
       signed = CryptoManager.sign @from_email_ecc, @to_email, "ABCDEFG"
       assert_instance_of RMail::Message, signed
       assert_instance_of String, (signed.body[1].body)
-      CryptoManager.verify signed.body[0], signed.body[1], true
+      chunk = CryptoManager.verify signed.body[0], signed.body[1], true
+      assert_instance_of Redwood::Chunk::CryptoNotice, chunk
+      assert_match(/^Signature made .* using unknown key type \(303\) key ID AC34B83C/,
+                   chunk.lines[0])
+      assert_equal "Good signature from \"#{@from_email_ecc}\"", chunk.lines[1]
     end
 
     def test_verify_nested_parts

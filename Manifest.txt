@@ -146,7 +146,9 @@ test/fixtures/utf8-header.eml
 test/fixtures/zimbra-quote-with-bottom-post.eml
 test/gnupg_test_home/.gpg-v21-migrated
 test/gnupg_test_home/gpg.conf
-test/gnupg_test_home/private-keys-v1.d/306D2EE90FF0014B5B9FD07E265C751791674140.key
+test/gnupg_test_home/private-keys-v1.d/26C05E44706A8E230B3255BB9532B34DC9420232.key
+test/gnupg_test_home/private-keys-v1.d/D187ADC90EC4DEB7047678EAA37E33A53A465D47.key
+test/gnupg_test_home/private-keys-v1.d/FB2D9BD3B1BE90B5BCF697781F8404224B0FCF5B.key
 test/gnupg_test_home/pubring.gpg
 test/gnupg_test_home/receiver_pubring.gpg
 test/gnupg_test_home/receiver_secring.gpg

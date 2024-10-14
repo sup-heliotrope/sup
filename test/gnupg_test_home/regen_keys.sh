@@ -67,6 +67,15 @@ gpg2 \
     --passphrase '' \
     --quick-generate-key sup-test-1@foo.bar rsa encrypt,sign 0
 
+echo "Generating key pair for sender alternate address (email sup-fake-ecc@fake.fake)"
+gpg2 \
+    --homedir . \
+    --batch \
+    --pinentry-mode loopback \
+    --passphrase '' \
+    --default-new-key-algo "ed25519/cert,sign+cv25519/encr" \
+    --quick-generate-key sup-fake-ecc@fake.fake default default 0
+
 echo "Importing public key for receiver, into sender's key store"
 gpg2 \
     --homedir . \
@@ -80,10 +89,10 @@ gpg2 \
 
 echo "Done."
 
-echo "We now have two non-expiring public keys (receiver & sender):"
+echo "We now have some non-expiring public keys:"
 gpg2 --homedir . --list-keys
 
-echo "And we also have only *one* corresponding private key (sender only):"
+echo "And we also have some corresponding private keys:"
 gpg2 --homedir . --list-secret-keys
 
 popd
