@@ -15,8 +15,7 @@ jobs:
       matrix:
         os:
         - ubuntu-latest
-        # macos-14 fails due to https://github.com/nixbuild/nix-quick-install-action/issues/43
-        - macos-13
+        - macos-14
         ruby-version:
         - '2.4'
         - '2.5'
@@ -48,7 +47,7 @@ jobs:
       run: brew install bash
       if: runner.os == 'macOS'
     - name: Install nix
-      uses: nixbuild/nix-quick-install-action@v21
+      uses: nixbuild/nix-quick-install-action@v30
     - name: Import nix cache
       run: |
         if [ -f /tmp/nixcache ] ; then
