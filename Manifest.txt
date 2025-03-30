@@ -37,7 +37,11 @@ contrib/nix/ruby2.5-shell.nix
 contrib/nix/ruby2.6-Gemfile.lock
 contrib/nix/ruby2.6-gemset.nix
 contrib/nix/ruby2.6-shell.nix
+contrib/nix/ruby2.7-Gemfile.lock
+contrib/nix/ruby2.7-gemset.nix
 contrib/nix/ruby2.7-shell.nix
+contrib/nix/ruby3.0-Gemfile.lock
+contrib/nix/ruby3.0-gemset.nix
 contrib/nix/ruby3.0-shell.nix
 contrib/nix/ruby3.1-shell.nix
 contrib/nix/ruby3.2-shell.nix
