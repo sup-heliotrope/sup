@@ -26,6 +26,19 @@ jobs:
         - '3.2'
         - '3.3'
         - '3.4'
+        exclude:
+        # We use xapian-bindings 1.4.22 for Ruby < 3.1, but it does not link on MacOS 14:
+        # https://github.com/Garaio-REM/xapian-ruby/issues/10
+        - os: macos-14
+          ruby-version: '2.4'
+        - os: macos-14
+          ruby-version: '2.5'
+        - os: macos-14
+          ruby-version: '2.6'
+        - os: macos-14
+          ruby-version: '2.7'
+        - os: macos-14
+          ruby-version: '3.0'
     runs-on: ${{ matrix.os }}
     env:
       nixfile: "contrib/nix/ruby${{ matrix.ruby-version }}-shell.nix"
