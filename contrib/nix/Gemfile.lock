@@ -51,7 +51,7 @@ GEM
     ruby-progressbar (1.13.0)
     unicode (0.4.4.5)
     unicode-display_width (2.5.0)
-    xapian-ruby (1.4.22)
+    xapian-ruby (1.4.27)
 
 PLATFORMS
   aarch64-linux
