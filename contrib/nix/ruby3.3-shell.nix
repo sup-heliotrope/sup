@@ -14,14 +14,6 @@ let
     lockfile = ./Gemfile.lock;
     gemset = ./gemset.nix;
     gemConfig = pkgs.defaultGemConfig // {
-      # Temporarily pull from my fork: https://github.com/Garaio-REM/xapian-ruby/pull/11
-      xapian-ruby = attrs: pkgs.defaultGemConfig.xapian-ruby attrs // {
-        version = "1.4.27";
-        src = pkgs.fetchurl {
-          url = "https://github.com/danc86/xapian-ruby/releases/download/v1.4.27/xapian-ruby-1.4.27.gem";
-          sha256 = "sha256-E5U/4NEFkChMJtrMj8oCqKPgTYyKku5OXGcPQvhN4xM=";
-        };
-      };
       # Workaround for Sup issue #623
       ncursesw = attrs: pkgs.defaultGemConfig.ncursesw attrs // {
         buildInputs = [ ncurses ];
