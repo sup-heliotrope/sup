@@ -38,7 +38,7 @@ class TestCryptoManager < Minitest::Test
         @path = Dir.mktmpdir
         Redwood::HookManager.init File.join(@path, 'hooks')
 
-        am = {:default=> {name: "test", email: @from_email, alternates: [@from_email_ecc]}}
+        am = {:default=> {name: +"test", email: @from_email.dup, alternates: [@from_email_ecc.dup]}}
         Redwood::AccountManager.init am
 
         Redwood::CryptoManager.init
@@ -69,10 +69,10 @@ class TestCryptoManager < Minitest::Test
       skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
 
       body = RMail::Message.new
-      body.header["Content-Disposition"] = "inline"
+      body.header["Content-Disposition"] = +"inline"
       body.body = "ABCDEFG"
       payload = RMail::Message.new
-      payload.header["MIME-Version"] = "1.0"
+      payload.header["MIME-Version"] = +"1.0"
       payload.add_part body
       payload.add_part RMail::Message.make_attachment "attachment", "text/plain", nil, "attachment.txt"
       signed = CryptoManager.sign @from_email, @to_email, payload

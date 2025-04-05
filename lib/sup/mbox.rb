@@ -86,7 +86,7 @@ class MBox < Source
       begin
         ## don't use RMail::Mailbox::MBoxReader because it doesn't properly ignore
         ## "From" at the start of a message body line.
-        string = ""
+        string = +""
         until @f.eof? || MBox::is_break_line?(l = @f.gets)
           string << l
         end
@@ -98,7 +98,7 @@ class MBox < Source
   end
 
   def raw_header offset
-    ret = ""
+    ret = +""
     @mutex.synchronize do
       ensure_open
       @f.seek offset
@@ -110,9 +110,7 @@ class MBox < Source
   end
 
   def raw_message offset
-    ret = ""
-    each_raw_message_line(offset) { |l| ret << l }
-    ret
+    enum_for(:each_raw_message_line, offset).reduce(:+)
   end
 
   def store_message date, from_email, &block

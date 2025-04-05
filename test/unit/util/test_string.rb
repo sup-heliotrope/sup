@@ -18,7 +18,7 @@ describe "Sup's String extension" do
 
     it "calculates display length of a string" do
       data.each do |(str, length)|
-        assert_equal length, str.display_length
+        assert_equal length, str.dup.display_length
       end
     end
   end
@@ -36,7 +36,7 @@ describe "Sup's String extension" do
 
     it "slices string by display length" do
       data.each do |(str, length, sliced)|
-        assert_equal sliced, str.slice_by_display_length(length)
+        assert_equal sliced, str.dup.slice_by_display_length(length)
       end
     end
   end
@@ -56,7 +56,7 @@ describe "Sup's String extension" do
 
     it "wraps string by display length" do
       data.each do |(str, length, wrapped)|
-        assert_equal wrapped, str.wrap(length)
+        assert_equal wrapped, str.dup.wrap(length)
       end
     end
   end

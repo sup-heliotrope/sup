@@ -563,7 +563,7 @@ protected
     ## there are attachments, so wrap body in an attachment of its own
     unless @attachments.empty?
       body_m = m
-      body_m.header["Content-Disposition"] = "inline"
+      body_m.header["Content-Disposition"] = +"inline"
       m = RMail::Message.new
 
       m.add_part body_m
@@ -601,8 +601,8 @@ protected
     m.header["Date"] = date.rfc2822
     m.header["Message-Id"] = @message_id
     m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
-    m.header["Content-Transfer-Encoding"] ||= '8bit'
-    m.header["MIME-Version"] = "1.0" if m.multipart?
+    m.header["Content-Transfer-Encoding"] ||= +"8bit"
+    m.header["MIME-Version"] = +"1.0" if m.multipart?
     m
   end
 
@@ -716,10 +716,10 @@ private
     ## encode to quoted-printable for all text/* MIME types,
     ## use base64 otherwise
     if msg_part.header["Content-Type"] =~ /text\/.*/
-      msg_part.header.set "Content-Transfer-Encoding", "quoted-printable"
+      msg_part.header.set "Content-Transfer-Encoding", +"quoted-printable"
       msg_part.body = [msg_part.body].pack('M')
     else
-      msg_part.header.set "Content-Transfer-Encoding", "base64"
+      msg_part.header.set "Content-Transfer-Encoding", +"base64"
       msg_part.body = [msg_part.body].pack('m')
     end
     msg_part

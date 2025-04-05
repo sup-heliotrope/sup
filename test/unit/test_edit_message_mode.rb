@@ -13,7 +13,7 @@ class DummyCryptoManager
   def have_crypto?; true; end
   def sign from, to, payload
     envelope = RMail::Message.new
-    envelope.header["Content-Type"] = "multipart/signed; protocol=testdummy"
+    envelope.header["Content-Type"] = +"multipart/signed; protocol=testdummy"
     envelope.add_part payload
     envelope
   end
@@ -24,7 +24,7 @@ class TestEditMessageMode < Minitest::Test
     $config = {}
     @path = Dir.mktmpdir
     Redwood::HookManager.init File.join(@path, "hooks")
-    Redwood::AccountManager.init :default => {name: "test", email: "sender@example.invalid"}
+    Redwood::AccountManager.init :default => {name: +"test", email: +"sender@example.invalid"}
     Redwood::CryptoManager.instance_variable_set :@instance, DummyCryptoManager.new
   end
 
@@ -48,8 +48,8 @@ class TestEditMessageMode < Minitest::Test
 
     opts = {
       :header => {
-        "From" => "sender@example.invalid",
-        "To" => "recip@example.invalid",
+        "From" => +"sender@example.invalid",
+        "To" => +"recip@example.invalid",
       },
       :attachments => {
         "dummy.csv" => RMail::Message.make_file_attachment(attachment_filename),
@@ -71,8 +71,8 @@ class TestEditMessageMode < Minitest::Test
 
     opts = {
       :header => {
-        "From" => "sender@example.invalid",
-        "To" => "recip@example.invalid",
+        "From" => +"sender@example.invalid",
+        "To" => +"recip@example.invalid",
       },
       :attachments => {
         "dummy.csv" => RMail::Message.make_file_attachment(attachment_filename),

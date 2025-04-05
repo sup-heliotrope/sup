@@ -5,12 +5,12 @@ module Redwood
 
 class TestPerson < Minitest::Test
   def setup
-    @person = Person.new("Thomassen, Bob", "bob@thomassen.com")
-    @no_name = Person.new(nil, "alice@alice.com")
+    @person = Person.new(+"Thomassen, Bob", +"bob@thomassen.com")
+    @no_name = Person.new(nil, +"alice@alice.com")
   end
 
   def test_email_must_be_supplied
-    assert_raises (ArgumentError) { Person.new("Alice", nil) }
+    assert_raises (ArgumentError) { Person.new(+"Alice", nil) }
   end
 
   def test_to_string

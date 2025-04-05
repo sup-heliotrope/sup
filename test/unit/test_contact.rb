@@ -6,7 +6,7 @@ module Redwood
 class TestContact < Minitest::Test
   def setup
     @contact = ContactManager.init(File.expand_path("../../fixtures/contacts.txt", __FILE__))
-    @person  = Person.new "Terrible Name", "terrible@name.com"
+    @person  = Person.new (+"Terrible Name"), (+"terrible@name.com")
   end
 
   def teardown

@@ -198,17 +198,17 @@ EOS
     end
 
     encrypted_payload = RMail::Message.new
-    encrypted_payload.header["Content-Type"] = "application/octet-stream"
-    encrypted_payload.header["Content-Disposition"] = 'inline; filename="msg.asc"'
+    encrypted_payload.header["Content-Type"] = +"application/octet-stream"
+    encrypted_payload.header["Content-Disposition"] = +'inline; filename="msg.asc"'
     encrypted_payload.body = cipher
 
     control = RMail::Message.new
-    control.header["Content-Type"] = "application/pgp-encrypted"
-    control.header["Content-Disposition"] = "attachment"
+    control.header["Content-Type"] = +"application/pgp-encrypted"
+    control.header["Content-Disposition"] = +"attachment"
     control.body = "Version: 1\n"
 
     envelope = RMail::Message.new
-    envelope.header["Content-Type"] = 'multipart/encrypted; protocol=application/pgp-encrypted'
+    envelope.header["Content-Type"] = +"multipart/encrypted; protocol=application/pgp-encrypted"
 
     envelope.add_part control
     envelope.add_part encrypted_payload
