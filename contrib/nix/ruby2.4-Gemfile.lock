@@ -45,7 +45,7 @@ GEM
     rubocop-packaging (0.5.1)
       rubocop (>= 0.89, < 2.0)
     ruby-progressbar (1.11.0)
-    unicode (0.4.4.4)
+    unicode (0.4.4.5)
     unicode-display_width (2.2.0)
     xapian-ruby (1.4.18)
 
