@@ -11,6 +11,9 @@ let
     lockfile = ./ruby2.5-Gemfile.lock;
     gemset = ./ruby2.5-gemset.nix;
     gemConfig = pkgs.defaultGemConfig // {
+      fiddle = attrs: {
+        buildInputs = [ pkgs.libffi ];
+      };
       # Workaround for a new error in clang 16 (MacOS):
       # https://github.com/blackwinter/unicode/pull/11
       unicode = attrs: {

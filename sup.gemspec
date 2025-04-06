@@ -61,6 +61,8 @@ SUP: please note that our old mailing lists have been shut down,
   s.add_runtime_dependency "unicode", "~> 0.4.4"
   s.add_runtime_dependency "unicode-display_width"
   s.add_runtime_dependency "string-scrub" if /^2\.0\./ =~ RUBY_VERSION
+  s.add_runtime_dependency "benchmark"
+  s.add_runtime_dependency "fiddle"
 
   s.add_development_dependency "bundler", ">= 1.3", "< 3"
   s.add_development_dependency "rake"

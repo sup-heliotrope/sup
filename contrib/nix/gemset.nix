@@ -9,6 +9,16 @@
     };
     version = "2.4.3";
   };
+  benchmark = {
+    groups = ["default"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "0jl71qcgamm96dzyqk695j24qszhcc7liw74qc83fpjljp2gh4hg";
+      type = "gem";
+    };
+    version = "0.4.0";
+  };
   chronic = {
     groups = ["default"];
     platforms = [];
@@ -28,6 +38,16 @@
       type = "gem";
     };
     version = "1.1.3";
+  };
+  fiddle = {
+    groups = ["default"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "1as92bp6pgkab73kj3mh5d1idjr9wykczz7r9i1pkn82wq4xks3r";
+      type = "gem";
+    };
+    version = "1.1.6";
   };
   gpgme = {
     dependencies = ["mini_portile2"];
