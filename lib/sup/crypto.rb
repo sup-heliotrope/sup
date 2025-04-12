@@ -177,6 +177,8 @@ EOS
     end
     gpg_opts = HookManager.run("gpg-options",
                                {:operation => "encrypt", :options => gpg_opts}) || gpg_opts
+    ## On the sup side we use :signer for backwards compatibility, but GPGME wants :signers.
+    gpg_opts[:signers] = gpg_opts[:signer]
     recipients = to + [from]
     recipients = HookManager.run("gpg-expand-keys", { :recipients => recipients }) || recipients
     begin

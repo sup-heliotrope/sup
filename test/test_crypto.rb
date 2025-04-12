@@ -113,6 +113,39 @@ class TestCryptoManager < Minitest::Test
       assert_equal "ABCDEFG" , decrypted[2].body
     end
 
+    def test_decrypt_and_verify
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      encrypted = CryptoManager.sign_and_encrypt @from_email, [@to_email], "ABCDEFG"
+      assert_instance_of RMail::Message, encrypted
+      assert_instance_of String, (encrypted.body[1].body)
+      decrypted = CryptoManager.decrypt encrypted.body[1], true
+      assert_instance_of Array, decrypted
+      assert_instance_of Chunk::CryptoNotice, decrypted[0]
+      assert_instance_of Chunk::CryptoNotice, decrypted[1]
+      assert_instance_of RMail::Message, decrypted[2]
+      assert_match(/^Signature made .* using RSA key ID 072B50BE/,
+                   decrypted[1].lines[0])
+      assert_equal "Good signature from \"#{@from_email}\"", decrypted[1].lines[1]
+      assert_equal "ABCDEFG" , decrypted[2].body
+    end
+
+    def test_decrypt_and_verify_nondefault_key
+      skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
+
+      encrypted = CryptoManager.sign_and_encrypt @from_email_ecc, [@to_email], "ABCDEFG"
+      assert_instance_of RMail::Message, encrypted
+      assert_instance_of String, (encrypted.body[1].body)
+      decrypted = CryptoManager.decrypt encrypted.body[1], true
+      assert_instance_of Array, decrypted
+      assert_instance_of Chunk::CryptoNotice, decrypted[0]
+      assert_instance_of Chunk::CryptoNotice, decrypted[1]
+      assert_instance_of RMail::Message, decrypted[2]
+      assert_match(/^Signature made .* key ID AC34B83C/, decrypted[1].lines[0])
+      assert_equal "Good signature from \"#{@from_email_ecc}\"", decrypted[1].lines[1]
+      assert_equal "ABCDEFG" , decrypted[2].body
+    end
+
     def test_verify
       skip CryptoManager.not_working_reason if not CryptoManager.have_crypto?
 
