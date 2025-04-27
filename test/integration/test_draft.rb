@@ -55,4 +55,16 @@ EOS
     DraftManager.discard message_in_index
     refute File.exist? draft_filename
   end
+
+  def test_discard_already_deleted_from_disk
+    DraftManager.write_draft { |f| f.write @test_message_1 }
+    draft_filename = File.join @draft_dir, "0"
+    assert File.exist? draft_filename
+    message_in_index = Index.instance.enum_for(:each_message).to_a.first
+
+    File.delete draft_filename
+
+    DraftManager.discard message_in_index
+    refute File.exist? draft_filename
+  end
 end
