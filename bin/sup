@@ -143,6 +143,16 @@ Index.lock_interactively or exit
 
 begin
   Redwood::start
+  Redwood::SourceManager.load_sources
+  
+   if Redwood::SourceManager.sources.empty? and !File.exist?("#{Dir.home}/.sup/configured")
+    debug "No sources found!"
+    FileUtils.touch("#{Dir.home}/.sup/configured")
+    Index.unlock
+    exec("sup-config")
+    abort
+  end  
+
   Index.load
   Redwood::check_syncback_settings
   Index.start_sync_worker unless $opts[:no_threads]
@@ -419,5 +429,4 @@ EOS
     puts e.message, e.backtrace
   end
 end
-
 end
