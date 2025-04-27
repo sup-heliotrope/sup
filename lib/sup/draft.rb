@@ -11,7 +11,7 @@ class DraftManager
 
   def self.source_name; "sup://drafts"; end
   def self.source_id; 9999; end
-  def new_source; @source = DraftLoader.new; end
+  def new_source; @source = DraftLoader.new @dir; end
 
   def write_draft
     offset = @source.gen_offset
@@ -32,7 +32,7 @@ class DraftLoader < Source
   attr_accessor :dir
   yaml_properties
 
-  def initialize dir=Redwood::DRAFT_DIR
+  def initialize dir
     Dir.mkdir dir unless File.exist? dir
     super DraftManager.source_name, true, false
     @dir = dir
