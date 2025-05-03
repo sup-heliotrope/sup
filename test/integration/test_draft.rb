@@ -93,5 +93,10 @@ EOS
     PollManager.poll_from @draft_source
     messages_in_index = Index.instance.enum_for(:each_message).to_a
     assert_equal "", messages_in_index[0].subj
+
+    File.write (File.join @draft_dir, "2"), ""
+    PollManager.poll_from @draft_source
+    messages_in_index = Index.instance.enum_for(:each_message).to_a
+    assert_equal "", messages_in_index[0].subj
   end
 end

@@ -76,11 +76,7 @@ class DraftLoader < Source
 
   def load_message offset
     raise SourceError, "Draft not found" unless File.exist? fn_for_offset(offset)
-    File.open fn_for_offset(offset) do |f|
-      RMail::Mailbox::MBoxReader.new(f).each_message do |input|
-        return RMail::Parser.read(input)
-      end
-    end
+    File.open(fn_for_offset(offset)) { |f| RMail::Parser.read f }
   end
 
   def fallback_date_for_message offset
