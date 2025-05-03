@@ -23,7 +23,8 @@ EOS
     Index.init @path
     Index.load
     SourceManager.instance.instance_eval "@sources = {}"
-    SourceManager.add_source DraftManager.new_source
+    @draft_source = DraftManager.new_source
+    SourceManager.add_source @draft_source
   end
 
   def teardown
@@ -66,5 +67,31 @@ EOS
 
     DraftManager.discard message_in_index
     refute File.exist? draft_filename
+  end
+
+  def test_load_malformed_draft
+    ## Sup always writes drafts by serialising a Message, meaning the draft is
+    ## guaranteed to have certain headers like Date. But it's always possible
+    ## for the user to edit the draft directly on the filesystem and leave it
+    ## in some kind of malformed state. Sup should handle it without crashing.
+    draft_filename = File.join @draft_dir, "0"
+    fallback_date = Time.new 2025, 5, 3, 15, 47, 41
+    File.write draft_filename, <<EOS
+Some-Header: Value
+
+body
+EOS
+    File.utime fallback_date, fallback_date, draft_filename
+    PollManager.poll_from @draft_source
+    messages_in_index = Index.instance.enum_for(:each_message).to_a
+    assert_equal "", messages_in_index[0].subj
+    assert_equal fallback_date, messages_in_index[0].date
+
+    File.write (File.join @draft_dir, "1"), <<EOS
+missing a header!
+EOS
+    PollManager.poll_from @draft_source
+    messages_in_index = Index.instance.enum_for(:each_message).to_a
+    assert_equal "", messages_in_index[0].subj
   end
 end

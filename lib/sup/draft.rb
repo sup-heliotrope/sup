@@ -83,6 +83,10 @@ class DraftLoader < Source
     end
   end
 
+  def fallback_date_for_message offset
+    File.mtime fn_for_offset(offset)
+  end
+
   def raw_header offset
     ret = ""
     File.open(fn_for_offset(offset), "r:UTF-8") do |f|

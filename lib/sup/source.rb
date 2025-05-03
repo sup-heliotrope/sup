@@ -90,6 +90,8 @@ class Source
   ## the location filename
   def labels? info; [] end
 
+  def fallback_date_for_message info; end
+
   ## Yields values of the form [Symbol, Hash]
   ## add: info, labels, progress
   ## delete: info, progress
