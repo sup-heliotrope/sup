@@ -166,10 +166,10 @@
     platforms = [];
     source = {
       remotes = ["https://rubygems.org"];
-      sha256 = "0qlfhp9b445g0qp9kkdiylfjlpfzrv6nqvry4ar6y0yacn0zr5y8";
+      sha256 = "0rqh8rmlrjx19pab51lyldar7v83a7gnkvjifsf4h6q3129rhb5h";
       type = "gem";
     };
-    version = "1.4.11";
+    version = "1.4.12";
   };
   optimist = {
     groups = ["default"];

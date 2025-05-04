@@ -22,15 +22,6 @@ let
           })
         ];
       };
-      # Workaround for Sup issue #623
-      ncursesw = attrs: pkgs.defaultGemConfig.ncursesw attrs // {
-        src = pkgs.fetchFromGitHub {
-          owner = "danc86";
-          repo = "ncursesw-ruby";
-          rev = "43cfa21f781e9412dc73d0d4a44b3ec0bf4a3c8d";
-          hash = "sha256-MkXFwhbtL9aJOMqn1IR5DKMXcnKHzICjb/rVhDDLL94=";
-        };
-      };
     };
   };
 in pkgs.mkShell { packages = [ gems gems.wrappedRuby pkgs.pandoc ]; }

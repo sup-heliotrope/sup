@@ -23,7 +23,7 @@ GEM
     mime-types-data (3.2025.0402)
     mini_portile2 (2.8.8)
     minitest (5.25.5)
-    ncursesw (1.4.11)
+    ncursesw (1.4.12)
     optimist (3.2.1)
     parallel (1.26.3)
     parser (3.3.7.4)
