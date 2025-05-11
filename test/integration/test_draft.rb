@@ -99,4 +99,28 @@ EOS
     messages_in_index = Index.instance.enum_for(:each_message).to_a
     assert_equal "", messages_in_index[0].subj
   end
+
+  def test_draft_with_non_ascii_chars
+    message = <<EOS
+From: Some Person <someone@example.invalid>
+To:
+Cc:
+Bcc:
+Subject: UTF-8 draft 🤐
+Date: Fri, 11 Apr 2025 22:34:05 +1000
+Message-ID: <123@example.invalid>
+
+¡Buen día! Доброго ранку! おはよう！
+EOS
+    DraftManager.write_draft { |f| f.write message }
+    draft_filename = File.join @draft_dir, "0"
+    assert_equal message, (File.read draft_filename)
+
+    PollManager.poll_from @draft_source
+    messages_in_index = Index.instance.enum_for(:each_message).to_a
+    assert_equal "UTF-8 draft 🤐", messages_in_index[0].subj
+    assert_equal message, messages_in_index.first.raw_message
+    assert_equal "¡Buen día! Доброго ранку! おはよう！", \
+                 messages_in_index[0].chunks[0].lines[0]
+  end
 end

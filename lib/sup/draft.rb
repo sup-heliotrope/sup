@@ -76,7 +76,11 @@ class DraftLoader < Source
 
   def load_message offset
     raise SourceError, "Draft not found" unless File.exist? fn_for_offset(offset)
-    File.open(fn_for_offset(offset)) { |f| RMail::Parser.read f }
+    File.open(fn_for_offset(offset)) do |f|
+      message = RMail::Parser.read f
+      message.header.set "Content-Type", "text/plain; charset=#{$encoding}"
+      message
+    end
   end
 
   def fallback_date_for_message offset
