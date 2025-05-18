@@ -187,10 +187,10 @@
     platforms = [];
     source = {
       remotes = ["https://rubygems.org"];
-      sha256 = "0rqh8rmlrjx19pab51lyldar7v83a7gnkvjifsf4h6q3129rhb5h";
+      sha256 = "1x06374njjl4xfxwkp6nq71akhazmqp9fyhkgxf6gac81p5wwdk6";
       type = "gem";
     };
-    version = "1.4.12";
+    version = "1.4.13";
   };
   optimist = {
     groups = ["default"];
