@@ -38,8 +38,13 @@ class TestCryptoManager < Minitest::Test
         @path = Dir.mktmpdir
         Redwood::HookManager.init File.join(@path, 'hooks')
 
-        am = {:default=> {name: +"test", email: @from_email.dup, alternates: [@from_email_ecc.dup]}}
-        Redwood::AccountManager.init am
+        account = {
+          :name => +"test",
+          :email => @from_email.dup,
+          :alternates => [@from_email_ecc.dup],
+          :sendmail => "/bin/false",
+        }
+        Redwood::AccountManager.init :default => account
 
         Redwood::CryptoManager.init
     end

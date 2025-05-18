@@ -24,7 +24,12 @@ class TestEditMessageMode < Minitest::Test
     $config = {}
     @path = Dir.mktmpdir
     Redwood::HookManager.init File.join(@path, "hooks")
-    Redwood::AccountManager.init :default => {name: +"test", email: +"sender@example.invalid"}
+    account = {
+      :name => +"test",
+      :email => +"sender@example.invalid",
+      :sendmail => "/bin/false",
+    }
+    Redwood::AccountManager.init :default => account
     Redwood::CryptoManager.instance_variable_set :@instance, DummyCryptoManager.new
   end
 

@@ -51,6 +51,7 @@ class AccountManager
     end
     hash[:alternates] ||= []
     fail "alternative emails are not an array: #{hash[:alternates]}" unless hash[:alternates].kind_of? Array
+    raise ArgumentError, "no sendmail command specified for account" unless hash[:sendmail]
 
     [:name, :signature].each { |x| hash[x] ? hash[x].fix_encoding! : nil }
 
