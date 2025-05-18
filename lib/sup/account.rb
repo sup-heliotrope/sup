@@ -35,6 +35,7 @@ class AccountManager
     @regexen = {}
     @default_account = nil
 
+    fail "default account missing in config" unless accounts[:default].kind_of? Hash
     add_account accounts[:default], true
     accounts.each { |k, v| add_account v, false unless k == :default }
   end
