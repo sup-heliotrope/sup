@@ -538,7 +538,7 @@ protected
       BufferManager.kill_buffer buffer
       BufferManager.flash "Message sent!"
       true
-    rescue SystemCallError, SendmailCommandFailed, CryptoManager::Error => e
+    rescue SystemCallError, SendmailCommandFailed, CryptoManager::Error, TypeError => e
       warn "Problem sending mail: #{e.message}"
       BufferManager.flash "Problem sending mail: #{e.message}"
       false
