@@ -2,7 +2,7 @@
 
 Sup is a console-based email client for people with a lot of email.
 
-<img src="https://sup-heliotrope.github.io/images/old_screenshot_1.png" />
+<img src="https://supmua.dev/images/old_screenshot_1.png" />
 
 ## Installation
 
@@ -35,10 +35,12 @@ Please report bugs to the [GitHub issue tracker](https://github.com/sup-heliotro
 
 ## Links
 
-* [Homepage](https://sup-heliotrope.github.io/)
+* [Homepage](https://supmua.dev/)
 * [Code repository](https://github.com/sup-heliotrope/sup)
 * [Wiki](https://github.com/sup-heliotrope/sup/wiki)
-* Mailing list: supmua@googlegroups.com (subscribe: supmua+subscribe@googlegroups.com, archive: https://groups.google.com/d/forum/supmua )
+* Mailing list: supmua@googlegroups.com
+  (subscribe: supmua+subscribe@googlegroups.com,
+  [archives](https://supmua.dev/lists/supmua/))
 
 ## Maintenance status
 
