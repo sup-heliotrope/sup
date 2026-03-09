@@ -11,7 +11,6 @@ gem "locale", "~> 2.0"
 gem "chronic"
 gem "unicode", "~> 0.4.4"
 gem "unicode-display_width"
-gem "string-scrub" if /^2\.0\./ =~ RUBY_VERSION
 gem "benchmark"
 gem "fiddle"
 

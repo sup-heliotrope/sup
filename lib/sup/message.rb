@@ -1,7 +1,6 @@
 # encoding: UTF-8
 
 require 'time'
-require 'string-scrub' if /^2\.0\./ =~ RUBY_VERSION
 
 module Redwood
 

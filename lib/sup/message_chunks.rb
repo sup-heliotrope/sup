@@ -35,29 +35,6 @@ require 'shellwords'
 ## included as quoted text during a reply. Text, Quotes, and mime-parsed
 ## attachments are quotable; Signatures are not.
 
-## monkey-patch time: make temp files have the right extension
-## Backport from Ruby 1.9.2 for versions lower than 1.8.7
-if RUBY_VERSION < '1.8.7'
-  class Tempfile
-    def make_tmpname(prefix_suffix, n)
-      case prefix_suffix
-      when String
-        prefix = prefix_suffix
-        suffix = ""
-      when Array
-        prefix = prefix_suffix[0]
-        suffix = prefix_suffix[1]
-      else
-        raise ArgumentError, "unexpected prefix_suffix: #{prefix_suffix.inspect}"
-      end
-      t = Time.now.strftime("%Y%m%d")
-      path = "#{prefix}#{t}-#{$$}-#{rand(0x100000000).to_s(36)}"
-      path << "-#{n}" if n
-      path << suffix
-    end
-  end
-end
-
 
 module Redwood
 module Chunk

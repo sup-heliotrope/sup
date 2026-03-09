@@ -11,7 +11,6 @@ require 'benchmark'
 require 'unicode'
 require 'unicode/display_width'
 require 'fileutils'
-require 'string-scrub' if /^2\.0\./ =~ RUBY_VERSION
 
 module ExtendedLockfile
   def gen_lock_id
