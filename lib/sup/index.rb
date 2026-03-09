@@ -13,10 +13,10 @@ require "sup/hook"
 require "sup/logger/singleton"
 
 
-if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,2,15]) < 0
+if ([Xapian.major_version, Xapian.minor_version, Xapian.revision] <=> [1,4,0]) < 0
   fail <<-EOF
 \n
-Xapian version 1.2.15 or higher required.
+Xapian version 1.4.0 or higher required.
 If you have xapian-full-alaveteli installed,
 Please remove it by running `gem uninstall xapian-full-alaveteli`
 since it's been replaced by the xapian-ruby gem.
@@ -142,7 +142,7 @@ EOS
 
   def save_index
     info "Flushing Xapian updates to disk. This may take a while..."
-    @xapian.flush
+    @xapian.commit
   end
 
   def contains_id? id
@@ -516,9 +516,8 @@ EOS
     qp.stemmer = Xapian::Stem.new($config[:stem_language])
     qp.stemming_strategy = Xapian::QueryParser::STEM_SOME
     qp.default_op = Xapian::Query::OP_AND
-    valuerangeprocessor = Xapian::NumberValueRangeProcessor.new(DATE_VALUENO,
-                                                                'date:', true)
-    qp.add_valuerangeprocessor(valuerangeprocessor)
+    rangeprocessor = Xapian::NumberRangeProcessor.new(DATE_VALUENO, 'date:')
+    qp.add_rangeprocessor(rangeprocessor)
     NORMAL_PREFIX.each { |k,info| info[:prefix].each {
       |v| qp.add_prefix k, v }
     }

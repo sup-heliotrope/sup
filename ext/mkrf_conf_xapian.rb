@@ -17,12 +17,7 @@ begin
   if not ENV.include? "SUP_SKIP_XAPIAN_GEM_INSTALL"
     # update version in Gemfile as well
     name    = "xapian-ruby"
-    version =
-      if /^2\.0\./ =~ RUBY_VERSION
-        ["~> 1.2", "< 1.3.6"]
-      else
-        "~> 1.2"
-      end
+    version = "~> 1.4"
 
     begin
       # try to load gem

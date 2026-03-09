@@ -1,6 +1,6 @@
 source "https://rubygems.org/"
 
-gem "xapian-ruby", "~> 1.2"
+gem "xapian-ruby", "~> 1.4"
 gem "ncursesw", "~> 1.4.0"
 gem "rmail", ">= 1.1.2", "< 2"
 gem "highline"

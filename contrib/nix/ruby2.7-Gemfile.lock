@@ -85,7 +85,7 @@ DEPENDENCIES
   rubocop-packaging
   unicode (~> 0.4.4)
   unicode-display_width
-  xapian-ruby (~> 1.2)
+  xapian-ruby (~> 1.4)
 
 BUNDLED WITH
    2.4.22
