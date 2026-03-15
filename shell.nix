@@ -1,1 +1,0 @@
-contrib/nix/ruby3.3-shell.nix

@@ -125,7 +125,6 @@ lib/sup/util/path.rb
 lib/sup/util/query.rb
 lib/sup/util/uri.rb
 lib/sup/version.rb
-shell.nix
 sup.gemspec
 test/dummy_source.rb
 test/fixtures/bad-content-transfer-encoding-1.eml
