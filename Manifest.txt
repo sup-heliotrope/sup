@@ -126,6 +126,7 @@ lib/sup/util/query.rb
 lib/sup/util/uri.rb
 lib/sup/version.rb
 sup.gemspec
+test/dummy_buffer.rb
 test/dummy_source.rb
 test/fixtures/bad-content-transfer-encoding-1.eml
 test/fixtures/binary-content-transfer-encoding-2.eml
@@ -174,6 +175,7 @@ test/unit/service/test_label_service.rb
 test/unit/test_contact.rb
 test/unit/test_edit_message_mode.rb
 test/unit/test_horizontal_selector.rb
+test/unit/test_line_cursor_mode.rb
 test/unit/test_locale_fiddler.rb
 test/unit/test_person.rb
 test/unit/test_rmail_message.rb
