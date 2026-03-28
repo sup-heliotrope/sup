@@ -142,7 +142,7 @@ module Redwood
         File::open(fn) { |f| f.read }
       end
       ## fix up malformed tag URIs created by earlier versions of sup
-      raw_contents.gsub!(/!supmua.org,2006-10-01\/(\S*)$/) { |m| "!<tag:supmua.org,2006-10-01/#{$1}>" }
+      raw_contents.gsub!(/!supmua.org,2006-10-01\/(\S+)/) { |m| "!<tag:supmua.org,2006-10-01/#{$1}>" }
       if YAML.respond_to?(:unsafe_load)  # Ruby 3.1+
         YAML::unsafe_load raw_contents
       else

@@ -26,6 +26,8 @@ class TestSupAdd < Minitest::Test
 EOS
   end
 
+  ## https://github.com/sup-heliotrope/sup/issues/577
+  ## https://github.com/sup-heliotrope/sup/issues/516
   def test_fixes_old_tag_uri_syntax
     File.write "#{@path}/sources.yaml", <<EOS
 ---
@@ -36,6 +38,7 @@ EOS
   sync_back: true
   id: 1
   labels: []
+- !supmua.org,2006-10-01/Redwood/SentLoader {}
 EOS
     _out, _err = capture_subprocess_io do
       assert system({"SUP_BASE" => @path}, "bin/sup-add", "maildir:///other/path")
@@ -58,6 +61,7 @@ EOS
   sync_back: true
   id: 2
   labels: []
+- !<tag:supmua.org,2006-10-01/Redwood/SentLoader> {}
 EOS
   end
 
