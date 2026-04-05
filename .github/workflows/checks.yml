@@ -15,7 +15,7 @@ jobs:
       matrix:
         os:
         - ubuntu-latest
-        - macos-14
+        - macos-15
         ruby-version:
         - '2.4'
         - '2.5'
@@ -29,26 +29,26 @@ jobs:
         exclude:
         # We use xapian-bindings 1.4.22 for Ruby < 3.1, but it does not link on MacOS 14:
         # https://github.com/Garaio-REM/xapian-ruby/issues/10
-        - os: macos-14
+        - os: macos-15
           ruby-version: '2.4'
-        - os: macos-14
+        - os: macos-15
           ruby-version: '2.5'
-        - os: macos-14
+        - os: macos-15
           ruby-version: '2.6'
-        - os: macos-14
+        - os: macos-15
           ruby-version: '2.7'
-        - os: macos-14
+        - os: macos-15
           ruby-version: '3.0'
     runs-on: ${{ matrix.os }}
     env:
       nixfile: "contrib/nix/ruby${{ matrix.ruby-version }}-shell.nix"
     steps:
     - name: Check out source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v5
       with:
         submodules: recursive
     - name: Cache nix store
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       id: nix-cache
       with:
         path: /tmp/nixcache
@@ -60,7 +60,7 @@ jobs:
       run: brew install bash
       if: runner.os == 'macOS'
     - name: Install nix
-      uses: nixbuild/nix-quick-install-action@v30
+      uses: nixbuild/nix-quick-install-action@v34
     - name: Import nix cache
       run: |
         if [ -f /tmp/nixcache ] ; then
