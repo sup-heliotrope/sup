@@ -177,6 +177,7 @@ protected
   def half_page_down
     super
     set_cursor_pos [topline, @curpos].max
+    call_load_more_callbacks buffer.content_height if lines < topline + buffer.content_height
   end
 
   def jump_to_start

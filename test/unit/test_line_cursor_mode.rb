@@ -147,6 +147,7 @@ class TestLineCursorMode < Minitest::Test
     mode.handle_input Ncurses::CharCode.character("\C-d")
     assert_equal 20, mode.curpos
     assert_equal 20, mode.topline
+    expect_load_more 40
 
     mode.handle_input Ncurses::CharCode.character("\C-d")
     assert_equal 40, mode.curpos
