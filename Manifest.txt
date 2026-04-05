@@ -175,6 +175,7 @@ test/unit/service/test_label_service.rb
 test/unit/test_contact.rb
 test/unit/test_edit_message_mode.rb
 test/unit/test_horizontal_selector.rb
+test/unit/test_index.rb
 test/unit/test_line_cursor_mode.rb
 test/unit/test_locale_fiddler.rb
 test/unit/test_person.rb
