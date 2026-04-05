@@ -12,8 +12,9 @@ class TestLineCursorMode < Minitest::Test
     }
     Redwood::BufferManager.init
     @modes_to_cleanup = []
-    @lines = (0...40).map { |i| "line #{i}" }
+    @lines = []
     @load_more = Thread::Queue.new
+    @buffer_height = 41  # 1 for status line, 40 usable lines
   end
 
   def teardown
@@ -29,7 +30,8 @@ class TestLineCursorMode < Minitest::Test
     mode.define_singleton_method(:lines) { lines.length }
     mode.define_singleton_method(:[]) { |i| lines[i] }
     mode.send(:to_load_more) { |n| @load_more << n }
-    mode.buffer = Redwood::DummyBuffer.new 100, lines.length + 1
+    mode.buffer = Redwood::DummyBuffer.new 100, @buffer_height
+    mode.spawned
     mode.draw
     mode
   end
@@ -44,11 +46,13 @@ class TestLineCursorMode < Minitest::Test
     end
     refute_nil requested, "Expected load_more callbacks to fire"
     assert_equal n, requested
-    (0...n).map { |i| @lines << "more line #{i}" }
+    (0...n).map { |i| @lines << "line #{i}" }
   end
 
   def test_cursor_down
     mode = make_mode
+    expect_load_more 40
+    mode.draw  # curpos gets messed up without this call, why?
 
     20.times do
       mode.handle_input Ncurses::CharCode.character('j')
@@ -75,6 +79,7 @@ class TestLineCursorMode < Minitest::Test
 
   def test_scroll_down
     mode = make_mode
+    expect_load_more 40
 
     ## When the cursor is already at the top, it moves with the scroll.
     assert_equal 0, mode.curpos
@@ -101,6 +106,7 @@ class TestLineCursorMode < Minitest::Test
 
   def test_page_down
     mode = make_mode
+    expect_load_more 40
 
     ## In theory, we should scroll a full page down. But because we always load
     ## exactly enough lines to fill one page, the first time we are off by one.
@@ -143,6 +149,7 @@ class TestLineCursorMode < Minitest::Test
 
   def test_page_down_when_fully_populated
     mode = make_mode
+    expect_load_more 40
     (0...120).map { |i| @lines << "more line #{i}" }  # enough for 4 full pages
 
     mode.handle_input Ncurses::CharCode.keycode(Ncurses::KEY_NPAGE)

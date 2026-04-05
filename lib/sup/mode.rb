@@ -37,6 +37,7 @@ class Mode
   def draw; end
   def focus; end
   def blur; end
+  def spawned; end
   def cancel_search!; end
   def in_search?; false end
   def status; ""; end

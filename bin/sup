@@ -206,7 +206,10 @@ begin
     end
   end unless $opts[:no_initial_poll]
 
-  imode.load_threads :num => ibuf.content_height, :when_done => lambda { |num| reporting_thread("poll after loading inbox") { sleep 1; PollManager.poll } unless $opts[:no_threads] || $opts[:no_initial_poll] }
+  reporting_thread("poll after loading inbox") do
+    sleep 1
+    PollManager.poll
+  end unless $opts[:no_threads] || $opts[:no_initial_poll]
 
   if $opts[:compose]
     to = Person.from_address_list $opts[:compose]
@@ -328,8 +331,7 @@ begin
         BufferManager.spawn "Edit message", r
         r.default_edit_message
       else
-        b, new = BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
-        b.mode.load_threads :num => b.content_height if new
+        BufferManager.spawn_unless_exists("All drafts") { LabelSearchResultsMode.new [:draft] }
       end
     when :show_inbox
       BufferManager.raise_to_front ibuf

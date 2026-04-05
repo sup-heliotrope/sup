@@ -330,6 +330,7 @@ EOS
     w = Ncurses.stdscr
     b = Buffer.new w, mode, width, height, :title => realtitle, :force_to_top => opts[:force_to_top], :system => opts[:system]
     mode.buffer = b
+    mode.spawned
     @name_map[realtitle] = b
 
     @buffers.unshift b

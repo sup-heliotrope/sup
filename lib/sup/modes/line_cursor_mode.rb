@@ -31,6 +31,8 @@ class LineCursorMode < ScrollMode
     super opts
   end
 
+  def spawned; call_load_more_callbacks buffer.content_height; end
+
   def cleanup
     @load_more_thread.kill
     super

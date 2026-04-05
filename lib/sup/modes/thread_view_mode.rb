@@ -205,7 +205,7 @@ EOS
     @layout[m].state = (@layout[m].state == :detailed ? :open : :detailed)
     update
   end
-  
+
   def reload
     update
   end
@@ -298,7 +298,6 @@ EOS
     p = @person_lines[curpos] or return
     mode = PersonSearchResultsMode.new [p]
     BufferManager.spawn "Search for #{p.name}", mode
-    mode.load_threads :num => mode.buffer.content_height
   end
 
   def compose
