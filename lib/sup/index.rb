@@ -142,7 +142,7 @@ EOS
 
   def save_index
     info "Flushing Xapian updates to disk. This may take a while..."
-    @xapian.flush
+    @xapian.commit
   end
 
   def contains_id? id
