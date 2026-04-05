@@ -31,7 +31,7 @@ class LineCursorMode < ScrollMode
     super opts
   end
 
-  def spawned; call_load_more_callbacks buffer.content_height; end
+  def spawned; call_load_more_callbacks buffer.content_height + 1; end
 
   def cleanup
     @load_more_thread.kill
@@ -162,26 +162,11 @@ protected
     end
   end
 
-  ## more complicated than one might think. three behaviors.
   def page_down
-    ## if we're on the last page, and it's not a full page, just move
-    ## the cursor down to the bottom and assume we can't load anything
-    ## else via the callbacks.
-    if topline > lines - buffer.content_height
-      set_cursor_pos(lines - 1)
-
-    ## if we're on the last page, and it's a full page, try and load
-    ## more lines via the callbacks and then shift the page down
-    elsif topline == lines - buffer.content_height
-      call_load_more_callbacks buffer.content_height
-      super
-
-    ## otherwise, just move down
-    else
-      relpos = @curpos - topline
-      super
-      set_cursor_pos [topline + relpos, lines - 1].min
-    end
+    relpos = @curpos - topline
+    super
+    set_cursor_pos [topline + relpos, lines - 1].min
+    call_load_more_callbacks buffer.content_height if lines < topline + buffer.content_height
   end
 
   def jump_to_start
