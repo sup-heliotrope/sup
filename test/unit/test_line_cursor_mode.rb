@@ -140,6 +140,60 @@ class TestLineCursorMode < Minitest::Test
     assert_equal 80, mode.topline
   end
 
+  def test_half_page_down
+    mode = make_mode
+    expect_load_more 41
+
+    mode.handle_input Ncurses::CharCode.character("\C-d")
+    assert_equal 20, mode.curpos
+    assert_equal 20, mode.topline
+
+    mode.handle_input Ncurses::CharCode.character("\C-d")
+    assert_equal 40, mode.curpos
+    assert_equal 40, mode.topline
+  end
+
+  def test_half_page_down_when_fully_populated
+    mode = make_mode
+    expect_load_more 41
+    (0...119).map { |i| @lines << "more line #{i}" }  # enough for 4 full pages
+
+    mode.handle_input Ncurses::CharCode.character("\C-d")
+    assert_equal 20, mode.curpos
+    assert_equal 20, mode.topline
+
+    25.times do
+      mode.handle_input Ncurses::CharCode.character('j')
+    end
+    assert_equal 45, mode.curpos
+    assert_equal 20, mode.topline
+    mode.handle_input Ncurses::CharCode.character("\C-d")
+    assert_equal 45, mode.curpos
+    assert_equal 40, mode.topline
+  end
+
+  def test_half_page_up
+    mode = make_mode
+    expect_load_more 41
+    (0...119).map { |i| @lines << "more line #{i}" }  # enough for 4 full pages
+
+    mode.handle_input Ncurses::CharCode.keycode(Ncurses::KEY_NPAGE)
+    assert_equal 40, mode.curpos
+    assert_equal 40, mode.topline
+
+    mode.handle_input Ncurses::CharCode.character("\C-u")
+    assert_equal 40, mode.curpos
+    assert_equal 20, mode.topline
+
+    mode.handle_input Ncurses::CharCode.character('j')
+    assert_equal 41, mode.curpos
+    assert_equal 20, mode.topline
+
+    mode.handle_input Ncurses::CharCode.character("\C-u")
+    assert_equal 40, mode.curpos
+    assert_equal 0, mode.topline
+  end
+
   def test_jump_to_end
     mode = make_mode
     expect_load_more 41

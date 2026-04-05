@@ -162,11 +162,21 @@ protected
     end
   end
 
+  def half_page_up
+    super
+    set_cursor_pos [botline, @curpos].min
+  end
+
   def page_down
     relpos = @curpos - topline
     super
     set_cursor_pos [topline + relpos, lines - 1].min
     call_load_more_callbacks buffer.content_height if lines < topline + buffer.content_height
+  end
+
+  def half_page_down
+    super
+    set_cursor_pos [topline, @curpos].max
   end
 
   def jump_to_start
