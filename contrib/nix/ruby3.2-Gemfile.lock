@@ -6,7 +6,7 @@ GEM
     chronic (0.10.2)
     coderay (1.1.3)
     fiddle (1.1.6)
-    gpgme (2.0.26)
+    gpgme (2.0.24)
       mini_portile2 (~> 2.7)
     highline (3.1.2)
       reline
@@ -98,4 +98,4 @@ DEPENDENCIES
   xapian-ruby (~> 1.2)
 
 BUNDLED WITH
-   2.7.2
+   2.5.22

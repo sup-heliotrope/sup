@@ -8,7 +8,7 @@ let
     name = "ruby3.2-gems-for-sup";
     ruby = pkgs.ruby_3_2;
     gemfile = ./Gemfile;
-    lockfile = ./Gemfile.lock;
-    gemset = ./gemset.nix;
+    lockfile = ./ruby3.2-Gemfile.lock;
+    gemset = ./ruby3.2-gemset.nix;
   };
 in pkgs.mkShell { packages = [ gems gems.wrappedRuby pkgs.pandoc ]; }
