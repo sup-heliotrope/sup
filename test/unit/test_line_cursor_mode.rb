@@ -139,4 +139,15 @@ class TestLineCursorMode < Minitest::Test
     assert_equal 83, mode.curpos
     assert_equal 80, mode.topline
   end
+
+  def test_jump_to_end
+    mode = make_mode
+    expect_load_more 41
+
+    mode.handle_input Ncurses::CharCode.keycode(Ncurses::KEY_END)
+    assert_equal 40, mode.curpos
+    assert_equal 1, mode.topline
+    assert_equal 41, mode.botline
+    expect_load_more 40
+  end
 end

@@ -177,6 +177,7 @@ protected
   def jump_to_end
     super if topline < (lines - buffer.content_height)
     set_cursor_pos(lines - 1)
+    call_load_more_callbacks buffer.content_height
   end
 
 private
