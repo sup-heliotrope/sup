@@ -7,6 +7,7 @@ class TestDraft < Minitest::Test
   def setup
     @path = Dir.mktmpdir
     start
+    Logger.remove_sink $stderr
     @draft_dir = File.join @path, "drafts"
     @test_message_1 = <<EOS
 From: Some Person <someone@example.invalid>
@@ -28,6 +29,7 @@ EOS
   end
 
   def teardown
+    Index.save_index
     ObjectSpace.each_object(Class).select {|a| a < Redwood::Singleton}.each do |klass|
       klass.deinstantiate! unless klass == Redwood::Logger
     end

@@ -41,11 +41,13 @@ EOS
 
   def start_sup_and_add_source(source)
     start
+    Logger.remove_sink $stderr
     Index.init @path
     Index.load
     SourceManager.instance.instance_eval '@sources = {}'
     SourceManager.instance.add_source source
     PollManager.poll_from source
+    Index.save_index
   end
 
   # and now, let the tests begin!
