@@ -516,9 +516,13 @@ EOS
     qp.stemmer = Xapian::Stem.new($config[:stem_language])
     qp.stemming_strategy = Xapian::QueryParser::STEM_SOME
     qp.default_op = Xapian::Query::OP_AND
-    valuerangeprocessor = Xapian::NumberValueRangeProcessor.new(DATE_VALUENO,
-                                                                'date:', true)
-    qp.add_valuerangeprocessor(valuerangeprocessor)
+    begin
+      rangeprocessor = Xapian::NumberRangeProcessor.new DATE_VALUENO, 'date:'
+      qp.add_rangeprocessor rangeprocessor
+    rescue NameError  # xapian < 1.3
+      valuerangeprocessor = Xapian::NumberValueRangeProcessor.new DATE_VALUENO, 'date:', true
+      qp.add_valuerangeprocessor valuerangeprocessor
+    end
     NORMAL_PREFIX.each { |k,info| info[:prefix].each {
       |v| qp.add_prefix k, v }
     }
