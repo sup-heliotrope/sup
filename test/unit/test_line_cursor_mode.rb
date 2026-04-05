@@ -6,6 +6,7 @@ require "sup"
 class TestLineCursorMode < Minitest::Test
   def setup
     $config = {
+      :load_more_threads_hysteresis => 0,
       :load_more_threads_when_scrolling => true,
       :continuous_scroll => false,
     }

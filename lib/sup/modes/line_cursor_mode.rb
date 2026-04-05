@@ -20,8 +20,11 @@ class LineCursorMode < ScrollMode
       while true
         e = @load_more_q.pop
         @load_more_callbacks.each { |c| c.call e }
-        sleep 0.5
-        @load_more_q.pop until @load_more_q.empty?
+        hysteresis = $config[:load_more_threads_hysteresis] || 0.5
+        if hysteresis > 0 then
+          sleep hysteresis
+          @load_more_q.pop until @load_more_q.empty?
+        end
       end
     end
 
