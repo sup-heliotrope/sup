@@ -26,6 +26,7 @@ jobs:
         - '3.2'
         - '3.3'
         - '3.4'
+        - '4.0'
         exclude:
         # We use xapian-bindings 1.4.22 for Ruby < 3.1, but it does not link on MacOS 14:
         # https://github.com/Garaio-REM/xapian-ruby/issues/10
