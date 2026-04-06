@@ -79,7 +79,7 @@ task :check_manifest do
 end
 
 task :rubocop_packaging do
-  if /^2\.[012]\./ =~ RUBY_VERSION
+  if /^(2\.|3\.[012]\.)/ =~ RUBY_VERSION
     puts "skipping rubocop-packaging checks on unsupported Ruby #{RUBY_VERSION}"
     next
   end
