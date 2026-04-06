@@ -7,11 +7,13 @@ class TestIndex < Minitest::Test
   def setup
     @path = Dir.mktmpdir
     Redwood::start
+    Redwood::Logger.remove_sink $stderr
     Redwood::Index.init @path
     Redwood::Index.load
   end
 
   def teardown
+    Redwood::Index.save_index
     ObjectSpace.each_object(Class).select {|a| a < Redwood::Singleton}.each do |klass|
       klass.deinstantiate! unless klass == Redwood::Logger
     end
