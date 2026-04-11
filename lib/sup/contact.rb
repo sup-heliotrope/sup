@@ -20,6 +20,7 @@ class ContactManager
       IO.foreach(fn) do |l|
         l =~ /^([^:]*): (.*)$/ or raise "can't parse #{fn} line #{l.inspect}"
         aalias, addr = $1, $2
+        aalias = nil if aalias.empty?
         update_alias Person.from_address(addr), aalias
       end
     end
@@ -37,10 +38,8 @@ class ContactManager
     end
     ## Update with new data
     @p2a[person] = aalias
-    unless aalias.nil? || aalias.empty?
-      @a2p[aalias] = person
-      @e2p[person.email] = person
-    end
+    @a2p[aalias] = person unless aalias.nil?
+    @e2p[person.email] = person
   end
 
   ## this may not actually be called anywhere, since we still keep contacts
