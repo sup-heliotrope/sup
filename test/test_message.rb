@@ -253,6 +253,7 @@ class TestMessage < Minitest::Test
                  "bad: =?UTF16?q?badcharsetname?==?US-ASCII?b?/w?=" +
                  "=?UTF-7?Q?=41=6D=65=72=69=63=61=E2=80=99=73?=",
                  sup_message.subj)
+    assert_equal "=?utf-8?q?YouTube-tj=E4nst?=", sup_message.from.name
   end
 
   def test_nonascii_header

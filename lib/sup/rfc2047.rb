@@ -62,10 +62,13 @@ module Rfc2047
       end
 
       begin
-        text.force_encoding(charset).encode(target)
+        text.force_encoding charset
+        text.encode! target
       rescue ArgumentError, EncodingError
-        word
+        next word
       end
+      next word unless text.valid_encoding?
+      text
     end
   end
 end
