@@ -7,7 +7,7 @@ pkgs.mkShell {
     libffi.dev
     libuuid
     libuuid.dev
-    ruby_3_2
+    ruby_4_0
     zlib
     zlib.dev
   ];
