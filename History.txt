@@ -1,3 +1,20 @@
+== 1.4 / 2026-04-21
+
+* #343: Draft messages containing non-ASCII characters are now displayed
+  correctly in thread view.
+* #533, #524: Sup now refuses to start if config.yaml is missing a default
+  account, or no sendmail command is configured.
+* Improved the lazy-loading behaviour when scrolling down in thread list views.
+* Sup now gracefully handles RFC2047-encoded words which contain incomplete
+  UTF-8 sequences after decoding, instead of crashing with ArgumentError.
+* #516: Sup can now load sources.yaml produced by very old versions of Sup,
+  which left a syntactically invalid YAML tag for the SentLoader class.
+* Fixed error handling behaviour for various scenarios where a draft message is
+  modified outside Sup.
+* Sup no longer uses deprecated Xapian APIs, for compatibility with Xapian 2.0.
+* Sup is now tested on Ruby 4.0.
+* Sup's web site and git repos have moved to: https://supmua.dev/
+
 == 1.3 / 2025-04-21
 
 * #596: If a message lacks a Date header, or the Date header is not in valid
