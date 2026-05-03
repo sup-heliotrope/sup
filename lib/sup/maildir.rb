@@ -189,20 +189,29 @@ class Maildir < Source
   end
 
   def maildir_labels id
-    (seen?(id) ? [] : [:unread]) +
-      (trashed?(id) ?  [:deleted] : []) +
-      (flagged?(id) ? [:starred] : []) +
-      (passed?(id) ? [:forwarded] : []) +
-      (replied?(id) ? [:replied] : []) +
-      (draft?(id) ? [:draft] : [])
+    flags = maildir_flags id
+    labels = []
+    labels << :unread unless flags.member? :seen
+    labels << :deleted if flags.member? :trashed
+    labels << :starred if flags.member? :flagged
+    labels << :forwarded if flags.member? :passed
+    labels << :replied if flags.member? :replied
+    labels << :draft if flags.member? :draft
+    labels
   end
 
-  def draft? id; maildir_data(id)[2].include? "D"; end
-  def flagged? id; maildir_data(id)[2].include? "F"; end
-  def passed? id; maildir_data(id)[2].include? "P"; end
-  def replied? id; maildir_data(id)[2].include? "R"; end
-  def seen? id; maildir_data(id)[2].include? "S"; end
-  def trashed? id; maildir_data(id)[2].include? "T"; end
+  def maildir_flags id
+    maildir_data(id)[2].each_char.map do |c|
+      case c
+      when 'D' then :draft
+      when 'F' then :flagged
+      when 'P' then :passed
+      when 'R' then :replied
+      when 'S' then :seen
+      when 'T' then :trashed
+      end
+    end
+  end
 
   def valid? id
     File.exist? File.join(@dir, id)

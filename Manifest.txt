@@ -183,6 +183,7 @@ test/unit/test_horizontal_selector.rb
 test/unit/test_index.rb
 test/unit/test_line_cursor_mode.rb
 test/unit/test_locale_fiddler.rb
+test/unit/test_maildir.rb
 test/unit/test_person.rb
 test/unit/test_rmail_message.rb
 test/unit/util/test_query.rb
