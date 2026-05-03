@@ -333,19 +333,6 @@ EOS
     end
   end
 
-  ## returns all the content from a message that will be indexed
-  def indexable_content
-    load_from_source!
-    [
-      from && from.indexable_content,
-      to.map { |p| p.indexable_content },
-      cc.map { |p| p.indexable_content },
-      bcc.map { |p| p.indexable_content },
-      indexable_chunks.map { |c| c.lines.map { |l| l.fix_encoding! } },
-      indexable_subject,
-    ].flatten.compact.join " "
-  end
-
   def indexable_body
     indexable_chunks.map { |c| c.lines }.flatten.compact.map { |l| l.fix_encoding! }.join " "
   end
