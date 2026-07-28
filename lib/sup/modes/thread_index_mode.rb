@@ -135,7 +135,16 @@ EOS
   end
 
   def multi_select threads
-    threads.each { |t| select t }
+    tagged_no = @tags.number_of_tagged
+    if tagged_no > 1
+    	total_msg_no = 0
+    	threads.each { |t| total_msg_no += t.size }
+    	if BufferManager.ask_yes_or_no "Are you sure, you want to open #{tagged_no} threads with #{total_msg_no} messages (y/n)?"
+    		threads.each { |t| select t }
+    	end
+    else
+    	threads.each { |t| select t }
+    end
   end
 
   ## these two methods are called by thread-view-modes when the user
