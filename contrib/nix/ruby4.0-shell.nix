@@ -2,7 +2,7 @@ let
   pkgs = import (builtins.fetchGit {
     url = "https://github.com/NixOS/nixpkgs";
     ref = "refs/heads/master";
-    rev = "6de3b4b649253e8e0c7229edc3726d8a717b93fe";
+    rev = "a61d303b15cd7bd393d97a472db4bf4d27640959";
   }) { };
   gems = pkgs.bundlerEnv {
     name = "ruby4.0-gems-for-sup";
