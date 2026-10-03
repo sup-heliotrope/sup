@@ -2,7 +2,7 @@
 
 Sup is a console-based email client for people with a lot of email.
 
-<img src="https://supmua.dev/images/old_screenshot_1.png" />
+<img src="https://supmua.dev/screenshots/1.4/search-results.png" />
 
 ## Installation
 
