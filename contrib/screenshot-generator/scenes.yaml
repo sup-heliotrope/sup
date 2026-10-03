@@ -1,0 +1,51 @@
+---
+- name: inbox
+  steps:
+  - keys: ["N", "N", "N"]
+
+- name: search-results
+  steps:
+  - keys: ["F"]
+    wait: 'Search all messages'
+  - keys: ["maildir", "Enter"]
+    wait: '\[search-results-mode\]'
+  - keys: ["N", "N", "N"]
+  - keys: ["a", "j", "a", "j", "a", "j", "a", "j", "a", "j", "a", "j", "a", "j", "a", "j", "a", "j", "a", "j", "a", "N", "a", "j", "a", "j", "a", "j", "a", "N", "a", "N", "a", "j", "a", "j", "a", "j", "a", "j", "a", "j", "a", "j", "a"]
+  - keys: ["1", "j", "j", "j"]
+
+- name: thread-view
+  steps:
+  - keys: ["j", "j", "j", "j", "j", "j", "j", "j", "j", "j", "N", "k"]
+  - keys: ["Enter"]
+    wait: '\[thread-view-mode\].*line \d+ of \d+'
+  - keys: ["Enter", "Enter", "Enter", "Enter", "Enter"]
+  - keys: ["K", "K", "K", "K", "K", "Left", "Left"]
+
+- name: reply
+  steps:
+  - keys: ["j", "j", "j", "j", "j", "j", "j"]
+  - keys: ["G"]
+    wait: '\[reply-mode\]'
+  - keys: ["PageDown", "k", "k", "k"]
+
+- name: help
+  steps:
+  - keys: ["?"]
+    wait: '\[help-mode\]'
+
+- name: log
+  steps:
+  - keys: ["F"]
+    wait: "Search all messages"
+  - keys: ["maildir", "Enter"]
+    wait: '\[search-results-mode\]'
+  - keys: ["!", "!"]
+  - keys: [";", "j", "j", "Enter"]
+    wait: '\[log-mode\]'
+
+- name: console
+  steps:
+  - keys: ["~"]
+    wait: '\[console-mode\]'
+  - keys: ['Index.parse_query "is:unread"', "Enter"]
+  - keys: ['Index.num_results_for :label => "supmua"', "Enter"]

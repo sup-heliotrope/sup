@@ -37,4 +37,5 @@ pkgs.mkShell {
     gems.wrappedRuby
     pkgs.pandoc
   ];
+  passthru = { inherit pkgs gems; };
 }
