@@ -53,6 +53,12 @@ contrib/nix/ruby3.3-shell.nix
 contrib/nix/ruby3.4-shell.nix
 contrib/nix/ruby4.0-shell.nix
 contrib/nix/test-all-rubies.sh
+contrib/screenshot-generator/.gitignore
+contrib/screenshot-generator/default.nix
+contrib/screenshot-generator/scenes.yaml
+contrib/screenshot-generator/shoot.rb
+contrib/screenshot-generator/sup-is-plain-text-applied.msg
+contrib/screenshot-generator/sup-is-plain-text.msg
 devel/console.sh
 devel/count-loc.sh
 devel/load-index.rb
