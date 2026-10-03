@@ -23,6 +23,7 @@ bin/sup-tweak-labels
 contrib/colorpicker.rb
 contrib/completion/_sup.bash
 contrib/completion/_sup.zsh
+contrib/nix/.gitignore
 contrib/nix/Gemfile
 contrib/nix/Gemfile.lock
 contrib/nix/README
