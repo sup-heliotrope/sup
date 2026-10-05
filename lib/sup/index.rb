@@ -674,7 +674,9 @@ EOS
     neglabels = [:spam, :deleted, :killed].reject { |l| (labels.include? l) || opts.member?("load_#{l}".intern) }
     pos_terms, neg_terms = [], []
 
-    pos_terms << mkterm(:type, 'mail')
+    ## workaround for https://trac.xapian.org/ticket/855
+    #pos_terms << mkterm(:type, 'mail')
+    pos_terms << Q::MatchAll
     pos_terms.concat(labels.map { |l| mkterm(:label,l) })
     pos_terms << opts[:qobj] if opts[:qobj]
     pos_terms << mkterm(:source_id, opts[:source_id]) if opts[:source_id]
