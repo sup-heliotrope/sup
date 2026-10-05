@@ -10,6 +10,9 @@ class TestLineCursorMode < Minitest::Test
       :load_more_threads_when_scrolling => true,
       :continuous_scroll => false,
     }
+    @out = File.open File::NULL, "w"
+    @inp = File.open File::NULL, "r"
+    @screen = Ncurses.newterm "dumb", @out, @inp
     Redwood::BufferManager.init
     @modes_to_cleanup = []
     @lines = []
@@ -20,6 +23,9 @@ class TestLineCursorMode < Minitest::Test
   def teardown
     @modes_to_cleanup.each { |mode| mode.cleanup }
     Redwood::BufferManager.deinstantiate!
+    Ncurses.delscreen @screen
+    @inp.close
+    @out.close
     $config = nil
   end
 
