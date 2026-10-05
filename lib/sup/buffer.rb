@@ -151,7 +151,7 @@ EOS
     @textfields = {}
     @flash = nil
     @shelled = @asking = false
-    @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
+    @have_xterm_title = Ncurses.tigetflag("XT") > 0 || ENV["TERM"] =~ /(screen|tmux)/
     @sigwinch_happened = false
     @sigwinch_mutex = Mutex.new
   end
@@ -262,8 +262,7 @@ EOS
         get_status_and_title @focus_buf # must be called outside of the ncurses lock
       end
 
-    ## http://rtfm.etla.org/xterm/ctlseq.html (see Operating System Controls)
-    print "\033]0;#{title}\07" if title && @in_x
+    emit_xterm_title title if title
 
     Ncurses.mutex.lock unless opts[:sync] == false
 
@@ -290,6 +289,17 @@ EOS
     Ncurses.doupdate
     Ncurses.refresh if opts[:refresh]
     Ncurses.mutex.unlock unless opts[:sync] == false
+  end
+
+  def emit_xterm_title title
+    return unless @have_xterm_title
+    ## Escape terminal control characters.
+    title = title.gsub(/[[:cntrl:]]/) { |c| Ncurses.unctrl c.ord }
+    ## Screen does not properly handle characters above U+FF in the title.
+    ## It truncates them to 8 bits which may cause it to emit control
+    ## characters into the terminal title.
+    title = title.gsub /[^\u0000-\u00ff]/, "?" if ENV["TERM"] =~ /screen/
+    print "\033]0;#{title}\07"
   end
 
   ## if the named buffer already exists, pops it to the front without
