@@ -298,7 +298,7 @@ EOS
     ## Screen does not properly handle characters above U+FF in the title.
     ## It truncates them to 8 bits which may cause it to emit control
     ## characters into the terminal title.
-    title = title.gsub /[^\u0000-\u00ff]/, "?" if ENV["TERM"] =~ /screen/
+    title = title.gsub(/[^\u0000-\u00ff]/, "?") if ENV["TERM"] =~ /screen/
     print "\033]0;#{title}\07"
   end
 
