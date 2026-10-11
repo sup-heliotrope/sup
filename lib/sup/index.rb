@@ -406,11 +406,15 @@ EOS
     query = {}
 
     subs = HookManager.run("custom-search", :subs => s) || s
+
+    subs = "type:mail #{subs}"
+
     begin
       subs = SearchManager.expand subs
     rescue SearchManager::ExpansionError => e
       raise ParseError, e.message
     end
+
     subs = subs.gsub(/\b(to|from):(\S+)\b/) do
       field, value = $1, $2
       email_field, name_field = %w(email name).map { |x| "#{field}_#{x}" }

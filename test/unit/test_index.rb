@@ -32,33 +32,57 @@ class TestIndex < Minitest::Test
     parsed = with_fake_time do
       Redwood::Index.parse_query "after:yesterday"
     end
-    expected_qobj = Xapian::Query.new(
+    expected_date_qobj = Xapian::Query.new(
       Xapian::Query::OP_VALUE_RANGE,
       Redwood::Index::DATE_VALUENO,
       Xapian.sortable_serialise(Time.utc(2000, 1, 1).to_i),
       Xapian.sortable_serialise(2**32),
+    )
+    expected_qobj = Xapian::Query.new(
+      0.0,
+      Xapian::Query.new(
+        Xapian::Query::OP_AND,
+        expected_date_qobj,
+        Xapian::Query.new("Kmail"),
+      ),
     )
     assert_equal expected_qobj.description, parsed[:qobj].description
 
     parsed = with_fake_time do
       Redwood::Index.parse_query "before:yesterday"
     end
-    expected_qobj = Xapian::Query.new(
+    expected_date_qobj = Xapian::Query.new(
       Xapian::Query::OP_VALUE_RANGE,
       Redwood::Index::DATE_VALUENO,
       Xapian.sortable_serialise(0),
       Xapian.sortable_serialise(Time.utc(2000, 1, 1).to_i),
+    )
+    expected_qobj = Xapian::Query.new(
+      0.0,
+      Xapian::Query.new(
+        Xapian::Query::OP_AND,
+        expected_date_qobj,
+        Xapian::Query.new("Kmail"),
+      ),
     )
     assert_equal expected_qobj.description, parsed[:qobj].description
 
     parsed = with_fake_time do
       Redwood::Index.parse_query "during:yesterday"
     end
-    expected_qobj = Xapian::Query.new(
+    expected_date_qobj = Xapian::Query.new(
       Xapian::Query::OP_VALUE_RANGE,
       Redwood::Index::DATE_VALUENO,
       Xapian.sortable_serialise(Time.utc(1999, 12, 31).to_i),
       Xapian.sortable_serialise(Time.utc(2000,  1,  1).to_i),
+    )
+    expected_qobj = Xapian::Query.new(
+      0.0,
+      Xapian::Query.new(
+        Xapian::Query::OP_AND,
+        expected_date_qobj,
+        Xapian::Query.new("Kmail"),
+      ),
     )
     assert_equal expected_qobj.description, parsed[:qobj].description
   end
