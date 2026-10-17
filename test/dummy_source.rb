@@ -32,10 +32,6 @@ class DummySource < Source
     File.open(fn, 'rb') { |f| yield f }
   end
 
-  def load_header id
-    with_file_for(id) { |f| parse_raw_email_header f }
-  end
-
   def load_message id
     with_file_for(id) { |f| RMail::Parser.read f }
   end

@@ -33,7 +33,6 @@ class Source
   ## To write a new source, subclass this class, and implement:
   ##
   ## - initialize
-  ## - load_header offset
   ## - load_message offset
   ## - raw_header offset
   ## - raw_message offset

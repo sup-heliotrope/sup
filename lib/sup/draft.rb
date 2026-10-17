@@ -70,10 +70,6 @@ class DraftLoader < Source
 
   def fn_for_offset o; File.join(@dir, o.to_s); end
 
-  def load_header offset
-    File.open(fn_for_offset(offset)) { |f| parse_raw_email_header f }
-  end
-
   def load_message offset
     raise SourceError, "Draft not found" unless File.exist? fn_for_offset(offset)
     File.open(fn_for_offset(offset)) do |f|

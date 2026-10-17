@@ -69,16 +69,6 @@ class MBox < Source
     end
   end
 
-  def load_header offset
-    header = nil
-    @mutex.synchronize do
-      ensure_open
-      @f.seek offset
-      header = parse_raw_email_header @f
-    end
-    header
-  end
-
   def load_message offset
     @mutex.synchronize do
       ensure_open

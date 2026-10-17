@@ -48,8 +48,6 @@ class Message
 
   attr_accessor :locations
 
-  ## if you specify a :header, will use values from that. otherwise,
-  ## will try and load the header from the source.
   def initialize opts
     @locations = opts[:locations] or raise ArgumentError, "locations can't be nil"
     @snippet = opts[:snippet]
@@ -64,8 +62,6 @@ class Message
     ## we need to initialize this. see comments in parse_header as to
     ## why.
     @refs = []
-
-    #parse_header(opts[:header] || @source.load_header(@source_info))
   end
 
   def decode_header_field v
