@@ -121,52 +121,6 @@ class Source
     debug "lock released for: #{self}"
   end
 
-  ## utility method to read a raw email header from an IO stream and turn it
-  ## into a hash of key-value pairs. minor special semantics for certain headers.
-  ##
-  ## THIS IS A SPEED-CRITICAL SECTION. Everything you do here will have a
-  ## significant effect on Sup's processing speed of email from ALL sources.
-  ## Little things like string interpolation, regexp interpolation, += vs <<,
-  ## all have DRAMATIC effects. BE CAREFUL WHAT YOU DO!
-  def self.parse_raw_email_header f
-    header = {}
-    last = nil
-
-    while(line = f.gets)
-      case line
-      ## these three can occur multiple times, and we want the first one
-      when /^(Delivered-To|X-Original-To|Envelope-To):\s*(.*?)\s*$/i; header[last = $1.downcase] ||= $2
-      ## regular header: overwrite (not that we should see more than one)
-      ## TODO: figure out whether just using the first occurrence changes
-      ## anything (which would simplify the logic slightly)
-      when /^([^:\s]+):\s*(.*?)\s*$/i; header[last = $1.downcase] = $2
-      when /^\r*$/; break # blank line signifies end of header
-      else
-        if last
-          header[last] << " " unless header[last].empty?
-          header[last] << line.strip
-        end
-      end
-    end
-
-    %w(subject from to cc bcc).each do |k|
-      v = header[k] or next
-      next unless Rfc2047.is_encoded? v
-      header[k] = begin
-        Rfc2047.decode_to $encoding, v
-      rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence
-        #debug "warning: error decoding RFC 2047 header (#{e.class.name}): #{e.message}"
-        v
-      end
-    end
-    header
-  end
-
-protected
-
-  ## convenience function
-  def parse_raw_email_header f; self.class.parse_raw_email_header f end
-
   def Source.expand_filesystem_uri uri
     uri.gsub "~", File.expand_path("~")
   end

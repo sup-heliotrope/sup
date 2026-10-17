@@ -24,7 +24,7 @@ class TestMBoxParsing < Minitest::Test
   end
 
   def test_normal_headers
-    h = Source.parse_raw_email_header StringIO.new(<<EOS)
+    h = EditMessageMode.parse_raw_email_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 To: Sally <sally@sally.com>
 EOS
@@ -35,7 +35,7 @@ EOS
   end
 
   def test_multiline
-    h = Source.parse_raw_email_header StringIO.new(<<EOS)
+    h = EditMessageMode.parse_raw_email_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 Subject: one two three
   four five six
@@ -57,7 +57,7 @@ EOS
       "Subject:   one two  three   end    \n",
     ]
     variants.each do |s|
-      h = Source.parse_raw_email_header StringIO.new(s)
+      h = EditMessageMode.parse_raw_email_header StringIO.new(s)
       assert_equal "one two  three   end", h["subject"]
     end
   end
@@ -68,13 +68,13 @@ EOS
       "Message-Id:<one@bob.com>       \n",
     ]
     variants.each do |s|
-      h = Source.parse_raw_email_header StringIO.new(s)
+      h = EditMessageMode.parse_raw_email_header StringIO.new(s)
       assert_equal "<one@bob.com>", h["message-id"]
     end
   end
 
   def test_blank_lines
-    h = Source.parse_raw_email_header StringIO.new("")
+    h = EditMessageMode.parse_raw_email_header StringIO.new("")
     assert_nil h["message-id"]
   end
 
@@ -84,13 +84,13 @@ EOS
       "Message-Id:\n",
     ]
     variants.each do |s|
-      h = Source.parse_raw_email_header StringIO.new(s)
+      h = EditMessageMode.parse_raw_email_header StringIO.new(s)
       assert_equal "", h["message-id"]
     end
   end
 
   def test_detect_end_of_headers
-    h = Source.parse_raw_email_header StringIO.new(<<EOS)
+    h = EditMessageMode.parse_raw_email_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 
 To: a dear friend
@@ -98,7 +98,7 @@ EOS
   assert_equal "Bob <bob@bob.com>", h["from"]
   assert_nil h["to"]
 
-  h = Source.parse_raw_email_header StringIO.new(<<EOS)
+  h = EditMessageMode.parse_raw_email_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 \r
 To: a dear friend
@@ -106,7 +106,7 @@ EOS
   assert_equal "Bob <bob@bob.com>", h["from"]
   assert_nil h["to"]
 
-  h = Source.parse_raw_email_header StringIO.new(<<EOS)
+  h = EditMessageMode.parse_raw_email_header StringIO.new(<<EOS)
 From: Bob <bob@bob.com>
 \r\n\r
 To: a dear friend

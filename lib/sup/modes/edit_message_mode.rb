@@ -451,9 +451,46 @@ protected
     end
   end
 
+  ## utility method to read a raw email header from an IO stream and turn it
+  ## into a hash of key-value pairs. minor special semantics for certain headers.
+  def self.parse_raw_email_header f
+    header = {}
+    last = nil
+
+    while(line = f.gets)
+      case line
+      ## these three can occur multiple times, and we want the first one
+      when /^(Delivered-To|X-Original-To|Envelope-To):\s*(.*?)\s*$/i; header[last = $1.downcase] ||= $2
+      ## regular header: overwrite (not that we should see more than one)
+      ## TODO: figure out whether just using the first occurrence changes
+      ## anything (which would simplify the logic slightly)
+      when /^([^:\s]+):\s*(.*?)\s*$/i; header[last = $1.downcase] = $2
+      when /^\r*$/; break # blank line signifies end of header
+      else
+        if last
+          header[last] << " " unless header[last].empty?
+          header[last] << line.strip
+        end
+      end
+    end
+
+    %w(subject from to cc bcc).each do |k|
+      v = header[k] or next
+      next unless Rfc2047.is_encoded? v
+      header[k] = begin
+        Rfc2047.decode_to $encoding, v
+      rescue Errno::EINVAL, Iconv::InvalidEncoding, Iconv::IllegalSequence
+        v
+      end
+    end
+    header
+  end
+
+  def parse_raw_email_header f; self.class.parse_raw_email_header f end
+
   def parse_file fn
     File.open(fn) do |f|
-      header = Source.parse_raw_email_header(f).inject({}) { |h, (k, v)| h[k.capitalize] = v; h } # lousy HACK
+      header = parse_raw_email_header(f).inject({}) { |h, (k, v)| h[k.capitalize] = v; h } # lousy HACK
       body = f.readlines.map { |l| l.chomp }
 
       header.delete_if { |k, v| NON_EDITABLE_HEADERS.member? k }
