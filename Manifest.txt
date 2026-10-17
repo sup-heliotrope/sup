@@ -146,6 +146,7 @@ test/fixtures/blank-header-fields.eml
 test/fixtures/contacts.txt
 test/fixtures/embedded-message-rfc6532.eml
 test/fixtures/embedded-message.eml
+test/fixtures/folded-from-header.eml
 test/fixtures/invalid-date.eml
 test/fixtures/mailing-list-header.eml
 test/fixtures/malicious-attachment-names.eml

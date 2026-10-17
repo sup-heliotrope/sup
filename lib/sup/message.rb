@@ -72,9 +72,12 @@ class Message
     return unless v
     return v unless v.is_a? String
     return unless v.size < MAX_HEADER_VALUE_SIZE # avoid regex blowup on spam
+    ## Unfold per RFC 5322 2.2.3: remove each CRLF immediately followed
+    ## by WSP, leaving the WSP in place.
+    v = v.gsub(/\r?\n(?=[ \t])/, "")
     ## Header values should be either 7-bit with RFC2047-encoded words
     ## or UTF-8 as per RFC6532. Replace any invalid high bytes with U+FFFD.
-    Rfc2047.decode_to $encoding, v.dup.force_encoding(Encoding::UTF_8).scrub
+    Rfc2047.decode_to $encoding, v.force_encoding(Encoding::UTF_8).scrub
   end
 
   def parse_header encoded_header

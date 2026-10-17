@@ -234,10 +234,23 @@ class TestMessage < Minitest::Test
 
     # Look at another header field whose first line was blank.
     list_unsubscribe = sup_message.list_unsubscribe
-    assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>,\n\t" +
+    assert_equal("<http://mailman2.widget.com/mailman/listinfo/monitor-list>,\t" +
                  "<mailto:monitor-list-request@widget.com?subject=unsubscribe>",
                  list_unsubscribe)
 
+  end
+
+  def test_folded_from_header
+    source = DummySource.new("sup-test://test_folded_from_header")
+    source.messages = [ fixture_path("folded-from-header.eml") ]
+    source_info = 0
+
+    sup_message = Message.build_from_source(source, source_info)
+    sup_message.load_from_source!
+
+    assert_equal "Kevin Frazier, Juliana Schroeder, Brian Frye, " +
+                 "Nathanael Fast, and Rob Greer", sup_message.from.name
+    assert_equal "user@rss2email.invalid", sup_message.from.email
   end
 
   def test_rfc2047_header_encoding
