@@ -214,6 +214,7 @@ let
       grim
       jq
       sway
+      oxipng
       procps
     ];
     env = {
@@ -244,6 +245,8 @@ let
         kill -TERM $foot_pid
         wait $foot_pid || :
       done
+
+      oxipng -o 2 --strip all $out/*.png
     '';
   };
 in
