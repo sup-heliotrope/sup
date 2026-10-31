@@ -81,13 +81,13 @@ Return value:
 EOS
 
   HookManager.register "sent-save-to", <<EOS
-Configures where to save sent mail to. If this hook doesn't exist,
-the global sent setting will be used (possibly defaulting to sup://sent)
+Selects where to save sent mail to. If this hook doesn't exist, the
+"sent_source" config will be used (possibly defaulting to sup://sent).
 Variables:
-    message: RMail::Message instance of the mail to send.
-    account: Account instance matching the From address
+    message: RMail::Message instance of the mail which has been sent.
+    account: Account instance matching the From address.
 Return value:
-     Source to save mail to, nil to use default
+    Source to save the sent mail to, or nil to use the default.
 EOS
 
   attr_reader :status
