@@ -364,10 +364,10 @@ class String
   ## Net::IMAP::decode_utf7 which only handles the IMAP "modified UTF-7"
   ## encoding. This implementation is inspired by that one but handles
   ## standard UTF-7 shift characters and not the IMAP-specific variation.
-  def decode_utf7
+  def decode_utf7 **opts
     gsub(/\+([^-]+)?-/) {
       if $1
-        ($1 + "===").unpack("m")[0].encode(Encoding::UTF_8, Encoding::UTF_16BE)
+        ($1 + "===").unpack("m")[0].encode(Encoding::UTF_8, Encoding::UTF_16BE, **opts)
       else
         "+"
       end

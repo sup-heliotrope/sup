@@ -57,4 +57,11 @@ Content-Disposition: attachment; filename="ascii.txt"
 
 This is +Jyg-UTF-7+Jyg-
 --===============2385509127900810307==
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Disposition: attachment; filename="bad-utf7.txt"
+
+Bad +AGEA- UTF-7
+--===============2385509127900810307==
 

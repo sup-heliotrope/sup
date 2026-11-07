@@ -181,7 +181,7 @@ class TestMessage < Minitest::Test
     sup_message.load_from_source!
 
     chunks = sup_message.load_from_source!
-    assert_equal(7, chunks.length)
+    assert_equal(8, chunks.length)
     assert(chunks[0].is_a? Redwood::Chunk::Text)
     ## The first attachment declares charset=us-ascii
     assert(chunks[1].is_a? Redwood::Chunk::Attachment)
@@ -203,6 +203,10 @@ class TestMessage < Minitest::Test
     ## The sixth attachment is UTF-7 encoded
     assert(chunks[6].is_a? Redwood::Chunk::Attachment)
     assert_equal(["This is ✨UTF-7✨"], chunks[6].lines)
+    ## The seventh attachment is UTF-7 with an incomplete sequence,
+    ## which will be replaced with U+FFFD REPLACEMENT CHARACTER
+    assert(chunks[7].is_a? Redwood::Chunk::Attachment)
+    assert_equal(["Bad a� UTF-7"], chunks[7].lines)
   end
 
   def test_mailing_list_header
@@ -264,7 +268,8 @@ class TestMessage < Minitest::Test
     assert_equal("Hans Martin Djupvik, Ingrid Bø, Ирина Сидорова, " +
                  "Jesper Berg, Frida Engø " +
                  "bad: =?UTF16?q?badcharsetname?==?US-ASCII?b?/w?=" +
-                 "=?UTF-7?Q?=41=6D=65=72=69=63=61=E2=80=99=73?=",
+                 "=?UTF-7?Q?=41=6D=65=72=69=63=61=E2=80=99=73?=" +
+                 "=?UTF-7?b?K0FHRUEt?=",
                  sup_message.subj)
     assert_equal "=?utf-8?q?YouTube-tj=E4nst?=", sup_message.from.name
   end
