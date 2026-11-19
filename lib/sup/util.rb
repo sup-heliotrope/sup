@@ -80,7 +80,7 @@ module RMail
     def self.make_file_attachment fn
       bfn = File.basename fn
       t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first
-      payload = IO.read fn
+      payload = IO.binread fn
       ## Need to encode as base64 or quoted-printable if any lines are longer than 998 chars.
       encoding = if t.encoding != t.default_encoding and payload.each_line.any? { |l| l.length > 998 }
         t.default_encoding

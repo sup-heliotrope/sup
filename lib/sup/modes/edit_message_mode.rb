@@ -577,7 +577,7 @@ protected
               return false
         end
       else
-        IO.popen(acct.sendmail, "w:UTF-8") { |p| p.puts m }
+        IO.popen(acct.sendmail, "wb") { |p| p.puts m }
         raise SendmailCommandFailed, "Couldn't execute #{acct.sendmail}" unless $? == 0
       end
 
@@ -605,7 +605,7 @@ protected
     m.body += "\n" + sig_lines.join("\n") unless @sig_edited
     ## body must end in a newline or GPG signatures will be WRONG!
     m.body += "\n" unless m.body =~ /\n\Z/
-    m.body = m.body.fix_encoding!
+    m.body.force_encoding("ASCII-8BIT")
 
     ## there are attachments, so wrap body in an attachment of its own
     unless @attachments.empty?
@@ -614,10 +614,7 @@ protected
       m = RMail::Message.new
 
       m.add_part body_m
-      @attachments.each do |a|
-        a.body = a.body.fix_encoding! if a.body.kind_of? String
-        m.add_part a
-      end
+      @attachments.each { |a| m.add_part a }
     end
 
     ## do whatever crypto transformation is necessary

@@ -64,7 +64,7 @@ class TestEditMessageMode < Minitest::Test
 
     msg = mode.send :build_message, Time.now
     attachment = msg.part(1)
-    assert_equal attachment_content, attachment.body
+    assert_equal attachment_content.b, attachment.body
     assert_equal "8bit", attachment.header["Content-Transfer-Encoding"]
   end
 
@@ -95,5 +95,38 @@ class TestEditMessageMode < Minitest::Test
     ## There shouldn't be multiple Content-Transfer-Encoding headers.
     ## This was: https://github.com/sup-heliotrope/sup/issues/502
     assert_equal ["quoted-printable"], attachment.header.fetch_all("Content-Transfer-Encoding")
+  end
+
+  ## https://github.com/sup-heliotrope/sup/issues/135
+  def test_attachment_8bit_non_utf8
+    body_content = "löl noñ-ÀSCII bodý"
+    ## CP1251 is not UTF-8 compatible.
+    ## This is a CSV only due to a quirk of mime-types, which wants to use 8bit for text/csv
+    ## (whereas text/plain is quoted-printable).
+    attachment_content = "С днем рождения!\n".encode("cp1251")
+    attachment_filename = File.join @path, "cp1251.csv"
+    File.write attachment_filename, attachment_content
+
+    opts = {
+      :header => {
+        "From" => +"sender@example.invalid",
+        "To" => +"recip@example.invalid",
+      },
+      :attachments => {
+        "cp1251.csv" => RMail::Message.make_file_attachment(attachment_filename),
+      },
+      :body => [body_content],
+    }
+    mode = Redwood::EditMessageMode.new opts
+
+    msg = mode.send :build_message, Time.now
+    attachment = msg.part(1)
+    assert_equal attachment_content.b, attachment.body
+    assert_equal "8bit", attachment.header["Content-Transfer-Encoding"]
+
+    ## Also check the serialized message, which is what the send_message method uses.
+    assert msg.to_s.lines.include? body_content.b + "\n"
+    assert msg.to_s.lines.include? "Content-Type: text/csv; name=\"cp1251.csv\"\n"
+    assert msg.to_s.lines.include? attachment_content.b
   end
 end
