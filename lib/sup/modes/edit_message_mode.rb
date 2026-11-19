@@ -601,6 +601,8 @@ protected
 
   def build_message date
     m = RMail::Message.new
+    m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
+    m.header["Content-Transfer-Encoding"] ||= +"8bit"
     m.body = @body.join("\n")
     m.body += "\n" + sig_lines.join("\n") unless @sig_edited
     ## body must end in a newline or GPG signatures will be WRONG!
@@ -645,8 +647,6 @@ protected
     m.header["Date"] = date.rfc2822
     m.header["Message-Id"] = @message_id
     m.header["User-Agent"] = "Sup/#{Redwood::VERSION}"
-    m.header["Content-Type"] = "text/plain; charset=#{$encoding}"
-    m.header["Content-Transfer-Encoding"] ||= +"8bit"
     m.header["MIME-Version"] = +"1.0"
     m
   end

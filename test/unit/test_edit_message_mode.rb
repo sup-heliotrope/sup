@@ -41,6 +41,27 @@ class TestEditMessageMode < Minitest::Test
     $config = nil
   end
 
+  def test_basic_message
+    opts = {
+      :header => {
+        "From" => +"sender@example.invalid",
+        "To" => +"recip@example.invalid",
+      },
+      :body => ["hello friends"],
+    }
+    mode = Redwood::EditMessageMode.new opts
+
+    msg = mode.send :build_message, Time.now
+    refute msg.multipart?
+    assert_equal "hello friends\n", msg.body
+    assert_equal "text/plain; charset=UTF-8", msg.header["Content-Type"]
+    assert_equal "8bit", msg.header["Content-Transfer-Encoding"]
+    assert_equal "1.0", msg.header["MIME-Version"]
+    assert_match(/^Sup\//, msg.header["User-Agent"])
+    refute_nil msg.header["Date"]
+    refute_nil msg.header["Message-Id"]
+  end
+
   def test_attachment_content_transfer_encoding
     ## RMail::Message#make_attachment will choose
     ## Content-Transfer-Encoding: 8bit for a CSV file.
@@ -120,8 +141,15 @@ class TestEditMessageMode < Minitest::Test
     mode = Redwood::EditMessageMode.new opts
 
     msg = mode.send :build_message, Time.now
+    inline = msg.part(0)
+    assert_equal body_content.b + "\n", inline.body
+    assert_equal "text/plain; charset=UTF-8", inline.header["Content-Type"]
+    assert_equal "inline", inline.header["Content-Disposition"]
+    assert_equal "8bit", inline.header["Content-Transfer-Encoding"]
     attachment = msg.part(1)
     assert_equal attachment_content.b, attachment.body
+    assert_equal 'text/csv; name="cp1251.csv"', attachment.header["Content-Type"]
+    assert_equal 'attachment; filename="cp1251.csv"', attachment.header["Content-Disposition"]
     assert_equal "8bit", attachment.header["Content-Transfer-Encoding"]
 
     ## Also check the serialized message, which is what the send_message method uses.
