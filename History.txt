@@ -1,3 +1,24 @@
+== 1.5 / 2026-11-19
+
+* #628: Added a workaround for a spurious DatabaseCorruptError raised by Xapian
+  when listing all mail (Xapian bug #855).
+* #250: Searches containing only negative terms now produce the expected
+  results: all mail minus the negated search terms.
+* Sup now adds a MIME-Version header to all outgoing mail.
+* Mail headers where a CRLF fold appears inside a quoted name are now parsed
+  and displayed correctly.
+* #169: The sup-sync helper program now handles the case where a message has
+  been renamed, rather than crashing.
+* Messages with invalid UTF-7 encoding are now handled the same as other
+  encodings (invalid bytes are replaced with U+FFFD) rather than crashing Sup.
+* #572: Unicode characters above U+00FF are stripped out from the terminal
+  title when running under GNU screen, to avoid a bug in its handling of
+  Unicode in titles.
+* Sup now sets the terminal title under tmux and any other terminal which is
+  indicated as supporting the "XT" termcap.
+* #488: Fixed a race condition which could cause Sup to crash when killing the
+  last thread in the list.
+
 == 1.4 / 2026-04-21
 
 * #343: Draft messages containing non-ASCII characters are now displayed
