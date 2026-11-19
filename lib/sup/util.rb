@@ -2,7 +2,7 @@
 
 require 'thread'
 require 'lockfile'
-require 'mime/types'
+require 'magic'
 require 'pathname'
 require 'rmail'
 require 'set'
@@ -79,15 +79,21 @@ module RMail
   class Message
     def self.make_file_attachment fn
       bfn = File.basename fn
-      t = MIME::Types.type_for(bfn).first || MIME::Types.type_for("exe").first
+      content_type = File.mime(fn) || "application/octet-stream"
+      content_type = content_type.sub(/; charset=binary/, "") if content_type =~ /^application\//
       payload = IO.binread fn
-      ## Need to encode as base64 or quoted-printable if any lines are longer than 998 chars.
-      encoding = if t.encoding != t.default_encoding and payload.each_line.any? { |l| l.length > 998 }
-        t.default_encoding
+      encoding = if content_type =~ /^text\/|^message\/|^application\/mbox\b/i
+        if payload.include?("\0") || payload.each_line.any? { |l| l.bytesize > 998 } || payload =~ /\r(?!\n)/
+          "quoted-printable"
+        elsif !payload.ascii_only?
+          "8bit"
+        else
+          "7bit"
+        end
       else
-        t.encoding
+        "base64"
       end
-      make_attachment payload, t.content_type, encoding, bfn.to_s
+      make_attachment payload, content_type, encoding.dup, bfn.to_s
     end
 
     def charset
@@ -650,4 +656,3 @@ class FinishLine
     @m.synchronize { !@over && @over = true }
   end
 end
-

@@ -1,0 +1,9 @@
+diff -ur hello.orig/hello.c hello/hello.c
+--- hello.orig/hello.c	2026-11-01 21:02:17.097858746 +1100
++++ hello/hello.c	2026-11-01 21:02:20.600966920 +1100
+@@ -1,4 +1,4 @@
+ int main(void)
+ {
+-	return 0;
++	return 42;
+ }

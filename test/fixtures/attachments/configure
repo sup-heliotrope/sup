@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "checking for a C compiler... cc"

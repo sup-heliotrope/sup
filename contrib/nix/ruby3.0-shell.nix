@@ -10,5 +10,11 @@ let
     gemfile = ./Gemfile;
     lockfile = ./ruby3.0-Gemfile.lock;
     gemset = ./ruby3.0-gemset.nix;
+    gemConfig = pkgs.defaultGemConfig // {
+      ruby-magic = attrs: {
+        buildInputs = [ pkgs.file ];
+        buildFlags = [ "--enable-system-libraries" ];
+      };
+    };
   };
 in pkgs.mkShell { packages = [ gems gems.wrappedRuby pkgs.pandoc ]; }

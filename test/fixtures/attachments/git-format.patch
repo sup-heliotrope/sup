@@ -1,0 +1,23 @@
+From 192aa8d87e24c94592647cbd804a64c3d4d01c07 Mon Sep 17 00:00:00 2001
+From: Dan Callaghan <djc@djc.id.au>
+Date: Sun, 1 Nov 2026 20:26:40 +1100
+Subject: [PATCH] exit 42
+
+---
+ hello.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hello.c b/hello.c
+index c8629c1..fd76ffb 100644
+--- a/hello.c
++++ b/hello.c
+@@ -1,5 +1,5 @@
+ int main(void)
+ {
+ 	printf("hello\n");
+-	return 0;
++	return 42;
+ }
+-- 
+2.54.0
+

@@ -1,0 +1,6 @@
+/dts-v1/;
+
+/ {
+	model = "Example Board";
+	compatible = "example,board";
+};

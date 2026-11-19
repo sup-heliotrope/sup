@@ -22,6 +22,10 @@ let
           })
         ];
       };
+      ruby-magic = attrs: {
+        buildInputs = [ pkgs.file ];
+        buildFlags = [ "--enable-system-libraries" ];
+      };
       xapian-ruby =
         attrs:
         pkgs.defaultGemConfig.xapian-ruby attrs

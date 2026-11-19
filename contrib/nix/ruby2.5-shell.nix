@@ -11,6 +11,10 @@ let
     lockfile = ./ruby2.5-Gemfile.lock;
     gemset = ./ruby2.5-gemset.nix;
     gemConfig = pkgs.defaultGemConfig // {
+      ruby-magic = attrs: {
+        buildInputs = [ pkgs.file ];
+        buildFlags = [ "--enable-system-libraries" ];
+      };
       # Workaround: remove rake from nativeBuildInputs, otherwise it causes
       # xapian-bindings to build against the default Ruby version
       # instead of our chosen version.

@@ -122,10 +122,8 @@ class TestEditMessageMode < Minitest::Test
   def test_attachment_8bit_non_utf8
     body_content = "löl noñ-ÀSCII bodý"
     ## CP1251 is not UTF-8 compatible.
-    ## This is a CSV only due to a quirk of mime-types, which wants to use 8bit for text/csv
-    ## (whereas text/plain is quoted-printable).
     attachment_content = "С днем рождения!\n".encode("cp1251")
-    attachment_filename = File.join @path, "cp1251.csv"
+    attachment_filename = File.join @path, "cp1251.txt"
     File.write attachment_filename, attachment_content
 
     opts = {
@@ -134,7 +132,7 @@ class TestEditMessageMode < Minitest::Test
         "To" => +"recip@example.invalid",
       },
       :attachments => {
-        "cp1251.csv" => RMail::Message.make_file_attachment(attachment_filename),
+        "cp1251.txt" => RMail::Message.make_file_attachment(attachment_filename),
       },
       :body => [body_content],
     }
@@ -148,13 +146,13 @@ class TestEditMessageMode < Minitest::Test
     assert_equal "8bit", inline.header["Content-Transfer-Encoding"]
     attachment = msg.part(1)
     assert_equal attachment_content.b, attachment.body
-    assert_equal 'text/csv; name="cp1251.csv"', attachment.header["Content-Type"]
-    assert_equal 'attachment; filename="cp1251.csv"', attachment.header["Content-Disposition"]
+    assert_equal 'text/plain; charset=iso-8859-1; name="cp1251.txt"', attachment.header["Content-Type"]
+    assert_equal 'attachment; filename="cp1251.txt"', attachment.header["Content-Disposition"]
     assert_equal "8bit", attachment.header["Content-Transfer-Encoding"]
 
     ## Also check the serialized message, which is what the send_message method uses.
     assert msg.to_s.lines.include? body_content.b + "\n"
-    assert msg.to_s.lines.include? "Content-Type: text/csv; name=\"cp1251.csv\"\n"
+    assert msg.to_s.lines.include? "Content-Type: text/plain; charset=iso-8859-1; name=\"cp1251.txt\"\n"
     assert msg.to_s.lines.include? attachment_content.b
   end
 end
