@@ -397,7 +397,7 @@ EOS
 
       # if user selects directory use file name from message
       if fn and File.directory? fn
-        fn = File.join(fn, chunk.filename)
+        fn = File.join(fn, chunk.filesafe_filename)
       end
 
       save_to_file(fn) { |f| f.print chunk.raw_content } if fn

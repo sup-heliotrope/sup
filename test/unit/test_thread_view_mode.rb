@@ -68,6 +68,18 @@ class TestThreadViewMode < Minitest::Test
     expected_path = File.join destdir, "sup_.travis.yml"
     assert File.exist? expected_path
     assert_equal 260, File.size(expected_path)
+
+    ## Scroll to the attachment and save it to a directory.
+    destdir = File.join(@path, "saved2")
+    Dir.mkdir destdir
+    stub(BufferManager.instance).ask(:filename, "Save attachment to file or directory: ", "#{ENV["HOME"]}/sup_.travis.yml") { destdir }
+    stub(BufferManager.instance).flash("Successfully wrote #{destdir}/sup_.travis.yml.")
+    assert_equal "x Attachment: sup/.travis.yml (text/x-yaml; 260B)", mode[10][0][1]
+    mode.send :set_cursor_pos, 10
+    mode.save_to_disk
+    expected_path = File.join destdir, "sup_.travis.yml"
+    assert File.exist? expected_path
+    assert_equal 260, File.size(expected_path)
   end
 end
 
