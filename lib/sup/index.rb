@@ -391,7 +391,7 @@ EOS
     %w[
       from to
       is has label
-      filename filetypem
+      filename filetype
       before on in during after
       limit
     ] + NORMAL_PREFIX.keys + BOOLEAN_PREFIX.keys
