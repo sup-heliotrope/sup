@@ -61,6 +61,14 @@ class DummySource < Source
   def fallback_date_for_message id
     @fallback_date
   end
+
+  def poll
+    indexed = Index.instance.enum_for(:each_source_info, self.id).map(&:to_i)
+    @messages.each_with_index do |m, i|
+      next if indexed.include? i
+      yield :add, :info => i, :labels => [], :progress => i / @messages.length
+    end
+  end
 end
 
 end
