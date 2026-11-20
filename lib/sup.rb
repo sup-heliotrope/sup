@@ -262,56 +262,6 @@ EOS
     $config = nil
   end
 
-  ## not really a good place for this, so I'll just dump it here.
-  ##
-  ## a source error is either a FatalSourceError or an OutOfSyncSourceError.
-  ## the superclass SourceError is just a generic.
-  def report_broken_sources opts={}
-    return unless BufferManager.instantiated?
-
-    broken_sources = SourceManager.sources.select { |s| s.error.is_a? FatalSourceError }
-    unless broken_sources.empty?
-      BufferManager.spawn_unless_exists("Broken source notification for #{broken_sources.join(',')}", opts) do
-        TextMode.new(<<EOM)
-Source error notification
--------------------------
-
-Hi there. It looks like one or more message sources is reporting
-errors. Until this is corrected, messages from these sources cannot
-be viewed, and new messages will not be detected.
-
-#{broken_sources.map { |s| "Source: " + s.to_s + "\n Error: " + s.error.message.wrap(70).join("\n        ")}.join("\n\n")}
-EOM
-#' stupid ruby-mode
-      end
-    end
-
-    desynced_sources = SourceManager.sources.select { |s| s.error.is_a? OutOfSyncSourceError }
-    unless desynced_sources.empty?
-      BufferManager.spawn_unless_exists("Out-of-sync source notification for #{broken_sources.join(',')}", opts) do
-        TextMode.new(<<EOM)
-Out-of-sync source notification
--------------------------------
-
-Hi there. It looks like one or more sources has fallen out of sync
-with my index. This can happen when you modify these sources with
-other email clients. (Sorry, I don't play well with others.)
-
-Until this is corrected, messages from these sources cannot be viewed,
-and new messages will not be detected. Luckily, this is easy to correct!
-
-#{desynced_sources.map do |s|
-  "Source: " + s.to_s +
-   "\n Error: " + s.error.message.wrap(70).join("\n        ") +
-   "\n   Fix: sup-sync --changed #{s.to_s}"
-  end}
-EOM
-#' stupid ruby-mode
-      end
-    end
-  end
-
-
   ## set up default configuration file
   def load_config filename
     default_config = {
@@ -381,7 +331,7 @@ EOM
   end
 
   module_function :save_yaml_obj, :load_yaml_obj, :start, :finish,
-                  :report_broken_sources, :load_config, :managers,
+                  :load_config, :managers,
                   :check_syncback_settings
 end
 
