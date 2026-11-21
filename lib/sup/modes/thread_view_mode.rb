@@ -267,7 +267,7 @@ EOS
     cmd = case (hookcmd = HookManager.run "bounce-command", :from => m.from, :to => to)
           when nil, /^$/ then defcmd
           else hookcmd
-          end + ' ' + to.map { |t| t.email }.join(' ')
+          end + ' ' + to.map { |t| Shellwords.escape t.email }.join(' ')
 
     bt = to.size > 1 ? "#{to.size} recipients" : to[0].to_s
 
