@@ -22,8 +22,8 @@ have an e-mail file like this: foo_bar:2,FRS (flags are favorite,
 replied, seen) and its Xapian entry has labels 'starred', the merge
 operation will add the 'replied' label to the Xapian entry.
 
-If you choose not to merge (-m) you will lose information ('replied'), and in
-the previous example the file will be renamed to foo_bar:2,FS.
+If you choose not to merge (--no-merge) you will lose information ('replied'),
+and in the previous example the file will be renamed to foo_bar:2,FS.
 
 Running this script is *strongly* recommended when setting the
 "sync_back_to_maildir" option from false to true in config.yaml or changing the
@@ -38,8 +38,8 @@ sync back using the configuration parameter sync_back = false in sources.yaml.
 
 Options include:
 EOS
-  opt :no_confirm, "Don't ask for confirmation before synchronizing", :default => false, :short => "n"
-  opt :no_merge, "Don't merge new supported Maildir flags (R and P)", :default => false, :short => "m"
+  opt :no_confirm, "Don't ask for confirmation before synchronizing", :default => false, :short => :none
+  opt :no_merge, "Don't merge new supported Maildir flags (R and P)", :default => false, :short => :none
   opt :list_sources, "List your Maildir sources and exit", :default => false, :short => "l"
   opt :unusual_sources_too, "Sync unusual sources too if no specific source information is given", :default => false, :short => "u"
 end
