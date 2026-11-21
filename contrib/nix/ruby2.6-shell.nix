@@ -11,9 +11,6 @@ let
     lockfile = ./ruby2.6-Gemfile.lock;
     gemset = ./ruby2.6-gemset.nix;
     gemConfig = pkgs.defaultGemConfig // {
-      fiddle = attrs: {
-        buildInputs = [ pkgs.libffi ];
-      };
       # Workaround: remove rake from nativeBuildInputs, otherwise it causes
       # xapian-bindings to build against the default Ruby version
       # instead of our chosen version.

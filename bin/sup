@@ -6,7 +6,6 @@ $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 require 'ncursesw'
 
 require 'sup/util/ncurses'
-require 'sup/util/locale_fiddler'
 require 'sup/util/axe'
 
 no_gpgme = false
@@ -106,17 +105,7 @@ end
 
 require 'rbconfig'
 
-unless RbConfig::CONFIG['arch'] =~ /openbsd/
-  debug "dynamically loading setlocale()"
-  begin
-    class LibC; extend LocaleFiddler; end
-    debug "setting locale..."
-    LibC.setlocale(6, "")
-  rescue RuntimeError => e
-    warn "cannot dlload setlocale(); ncurses wide character support probably broken."
-    warn "dlload error was #{e.class}: #{e.message}"
-  end
-end
+Ncurses.setlocale Ncurses::LC_ALL, ""
 
 def start_cursing
   Ncurses.initscr

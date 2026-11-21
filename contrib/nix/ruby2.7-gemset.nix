@@ -39,16 +39,6 @@
     };
     version = "1.1.3";
   };
-  fiddle = {
-    groups = ["default"];
-    platforms = [];
-    source = {
-      remotes = ["https://rubygems.org"];
-      sha256 = "1d2y2qh6xml4w6p15kaz1v2ryb8p3nm6yy5x5mfygdrxgpsc63rd";
-      type = "gem";
-    };
-    version = "1.0.9";
-  };
   gpgme = {
     dependencies = ["mini_portile2"];
     groups = ["default"];

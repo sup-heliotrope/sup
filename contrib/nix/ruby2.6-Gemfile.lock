@@ -5,7 +5,6 @@ GEM
     benchmark (0.4.0)
     chronic (0.10.2)
     coderay (1.1.3)
-    fiddle (1.0.9)
     gpgme (2.0.23)
       mini_portile2 (~> 2.7)
     highline (2.0.3)
@@ -65,7 +64,6 @@ DEPENDENCIES
   benchmark
   bundler (>= 1.3, < 3)
   chronic
-  fiddle
   gpgme (>= 2.0.2)
   highline
   locale (~> 2.0)
