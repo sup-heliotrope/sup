@@ -100,7 +100,7 @@ begin
         Redwood::Maildir.new uri, !$opts[:unusual], $opts[:archive], $opts[:sync_back], nil, labels
       when /^mbox:/
         Redwood::MBox.new uri, !$opts[:unusual], $opts[:archive], nil, labels
-      when nil
+      else
         Optimist::die "Sources must be specified with a maildir:// or mbox:// URI"
       end
     @cli.say "Adding #{source}..."
