@@ -95,6 +95,7 @@ EOS
       @filename = filename
       @quotable = false # changed to true if we can parse it through the
                         # mime-decode hook, or if it's plain text
+      @encoded_content = encoded_content
       @raw_content =
         if encoded_content.body
           encoded_content.decode
@@ -141,7 +142,13 @@ EOS
       if expandable?
         "Attachment: #{filename} (#{lines.length} lines)"
       else
-        "Attachment: #{filename} (#{content_type}; #{@raw_content.size.to_human_size})"
+        raw_size = @raw_content.bytesize.to_human_size
+        encoded_size = @encoded_content.body.bytesize.to_human_size
+        if encoded_size == raw_size
+          "Attachment: #{filename} (#{content_type}; #{raw_size})"
+        else
+          "Attachment: #{filename} (#{content_type}; #{raw_size}; #{encoded_size} encoded)"
+        end
       end
     end
     def safe_filename; Shellwords.escape(@filename).gsub("/", "_") end

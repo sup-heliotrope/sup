@@ -112,13 +112,15 @@ class TestMessage < Minitest::Test
     assert_equal(4, chunks.length)
 
     assert(chunks[0].is_a? Redwood::Chunk::Quote)
+    assert_equal ["Excerpts from Fake Sender's message of Sun Dec 09 21:48:19 +0200 2007:",
+                  "> Test message!"],
+                 chunks[0].lines
     assert(chunks[1].is_a? Redwood::Chunk::Text)
+    assert_equal ["", "Thanks for the message!"], chunks[1].lines
     assert(chunks[2].is_a? Redwood::Chunk::Attachment)
+    assert_equal "Attachment: HACKING (application/octet-stream; 627B; 850B encoded)", chunks[2].patina_text
     assert(chunks[3].is_a? Redwood::Chunk::Attachment)
-
-    # further testing of chunks will happen in test_message_chunks.rb
-    # (possibly not yet implemented)
-
+    assert_equal "Attachment: Manifest.txt (13 lines)", chunks[3].patina_text
   end
 
   def test_broken_message_1
@@ -170,6 +172,8 @@ class TestMessage < Minitest::Test
 
     assert_equal(1, chunks.length)
     assert(chunks[0].is_a? Redwood::Chunk::Attachment)
+    assert_match(/^Attachment: sup-attachment-\d+-\d+\.html \(text\/html; 635B; 661B encoded\)$/,
+                 chunks[0].patina_text)
   end
 
   def test_text_attachment_decoding

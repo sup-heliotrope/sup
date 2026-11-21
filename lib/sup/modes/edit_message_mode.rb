@@ -457,7 +457,19 @@ protected
     unless @attachments.empty?
       @text += [""]
       @attachment_lines_offset = @text.length
-      @text += (0 ... @attachments.size).map { |i| [[:attachment_color, "+ Attachment: #{@attachment_names[i]} (#{@attachments[i].body.size.to_human_size})"]] }
+      @text += (0 ... @attachments.size).map do |i|
+        name = @attachment_names[i]
+        content_type = @attachments[i].header.content_type
+        raw_size = @attachments[i].decode.bytesize.to_human_size
+        encoded_size = @attachments[i].body.bytesize.to_human_size
+        line =
+          if encoded_size == raw_size
+            "+ Attachment: #{name} (#{content_type}; #{raw_size})"
+          else
+            "+ Attachment: #{name} (#{content_type}; #{raw_size}; #{encoded_size} encoded)"
+          end
+        [[:attachment_color, line]]
+      end
     end
   end
 
