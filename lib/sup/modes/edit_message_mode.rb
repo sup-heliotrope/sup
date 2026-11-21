@@ -352,6 +352,7 @@ EOS
   def attach_file
     fn = BufferManager.ask_for_filename :attachment, "File name (enter for browser): "
     return unless fn
+
     if HookManager.enabled? "check-attachment"
         reason = HookManager.run("check-attachment", :filename => fn)
         if reason
@@ -359,6 +360,12 @@ EOS
         end
     end
     begin
+      # This code is being used to backslash special characters in file name
+      fn.gsub! "\\", "\\\\\\\\"
+      fn.gsub! '*', '\*'
+      fn.gsub! '?', '\?'
+      fn.gsub! "[", "\\["
+      # End of this code
       Dir[fn].each do |f|
         @attachments << RMail::Message.make_file_attachment(f)
         @attachment_names << f
@@ -385,7 +392,7 @@ protected
       HookManager.run "crypto-mode", :header => @header, :body => @body, :crypto_selector => @crypto_selector
     end
   end
-
+	
   def mime_encode string
     string = [string].pack('M') # basic quoted-printable
     string.gsub!(/=\n/,'')      # .. remove trailing newline
