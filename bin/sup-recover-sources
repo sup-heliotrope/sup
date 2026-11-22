@@ -2,20 +2,12 @@
 
 $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 
-require 'optparse'
+require 'optimist'
+require 'sup'
 
-$opts = {
-  :unusual => false,
-  :archive => false,
-  :scan_num => 10,
-}
-
-
-OPTIONPARSERSUCKS = "\n" + " " * 38
-OptionParser.new do |opts|
-  opts.banner = <<EOS
-Usage: sup-recover-sources [options] <source>+
-
+opts = Optimist::options do
+  version "sup-recover-sources (sup #{Redwood::VERSION})"
+  banner <<EOS
 Rebuilds a lost sources.yaml file by reading messages from a list of
 sources and determining, for each source, the most prevalent
 'source_id' field of messages from that source in the index.
@@ -24,64 +16,70 @@ The only non-deterministic component to this is that if the same
 message appears in multiple sources, those sources may be
 mis-diagnosed by this program.
 
+Usage:
+  sup-recover-sources [options] <source>*
+
+where <source>* is one or more source URIs.
+
 If the first N messages (--scan-num below) all have the same source_id
 in the index, the source will be added to sources.yaml. Otherwise, the
 distribution will be printed, and you will have to add it by hand.
 
-The offset pointer into the sources will be set to the end of the source,
-so you will have to run sup-import --rebuild for each new source after
-doing this.
-
 Options include:
 EOS
-
-  opts.on("--unusual", "Mark sources as 'unusual'. Only usual#{OPTIONPARSERSUCKS}sources will be polled by hand. Default:#{OPTIONPARSERSUCKS}#{$opts[:unusual]}.") { $opts[:unusual] = true }
-
-  opts.on("--archive", "Mark sources as 'archive'. New messages#{OPTIONPARSERSUCKS}from these sources will not appear in#{OPTIONPARSERSUCKS}the inbox. Default: #{$opts[:archive]}.") { $opts[:archive] = true }
-
-  opts.on("--scan-num N", Integer, "Number of messages to scan per source.#{OPTIONPARSERSUCKS}Default: #{$opts[:scan_num]}.") do |n|
-    $opts[:scan_num] = n
-  end
-
-  opts.on_tail("-h", "--help", "Show this message") do
-    puts opts
-    exit
-  end
-end.parse(ARGV)
-
-require "sup"
-Redwood::start
-puts "loading index..."
-index = Redwood::Index.init
-index.load
-puts "loaded index of #{index.size} messages"
-
-ARGV.each do |fn|
-  next if Redwood::SourceManager.source_for fn
-
-  ## TODO: merge this code with the same snippet in import
-  source = Redwood::MBox.new(fn, nil, !$opts[:unusual], $opts[:archive])
-
-  source_ids = Hash.new 0
-  count = 0
-  source.each do |offset, labels|
-    m = Redwood::Message.new :source => source, :source_info => offset
-    m.load_from_source!
-    source_id = Redwood::SourceManager.source_for_id m.id
-    next unless source_id
-    source_ids[source_id] += 1
-    count += 1
-    break if count == $opts[:scan_num]
-  end
-
-  if source_ids.size == 1
-    id = source_ids.keys.first.to_i
-    puts "assigned #{source} to #{source_ids.keys.first}"
-    source.id = id
-    Redwood::SourceManager.add_source source
-  else
-    puts ">> unable to determine #{source}: #{source_ids.inspect}"
-  end
+  opt :unusual, "Mark sources as 'unusual'. They will not be polled automatically.", :default => false, :short => :none
+  opt :archive, "Mark sources as 'archive'. New messages from these sources will not appear in the inbox.", :default => false, :short => :none
+  opt :scan_num, "Number of messages to scan per source.", :default => 10, :short => :none
 end
 
-index.save
+Optimist::die "nothing to do: no sources given" if ARGV.empty?
+
+Redwood::start
+index = Redwood::Index.init
+index.load
+
+begin
+  ARGV.each do |uri|
+    next if Redwood::SourceManager.source_for uri
+
+    source =
+      case uri
+      when /^maildir:/
+        Redwood::Maildir.new uri, !opts[:unusual], opts[:archive], false, nil, []
+      when /^mbox:/
+        Redwood::MBox.new uri, !opts[:unusual], opts[:archive], nil, []
+      else
+        Optimist::die "Sources must be specified with a maildir:// or mbox:// URI"
+      end
+
+    source_ids = Hash.new 0
+    count = 0
+    source.each_message do |source_info|
+      location = Redwood::Location.new(source, source_info)
+      debug "checking message from #{source_info}"
+      m = Redwood::Message.new :locations => [location]
+      m.load_from_source!
+      indexed_source_ids = index.locations_for_id(m.id).select { |s, i| i == source_info }.map { |s, i| s }
+      if indexed_source_ids.empty?
+        debug "not found in index"
+        next
+      end
+      debug "found with source ids #{indexed_source_ids.inspect}"
+      indexed_source_ids.each { |id| source_ids[id] += 1 }
+      count += 1
+      break if count == opts[:scan_num]
+    end
+
+    if source_ids.size == 1
+      id = source_ids.keys.first.to_i
+      puts "assigned #{source} to #{source_ids.keys.first}"
+      source.id = id
+      Redwood::SourceManager.add_source source
+    else
+      puts ">> unable to determine #{source}: #{source_ids.inspect}"
+    end
+  end
+ensure
+  index.save
+  Redwood::finish
+end

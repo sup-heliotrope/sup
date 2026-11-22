@@ -180,6 +180,16 @@ class Maildir < Source
     nil
   end
 
+  def each_message
+    %w(cur new).each do |d|
+      subdir = File.join @dir, d
+      Dir.open(subdir).each do |f|
+        next if File.directory? File.join(subdir, f)
+        yield File.join(d, f)
+      end
+    end
+  end
+
   def labels? id
     maildir_labels id
   end

@@ -98,6 +98,12 @@ class Source
     unimplemented
   end
 
+  ## Yields each message info in this source.
+  ## Slow path only for sup-recover-sources. The normal path is poll.
+  def each_message
+    unimplemented
+  end
+
   def valid? info
     true
   end

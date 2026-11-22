@@ -327,10 +327,11 @@ EOS
   def optimize
   end
 
-  ## Return the id source of the source the message with the given message-id
-  ## was synced from
-  def source_for_id id
-    synchronize { get_entry(id)[:source_id] }
+  ## Return the locations the message with the given message-id
+  ## was synced from, as an array of [source_id, source_info] pairs.
+  def locations_for_id id
+    return [] unless (entry = synchronize { get_entry(id) })
+    entry[:locations]
   end
 
   ## Yields each term in the index that starts with prefix

@@ -163,6 +163,22 @@ class MBox < Source
     end
   end
 
+  def each_message &b
+    offsets = []
+    @mutex.synchronize do
+      ensure_open
+      offset = 0
+      end_offset = File.size @f
+      @f.seek offset
+      while offset < end_offset
+        offsets << offset
+        nil while line = @f.gets and not MBox::is_break_line? line
+        offset = @f.tell
+      end
+    end
+    offsets.each(&b)
+  end
+
   def next_offset offset
     @mutex.synchronize do
       ensure_open
