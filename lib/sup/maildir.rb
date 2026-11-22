@@ -130,8 +130,8 @@ class Maildir < Source
       old_ids = benchmark(:maildir_read_index) { Index.instance.enum_for(:each_source_info, self.id, "#{d}/").to_a }
       new_ids = benchmark(:maildir_read_dir) {
         Dir.open(subdir).select {
-          |f| !File.directory? f}.map {
-            |x| File.join(d,File.basename(x)) }.sort }
+          |f| !File.directory? File.join(subdir, f) }.map {
+            |f| File.join(d, f) }.sort }
       added += new_ids - old_ids
       deleted += old_ids - new_ids
       debug "#{old_ids.size} in index, #{new_ids.size} in filesystem"
