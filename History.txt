@@ -1,3 +1,14 @@
+== 1.6 / 2026-11-24
+
+* #629: Fixed incorrect top-level MIME type on outgoing messages with
+  attachments (regression in release 1.5).
+* Sup now passes through attachments with 8bit transfer encoding unmodified in
+  outgoing messages. Previously such attachments would be forcibly re-encoded
+  to the user's encoding, potentially causing corruption.
+* Sup now replaces / with _ in attachment filenames when you save an attachment
+  to disk and give Sup a directory. This matches the attachment filename
+  escaping behaviour already used in other cases.
+
 == 1.5 / 2026-11-19
 
 * #628: Added a workaround for a spurious DatabaseCorruptError raised by Xapian
