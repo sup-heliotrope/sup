@@ -99,28 +99,30 @@ EOS
 
     @headers = {}
     @headers[:recipient] = {
-      "To" => cc.map { |p| p.full_address },
+      "To" => (cc.map { |p| p.email == "sup@fake.sender.example.com" ? nil : p.email}.compact),
       "Cc" => [],
     } if useful_recipient
 
     ## typically we don't want to have a reply-to-sender option if the sender
     ## is a user account. however, if the cc is empty, it's a message to
     ## ourselves, so for the lack of any other options, we'll add it.
-    @headers[:sender] = {
-      "To" => [to.full_address],
-      "Cc" => [],
-    } if !AccountManager.is_account?(to) || !useful_recipient
+    if !AccountManager.is_account?(to) || !useful_recipient 
+    	@headers[:sender] = {
+      		"To" => [to.full_address],
+      		"Cc" => [],
+    	} unless to.email == "sup@fake.sender.example.com"
+    end
 
     @headers[:user] = {
       "To" => [],
       "Cc" => [],
     }
-
+    
     not_me_ccs = cc.select { |p| !AccountManager.is_account?(p) }
     @headers[:all] = {
       "To" => [to.full_address],
-      "Cc" => not_me_ccs.map { |p| p.full_address },
-    } unless not_me_ccs.empty?
+      "Cc" => (not_me_ccs.map { |p| p.email == "sup@fake.sender.example.com" ? nil : p.email }.compact),
+    } unless not_me_ccs.empty? or to.email == "sup@fake.sender.example.com"
 
     @headers[:list] = {
       "To" => [@m.list_address.full_address],
@@ -144,7 +146,7 @@ EOS
       elsif @headers.member? :sender
         :sender
       else
-        :recipient
+        :user
       end)
 
     headers_full = {
