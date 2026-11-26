@@ -78,7 +78,9 @@ class InboxMode < ThreadIndexMode
   end
 
   def status
-    super + "    #{Index.size} messages in index"
+    starred = Index.num_results_for(:labels => [:starred])
+    unread = Index.num_results_for(:labels => [:unread])
+    super + "    #{Index.size} messages in index (#{starred} starred, #{unread} unread)"
   end
 end
 
