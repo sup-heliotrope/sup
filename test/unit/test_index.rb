@@ -6,8 +6,11 @@ require "sup"
 class TestIndex < Minitest::Test
   def setup
     @path = Dir.mktmpdir
-    Redwood::start
+    $config = { :stem_language => "english" }
     Redwood::Logger.remove_sink $stderr
+    Redwood::HookManager.init File.join(@path, "hooks")
+    Redwood::SearchManager.init File.join(@path, "searches.txt")
+    Redwood::SourceManager.init
     Redwood::Index.init @path
     Redwood::Index.load
   end

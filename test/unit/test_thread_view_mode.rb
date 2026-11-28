@@ -1,6 +1,6 @@
+require "test_helper"
 require "dummy_buffer"
 require "dummy_source"
-require "test_helper"
 
 require "sup"
 
@@ -11,18 +11,24 @@ class TestThreadViewMode < Minitest::Test
     $config = {
       :indent_spaces => 2,
       :thread_by_subject => false,
+      :stem_language => "english",
+      :default_attachment_save_dir => "",
     }
     @path = Dir.mktmpdir
     @out = File.open File::NULL, "w"
     @inp = File.open File::NULL, "r"
     @screen = Ncurses.newterm "dumb", @out, @inp
     BufferManager.init
-    Redwood::start
     Logger.remove_sink $stderr
+    HookManager.init File.join(@path, "hooks")
+    UpdateManager.init
+    SourceManager.init
+    PollManager.init
+    LabelManager.init File.join(@path, "labels.txt")
+    ContactManager.init File.join(@path, "contacts.txt")
     Index.init File.join(@path, "xapian")
     Index.load
     @source = DummySource.new("sup-test://test_thread_view_mode")
-    SourceManager.instance.instance_eval '@sources = {}'
     SourceManager.instance.add_source @source
   end
 

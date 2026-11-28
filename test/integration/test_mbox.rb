@@ -1,5 +1,5 @@
-require "sup"
 require "test_helper"
+require "sup"
 
 class TestMbox < Minitest::Test
 
@@ -33,11 +33,15 @@ EOS
   end
 
   def start_sup_and_add_source(source)
-    start
+    $config = { :stem_language => "english" }
     Logger.remove_sink $stderr
+    HookManager.init File.join(@path, "hooks")
+    UpdateManager.init
+    SourceManager.init
+    PollManager.init
+    LabelManager.init File.join(@path, "labels.txt")
     Index.init @path
     Index.load
-    SourceManager.instance.instance_eval '@sources = {}'
     SourceManager.instance.add_source source
     PollManager.poll_from source
     Index.save_index

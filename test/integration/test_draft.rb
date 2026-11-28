@@ -1,14 +1,20 @@
-require "sup"
 require "test_helper"
+require "sup"
 
 class TestDraft < Minitest::Test
   include Redwood
 
   def setup
     @path = Dir.mktmpdir
-    start
+    $config = { :stem_language => "english" }
     Logger.remove_sink $stderr
     @draft_dir = File.join @path, "drafts"
+    HookManager.init File.join(@path, "hooks")
+    UpdateManager.init
+    SourceManager.init
+    PollManager.init
+    LabelManager.init File.join(@path, "labels.txt")
+    DraftManager.init @draft_dir
     @test_message_1 = <<EOS
 From: Some Person <someone@example.invalid>
 To:
@@ -20,10 +26,8 @@ Message-ID: <123@example.invalid>
 
 My incomplete message
 EOS
-    DraftManager.instance.instance_eval "@dir = '#{@draft_dir}'"
     Index.init @path
     Index.load
-    SourceManager.instance.instance_eval "@sources = {}"
     @draft_source = DraftManager.new_source
     SourceManager.add_source @draft_source
   end
