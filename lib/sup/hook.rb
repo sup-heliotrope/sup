@@ -56,16 +56,19 @@ class HookManager
       ## we have to do this via method calls, so you don't get all the
       ## semantics of a regular variable. not ideal.
       __lprocs.each do |k, v|
-        self.class.instance_eval do
-          define_method k do
-            @__cache[k] ||= v.call
-          end
+        define_singleton_method k do
+          @__cache[k] ||= v.call
         end
       end
       ret = eval __hook, __binding, __filename
       BufferManager.clear @__say_id if @__say_id
-      @__cache = {}
       ret
+    ensure
+      (__lprocs || []).each do |k, v|
+        next unless singleton_methods(false).include? k
+        singleton_class.send :remove_method, k
+      end
+      @__cache = {}
     end
   end
 
